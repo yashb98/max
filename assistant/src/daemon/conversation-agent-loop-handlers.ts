@@ -1,0 +1,1281 @@
+/**
+ * Extracted event handler functions for the conversation agent loop.
+ *
+ * Each switch case from the original monolithic event handler is now a
+ * standalone exported function, making individual behaviors independently
+ * testable while keeping shared mutable state bundled in EventHandlerState.
+ */
+
+import type pino from "pino";
+
+import type { AgentEvent } from "../agent/loop.js";
+import type {
+  TurnChannelContext,
+  TurnInterfaceContext,
+} from "../channels/types.js";
+import { recordEstimate } from "../context/estimator-calibration.js";
+import { getCalibrationProviderKey } from "../context/token-estimator.js";
+import {
+  getConversation,
+  getMessageById,
+  provenanceFromTrustContext,
+  updateMessageContent,
+} from "../memory/conversation-crud.js";
+import {
+  backfillMessageIdOnLogs,
+  recordRequestLog,
+} from "../memory/llm-request-log-store.js";
+import { backfillMemoryRecallLogMessageId } from "../memory/memory-recall-log-store.js";
+import { backfillMemoryV2ActivationMessageId } from "../memory/memory-v2-activation-log-store.js";
+import { getThreadTs } from "../memory/slack-thread-store.js";
+import {
+  type SlackMessageMetadata,
+  writeSlackMetadata,
+} from "../messaging/providers/slack/message-metadata.js";
+import { defaultPersistenceTerminal } from "../plugins/defaults/persistence.js";
+import { DEFAULT_TIMEOUTS, runPipeline } from "../plugins/pipeline.js";
+import { getMiddlewaresFor } from "../plugins/registry.js";
+import type {
+  PersistAddResult,
+  PersistArgs,
+  PersistResult,
+  TurnContext,
+} from "../plugins/types.js";
+import type { ContentBlock, ImageContent } from "../providers/types.js";
+import { isContextOverflowError } from "../providers/types.js";
+import { redactSecrets } from "../security/secret-scanner.js";
+import { ProviderError } from "../util/errors.js";
+import { getLogger } from "../util/logger.js";
+import type { DirectiveRequest } from "./assistant-attachments.js";
+import {
+  cleanAssistantContent,
+  drainDirectiveDisplayBuffer,
+} from "./assistant-attachments.js";
+import type { AgentLoopConversationContext } from "./conversation-agent-loop.js";
+import {
+  buildConversationErrorMessage,
+  classifyConversationError,
+  isContextTooLarge,
+} from "./conversation-error.js";
+import { isProviderOrderingError } from "./conversation-slash.js";
+import type { ServerMessage } from "./message-protocol.js";
+
+const log = getLogger("agent-loop-handlers");
+
+/**
+ * Build a {@link TurnContext} from the handler's deps for pipeline logging
+ * and plugin attribution.
+ *
+ * Reads `turnIndex` from `deps.ctx.turnCount` — the orchestrator-owned
+ * per-turn counter that is stable for the entire duration of a single
+ * `runAgentLoopImpl` invocation. The handlers fire after the orchestrator
+ * has completed its in-turn pipeline work but before `ctx.turnCount++` runs
+ * in the outer `finally` block, so this value always reflects the turn the
+ * handler's event belongs to. Trust pulls from the per-turn snapshot first,
+ * then the conversation-level context, then the canonical `unknown`
+ * fallback so the required field stays populated for edge cases (fresh
+ * conversations before the trust resolver runs, heartbeat turns that never
+ * bind an actor).
+ */
+function buildHandlerTurnContext(deps: EventHandlerDeps): TurnContext {
+  return {
+    requestId: deps.reqId,
+    conversationId: deps.ctx.conversationId,
+    turnIndex: deps.ctx.turnCount,
+    trust: deps.ctx.currentTurnTrustContext ??
+      deps.ctx.trustContext ?? {
+        sourceChannel: "vellum",
+        trustClass: "unknown",
+      },
+  };
+}
+
+// ── Types ────────────────────────────────────────────────────────────
+
+export interface PendingToolResult {
+  content: string;
+  isError: boolean;
+  contentBlocks?: ContentBlock[];
+}
+
+/** Mutable state shared across event handlers within a single agent loop run. */
+export interface EventHandlerState {
+  llmCallStartedEmitted: boolean;
+  pendingDirectiveDisplayBuffer: string;
+  firstAssistantText: string;
+  /** Most recent resolved provider for the current exchange's usage accounting. */
+  exchangeProviderName: string | undefined;
+  exchangeInputTokens: number;
+  exchangeCacheCreationInputTokens: number;
+  exchangeCacheReadInputTokens: number;
+  exchangeOutputTokens: number;
+  /** Input tokens from the most recent LLM API call (overwritten, not accumulated). */
+  lastCallInputTokens: number;
+  /** Number of actual LLM API calls within this exchange. */
+  exchangeLlmCallCount: number;
+  readonly exchangeRawResponses: unknown[];
+  model: string;
+  orderingErrorDetected: boolean;
+  deferredOrderingError: string | null;
+  contextTooLargeDetected: boolean;
+  /**
+   * Set when the provider rejects with an image-dimension error. The agent
+   * loop strips or downscales oversized image blocks from ctx.messages and
+   * retries once before surfacing an error to the user.
+   */
+  imageTooLargeDetected: boolean;
+  /**
+   * The provider error object when context_too_large is detected, preserved
+   * so `parseActualTokensFromError` can prefer the typed
+   * `ContextOverflowError` fields over the string-regex fallback. The
+   * message is always reachable via `.message` on this object — no separate
+   * field is needed.
+   */
+  contextTooLargeError: unknown;
+  providerErrorUserMessage: string | null;
+  /**
+   * First persisted assistant row in this run; history keeps this id when it
+   * merges tool-turn rows into one display bubble.
+   */
+  firstAssistantMessageId: string | undefined;
+  lastAssistantMessageId: string | undefined;
+  readonly pendingToolResults: Map<string, PendingToolResult>;
+  readonly persistedToolUseIds: Set<string>;
+  readonly accumulatedDirectives: DirectiveRequest[];
+  readonly accumulatedToolContentBlocks: ContentBlock[];
+  /** Maps index in accumulatedToolContentBlocks → tool name that produced it. */
+  readonly toolContentBlockToolNames: Map<number, string>;
+  readonly directiveWarnings: string[];
+  readonly toolUseIdToName: Map<string, string>;
+  currentTurnToolNames: string[];
+  /** Sticky for the whole run: this turn created/refreshed an app. */
+  appBuildToolUsedThisRun: boolean;
+  /** Tracks whether the first text delta has been emitted this turn for activity state transitions. */
+  firstTextDeltaEmitted: boolean;
+  /** Tracks whether a thinking delta has been emitted this turn for activity state transitions. */
+  firstThinkingDeltaEmitted: boolean;
+  /** Name of the last completed tool, used to generate contextual statusText. */
+  lastCompletedToolName: string | undefined;
+  /** Tracks tool_use_id → timing data for persisting on content blocks. */
+  readonly toolCallTimestamps: Map<
+    string,
+    { startedAt: number; completedAt?: number }
+  >;
+  /** The tool_use_id of the currently executing tool (set in handleToolUse, cleared in handleToolResult). */
+  currentToolUseId: string | undefined;
+  /** Maps confirmation requestId → tool_use_id for linking decisions to tools. */
+  readonly requestIdToToolUseId: Map<string, string>;
+  /** Stores confirmation outcomes keyed by tool_use_id. */
+  readonly toolConfirmationOutcomes: Map<
+    string,
+    { decision: string; label: string }
+  >;
+  /** Stores risk metadata keyed by tool_use_id (populated in handleToolResult). */
+  readonly toolRiskOutcomes: Map<
+    string,
+    {
+      riskLevel: string;
+      riskReason?: string;
+      autoApproved: boolean;
+      matchedTrustRuleId?: string;
+      approvalMode?: string;
+      approvalReason?: string;
+      riskThreshold?: string;
+      /** Display-only regex ladder for the rule editor (narrowest → broadest). */
+      riskScopeOptions?: Array<{ pattern: string; label: string }>;
+      /** Minimatch save patterns for the rule editor (narrowest → broadest). */
+      riskAllowlistOptions?: Array<{
+        label: string;
+        description: string;
+        pattern: string;
+      }>;
+      /** Directory scope ladder for the rule editor. */
+      riskDirectoryScopeOptions?: Array<{ scope: string; label: string }>;
+    }
+  >;
+  /** tool_use_ids emitted in the current turn (populated in handleToolUse, cleared after annotation). */
+  currentTurnToolUseIds: string[];
+  /** Wall-clock time (ms since epoch) when the agent loop turn started, used as the display timestamp for assistant messages. */
+  turnStartedAt: number;
+}
+
+/** Immutable context shared across event handlers within a single agent loop run. */
+export interface EventHandlerDeps {
+  readonly ctx: AgentLoopConversationContext;
+  readonly onEvent: (msg: ServerMessage) => void;
+  readonly reqId: string;
+  readonly isFirstMessage: boolean;
+  /** Whether the conversation title is replaceable — controls firstAssistantText accumulation for title generation. */
+  readonly shouldGenerateTitle: boolean;
+  readonly rlog: pino.Logger;
+  readonly turnChannelContext: TurnChannelContext;
+  readonly turnInterfaceContext: TurnInterfaceContext;
+}
+
+// ── Factory ──────────────────────────────────────────────────────────
+
+export function createEventHandlerState(): EventHandlerState {
+  return {
+    llmCallStartedEmitted: false,
+    pendingDirectiveDisplayBuffer: "",
+    firstAssistantText: "",
+    exchangeProviderName: undefined,
+    exchangeInputTokens: 0,
+    exchangeCacheCreationInputTokens: 0,
+    exchangeCacheReadInputTokens: 0,
+    exchangeOutputTokens: 0,
+    lastCallInputTokens: 0,
+    exchangeLlmCallCount: 0,
+    exchangeRawResponses: [],
+    model: "",
+    orderingErrorDetected: false,
+    deferredOrderingError: null,
+    contextTooLargeDetected: false,
+    imageTooLargeDetected: false,
+    contextTooLargeError: null,
+    providerErrorUserMessage: null,
+    firstAssistantMessageId: undefined,
+    lastAssistantMessageId: undefined,
+    pendingToolResults: new Map(),
+    persistedToolUseIds: new Set(),
+    accumulatedDirectives: [],
+    accumulatedToolContentBlocks: [],
+    toolContentBlockToolNames: new Map(),
+    directiveWarnings: [],
+    toolUseIdToName: new Map(),
+    currentTurnToolNames: [],
+    appBuildToolUsedThisRun: false,
+    firstTextDeltaEmitted: false,
+    firstThinkingDeltaEmitted: false,
+    lastCompletedToolName: undefined,
+    toolCallTimestamps: new Map(),
+    currentToolUseId: undefined,
+    requestIdToToolUseId: new Map(),
+    toolConfirmationOutcomes: new Map(),
+    toolRiskOutcomes: new Map(),
+    currentTurnToolUseIds: [],
+    turnStartedAt: Date.now(),
+  };
+}
+
+export function getClientDisplayMessageId(
+  state: EventHandlerState,
+): string | undefined {
+  return state.firstAssistantMessageId ?? state.lastAssistantMessageId;
+}
+
+// ── Shared Helper ────────────────────────────────────────────────────
+
+// providerNameOverride should be supplied when the caller already knows the
+// resolved provider name (e.g. handleUsage, which has event.actualProvider).
+// When called during streaming (text_delta / thinking_delta) the override is
+// omitted and provider.name is used — the CallSiteRoutingProvider getter
+// returns the active transport name during sendMessage, so they agree.
+// Passing the override from handleUsage guarantees started/finished never
+// disagree even for tool-call-only responses where text_delta never fires
+// (and therefore the started event would otherwise fall back here *after*
+// the AsyncLocalStorage context in CallSiteRoutingProvider has already exited).
+function emitLlmCallStartedIfNeeded(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  providerNameOverride?: string,
+): void {
+  if (state.llmCallStartedEmitted) return;
+  state.llmCallStartedEmitted = true;
+  const providerName = providerNameOverride ?? deps.ctx.provider.name;
+  deps.ctx.traceEmitter.emit(
+    "llm_call_started",
+    `LLM call to ${providerName}`,
+    {
+      requestId: deps.reqId,
+      status: "info",
+      attributes: {
+        provider: providerName,
+        model: state.model || "unknown",
+      },
+    },
+  );
+}
+
+// ── Client Payload Size Caps ─────────────────────────────────────────
+// tool_input_delta streams accumulated JSON as tools run. For non-app
+// tools the client discards it (extractCodePreview only handles app tools),
+// so we skip forwarding entirely to avoid transport/decode overhead.
+const APP_TOOL_NAMES = new Set(["app_create"]);
+
+// ── Friendly Tool Names ──────────────────────────────────────────────
+
+const TOOL_FRIENDLY_NAMES: Record<string, string> = {
+  bash: "command",
+  web_search: "web search",
+  web_fetch: "web fetch",
+  file_read: "file read",
+  file_write: "file write",
+  file_edit: "file edit",
+  app_create: "app",
+  app_refresh: "app refresh",
+  skill_load: "skill",
+  skill_execute: "skill",
+};
+
+function friendlyToolName(name: string): string {
+  return TOOL_FRIENDLY_NAMES[name] ?? name.replace(/_/g, " ");
+}
+
+// ── Individual Handlers ──────────────────────────────────────────────
+
+function handleTextDelta(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "text_delta" }>,
+): void {
+  emitLlmCallStartedIfNeeded(state, deps);
+  state.pendingDirectiveDisplayBuffer += event.text;
+  const drained = drainDirectiveDisplayBuffer(
+    state.pendingDirectiveDisplayBuffer,
+  );
+  state.pendingDirectiveDisplayBuffer = drained.bufferedRemainder;
+  if (drained.emitText.length > 0) {
+    if (!state.firstTextDeltaEmitted) {
+      state.firstTextDeltaEmitted = true;
+      deps.ctx.emitActivityState(
+        "streaming",
+        "first_text_delta",
+        "assistant_turn",
+        deps.reqId,
+        "Thinking",
+      );
+    }
+    deps.onEvent({
+      type: "assistant_text_delta",
+      text: drained.emitText,
+      conversationId: deps.ctx.conversationId,
+    });
+    if (deps.shouldGenerateTitle) state.firstAssistantText += drained.emitText;
+  }
+}
+
+function handleThinkingDelta(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "thinking_delta" }>,
+): void {
+  if (!state.firstThinkingDeltaEmitted) {
+    state.firstThinkingDeltaEmitted = true;
+    const lastToolName = state.lastCompletedToolName;
+    // Only emit an activity state when a tool just completed, so we can
+    // show "Processing <tool> results". When no tool has completed yet
+    // (e.g. right after confirmation_resolved), skip the emission entirely
+    // so the client preserves its current status text (e.g. "Resuming
+    // after approval"). Even omitting statusText from the message would
+    // cause the client to clear it, since the client overwrites
+    // assistantStatusText for every assistant_activity_state event.
+    if (lastToolName) {
+      const statusText = `Processing ${friendlyToolName(lastToolName)} results`;
+      deps.ctx.emitActivityState(
+        "thinking",
+        "thinking_delta",
+        "assistant_turn",
+        deps.reqId,
+        statusText,
+      );
+    }
+  }
+  if (!deps.ctx.streamThinking) return;
+  emitLlmCallStartedIfNeeded(state, deps);
+  deps.onEvent({
+    type: "assistant_thinking_delta",
+    thinking: event.thinking,
+    conversationId: deps.ctx.conversationId,
+  });
+}
+
+export function handleToolUse(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "tool_use" }>,
+): void {
+  state.toolUseIdToName.set(event.id, event.name);
+  state.currentTurnToolNames.push(event.name);
+  if (event.name === "app_create" || event.name === "app_refresh") {
+    state.appBuildToolUsedThisRun = true;
+  }
+  state.toolCallTimestamps.set(event.id, { startedAt: Date.now() });
+  state.currentToolUseId = event.id;
+  state.currentTurnToolUseIds.push(event.id);
+  const statusText =
+    event.name === "skill_execute" &&
+    typeof event.input.activity === "string" &&
+    event.input.activity.length > 0
+      ? event.input.activity
+      : `Running ${friendlyToolName(event.name)}`;
+  deps.ctx.emitActivityState(
+    "tool_running",
+    "tool_use_start",
+    "assistant_turn",
+    deps.reqId,
+    statusText,
+  );
+  deps.onEvent({
+    type: "tool_use_start",
+    toolName: event.name,
+    input: event.input,
+    conversationId: deps.ctx.conversationId,
+    toolUseId: event.id,
+  });
+}
+
+export function handleToolUsePreviewStart(
+  _state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "tool_use_preview_start" }>,
+): void {
+  deps.onEvent({
+    type: "tool_use_preview_start",
+    toolUseId: event.toolUseId,
+    toolName: event.toolName,
+    conversationId: deps.ctx.conversationId,
+  });
+  const statusText = `Preparing ${friendlyToolName(event.toolName)}...`;
+  deps.ctx.emitActivityState(
+    "tool_running",
+    "preview_start",
+    "assistant_turn",
+    deps.reqId,
+    statusText,
+  );
+}
+
+function handleToolOutputChunk(
+  _state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "tool_output_chunk" }>,
+): void {
+  let structured:
+    | {
+        subType?: "tool_start" | "tool_complete" | "status";
+        subToolName?: string;
+        subToolInput?: string;
+        subToolIsError?: boolean;
+        subToolId?: string;
+      }
+    | undefined;
+
+  const trimmed = event.chunk.trimStart();
+  if (trimmed.length > 0 && trimmed.length < 4096 && trimmed[0] === "{") {
+    try {
+      const parsed = JSON.parse(event.chunk);
+      const VALID_SUB_TYPES = new Set([
+        "tool_start",
+        "tool_complete",
+        "status",
+      ]);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        typeof parsed.subType === "string" &&
+        VALID_SUB_TYPES.has(parsed.subType)
+      ) {
+        structured = {
+          subType: parsed.subType as "tool_start" | "tool_complete" | "status",
+          subToolName:
+            typeof parsed.subToolName === "string"
+              ? parsed.subToolName
+              : undefined,
+          subToolInput:
+            typeof parsed.subToolInput === "string"
+              ? parsed.subToolInput
+              : undefined,
+          subToolIsError:
+            typeof parsed.subToolIsError === "boolean"
+              ? parsed.subToolIsError
+              : undefined,
+          subToolId:
+            typeof parsed.subToolId === "string" ? parsed.subToolId : undefined,
+        };
+      }
+    } catch {
+      // Not valid JSON — pass through as plain chunk
+    }
+  }
+
+  if (structured) {
+    deps.onEvent({
+      type: "tool_output_chunk",
+      chunk: event.chunk,
+      conversationId: deps.ctx.conversationId,
+      toolUseId: event.toolUseId,
+      subType: structured.subType,
+      subToolName: structured.subToolName,
+      subToolInput: structured.subToolInput,
+      subToolIsError: structured.subToolIsError,
+      subToolId: structured.subToolId,
+    });
+  } else {
+    deps.onEvent({
+      type: "tool_output_chunk",
+      chunk: event.chunk,
+      conversationId: deps.ctx.conversationId,
+      toolUseId: event.toolUseId,
+    });
+  }
+}
+
+export function handleInputJsonDelta(
+  _state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "input_json_delta" }>,
+): void {
+  // Only forward input deltas for app tools — the client only uses this
+  // stream for app_create code previews. Non-app tools would send large
+  // cumulative JSON on every delta with no benefit.
+  if (!APP_TOOL_NAMES.has(event.toolName)) return;
+  deps.onEvent({
+    type: "tool_input_delta",
+    toolName: event.toolName,
+    content: event.accumulatedJson,
+    conversationId: deps.ctx.conversationId,
+    toolUseId: event.toolUseId,
+  });
+}
+
+export function handleToolResult(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "tool_result" }>,
+): void {
+  const imageBlocks = event.contentBlocks?.filter(
+    (b): b is ImageContent => b.type === "image",
+  );
+  const imageDataList = imageBlocks?.length
+    ? imageBlocks.map((b) => b.source.data)
+    : undefined;
+
+  // Perform state mutations before deps.onEvent() so that if onEvent throws
+  // (e.g. SSE disconnection) and the error is suppressed by dispatchAgentEvent,
+  // critical state like pendingToolResults and currentToolUseId is still updated.
+  state.pendingToolResults.set(event.toolUseId, {
+    content: event.content,
+    isError: event.isError,
+    contentBlocks: event.contentBlocks,
+  });
+
+  // Record tool completion timestamp
+  const ts = state.toolCallTimestamps.get(event.toolUseId);
+  if (ts) ts.completedAt = Date.now();
+  state.currentToolUseId = undefined;
+
+  // Capture risk metadata when present. autoApproved is true when the tool
+  // was NOT prompted for confirmation (no entry in toolConfirmationOutcomes).
+  // Confirmation outcomes are set BEFORE handleToolResult fires, so the map
+  // is fully populated at this point.
+  //
+  // Known limitation: non-interactive sessions that auto-deny a tool without
+  // prompting also have no confirmation outcome entry, so those denials are
+  // recorded as autoApproved=true. This field is for DB/log analytics only
+  // and has no UI impact; consult _confirmationDecision for denial signal.
+  if (event.riskLevel) {
+    state.toolRiskOutcomes.set(event.toolUseId, {
+      riskLevel: event.riskLevel,
+      riskReason: event.riskReason,
+      autoApproved: !state.toolConfirmationOutcomes.has(event.toolUseId),
+      matchedTrustRuleId: event.matchedTrustRuleId,
+      approvalMode: event.approvalMode,
+      approvalReason: event.approvalReason,
+      riskThreshold: event.riskThreshold,
+      // Capture the 3 risk-option arrays so the persisted tool_use block
+      // carries the same chip ladder as the live tool_result event. Without
+      // these, hydrated chips from chat history fall back to the synthesized
+      // `*` allowlist and an empty scope ladder (see the comment on
+      // `synthesizeFallbackOption` in web's RuleEditorModal).
+      riskScopeOptions: event.riskScopeOptions,
+      riskAllowlistOptions: event.riskAllowlistOptions,
+      riskDirectoryScopeOptions: event.riskDirectoryScopeOptions,
+    });
+  }
+
+  const toolName = state.toolUseIdToName.get(event.toolUseId);
+  if (toolName === "file_write" || toolName === "bash") {
+    deps.ctx.markWorkspaceTopLevelDirty();
+  } else if (toolName === "file_edit" && !event.isError) {
+    deps.ctx.markWorkspaceTopLevelDirty();
+  }
+
+  if (event.contentBlocks) {
+    for (const cb of event.contentBlocks) {
+      if (cb.type === "image" || cb.type === "file") {
+        state.accumulatedToolContentBlocks.push(cb);
+        if (toolName) {
+          state.toolContentBlockToolNames.set(
+            state.accumulatedToolContentBlocks.length - 1,
+            toolName,
+          );
+        }
+      }
+    }
+  }
+
+  // Track last completed tool for contextual statusText on next thinking phase
+  state.lastCompletedToolName = state.toolUseIdToName.get(event.toolUseId);
+
+  // Reset so that the next LLM exchange (think → stream) after this tool
+  // call re-emits the activity state transitions.
+  state.firstTextDeltaEmitted = false;
+  state.firstThinkingDeltaEmitted = false;
+
+  // Emit activity state immediately so clients show a thinking indicator
+  // during the gap between tool_result and the next thinking_delta/text_delta.
+  const statusText = `Processing ${friendlyToolName(
+    state.lastCompletedToolName ?? "",
+  )} results`;
+  deps.ctx.emitActivityState(
+    "thinking",
+    "tool_result_received",
+    "assistant_turn",
+    deps.reqId,
+    statusText,
+  );
+
+  // Once all tools for this turn have completed, annotate the persisted
+  // assistant message with timing and confirmation metadata.
+  const allToolsDone = state.currentTurnToolUseIds.every((id) => {
+    const ts = state.toolCallTimestamps.get(id);
+    return ts && ts.completedAt != null;
+  });
+  if (allToolsDone && state.currentTurnToolUseIds.length > 0) {
+    try {
+      annotatePersistedAssistantMessage(state, deps);
+    } catch (err) {
+      log.warn(
+        { err, conversationId: deps.ctx.conversationId },
+        "Failed to annotate persisted assistant message (non-fatal)",
+      );
+    }
+  }
+
+  // Send to client last so state is consistent even if onEvent throws.
+  deps.onEvent({
+    type: "tool_result",
+    toolName: "",
+    result: event.content,
+    isError: event.isError,
+    diff: event.diff,
+    status: event.status,
+    conversationId: deps.ctx.conversationId,
+    imageData: imageDataList?.[0],
+    imageDataList,
+    toolUseId: event.toolUseId,
+    riskLevel: event.riskLevel,
+    riskReason: event.riskReason,
+    matchedTrustRuleId: event.matchedTrustRuleId,
+    isContainerized: event.isContainerized,
+    riskScopeOptions: event.riskScopeOptions,
+    riskAllowlistOptions: event.riskAllowlistOptions,
+    riskDirectoryScopeOptions: event.riskDirectoryScopeOptions,
+    approvalMode: event.approvalMode,
+    approvalReason: event.approvalReason,
+    riskThreshold: event.riskThreshold,
+  });
+}
+
+/**
+ * After all tools for the current turn complete, fetch the persisted assistant
+ * message, annotate its tool_use blocks with timing and confirmation metadata,
+ * and update the DB. This runs post-tool-execution so the metadata maps are
+ * fully populated (unlike message_complete which fires before tools run).
+ */
+function annotatePersistedAssistantMessage(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+): void {
+  const messageId = state.lastAssistantMessageId;
+  if (!messageId) return;
+
+  const row = getMessageById(messageId);
+  if (!row) return;
+
+  let content: ContentBlock[];
+  try {
+    content = JSON.parse(row.content) as ContentBlock[];
+  } catch {
+    return;
+  }
+
+  let modified = false;
+  for (const block of content) {
+    if (block.type === "tool_use") {
+      const rec = block as unknown as Record<string, unknown>;
+      const id = rec.id as string | undefined;
+      if (!id) continue;
+
+      const ts = state.toolCallTimestamps.get(id);
+      if (ts) {
+        rec._startedAt = ts.startedAt;
+        if (ts.completedAt != null) {
+          rec._completedAt = ts.completedAt;
+        }
+        modified = true;
+      }
+      const confirmation = state.toolConfirmationOutcomes.get(id);
+      if (confirmation) {
+        rec._confirmationDecision = confirmation.decision;
+        rec._confirmationLabel = confirmation.label;
+        modified = true;
+      }
+      const risk = state.toolRiskOutcomes.get(id);
+      if (risk) {
+        rec._riskLevel = risk.riskLevel;
+        if (risk.riskReason) rec._riskReason = risk.riskReason;
+        rec._autoApproved = risk.autoApproved;
+        if (risk.matchedTrustRuleId)
+          rec._matchedTrustRuleId = risk.matchedTrustRuleId;
+        if (risk.approvalMode) rec._approvalMode = risk.approvalMode;
+        if (risk.approvalReason) rec._approvalReason = risk.approvalReason;
+        if (risk.riskThreshold) rec._riskThreshold = risk.riskThreshold;
+        // Persist the 3 risk-option arrays so the rule editor's chip ladder
+        // survives chat-history reload. These mirror the same-named fields
+        // on the live `tool_result` event; clients should read them back via
+        // `shared.ts` and treat them identically to the live values.
+        if (risk.riskScopeOptions && risk.riskScopeOptions.length > 0)
+          rec._riskScopeOptions = risk.riskScopeOptions;
+        if (risk.riskAllowlistOptions && risk.riskAllowlistOptions.length > 0)
+          rec._riskAllowlistOptions = risk.riskAllowlistOptions;
+        if (
+          risk.riskDirectoryScopeOptions &&
+          risk.riskDirectoryScopeOptions.length > 0
+        )
+          rec._riskDirectoryScopeOptions = risk.riskDirectoryScopeOptions;
+        modified = true;
+      }
+    }
+  }
+
+  // Persist any surfaces created during tool execution.
+  // message_complete fires BEFORE tools run, so currentTurnSurfaces is empty
+  // at write time. We append them here after all tools have completed.
+  if (deps.ctx.currentTurnSurfaces.length > 0) {
+    for (const surface of deps.ctx.currentTurnSurfaces) {
+      content.push({
+        type: "ui_surface",
+        surfaceId: surface.surfaceId,
+        surfaceType: surface.surfaceType,
+        title: surface.title,
+        data: surface.data,
+        actions: surface.actions,
+        display: surface.display,
+        ...(surface.persistent ? { persistent: true } : {}),
+      } as unknown as ContentBlock);
+    }
+    modified = true;
+    deps.ctx.currentTurnSurfaces = [];
+  }
+
+  if (modified) {
+    updateMessageContent(messageId, JSON.stringify(content));
+  }
+
+  // Clear for the next turn
+  state.currentTurnToolUseIds = [];
+}
+
+function handleError(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "error" }>,
+): void {
+  if (isProviderOrderingError(event.error.message)) {
+    state.orderingErrorDetected = true;
+    state.deferredOrderingError = event.error.message;
+  } else if (isContextOverflowError(event.error)) {
+    // Typed path — the provider client already classified this as overflow.
+    state.contextTooLargeDetected = true;
+    state.contextTooLargeError = event.error;
+  } else if (isContextTooLarge(event.error.message)) {
+    state.contextTooLargeDetected = true;
+    state.contextTooLargeError = event.error;
+  } else {
+    const classified = classifyConversationError(event.error, {
+      phase: "agent_loop",
+    });
+    if (classified.code === "CONTEXT_TOO_LARGE") {
+      state.contextTooLargeDetected = true;
+      state.contextTooLargeError = event.error;
+    } else if (classified.code === "IMAGE_TOO_LARGE") {
+      // Trigger silent recovery: the agent loop will strip/downscale images
+      // in ctx.messages and retry once before surfacing an error.
+      state.imageTooLargeDetected = true;
+    } else if (
+      classified.code === "PROVIDER_ORDERING" ||
+      classified.code === "PROVIDER_WEB_SEARCH"
+    ) {
+      // Ordering errors detected via classifyConversationError (e.g. from ProviderError
+      // with statusCode 400 and ordering message) — trigger the retry path.
+      state.orderingErrorDetected = true;
+      state.deferredOrderingError = event.error.message;
+    } else {
+      if (classified.errorCategory === "provider_api_error") {
+        log.error(
+          {
+            conversationId: deps.ctx.conversationId,
+            errorCode: classified.code,
+            errorCategory: classified.errorCategory,
+            statusCode:
+              event.error instanceof ProviderError
+                ? event.error.statusCode
+                : undefined,
+            provider:
+              event.error instanceof ProviderError
+                ? event.error.provider
+                : undefined,
+            errorMessage: event.error.message,
+          },
+          "Provider rejected request with unclassified 4xx error",
+        );
+      }
+      deps.onEvent(
+        buildConversationErrorMessage(deps.ctx.conversationId, classified),
+      );
+      state.providerErrorUserMessage = classified.userMessage;
+    }
+  }
+}
+
+export async function handleMessageComplete(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "message_complete" }>,
+): Promise<void> {
+  // Reset per-turn tool tracking for the new turn.
+  state.currentTurnToolUseIds = [];
+
+  // Flush any remaining directive display buffer
+  if (state.pendingDirectiveDisplayBuffer.length > 0) {
+    deps.onEvent({
+      type: "assistant_text_delta",
+      text: state.pendingDirectiveDisplayBuffer,
+      conversationId: deps.ctx.conversationId,
+    });
+    if (deps.shouldGenerateTitle)
+      state.firstAssistantText += state.pendingDirectiveDisplayBuffer;
+    state.pendingDirectiveDisplayBuffer = "";
+  }
+
+  // Persist pending tool results
+  if (state.pendingToolResults.size > 0) {
+    const toolResultBlocks = Array.from(state.pendingToolResults.entries()).map(
+      ([toolUseId, result]) => ({
+        type: "tool_result",
+        tool_use_id: toolUseId,
+        content: redactSecrets(result.content),
+        is_error: result.isError,
+        ...(result.contentBlocks
+          ? {
+              contentBlocks: result.contentBlocks.map((block) =>
+                block.type === "text"
+                  ? { ...block, text: redactSecrets(block.text) }
+                  : block,
+              ),
+            }
+          : {}),
+      }),
+    );
+    const toolResultMetadata = {
+      ...provenanceFromTrustContext(deps.ctx.trustContext),
+      userMessageChannel: deps.turnChannelContext.userMessageChannel,
+      assistantMessageChannel: deps.turnChannelContext.assistantMessageChannel,
+      userMessageInterface: deps.turnInterfaceContext.userMessageInterface,
+      assistantMessageInterface:
+        deps.turnInterfaceContext.assistantMessageInterface,
+    };
+    // Route the add + disk-view sync through the `persistence` pipeline so
+    // plugins can observe or override both operations together. The default
+    // plugin's terminal performs the add and, when `syncToDisk` is true,
+    // immediately calls `syncMessageToDisk` against the just-persisted row.
+    // `getConversation` returns `ConversationRow | null`, so `!= null`
+    // gates on a real row (skipping the sync when the conversation was
+    // not found rather than asking the disk-view to resolve a missing id).
+    const convForToolResult = getConversation(deps.ctx.conversationId);
+    await runPipeline<PersistArgs, PersistResult>(
+      "persistence",
+      getMiddlewaresFor("persistence"),
+      defaultPersistenceTerminal,
+      {
+        op: "add",
+        conversationId: deps.ctx.conversationId,
+        role: "user",
+        content: JSON.stringify(toolResultBlocks),
+        metadata: toolResultMetadata,
+        syncToDisk: convForToolResult != null,
+        createdAtMs: convForToolResult?.createdAt,
+      },
+      buildHandlerTurnContext(deps),
+      DEFAULT_TIMEOUTS.persistence,
+    );
+    for (const id of state.pendingToolResults.keys()) {
+      state.persistedToolUseIds.add(id);
+    }
+    state.pendingToolResults.clear();
+  }
+
+  // Clean assistant content and accumulate directives
+  const {
+    cleanedContent,
+    directives: msgDirectives,
+    warnings: msgWarnings,
+  } = cleanAssistantContent(event.message.content);
+  const cleanedBlocks = cleanedContent as ContentBlock[];
+  state.accumulatedDirectives.push(...msgDirectives);
+  state.directiveWarnings.push(...msgWarnings);
+  if (msgDirectives.length > 0) {
+    deps.rlog.info(
+      {
+        parsedDirectives: msgDirectives.map((d) => ({
+          source: d.source,
+          path: d.path,
+          mimeType: d.mimeType,
+        })),
+        totalAccumulated: state.accumulatedDirectives.length,
+      },
+      "Parsed attachment directives from assistant message",
+    );
+  }
+
+  // NOTE: Tool timing/confirmation annotations are NOT applied here because
+  // message_complete fires BEFORE tool_use/tool_result events. The annotations
+  // are applied in handleToolResult after all tools for the turn complete,
+  // then the persisted message is updated via updateMessageContent.
+
+  // Build content with UI surfaces
+  const contentWithSurfaces: ContentBlock[] = [...cleanedBlocks];
+  for (const surface of deps.ctx.currentTurnSurfaces) {
+    contentWithSurfaces.push({
+      type: "ui_surface",
+      surfaceId: surface.surfaceId,
+      surfaceType: surface.surfaceType,
+      title: surface.title,
+      data: surface.data,
+      actions: surface.actions,
+      display: surface.display,
+      ...(surface.persistent ? { persistent: true } : {}),
+    } as unknown as ContentBlock);
+  }
+
+  const assistantChannelMetadata: Record<string, unknown> = {
+    ...provenanceFromTrustContext(deps.ctx.trustContext),
+    userMessageChannel: deps.turnChannelContext.userMessageChannel,
+    assistantMessageChannel: deps.turnChannelContext.assistantMessageChannel,
+    userMessageInterface: deps.turnInterfaceContext.userMessageInterface,
+    assistantMessageInterface:
+      deps.turnInterfaceContext.assistantMessageInterface,
+    sentAt: state.turnStartedAt,
+  };
+
+  // When the assistant is replying through Slack, stamp a `slackMeta`
+  // sub-object so the transcript-rendering / thread-aware-context lookup
+  // can identify this row's thread without joining tables.
+  // Persistence happens BEFORE the Slack adapter sends the message, so
+  // Slack's authoritative `ts` (-> `channelTs`) is not yet known and is
+  // intentionally omitted here. The post-send reconciliation step in
+  // `deliverReplyViaCallback` writes `channelTs` back into this row once
+  // the gateway returns the Slack-assigned ts, restoring a fully-formed
+  // metadata envelope before any subsequent turn reads the row.
+  if (deps.turnChannelContext.assistantMessageChannel === "slack") {
+    const channelId = deps.ctx.trustContext?.requesterChatId;
+    if (channelId) {
+      const threadTs = getThreadTs(deps.ctx.conversationId);
+      const partialSlackMeta: Partial<SlackMessageMetadata> = {
+        source: "slack",
+        eventKind: "message",
+        channelId,
+        ...(threadTs ? { threadTs } : {}),
+      };
+      assistantChannelMetadata.slackMeta = writeSlackMetadata(
+        // `channelTs` is filled in by the post-send reconciliation step in
+        // `deliverReplyViaCallback`; cast through the Partial to satisfy
+        // the writer's type at this pre-send boundary.
+        partialSlackMeta as SlackMessageMetadata,
+      );
+    }
+  }
+  // Redact known-pattern secrets from assistant text blocks before they are
+  // written to durable storage. Non-text blocks (images, UI surfaces) pass
+  // through unchanged. The live model history retains the original values.
+  const contentForPersistence = contentWithSurfaces.map((block) => {
+    if (block.type === "text") {
+      const tb = block as Extract<ContentBlock, { type: "text" }>;
+      return { ...tb, text: redactSecrets(tb.text) };
+    }
+    return block;
+  });
+
+  // Route the assistant-message persistence through the `persistence`
+  // pipeline. No `syncToDisk` here — the orchestrator separately invokes
+  // `syncMessageToDisk` on `state.lastAssistantMessageId` after the loop
+  // completes (see `conversation-agent-loop.ts::syncLastAssistantMessageToDisk`).
+  const assistantPersistResult = (await runPipeline<PersistArgs, PersistResult>(
+    "persistence",
+    getMiddlewaresFor("persistence"),
+    defaultPersistenceTerminal,
+    {
+      op: "add",
+      conversationId: deps.ctx.conversationId,
+      role: "assistant",
+      content: JSON.stringify(contentForPersistence),
+      metadata: assistantChannelMetadata,
+    },
+    buildHandlerTurnContext(deps),
+    DEFAULT_TIMEOUTS.persistence,
+  )) as PersistAddResult;
+  const assistantMsg = assistantPersistResult.message;
+  state.firstAssistantMessageId ??= assistantMsg.id;
+  state.lastAssistantMessageId = assistantMsg.id;
+
+  // Backfill message_id on all LLM request logs from this turn.
+  // The agent loop is single-threaded per conversation, so all rows with
+  // message_id IS NULL belong to the current turn.
+  try {
+    backfillMessageIdOnLogs(deps.ctx.conversationId, assistantMsg.id);
+  } catch (err) {
+    deps.rlog.warn(
+      { err },
+      "Failed to backfill message_id on LLM request logs (non-fatal)",
+    );
+  }
+
+  try {
+    backfillMemoryRecallLogMessageId(deps.ctx.conversationId, assistantMsg.id);
+  } catch (err) {
+    deps.rlog.warn(
+      { err },
+      "Failed to backfill message_id on memory recall log (non-fatal)",
+    );
+  }
+
+  try {
+    backfillMemoryV2ActivationMessageId(
+      deps.ctx.conversationId,
+      assistantMsg.id,
+    );
+  } catch (err) {
+    deps.rlog.warn(
+      { err },
+      "Failed to backfill memory v2 activation log messageId (non-fatal)",
+    );
+  }
+
+  deps.ctx.currentTurnSurfaces = [];
+
+  // Emit trace event
+  const charCount = cleanedBlocks
+    .filter(
+      (b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text",
+    )
+    .reduce((sum, b) => sum + b.text.length, 0);
+  const toolUseCount = event.message.content.filter(
+    (b) => b.type === "tool_use",
+  ).length;
+  deps.ctx.traceEmitter.emit(
+    "assistant_message",
+    "Assistant message complete",
+    {
+      requestId: deps.reqId,
+      status: "success",
+      attributes: { charCount, toolUseCount },
+    },
+  );
+}
+
+function handleUsage(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: Extract<AgentEvent, { type: "usage" }>,
+): void {
+  const providerName = event.actualProvider ?? deps.ctx.provider.name;
+  state.exchangeProviderName = providerName;
+  state.exchangeLlmCallCount += 1;
+  state.exchangeInputTokens += event.inputTokens;
+  state.lastCallInputTokens = event.inputTokens;
+  state.exchangeCacheCreationInputTokens += event.cacheCreationInputTokens ?? 0;
+  state.exchangeCacheReadInputTokens += event.cacheReadInputTokens ?? 0;
+  state.exchangeOutputTokens += event.outputTokens;
+  state.model = event.model;
+
+  // Feed the self-calibration loop: compare the pre-send estimate to the
+  // provider's ground-truth inputTokens. `recordEstimate` silently ignores
+  // samples below its magnitude threshold or outside its outlier bounds,
+  // so it's safe to call unconditionally.
+  //
+  // The calibration key must match what `estimatePromptTokens` callers look
+  // up — use the canonical provider key (`tokenEstimationProvider ?? name`),
+  // falling back to the response's `actualProvider` only when neither hint
+  // is set on the provider object (shouldn't happen, but cheap). Using
+  // `event.actualProvider` as the primary key would scatter data across
+  // mismatched keys for wrapper providers like OpenRouter.
+  const calibrationProviderKey =
+    getCalibrationProviderKey(deps.ctx.provider) ||
+    (event.actualProvider ?? "");
+  if (
+    calibrationProviderKey.length > 0 &&
+    event.estimatedInputTokens !== undefined &&
+    event.estimatedInputTokens > 0
+  ) {
+    recordEstimate(
+      calibrationProviderKey,
+      event.model,
+      event.estimatedInputTokens,
+      event.inputTokens,
+    );
+  }
+  if (event.rawResponse !== undefined) {
+    state.exchangeRawResponses.push(event.rawResponse);
+  }
+
+  if (event.rawRequest && event.rawResponse) {
+    try {
+      recordRequestLog(
+        deps.ctx.conversationId,
+        JSON.stringify(event.rawRequest),
+        JSON.stringify(event.rawResponse),
+        undefined,
+        providerName,
+      );
+    } catch (err) {
+      deps.rlog.warn({ err }, "Failed to persist LLM request log (non-fatal)");
+    }
+  }
+
+  // Pass providerName so that if text_delta never fired (tool-call-only
+  // responses), the started event uses the same resolved name as finished.
+  emitLlmCallStartedIfNeeded(state, deps, providerName);
+
+  deps.ctx.traceEmitter.emit(
+    "llm_call_finished",
+    `LLM call to ${providerName} finished`,
+    {
+      requestId: deps.reqId,
+      status: "success",
+      attributes: {
+        provider: providerName,
+        model: event.model,
+        inputTokens: event.inputTokens,
+        outputTokens: event.outputTokens,
+        latencyMs: event.providerDurationMs,
+      },
+    },
+  );
+  state.llmCallStartedEmitted = false;
+}
+
+// ── Dispatcher ───────────────────────────────────────────────────────
+
+/** Routes an AgentEvent to the appropriate handler. */
+export async function dispatchAgentEvent(
+  state: EventHandlerState,
+  deps: EventHandlerDeps,
+  event: AgentEvent,
+): Promise<void> {
+  try {
+    switch (event.type) {
+      case "text_delta":
+        handleTextDelta(state, deps, event);
+        break;
+      case "thinking_delta":
+        handleThinkingDelta(state, deps, event);
+        break;
+      case "tool_use":
+        handleToolUse(state, deps, event);
+        break;
+      case "tool_use_preview_start":
+        handleToolUsePreviewStart(state, deps, event);
+        break;
+      case "tool_output_chunk":
+        handleToolOutputChunk(state, deps, event);
+        break;
+      case "input_json_delta":
+        handleInputJsonDelta(state, deps, event);
+        break;
+      case "tool_result":
+        handleToolResult(state, deps, event);
+        break;
+      case "server_tool_start": {
+        const friendlyNames: Record<string, string> = {
+          web_search: "Searching the web",
+        };
+        const statusText = friendlyNames[event.name] ?? `Running ${event.name}`;
+        deps.ctx.emitActivityState(
+          "tool_running",
+          "tool_use_start",
+          "assistant_turn",
+          deps.reqId,
+          statusText,
+        );
+        deps.onEvent({
+          type: "tool_use_start",
+          toolName: event.name,
+          input: event.input,
+          conversationId: deps.ctx.conversationId,
+          toolUseId: event.toolUseId,
+        });
+        break;
+      }
+      case "server_tool_complete": {
+        deps.ctx.emitActivityState(
+          "streaming",
+          "tool_result_received",
+          "assistant_turn",
+          deps.reqId,
+          "Thinking",
+        );
+
+        // Format web search results into a human-readable string for the client.
+        let resultText = "";
+        if (Array.isArray(event.content) && event.content.length > 0) {
+          resultText = (event.content as unknown[])
+            .filter(
+              (r): r is { type: string; title: string; url: string } =>
+                typeof r === "object" &&
+                r != null &&
+                (r as { type?: string }).type === "web_search_result",
+            )
+            .map((r) => `${r.title}\n${r.url}`)
+            .join("\n\n");
+        }
+
+        deps.onEvent({
+          type: "tool_result",
+          toolName: "web_search",
+          result: resultText,
+          isError: event.isError,
+          conversationId: deps.ctx.conversationId,
+          toolUseId: event.toolUseId,
+        });
+        break;
+      }
+      case "error":
+        handleError(state, deps, event);
+        break;
+      case "message_complete":
+        await handleMessageComplete(state, deps, event);
+        break;
+      case "usage":
+        handleUsage(state, deps, event);
+        break;
+    }
+  } catch (err) {
+    log.error(
+      { err, eventType: event.type, conversationId: deps.ctx.conversationId },
+      "Event dispatch failed; suppressing to keep agent loop alive",
+    );
+    // Re-throw errors from critical handlers that must not be silently swallowed:
+    // - message_complete: persists assistant message to DB, sets state flags
+    // - error: sets recovery flags (contextTooLargeDetected, orderingErrorDetected)
+    // - usage: records token accounting
+    if (
+      event.type === "message_complete" ||
+      event.type === "error" ||
+      event.type === "usage"
+    ) {
+      throw err;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+import Foundation
+import os
+
+private let log = Logger(subsystem: Bundle.appBundleIdentifier, category: "ConversationQueueClient")
+
+/// Focused client for message queue operations routed through the gateway.
+public protocol ConversationQueueClientProtocol {
+    func deleteQueuedMessage(conversationId: String, requestId: String) async -> Bool
+}
+
+/// Gateway-backed implementation of ``ConversationQueueClientProtocol``.
+public struct ConversationQueueClient: ConversationQueueClientProtocol {
+    nonisolated public init() {}
+
+    public func deleteQueuedMessage(conversationId: String, requestId: String) async -> Bool {
+        do {
+            let encoded = requestId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? requestId
+            let response = try await GatewayHTTPClient.delete(
+                path: "messages/queued/\(encoded)?conversationId=\(conversationId)",
+                timeout: 10
+            )
+            guard response.isSuccess else {
+                log.error("deleteQueuedMessage failed (HTTP \(response.statusCode))")
+                return false
+            }
+            return true
+        } catch {
+            log.error("deleteQueuedMessage error: \(error.localizedDescription)")
+            return false
+        }
+    }
+}

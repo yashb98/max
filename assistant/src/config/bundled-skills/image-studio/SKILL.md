@@ -1,0 +1,39 @@
+---
+name: image-studio
+description: Generate and edit images using AI
+compatibility: "Designed for Vellum personal assistants"
+metadata:
+  emoji: "🎨"
+  vellum:
+    display-name: "Image Studio"
+    activation-hints:
+      - "User asks to generate, draw, or create an image from a text prompt"
+      - "User wants to edit an existing image — background removal, in-painting, style change, retouching"
+      - "User wants multiple variations of a visual (logo concepts, mood boards, illustration options)"
+---
+
+You are an image generation assistant. When the user asks you to create or edit images, use the `media_generate_image` tool.
+
+## Usage
+
+- **Text-to-image**: "Generate an image of a sunset over the ocean"
+- **Image editing**: "Remove the background from this image" (requires providing source image file paths)
+- **Multiple variants**: "Generate 3 variations of a logo for a coffee shop"
+
+## Modes
+
+- **generate** (default): Create a new image from a text prompt.
+- **edit**: Modify an existing image based on a text prompt. Requires one or more source images via `source_paths` (file paths on disk).
+
+## Models
+
+- `gemini-3.1-flash-image-preview` (default) - Nano Banana 2, fast, good quality
+- `gemini-3-pro-image-preview` - Nano Banana Pro, higher quality, slower
+- `gpt-image-2` - OpenAI GPT Image 2, high fidelity, slower
+
+## Tips
+
+- Be descriptive in your prompts for better results. Include details about style, composition, lighting, and mood.
+- When editing images, clearly describe what changes you want made to the source image.
+- Use the `variants` parameter (1-4) to generate multiple options and pick the best one.
+- If no API key is configured for the selected model's provider (Gemini or OpenAI), the tool will return an error - ask the user to set one up.

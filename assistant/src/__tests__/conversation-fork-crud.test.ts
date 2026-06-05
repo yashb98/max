@@ -1,0 +1,825 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
+
+import { eq, like } from "drizzle-orm";
+
+import { makeMockLogger } from "./helpers/mock-logger.js";
+
+mock.module("../util/logger.js", () => ({
+  getLogger: () => makeMockLogger(),
+}));
+
+mock.module("../config/loader.js", () => ({
+  getConfig: () => ({
+    ui: {},
+    model: "test",
+    provider: "test",
+    memory: { enabled: false },
+    rateLimit: { maxRequestsPerMinute: 0 },
+    secretDetection: { enabled: false },
+  }),
+}));
+
+import {
+  getAttachmentsForMessage,
+  linkAttachmentToMessage,
+  uploadAttachment,
+} from "../memory/attachments-store.js";
+import {
+  getAttentionStateByConversationIds,
+  markConversationUnread,
+} from "../memory/conversation-attention-store.js";
+import {
+  addMessage,
+  createConversation,
+  forkConversation,
+  getMessages,
+} from "../memory/conversation-crud.js";
+import { getConversationDirPath } from "../memory/conversation-disk-view.js";
+import { getDb } from "../memory/db-connection.js";
+import { initializeDb } from "../memory/db-init.js";
+import {
+  loadGraphMemoryState,
+  saveGraphMemoryState,
+} from "../memory/graph/graph-memory-state-store.js";
+import { getRequestLogsByMessageId } from "../memory/llm-request-log-store.js";
+import {
+  bumpRetrospectiveLastRunAt,
+  getRetrospectiveState,
+  upsertRetrospectiveState,
+} from "../memory/memory-retrospective-state.js";
+import {
+  activationState,
+  channelInboundEvents,
+  conversationAssistantAttentionState,
+  conversationGraphMemoryState,
+  conversations,
+  externalConversationBindings,
+  llmRequestLogs,
+  memoryJobs,
+  memoryRetrospectiveState,
+  toolInvocations,
+} from "../memory/schema.js";
+import { hydrate as hydrateActivationState } from "../memory/v2/activation-store.js";
+
+initializeDb();
+
+function resetTables(): void {
+  const db = getDb();
+  db.delete(channelInboundEvents).run();
+  db.delete(externalConversationBindings).run();
+  db.delete(conversationAssistantAttentionState).run();
+  db.delete(activationState).run();
+  db.delete(conversationGraphMemoryState).run();
+  db.delete(memoryRetrospectiveState).run();
+  db.delete(llmRequestLogs).run();
+  db.delete(toolInvocations).run();
+  db.delete(memoryJobs).run();
+  db.run("DELETE FROM message_attachments");
+  db.run("DELETE FROM attachments");
+  db.run("DELETE FROM messages");
+  db.run("DELETE FROM conversations");
+}
+
+function parseMetadata(metadata: string | null): unknown {
+  return metadata == null ? null : JSON.parse(metadata);
+}
+
+describe("forkConversation", () => {
+  beforeEach(() => {
+    resetTables();
+  });
+
+  test("forks a full transcript with copied history and lineage", async () => {
+    const source = createConversation("Planning thread");
+    await addMessage(
+      source.id,
+      "user",
+      "Can you draft a launch plan?",
+      { branch: 1, source: "user" },
+      { skipIndexing: true },
+    );
+    await addMessage(
+      source.id,
+      "assistant",
+      "Absolutely. Here is a first pass.",
+      { automated: true },
+      { skipIndexing: true },
+    );
+    const finalSourceMessage = await addMessage(
+      source.id,
+      "user",
+      "Fork from here",
+      { nested: { keep: true } },
+      { skipIndexing: true },
+    );
+
+    const sourceMessages = getMessages(source.id);
+    const fork = forkConversation({ conversationId: source.id });
+    const forkMessages = getMessages(fork.id);
+
+    expect(fork.id).not.toBe(source.id);
+    expect(fork.title).toBe("Planning thread (Fork)");
+    expect(fork.forkParentConversationId).toBe(source.id);
+    expect(fork.forkParentMessageId).toBe(finalSourceMessage.id);
+    expect(forkMessages).toHaveLength(sourceMessages.length);
+    expect(forkMessages.map((message) => message.role)).toEqual(
+      sourceMessages.map((message) => message.role),
+    );
+    expect(forkMessages.map((message) => message.content)).toEqual(
+      sourceMessages.map((message) => message.content),
+    );
+    expect(forkMessages.map((message) => message.createdAt)).toEqual(
+      sourceMessages.map((message) => message.createdAt),
+    );
+    expect(
+      forkMessages.map((message) => parseMetadata(message.metadata)),
+    ).toEqual(
+      sourceMessages.map((message) => {
+        const metadata = parseMetadata(message.metadata);
+        return metadata && typeof metadata === "object"
+          ? {
+              ...(metadata as Record<string, unknown>),
+              forkSourceMessageId: message.id,
+            }
+          : { forkSourceMessageId: message.id };
+      }),
+    );
+    expect(
+      forkMessages.every(
+        (message, index) => message.id !== sourceMessages[index]?.id,
+      ),
+    ).toBe(true);
+  });
+
+  test("preserves source order when source messages share a timestamp", () => {
+    const source = createConversation("Equal timestamp thread");
+    const db = getDb();
+    const createdAt = Date.now();
+
+    db.run(
+      `INSERT INTO messages (id, conversation_id, role, content, created_at) VALUES ('z-source-message', '${source.id}', 'user', 'first', ${createdAt})`,
+    );
+    db.run(
+      `INSERT INTO messages (id, conversation_id, role, content, created_at) VALUES ('a-source-message', '${source.id}', 'assistant', 'second', ${createdAt})`,
+    );
+
+    const sourceMessages = getMessages(source.id);
+    const fork = forkConversation({ conversationId: source.id });
+    const forkMessages = getMessages(fork.id);
+
+    expect(sourceMessages.map((message) => message.content)).toEqual([
+      "first",
+      "second",
+    ]);
+    expect(forkMessages.map((message) => message.content)).toEqual(
+      sourceMessages.map((message) => message.content),
+    );
+    expect(forkMessages.map((message) => message.role)).toEqual(
+      sourceMessages.map((message) => message.role),
+    );
+  });
+
+  test("forks only through the requested branch point", async () => {
+    const source = createConversation("Branchable thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+    const branchPoint = await addMessage(
+      source.id,
+      "assistant",
+      "Message 2",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "user", "Message 3", undefined, {
+      skipIndexing: true,
+    });
+    await addMessage(source.id, "assistant", "Message 4", undefined, {
+      skipIndexing: true,
+    });
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: branchPoint.id,
+    });
+
+    expect(fork.forkParentConversationId).toBe(source.id);
+    expect(fork.forkParentMessageId).toBe(branchPoint.id);
+    expect(getMessages(fork.id).map((message) => message.content)).toEqual([
+      "Message 1",
+      "Message 2",
+    ]);
+  });
+
+  test("preserves compacted context when forking from the visible window", async () => {
+    const source = createConversation("Compacted thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+    await addMessage(source.id, "assistant", "Message 2", undefined, {
+      skipIndexing: true,
+    });
+    const branchPoint = await addMessage(
+      source.id,
+      "user",
+      "Message 3",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "assistant", "Message 4", undefined, {
+      skipIndexing: true,
+    });
+
+    const compactedAt = Date.now();
+    getDb()
+      .update(conversations)
+      .set({
+        contextSummary: "Compacted summary",
+        contextCompactedMessageCount: 2,
+        contextCompactedAt: compactedAt,
+      })
+      .where(eq(conversations.id, source.id))
+      .run();
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: branchPoint.id,
+    });
+
+    expect(fork.contextSummary).toBe("Compacted summary");
+    expect(fork.contextCompactedMessageCount).toBe(2);
+    expect(fork.contextCompactedAt).toBe(compactedAt);
+    expect(fork.forkParentConversationId).toBe(source.id);
+    expect(fork.forkParentMessageId).toBe(branchPoint.id);
+  });
+
+  test("forks from the compacted-away prefix without inheriting source compaction state", async () => {
+    const source = createConversation("Compacted thread");
+    const compactedBranchPoint = await addMessage(
+      source.id,
+      "user",
+      "Message 1",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "assistant", "Message 2", undefined, {
+      skipIndexing: true,
+    });
+    await addMessage(source.id, "user", "Message 3", undefined, {
+      skipIndexing: true,
+    });
+
+    getDb()
+      .update(conversations)
+      .set({
+        contextSummary: "Compacted summary",
+        contextCompactedMessageCount: 2,
+        contextCompactedAt: Date.now(),
+      })
+      .where(eq(conversations.id, source.id))
+      .run();
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: compactedBranchPoint.id,
+    });
+
+    expect(fork.contextSummary).toBeNull();
+    expect(fork.contextCompactedMessageCount).toBe(0);
+    expect(fork.contextCompactedAt).toBeNull();
+    expect(fork.forkParentConversationId).toBe(source.id);
+    expect(fork.forkParentMessageId).toBe(compactedBranchPoint.id);
+    expect(getMessages(fork.id).map((message) => message.content)).toEqual([
+      "Message 1",
+    ]);
+  });
+
+  test("rejects forks when the source conversation has no persisted messages", () => {
+    const source = createConversation("Empty thread");
+
+    expect(() => forkConversation({ conversationId: source.id })).toThrow(
+      `Conversation ${source.id} has no persisted messages to fork`,
+    );
+  });
+
+  test("relinks copied attachments into the fork and syncs disk view", async () => {
+    const source = createConversation("Attachment thread");
+    await addMessage(source.id, "user", "Please review this image", undefined, {
+      skipIndexing: true,
+    });
+    const sourceAssistant = await addMessage(
+      source.id,
+      "assistant",
+      "Attached the updated mock.",
+      undefined,
+      { skipIndexing: true },
+    );
+    const uploaded = uploadAttachment("wireframe.png", "image/png", "iVBORw0K");
+    linkAttachmentToMessage(sourceAssistant.id, uploaded.id, 0);
+
+    const sourceAttachments = getAttachmentsForMessage(sourceAssistant.id);
+    const fork = forkConversation({ conversationId: source.id });
+    const forkAssistant = getMessages(fork.id).find(
+      (message) => message.role === "assistant",
+    );
+    const forkJsonl = readFileSync(
+      join(getConversationDirPath(fork.id, fork.createdAt), "messages.jsonl"),
+      "utf-8",
+    )
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+
+    expect(forkAssistant).toBeDefined();
+    const forkAttachments = getAttachmentsForMessage(forkAssistant!.id);
+    expect(sourceAttachments).toHaveLength(1);
+    expect(forkAttachments).toHaveLength(1);
+    expect(forkAttachments[0]?.id).not.toBe(sourceAttachments[0]?.id);
+    expect(
+      existsSync(
+        join(
+          getConversationDirPath(fork.id, fork.createdAt),
+          "attachments",
+          "wireframe.png",
+        ),
+      ),
+    ).toBe(true);
+    expect(forkJsonl[1]?.attachments).toEqual(["wireframe.png"]);
+    expect(getAttachmentsForMessage(sourceAssistant.id)[0]?.id).toBe(
+      sourceAttachments[0]?.id,
+    );
+  });
+
+  test("inherits the source conversation's inference profile", async () => {
+    const source = createConversation("Pinned profile thread");
+    await addMessage(source.id, "user", "Use the balanced profile", undefined, {
+      skipIndexing: true,
+    });
+    getDb()
+      .update(conversations)
+      .set({ inferenceProfile: "balanced" })
+      .where(eq(conversations.id, source.id))
+      .run();
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    expect(fork.inferenceProfile).toBe("balanced");
+  });
+
+  test("leaves inference profile null when source has no override", async () => {
+    const source = createConversation("Default profile thread");
+    await addMessage(source.id, "user", "No pinned profile", undefined, {
+      skipIndexing: true,
+    });
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    expect(fork.inferenceProfile).toBeNull();
+  });
+
+  test("marks copied assistant history as seen and excludes request logs, queued work, and inbound events", async () => {
+    const source = createConversation("Support thread");
+    const sourceUser = await addMessage(
+      source.id,
+      "user",
+      "The deploy is failing.",
+      undefined,
+      { skipIndexing: true },
+    );
+    const sourceAssistant = await addMessage(
+      source.id,
+      "assistant",
+      "I found the failing migration.",
+      undefined,
+      { skipIndexing: true },
+    );
+    markConversationUnread(source.id);
+
+    const db = getDb();
+    const now = Date.now();
+    db.insert(llmRequestLogs)
+      .values({
+        id: "llm-log-1",
+        conversationId: source.id,
+        messageId: sourceAssistant.id,
+        requestPayload: '{"prompt":"debug"}',
+        responsePayload: '{"result":"ok"}',
+        createdAt: now,
+      })
+      .run();
+    db.insert(toolInvocations)
+      .values({
+        id: "tool-invocation-1",
+        conversationId: source.id,
+        toolName: "bash",
+        input: '{"command":"bun test"}',
+        result: '{"ok":true}',
+        decision: "allow",
+        riskLevel: "medium",
+        durationMs: 42,
+        createdAt: now,
+      })
+      .run();
+    db.insert(memoryJobs)
+      .values({
+        id: "memory-job-1",
+        type: "delete_qdrant_vectors",
+        payload: JSON.stringify({ conversationId: source.id }),
+        status: "pending",
+        attempts: 0,
+        deferrals: 0,
+        runAfter: now,
+        lastError: null,
+        startedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+    db.insert(channelInboundEvents)
+      .values({
+        id: "inbound-event-1",
+        sourceChannel: "telegram",
+        externalChatId: "chat-1",
+        externalMessageId: "message-1",
+        sourceMessageId: "source-message-1",
+        conversationId: source.id,
+        messageId: sourceUser.id,
+        deliveryStatus: "pending",
+        processingStatus: "pending",
+        processingAttempts: 0,
+        lastProcessingError: null,
+        retryAfter: null,
+        rawPayload: "{}",
+        deliveredSegmentCount: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+
+    const sourceState = getAttentionStateByConversationIds([source.id]).get(
+      source.id,
+    );
+    const fork = forkConversation({ conversationId: source.id });
+    const forkAssistant = getMessages(fork.id).find(
+      (message) => message.role === "assistant",
+    );
+    const forkAssistantMetadata = forkAssistant?.metadata
+      ? (JSON.parse(forkAssistant.metadata) as {
+          forkSourceMessageId?: string;
+        })
+      : null;
+    const forkRequestLogs = forkAssistant
+      ? getRequestLogsByMessageId(forkAssistant.id)
+      : [];
+    const forkState = getAttentionStateByConversationIds([fork.id]).get(
+      fork.id,
+    );
+    const forkRequestLogCount = db
+      .select()
+      .from(llmRequestLogs)
+      .where(eq(llmRequestLogs.conversationId, fork.id))
+      .all().length;
+    const forkToolInvocationCount = db
+      .select()
+      .from(toolInvocations)
+      .where(eq(toolInvocations.conversationId, fork.id))
+      .all().length;
+    const forkInboundEventCount = db
+      .select()
+      .from(channelInboundEvents)
+      .where(eq(channelInboundEvents.conversationId, fork.id))
+      .all().length;
+    const forkQueuedWorkCount = db
+      .select()
+      .from(memoryJobs)
+      .where(like(memoryJobs.payload, `%${fork.id}%`))
+      .all().length;
+
+    expect(sourceState).toBeDefined();
+    expect(sourceState?.lastSeenAssistantMessageId).toBeNull();
+    expect(forkAssistant).toBeDefined();
+    expect(forkAssistantMetadata?.forkSourceMessageId).toBe(sourceAssistant.id);
+    expect(forkRequestLogs).toHaveLength(1);
+    expect(forkRequestLogs[0]?.conversationId).toBe(source.id);
+    expect(forkRequestLogs[0]?.messageId).toBe(sourceAssistant.id);
+    expect(forkState).toBeDefined();
+    expect(forkState?.latestAssistantMessageId).toBe(forkAssistant?.id);
+    expect(forkState?.lastSeenAssistantMessageId).toBe(forkAssistant?.id);
+    expect(forkState?.lastSeenAssistantMessageAt).toBe(
+      forkAssistant?.createdAt,
+    );
+    expect(forkRequestLogCount).toBe(0);
+    expect(forkToolInvocationCount).toBe(0);
+    expect(forkInboundEventCount).toBe(0);
+    expect(forkQueuedWorkCount).toBe(0);
+  });
+
+  test("copies the parent's v2 activation state into the fork", async () => {
+    const source = createConversation("Activation thread");
+    const sourceMessage = await addMessage(
+      source.id,
+      "user",
+      "Tell me about the Q3 launch plan",
+      undefined,
+      { skipIndexing: true },
+    );
+
+    const db = getDb();
+    db.insert(activationState)
+      .values({
+        conversationId: source.id,
+        messageId: sourceMessage.id,
+        stateJson: JSON.stringify({
+          "concepts/q3-launch-plan": 0.71,
+          "concepts/marketing-ops": 0.34,
+        }),
+        everInjectedJson: JSON.stringify([
+          { slug: "concepts/q3-launch-plan", turn: 1 },
+          { slug: "concepts/marketing-ops", turn: 1 },
+        ]),
+        currentTurn: 2,
+        updatedAt: 1_700_000_000_000,
+      })
+      .run();
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    const childState = await hydrateActivationState(db, fork.id);
+    expect(childState).toEqual({
+      messageId: sourceMessage.id,
+      state: {
+        "concepts/q3-launch-plan": 0.71,
+        "concepts/marketing-ops": 0.34,
+      },
+      everInjected: [
+        { slug: "concepts/q3-launch-plan", turn: 1 },
+        { slug: "concepts/marketing-ops", turn: 1 },
+      ],
+      currentTurn: 2,
+      updatedAt: 1_700_000_000_000,
+    });
+
+    // Parent state is untouched.
+    const parentState = await hydrateActivationState(db, source.id);
+    expect(parentState?.currentTurn).toBe(2);
+  });
+
+  test("copies the parent's v1 graph memory state into the fork", async () => {
+    const source = createConversation("Graph tracker thread");
+    await addMessage(
+      source.id,
+      "user",
+      "Look up alice's preferences",
+      undefined,
+      {
+        skipIndexing: true,
+      },
+    );
+
+    const trackerSnapshot = JSON.stringify({
+      initialized: true,
+      needsReload: false,
+      inContext: ["node-alice", "node-bob"],
+      log: [
+        { nodeId: "node-alice", turn: 1 },
+        { nodeId: "node-bob", turn: 2 },
+      ],
+      currentTurn: 3,
+    });
+    saveGraphMemoryState(source.id, trackerSnapshot);
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    expect(loadGraphMemoryState(fork.id)).toBe(trackerSnapshot);
+    // Parent row is untouched.
+    expect(loadGraphMemoryState(source.id)).toBe(trackerSnapshot);
+  });
+
+  test("leaves both memory state tables empty when the parent has none", async () => {
+    const source = createConversation("Pristine thread");
+    await addMessage(source.id, "user", "first message", undefined, {
+      skipIndexing: true,
+    });
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    const db = getDb();
+    expect(await hydrateActivationState(db, fork.id)).toBeNull();
+    expect(loadGraphMemoryState(fork.id)).toBeNull();
+  });
+
+  test("does not copy memory state when the fork is truncated mid-history", async () => {
+    const source = createConversation("Truncated thread");
+    const firstMessage = await addMessage(
+      source.id,
+      "user",
+      "first turn",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "assistant", "first reply", undefined, {
+      skipIndexing: true,
+    });
+    const lastMessage = await addMessage(
+      source.id,
+      "user",
+      "second turn",
+      undefined,
+      { skipIndexing: true },
+    );
+
+    const db = getDb();
+    db.insert(activationState)
+      .values({
+        conversationId: source.id,
+        messageId: lastMessage.id,
+        stateJson: JSON.stringify({ "concepts/foo": 0.5 }),
+        everInjectedJson: JSON.stringify([{ slug: "concepts/foo", turn: 2 }]),
+        currentTurn: 2,
+        updatedAt: 1_700_000_000_000,
+      })
+      .run();
+    saveGraphMemoryState(
+      source.id,
+      JSON.stringify({
+        initialized: true,
+        needsReload: false,
+        inContext: ["node-foo"],
+        log: [{ nodeId: "node-foo", turn: 2 }],
+        currentTurn: 2,
+      }),
+    );
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: firstMessage.id,
+    });
+
+    expect(await hydrateActivationState(db, fork.id)).toBeNull();
+    expect(loadGraphMemoryState(fork.id)).toBeNull();
+  });
+
+  test("copies memory state when throughMessageId points at the last message", async () => {
+    const source = createConversation("Through-last thread");
+    const lastMessage = await addMessage(
+      source.id,
+      "user",
+      "only turn",
+      undefined,
+      { skipIndexing: true },
+    );
+
+    const db = getDb();
+    db.insert(activationState)
+      .values({
+        conversationId: source.id,
+        messageId: lastMessage.id,
+        stateJson: JSON.stringify({ "concepts/foo": 0.9 }),
+        everInjectedJson: JSON.stringify([{ slug: "concepts/foo", turn: 1 }]),
+        currentTurn: 1,
+        updatedAt: 1_700_000_000_000,
+      })
+      .run();
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: lastMessage.id,
+    });
+
+    const childState = await hydrateActivationState(db, fork.id);
+    expect(childState?.currentTurn).toBe(1);
+  });
+});
+
+describe("forkConversation + memory_retrospective_state", () => {
+  beforeEach(() => {
+    resetTables();
+  });
+
+  test("does not seed state when the source has none", async () => {
+    const source = createConversation("Untouched thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    expect(getRetrospectiveState(fork.id)).toBeNull();
+  });
+
+  test("maps the source pointer when it falls within the copied range", async () => {
+    const source = createConversation("In-range thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+    const processedMessage = await addMessage(
+      source.id,
+      "assistant",
+      "Message 2",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "user", "Message 3", undefined, {
+      skipIndexing: true,
+    });
+
+    upsertRetrospectiveState({
+      conversationId: source.id,
+      lastProcessedMessageId: processedMessage.id,
+      lastRunAt: 1_700_000_000_000,
+    });
+
+    const fork = forkConversation({ conversationId: source.id });
+    const forkState = getRetrospectiveState(fork.id);
+    const forkMessages = getMessages(fork.id);
+    const mappedProcessedId = forkMessages.find((m) => {
+      const md = parseMetadata(m.metadata) as {
+        forkSourceMessageId?: string;
+      } | null;
+      return md?.forkSourceMessageId === processedMessage.id;
+    })?.id;
+
+    expect(mappedProcessedId).toBeDefined();
+    expect(forkState).not.toBeNull();
+    expect(forkState?.lastProcessedMessageId).toBe(mappedProcessedId);
+    expect(forkState?.lastRunAt).toBe(1_700_000_000_000);
+  });
+
+  test("clamps to the last copied message when the source pointer is past the fork boundary", async () => {
+    const source = createConversation("Past-boundary thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+    const branchPoint = await addMessage(
+      source.id,
+      "assistant",
+      "Message 2",
+      undefined,
+      { skipIndexing: true },
+    );
+    const pastBoundaryMessage = await addMessage(
+      source.id,
+      "user",
+      "Message 3",
+      undefined,
+      { skipIndexing: true },
+    );
+    await addMessage(source.id, "assistant", "Message 4", undefined, {
+      skipIndexing: true,
+    });
+
+    upsertRetrospectiveState({
+      conversationId: source.id,
+      lastProcessedMessageId: pastBoundaryMessage.id,
+      lastRunAt: 1_700_000_000_000,
+    });
+
+    const fork = forkConversation({
+      conversationId: source.id,
+      throughMessageId: branchPoint.id,
+    });
+    const forkState = getRetrospectiveState(fork.id);
+    const forkMessages = getMessages(fork.id);
+    const lastForkedMessageId = forkMessages.at(-1)?.id;
+
+    expect(forkMessages).toHaveLength(2);
+    expect(forkState?.lastProcessedMessageId).toBe(lastForkedMessageId);
+    expect(forkState?.lastRunAt).toBe(1_700_000_000_000);
+  });
+
+  test("preserves the empty-string sentinel from a failure-only source", async () => {
+    const source = createConversation("Failure-only thread");
+    await addMessage(source.id, "user", "Message 1", undefined, {
+      skipIndexing: true,
+    });
+    bumpRetrospectiveLastRunAt(source.id, 1_700_000_000_000);
+
+    const fork = forkConversation({ conversationId: source.id });
+    const forkState = getRetrospectiveState(fork.id);
+
+    expect(forkState?.lastProcessedMessageId).toBe("");
+    expect(forkState?.lastRunAt).toBe(1_700_000_000_000);
+  });
+
+  test("copies lastRunAt so the cooldown gate inherits from the source", async () => {
+    const source = createConversation("Cooldown thread");
+    const message = await addMessage(
+      source.id,
+      "user",
+      "Message 1",
+      undefined,
+      { skipIndexing: true },
+    );
+    upsertRetrospectiveState({
+      conversationId: source.id,
+      lastProcessedMessageId: message.id,
+      lastRunAt: 1_700_000_000_000,
+    });
+
+    const fork = forkConversation({ conversationId: source.id });
+
+    expect(getRetrospectiveState(fork.id)?.lastRunAt).toBe(1_700_000_000_000);
+  });
+});

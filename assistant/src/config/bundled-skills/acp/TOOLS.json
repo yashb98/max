@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "name": "acp_spawn",
+      "description": "Spawn an external coding agent (e.g. Claude Code, Codex) via ACP to work on a task. Default profiles ship for `claude` (`claude-agent-acp`) and `codex` (`codex-acp`); the assistant resolves the agent id to the right adapter binary. The agent runs as a subprocess and streams results back. Use this when you want to delegate a coding task to an external agent that has its own tools, file editing, and terminal access. If a binary is missing, the call returns an actionable install hint — do NOT alter `agents.<id>.command` to swap binaries. If ACP is disabled, follow the setup instructions in SKILL.md.",
+      "category": "orchestration",
+      "risk": "high",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "agent": {
+            "type": "string",
+            "description": "Which agent to spawn (e.g. 'claude', 'codex'). Defaults to 'claude'."
+          },
+          "task": {
+            "type": "string",
+            "description": "The task to give the agent - what it should accomplish"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory for the agent. This determines where the agent runs and where its session is stored. Set this to the project/repo root the user wants the agent to work in. Defaults to current conversation's working directory."
+          }
+        },
+        "required": ["task"]
+      },
+      "executor": "tools/acp-spawn.ts",
+      "execution_target": "host"
+    },
+    {
+      "name": "acp_status",
+      "description": "Get the status of a specific ACP session or list all ACP sessions. Only use this when the user explicitly asks about ACP session status - do NOT poll automatically, as you will be notified when sessions complete.",
+      "category": "orchestration",
+      "risk": "low",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "acp_session_id": {
+            "type": "string",
+            "description": "Optional ACP session ID to query. If omitted, returns all ACP sessions."
+          }
+        },
+        "required": []
+      },
+      "executor": "tools/acp-status.ts",
+      "execution_target": "host"
+    },
+    {
+      "name": "acp_abort",
+      "description": "Abort a running ACP session by ID. This kills the agent process and removes the session.",
+      "category": "orchestration",
+      "risk": "low",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "acp_session_id": {
+            "type": "string",
+            "description": "The ID of the ACP session to abort."
+          }
+        },
+        "required": ["acp_session_id"]
+      },
+      "executor": "tools/acp-abort.ts",
+      "execution_target": "host"
+    },
+    {
+      "name": "acp_steer",
+      "description": "**Interrupts** the in-flight prompt of a running ACP session and replaces it with `instruction`. Use to redirect the agent (e.g., 'stop, do X instead'). For follow-up work that should happen *after* the current task, do NOT use this — wait for `acp_session_completed` and `acp_spawn` again.",
+      "category": "orchestration",
+      "risk": "high",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "acp_session_id": {
+            "type": "string",
+            "description": "The ID of the ACP session to steer."
+          },
+          "instruction": {
+            "type": "string",
+            "description": "The new instruction that replaces the in-flight prompt."
+          }
+        },
+        "required": ["acp_session_id", "instruction"]
+      },
+      "executor": "tools/acp-steer.ts",
+      "execution_target": "host"
+    },
+    {
+      "name": "acp_list_agents",
+      "description": "Lists ACP coding agents available to spawn. Each entry includes whether ACP is enabled, whether the agent's binary is on PATH, and an install command if not. Use this to decide between 'claude' and 'codex' or to surface setup steps to the user.",
+      "category": "orchestration",
+      "risk": "low",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "executor": "tools/acp-list-agents.ts",
+      "execution_target": "host"
+    }
+  ]
+}

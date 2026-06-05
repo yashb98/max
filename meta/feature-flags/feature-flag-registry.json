@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "flags": [
+    {
+      "id": "auto-analyze",
+      "scope": "assistant",
+      "key": "auto-analyze",
+      "label": "Auto-analyze conversations",
+      "description": "Automatically trigger conversation analysis on the same cadence as memory extraction (batch threshold, idle debounce, end-of-conversation). The analysis agent has full tool access and writes back to memory and skills without user approval.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "memory-retrospective",
+      "scope": "assistant",
+      "key": "memory-retrospective",
+      "label": "Memory retrospective pass",
+      "description": "Run a focused, memory-only retrospective during active conversations and at conversation lifecycle. The retrospective agent re-reads the messages added since the last successful run, dedupes against memory/archive/, and calls `remember` for what wasn't captured in the moment. Enabling this also relaxes the in-conversation pressure to call `remember` (lighter PKB reminder + relaxed tool description) so the assistant can stay present and trust the retrospective as the backstop.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "user-hosted-enabled",
+      "scope": "client",
+      "key": "user-hosted-enabled",
+      "label": "User Hosted Enabled",
+      "description": "Enable user-hosted onboarding flow",
+      "defaultEnabled": false
+    },
+    {
+      "id": "local-docker-enabled",
+      "scope": "client",
+      "key": "local-docker-enabled",
+      "label": "Local Docker Mode",
+      "description": "When enabled, the Local hosting option uses Docker under the hood for sandboxed execution, hiding the separate Docker card",
+      "defaultEnabled": false
+    },
+    {
+      "id": "email-channel",
+      "scope": "assistant",
+      "key": "email-channel",
+      "label": "Email Channel",
+      "description": "Enable the entire email integration: email CLI commands, email channel, domain registration, sequences, email readiness probes, invite adapters, and the email-setup skill",
+      "defaultEnabled": false
+    },
+    {
+      "id": "settings-developer-nav",
+      "scope": "client",
+      "key": "settings-developer-nav",
+      "label": "Settings Developer Nav",
+      "description": "Control Developer nav visibility in macOS settings",
+      "defaultEnabled": false
+    },
+    {
+      "id": "developer-menu-items",
+      "scope": "client",
+      "key": "developer-menu-items",
+      "label": "Developer Menu Items",
+      "description": "Show Component Gallery and Replay Onboarding in the menu bar",
+      "defaultEnabled": false
+    },
+    {
+      "id": "ces-tools",
+      "scope": "assistant",
+      "key": "ces-tools",
+      "label": "CES Tool Exposure",
+      "description": "Register Credential Execution Service tools (credential-grant, credential-revoke, credential-list) in the agent loop",
+      "defaultEnabled": false
+    },
+    {
+      "id": "ces-shell-lockdown",
+      "scope": "assistant",
+      "key": "ces-shell-lockdown",
+      "label": "CES Shell Lockdown",
+      "description": "Enforce untrusted-agent shell lockdown when CES credentials are active, restricting direct shell access to credentialed services",
+      "defaultEnabled": false
+    },
+    {
+      "id": "ces-secure-install",
+      "scope": "assistant",
+      "key": "ces-secure-install",
+      "label": "CES Secure Command Installation",
+      "description": "Enable secure tool/command installation via CES instead of direct shell execution for untrusted agents",
+      "defaultEnabled": false
+    },
+    {
+      "id": "ces-grant-audit",
+      "scope": "assistant",
+      "key": "ces-grant-audit",
+      "label": "CES Grant & Audit Inspection",
+      "description": "Surface credential grant and audit inspection endpoints for reviewing active grants and access logs",
+      "defaultEnabled": false
+    },
+    {
+      "id": "deploy-to-vercel",
+      "scope": "assistant",
+      "key": "deploy-to-vercel",
+      "label": "Deploy to Vercel",
+      "description": "Enable the Deploy to Vercel / Publish option in the app workspace header share menu",
+      "defaultEnabled": false
+    },
+    {
+      "id": "settings-embedding-provider",
+      "scope": "assistant",
+      "key": "settings-embedding-provider",
+      "label": "Embedding Provider Settings",
+      "description": "Show the Embedding service card in Models & Services settings",
+      "defaultEnabled": false
+    },
+    {
+      "id": "multi-platform-assistant",
+      "scope": "assistant",
+      "key": "multi-platform-assistant",
+      "label": "Multi-Platform Assistant Switcher",
+      "description": "Enable the menu-bar assistant switcher for managing multiple platform-hosted assistants (new/switch/retire)",
+      "defaultEnabled": false
+    },
+    {
+      "id": "quick-input",
+      "scope": "client",
+      "key": "quick-input",
+      "label": "Quick Input",
+      "description": "Enable the Quick Input popover on right-click of the menu bar icon",
+      "defaultEnabled": false
+    },
+    {
+      "id": "expand-completed-steps",
+      "scope": "client",
+      "key": "expand-completed-steps",
+      "label": "Expand Completed Steps",
+      "description": "Auto-expand completed tool call step groups instead of showing them collapsed",
+      "defaultEnabled": false
+    },
+    {
+      "id": "sounds",
+      "scope": "assistant",
+      "key": "sounds",
+      "label": "Sounds",
+      "description": "Enable the Sounds tab in Settings and all app sound playback (event sounds, random ambient sounds)",
+      "defaultEnabled": false
+    },
+    {
+      "id": "message-tts",
+      "scope": "assistant",
+      "key": "message-tts",
+      "label": "Message Text-to-Speech",
+      "description": "Show a speaker button on assistant messages to generate and play the message as audio via Fish Audio TTS",
+      "defaultEnabled": false
+    },
+    {
+      "id": "backward-releases",
+      "scope": "assistant",
+      "key": "backward-releases",
+      "label": "Backward Releases",
+      "description": "Show older versions in the version picker, allowing rollback to previous releases",
+      "defaultEnabled": false
+    },
+    {
+      "id": "voice-mode",
+      "scope": "assistant",
+      "key": "voice-mode",
+      "label": "Voice Mode",
+      "description": "Show the live voice conversation button in the composer",
+      "defaultEnabled": false
+    },
+    {
+      "id": "fast-mode",
+      "scope": "assistant",
+      "key": "fast-mode",
+      "label": "Fast Mode",
+      "description": "Enable Anthropic fast mode for Opus models (4.6, 4.7), delivering up to 2.5x higher output tokens per second at premium pricing",
+      "defaultEnabled": false
+    },
+    {
+      "id": "conversation-groups-ui",
+      "scope": "assistant",
+      "key": "conversation-groups-ui",
+      "label": "Conversation Groups",
+      "description": "Enable custom conversation group creation, move-to-group, and group management in the sidebar",
+      "defaultEnabled": false
+    },
+    {
+      "id": "teleport",
+      "scope": "client",
+      "key": "teleport",
+      "label": "Teleport",
+      "description": "Enable teleport UI in General settings for moving assistants between hosting environments",
+      "defaultEnabled": false
+    },
+    {
+      "id": "apple-container",
+      "scope": "client",
+      "key": "apple-container",
+      "label": "Apple Container",
+      "description": "Enable assistant sandboxing via Apple Containers on macOS 26+, providing a lightweight native sandbox without third-party dependencies",
+      "defaultEnabled": false
+    },
+    {
+      "id": "managed-gemini-embeddings-enabled",
+      "scope": "assistant",
+      "key": "managed-gemini-embeddings-enabled",
+      "label": "Managed Gemini Embeddings Enabled",
+      "description": "Route embedding requests through the platform runtime proxy using Vellum-managed Gemini credentials when available",
+      "defaultEnabled": false
+    },
+    {
+      "id": "bookmarks",
+      "scope": "client",
+      "key": "bookmarks",
+      "label": "Message Bookmarks",
+      "description": "Show the bookmark icon on messages and enable the Bookmarks tab in Settings",
+      "defaultEnabled": false
+    },
+    {
+      "id": "fork-from-message",
+      "scope": "client",
+      "key": "fork-from-message",
+      "label": "Fork from Message",
+      "description": "Show the 'Fork from here' option in message overflow menus",
+      "defaultEnabled": false
+    },
+    {
+      "id": "home-tab",
+      "scope": "client",
+      "key": "home-tab",
+      "label": "Home Tab",
+      "description": "Replace the knowledge graph top-level tab with a new Home page showing relationship progression, facts, and capability tiers",
+      "defaultEnabled": false
+    },
+    {
+      "id": "meet",
+      "scope": "assistant",
+      "key": "meet",
+      "label": "Google Meet",
+      "description": "Enables the Google Meet joining bot and the meet-join skill.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "scroll-debug-overlay",
+      "scope": "client",
+      "key": "scroll-debug-overlay",
+      "label": "Scroll Debug Overlay",
+      "description": "Show a live HUD in the top-right of the conversation with scroll geometry, velocity, update rate, and anchor-preserver activity. Developer diagnostic for investigating scroll jank.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "coding-agents-panel",
+      "scope": "client",
+      "key": "coding-agents-panel",
+      "label": "Coding Agents Panel",
+      "description": "Gate native macOS Coding Agents panel entry points and inline ACP session deep links.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "compaction-playground",
+      "scope": "assistant",
+      "key": "compaction-playground",
+      "label": "Compaction Playground",
+      "description": "Expose the developer-only Compaction Playground tab in macOS Settings and enable the /playground/* HTTP endpoints for exercising compaction conditions. Dev-only; default off.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "safe-storage-limits",
+      "scope": "assistant",
+      "key": "safe-storage-limits",
+      "label": "Safe Storage Limits",
+      "description": "Enable disk pressure protection flows that block background work and remote actors while storage is critically low.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "account-deletion",
+      "scope": "client",
+      "key": "account-deletion",
+      "label": "Account Deletion",
+      "description": "Surfaces the user-initiated account deletion flow in client settings.",
+      "defaultEnabled": true
+    },
+    {
+      "id": "app-control",
+      "scope": "assistant",
+      "key": "app-control",
+      "label": "App Control",
+      "description": "Enable the app-control skill (per-app screenshot + raw input bypassing AX tree)",
+      "defaultEnabled": false
+    },
+    {
+      "id": "analyze-conversation",
+      "scope": "assistant",
+      "key": "analyze-conversation",
+      "label": "Analyze Conversation",
+      "description": "Show the 'Analyze' / 'Analyze conversation' option in conversation context menus and the conversation title actions dropdown.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "pro-plan-adjust",
+      "scope": "assistant",
+      "key": "pro-plan-adjust",
+      "label": "Pro Plan Adjust",
+      "description": "Show the rich Plan card (current plan, features, Manage/Upgrade CTA) at the top of the macOS Settings \u2192 Billing tab.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "external-plugins",
+      "scope": "assistant",
+      "key": "external-plugins",
+      "label": "External Plugins",
+      "description": "Enable the external-plugin install path: the `assistant plugins` CLI subcommand and the declarative external-plugin loader convention (`<workspaceDir>/plugins/<name>/` directories containing `package.json` plus interface dirs). Gates an unstable surface that may change shape before stabilizing.",
+      "defaultEnabled": false
+    },
+    {
+      "id": "claude-subscription-provider",
+      "scope": "assistant",
+      "key": "claude-subscription-provider",
+      "label": "Claude Subscription Provider",
+      "description": "Enable the `claude-subscription` LLM provider. Uses the Claude Code CLI's stored OAuth token (Max subscription) instead of an Anthropic API key, and bridges the Agent SDK's tool calls back to Vellum's ToolExecutor via an in-process MCP server. Rollout status: GA — `defaultEnabled: true` once all Phase 3 operational items (error classes, telemetry, runbook) shipped. To roll back globally: flip to `false` and restart the daemon; the picker will hide the row and existing pinned conversations will surface `not-enabled` at call time. There is no per-user override — disable affects all users. See `assistant/docs/architecture/claude-subscription-bridge.md` for architecture and `assistant/docs/runbook-claude-subscription.md` for diagnostics.",
+      "defaultEnabled": true
+    }
+  ]
+}

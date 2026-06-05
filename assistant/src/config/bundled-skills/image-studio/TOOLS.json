@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "name": "media_generate_image",
+      "description": "Generate or edit images using AI. Supports text-to-image generation and image editing with source images.",
+      "category": "media",
+      "risk": "low",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "A text description of the image to generate or the edits to apply"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["generate", "edit"],
+            "description": "Whether to generate a new image or edit an existing one (default: generate)"
+          },
+          "source_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "File paths to source images in the workspace (for edit mode)"
+          },
+          "model": {
+            "type": "string",
+            "enum": [
+              "gemini-3.1-flash-image-preview",
+              "gemini-3-pro-image-preview",
+              "gpt-image-2"
+            ],
+            "description": "Which model to use for generation. If omitted, uses the user's configured preference."
+          },
+          "variants": {
+            "type": "number",
+            "description": "Number of image variants to generate (1-4, default: 1)"
+          }
+        },
+        "required": ["prompt"]
+      },
+      "executor": "tools/media-generate-image.ts",
+      "execution_target": "host"
+    }
+  ]
+}

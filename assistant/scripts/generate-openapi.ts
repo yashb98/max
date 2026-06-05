@@ -1,0 +1,642 @@
+#!/usr/bin/env bun
+/**
+ * Generate a minimal OpenAPI 3.0 YAML specification from the assistant's
+ * HTTP route definitions.
+ *
+ * Pipeline:
+ *   1. Programmatically import every route module under src/runtime/routes/
+ *      and collect all exported ROUTES arrays — no regex, no source-text parsing.
+ *   2. Combine with pre-auth / non-v1 routes.
+ *   3. Convert to OpenAPI path items.
+ *   4. Write to openapi.yaml.
+ *
+ * Usage:
+ *   cd assistant && bun run scripts/generate-openapi.ts
+ *   cd assistant && bun run generate:openapi            # via npm script
+ *   cd assistant && bun run generate:openapi -- --check  # CI: fail if stale
+ */
+
+import { readFileSync } from "node:fs";
+import { readdir, readFile, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { Readable } from "node:stream";
+
+import { stringify } from "yaml";
+import { z } from "zod";
+
+const ROOT = resolve(import.meta.dir, "..");
+const ROUTES_DIR = join(ROOT, "src/runtime/routes");
+const OUTPUT_PATH = join(ROOT, "openapi.yaml");
+const PKG_PATH = join(ROOT, "package.json");
+
+// ---------------------------------------------------------------------------
+// Schemas
+// ---------------------------------------------------------------------------
+
+const RouteQueryParamSchema = z.object({
+  name: z.string(),
+  type: z.string().optional(),
+  required: z.boolean().optional(),
+  description: z.string().optional(),
+  schema: z.record(z.string(), z.unknown()).optional(),
+});
+
+/**
+ * Accepts either a Zod schema instance (has _zod property) or a plain
+ * JSON-Schema-style object for backward compatibility with inline routes.
+ */
+const RouteBodySchemaSchema = z.any().refine(
+  (v) =>
+    v != null &&
+    typeof v === "object" &&
+    // Zod schema instance (Zod 4 uses _zod branded property)
+    ("_zod" in v ||
+      // Plain JSON Schema fallback
+      typeof (v as Record<string, unknown>).type === "string"),
+  { message: "Expected a Zod schema or a plain JSON Schema object" },
+);
+
+const RouteRequestBodyVariantSchema = z.object({
+  contentType: z.string(),
+  /** Zod schema OR plain JSON Schema fragment. */
+  schema: z.any(),
+});
+
+const RouteAdditionalResponseSchema = z.object({
+  description: z.string(),
+  schema: z.any().optional(),
+});
+
+const RouteEntrySchema = z.object({
+  method: z.string(),
+  /** Endpoint path relative to /v1/ (e.g. "conversations/:id"). */
+  endpoint: z.string(),
+  /** Short summary for OpenAPI operation. */
+  summary: z.string().optional(),
+  /** Longer description for OpenAPI operation. */
+  description: z.string().optional(),
+  /** Grouping tags. */
+  tags: z.array(z.string()).optional(),
+  /** Query parameter definitions. */
+  queryParams: z.array(RouteQueryParamSchema).optional(),
+  /** JSON Schema for the request body. */
+  requestBody: RouteBodySchemaSchema.optional(),
+  /** Multi-content-type request body variants (overrides `requestBody` when present). */
+  requestBodies: z.array(RouteRequestBodyVariantSchema).optional(),
+  /** JSON Schema for the success response body. */
+  responseBody: RouteBodySchemaSchema.optional(),
+  /** HTTP status code for the success response. Defaults to "200".
+   * Callable responseStatus values (used at runtime) are ignored here. */
+  responseStatus: z.preprocess(
+    (v) => (typeof v === "string" ? v : undefined),
+    z.string().optional(),
+  ),
+  /** Extra response codes documented in the spec. */
+  additionalResponses: z
+    .record(z.string(), RouteAdditionalResponseSchema)
+    .optional(),
+  /** Source module filename, used for auto-deriving tags. */
+  sourceModule: z.string().optional(),
+});
+
+type RouteEntry = z.infer<typeof RouteEntrySchema>;
+
+/** JSON Schema representation of a body (for the OpenAPI spec output). */
+interface JSONSchemaObject {
+  type?: string;
+  properties?: Record<string, unknown>;
+  required?: string[];
+  description?: string;
+  additionalProperties?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Recursively strip fields with a `default` from `required[]` on every
+ * object schema in the tree. Zod 4's `toJSONSchema` (output mode) marks
+ * defaulted fields as required because the output always carries them,
+ * but for request bodies the server fills the default when the client
+ * omits the field — generated clients should not be forced to send it.
+ */
+function dropDefaultedFromRequired(node: unknown): void {
+  if (node == null || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    for (const item of node) dropDefaultedFromRequired(item);
+    return;
+  }
+  const obj = node as Record<string, unknown>;
+  const props = obj.properties;
+  const required = obj.required;
+  if (
+    Array.isArray(required) &&
+    props != null &&
+    typeof props === "object"
+  ) {
+    const propsRecord = props as Record<string, unknown>;
+    const filtered = required.filter((name) => {
+      if (typeof name !== "string") return true;
+      const prop = propsRecord[name];
+      return !(
+        prop != null &&
+        typeof prop === "object" &&
+        "default" in (prop as Record<string, unknown>)
+      );
+    });
+    if (filtered.length > 0) obj.required = filtered;
+    else delete obj.required;
+  }
+  for (const value of Object.values(obj)) dropDefaultedFromRequired(value);
+}
+
+/** Convert a Zod schema or plain JSON Schema object to a JSON Schema object. */
+function toJSONSchemaObject(
+  schema: unknown,
+  options: { stripRequiredDefaults?: boolean } = {},
+): JSONSchemaObject {
+  if (schema == null || typeof schema !== "object") return {};
+  // Zod schema: has _zod branded property
+  if ("_zod" in (schema as Record<string, unknown>)) {
+    const converted = z.toJSONSchema(schema as z.ZodType, {
+      unrepresentable: "any",
+    });
+    // z.toJSONSchema may add $schema — strip it for inline embedding
+    const { $schema: _, ...rest } = converted as Record<string, unknown>;
+    if (options.stripRequiredDefaults) dropDefaultedFromRequired(rest);
+    return rest as JSONSchemaObject;
+  }
+  // Plain JSON Schema object (backward compat for inline/pre-auth routes)
+  return schema as JSONSchemaObject;
+}
+
+// ---------------------------------------------------------------------------
+// Programmatic route extraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Dynamically import every route module under `src/runtime/routes/`
+ * and collect all exported `ROUTES` arrays.
+ *
+ * Each route module is expected to export a `ROUTES: RouteDefinition[]`
+ * constant. The function automatically picks up new route modules
+ * without manual updates.
+ */
+async function collectRoutesFromModules(): Promise<RouteEntry[]> {
+  const routes: RouteEntry[] = [];
+
+  // Skip the `index.ts` barrel: it re-exports every other route module's
+  // ROUTES into a single combined array, so importing it would double-count
+  // every entry. The duplicate `method:endpoint` keys are deduped later by
+  // first-seen, but the surviving entry's `sourceModule` (used to derive
+  // OpenAPI `tags`) depends on `readdir` order — which is filesystem
+  // dependent and diverges between local sandbox and the CI runner, making
+  // the generator non-reproducible. Sort the file list as well so directory
+  // entry order can never affect the output.
+  const files = (await readdir(ROUTES_DIR, { recursive: true }))
+    .filter(
+      (f) =>
+        typeof f === "string" &&
+        f.endsWith(".ts") &&
+        !f.endsWith(".test.ts") &&
+        !f.endsWith(".benchmark.test.ts") &&
+        !f.includes("node_modules") &&
+        f !== "index.ts" &&
+        !f.endsWith("/index.ts"),
+    )
+    .sort();
+
+  for (const file of files) {
+    const filePath = join(ROUTES_DIR, file);
+    let mod: Record<string, unknown>;
+    try {
+      mod = (await import(filePath)) as Record<string, unknown>;
+    } catch (err) {
+      console.warn(
+        `Warning: could not import ${file}: ${err instanceof Error ? err.message : err}`,
+      );
+      continue;
+    }
+
+    // Collect every export whose name is `ROUTES` or ends in `_ROUTES`.
+    // A handful of route files (e.g. `channel-route-definitions.ts`,
+    // `contact-prompt-routes.ts`) export under domain-prefixed names like
+    // `CHANNEL_ROUTES` and `CONTACT_PROMPT_ROUTES` rather than the
+    // canonical `ROUTES`. Without this fan-out the only way those routes
+    // reached the spec was via the `index.ts` barrel — which is excluded
+    // above for reproducibility.
+    const exportNames = Object.keys(mod)
+      .filter((k) => k === "ROUTES" || k.endsWith("_ROUTES"))
+      .sort();
+    for (const name of exportNames) {
+      const arr = mod[name];
+      if (!Array.isArray(arr)) continue;
+      for (const raw of arr) {
+        const result = RouteEntrySchema.safeParse({
+          ...(typeof raw === "object" && raw !== null ? raw : {}),
+          sourceModule: file,
+        });
+        if (result.success) routes.push(result.data);
+      }
+    }
+  }
+
+  return routes;
+}
+
+/**
+ * Top-level routes outside the /v1/ namespace.
+ * These are added to the spec separately.
+ */
+const NON_V1_ROUTES: Array<{ method: string; path: string }> = [
+  { method: "GET", path: "/healthz" },
+  { method: "GET", path: "/readyz" },
+  { method: "GET", path: "/pages/{id}" },
+];
+
+// ---------------------------------------------------------------------------
+// OpenAPI helpers
+// ---------------------------------------------------------------------------
+
+/** Convert route endpoint `:param` / `:param*` syntax to OpenAPI `{param}`. */
+function toOpenApiPath(endpoint: string): string {
+  return (
+    "/v1/" + endpoint.replace(/:(\w+)\*/g, "{$1}").replace(/:(\w+)/g, "{$1}")
+  );
+}
+
+/** Derive a unique operationId from the endpoint and HTTP method. */
+function toOperationId(endpoint: string, method: string): string {
+  const slug = endpoint
+    .replace(/:(\w+)\*/g, "by_$1")
+    .replace(/:(\w+)/g, "by_$1")
+    .replace(/[/]/g, "_")
+    .replace(/[^a-zA-Z0-9_]/g, "");
+  return `${slug}_${method.toLowerCase()}`;
+}
+
+/** Extract path parameter names from an OpenAPI-style path. */
+function extractPathParams(openApiPath: string): string[] {
+  const params: string[] = [];
+  const re = /\{(\w+)\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(openApiPath)) !== null) {
+    params.push(m[1]);
+  }
+  return params;
+}
+
+// ---------------------------------------------------------------------------
+// Spec builder
+// ---------------------------------------------------------------------------
+
+interface OpenApiParameter {
+  name: string;
+  in: string;
+  required: boolean;
+  schema: { type: string };
+  description?: string;
+}
+
+interface OpenApiOperation {
+  operationId: string;
+  summary?: string;
+  description?: string;
+  tags?: string[];
+  parameters?: OpenApiParameter[];
+  requestBody?: {
+    required: boolean;
+    content: Record<string, { schema: JSONSchemaObject }>;
+  };
+  responses: Record<
+    string,
+    {
+      description: string;
+      content?: Record<string, { schema: JSONSchemaObject }>;
+    }
+  >;
+}
+
+interface OpenApiPathItem {
+  [method: string]: OpenApiOperation;
+}
+
+/** Derive a tag name from a route module filename (e.g. "secret-routes.ts" → "secrets"). */
+function deriveTagFromModule(filename: string): string {
+  // Strip directory prefix and extension
+  const base = filename.replace(/^.*[\/]/, "").replace(/\.ts$/, "");
+  // Remove trailing "-routes" suffix
+  return base.replace(/-routes$/, "");
+}
+
+function buildSpec(
+  routes: RouteEntry[],
+  version: string,
+): Record<string, unknown> {
+  // Deduplicate by path+method
+  const seen = new Set<string>();
+  const uniqueRoutes: Array<{
+    path: string;
+    method: string;
+    endpoint: string;
+    entry: RouteEntry;
+  }> = [];
+
+  // Non-v1 routes first
+  for (const r of NON_V1_ROUTES) {
+    const key = `${r.method}:${r.path}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueRoutes.push({
+        path: r.path,
+        method: r.method,
+        endpoint: r.path,
+        entry: { method: r.method, endpoint: r.path },
+      });
+    }
+  }
+
+  // v1 routes
+  for (const r of routes) {
+    const openApiPath = toOpenApiPath(r.endpoint);
+    const key = `${r.method}:${openApiPath}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueRoutes.push({
+        path: openApiPath,
+        method: r.method,
+        endpoint: r.endpoint,
+        entry: r,
+      });
+    }
+  }
+
+  // Sort by path, then by method for deterministic output
+  uniqueRoutes.sort((a, b) => {
+    const pathCmp = a.path.localeCompare(b.path);
+    if (pathCmp !== 0) return pathCmp;
+    return a.method.localeCompare(b.method);
+  });
+
+  // Build paths object
+  const paths: Record<string, OpenApiPathItem> = {};
+  for (const route of uniqueRoutes) {
+    if (!paths[route.path]) {
+      paths[route.path] = {};
+    }
+
+    const methodLower = route.method.toLowerCase();
+    const operationId = route.path.startsWith("/v1/")
+      ? toOperationId(route.endpoint, route.method)
+      : route.path.replace(/^\//, "").replace(/[/{}\-]/g, "_") +
+        `_${methodLower}`;
+
+    const { entry } = route;
+
+    // Build parameters: path params + query params from metadata
+    const pathParams = extractPathParams(route.path);
+    const parameters: OpenApiParameter[] = pathParams.map((name) => ({
+      name,
+      in: "path" as const,
+      required: true,
+      schema: { type: "string" },
+    }));
+
+    if (entry.queryParams) {
+      for (const qp of entry.queryParams) {
+        parameters.push({
+          name: qp.name,
+          in: "query",
+          required: qp.required ?? false,
+          schema: qp.schema ?? { type: qp.type ?? "string" },
+          ...(qp.description ? { description: qp.description } : {}),
+        });
+      }
+    }
+
+    // Determine tags: explicit tags > auto-derived from source module
+    const tags: string[] | undefined =
+      entry.tags && entry.tags.length > 0
+        ? entry.tags
+        : entry.sourceModule
+          ? [deriveTagFromModule(entry.sourceModule)]
+          : undefined;
+
+    // Build the operation. Default success status is 200; async endpoints
+    // that enqueue a job and return immediately set responseStatus: "202"
+    // so the generated spec matches the handler's actual response code.
+    const successStatus = entry.responseStatus ?? "200";
+    const operation: OpenApiOperation = {
+      operationId,
+      ...(entry.summary ? { summary: entry.summary } : {}),
+      ...(entry.description ? { description: entry.description } : {}),
+      ...(tags ? { tags } : {}),
+      responses: {
+        [successStatus]: entry.responseBody
+          ? {
+              description: "Successful response",
+              content: {
+                "application/json": {
+                  schema: toJSONSchemaObject(entry.responseBody),
+                },
+              },
+            }
+          : { description: "Successful response" },
+      },
+    };
+
+    if (parameters.length > 0) {
+      operation.parameters = parameters;
+    }
+
+    // Multi-content-type request bodies take precedence over the single
+    // application/json requestBody. This lets an endpoint advertise a
+    // `oneOf`-style choice between `application/octet-stream`,
+    // `multipart/form-data`, and `application/json` on the same URL.
+    if (entry.requestBodies && entry.requestBodies.length > 0) {
+      const content: Record<string, { schema: JSONSchemaObject }> = {};
+      for (const variant of entry.requestBodies) {
+        content[variant.contentType] = {
+          schema: toJSONSchemaObject(variant.schema, {
+            stripRequiredDefaults: true,
+          }),
+        };
+      }
+      operation.requestBody = { required: true, content };
+    } else if (entry.requestBody) {
+      operation.requestBody = {
+        required: true,
+        content: {
+          "application/json": {
+            schema: toJSONSchemaObject(entry.requestBody, {
+              stripRequiredDefaults: true,
+            }),
+          },
+        },
+      };
+    }
+
+    // Extra documented response variants (e.g. 502 fetch_failed).
+    if (entry.additionalResponses) {
+      for (const [status, resp] of Object.entries(entry.additionalResponses)) {
+        operation.responses[status] = {
+          description: resp.description,
+          ...(resp.schema
+            ? {
+                content: {
+                  "application/json": {
+                    schema: toJSONSchemaObject(resp.schema),
+                  },
+                },
+              }
+            : {}),
+        };
+      }
+    }
+
+    paths[route.path][methodLower] = operation;
+  }
+
+  return {
+    openapi: "3.0.0",
+    info: {
+      title: "Vellum Assistant API",
+      version,
+      description:
+        "Auto-generated OpenAPI specification for the Vellum Assistant runtime HTTP server.",
+    },
+    servers: [
+      {
+        url: "http://127.0.0.1:7821",
+        description: "Local assistant (default port)",
+      },
+    ],
+    paths,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const isCheck = process.argv.includes("--check");
+
+  // Read package version
+  const pkg = JSON.parse(readFileSync(PKG_PATH, "utf-8")) as {
+    version: string;
+  };
+  const version = pkg.version;
+
+  // Collect routes programmatically from route modules
+  const moduleRoutes = await collectRoutesFromModules();
+
+  // Combine all route sources
+  const allRoutes: RouteEntry[] = moduleRoutes;
+
+  // Build the spec
+  const spec = buildSpec(allRoutes, version);
+  const rawYaml =
+    "# Auto-generated by scripts/generate-openapi.ts — DO NOT EDIT\n" +
+    "# Regenerate: cd assistant && bun run generate:openapi\n" +
+    stringify(spec, { lineWidth: 120 });
+
+  // Format with prettier so the output matches what the pre-commit hook produces.
+  // Use a Node.js Readable stream for stdin — Bun.spawn with Blob stdin produces
+  // empty output on some platforms (Bun 1.3.x Linux sandbox).
+  const prettierProc = Bun.spawn(["bunx", "prettier", "--parser", "yaml"], {
+    stdin: Readable.from([rawYaml]) as unknown as Blob,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const [yamlOutput, prettierExitCode] = await Promise.all([
+    new Response(prettierProc.stdout).text(),
+    prettierProc.exited,
+  ]);
+  if (prettierExitCode !== 0) {
+    const stderr = await new Response(prettierProc.stderr).text();
+    console.error(`prettier exited with code ${prettierExitCode}: ${stderr}`);
+    process.exit(1);
+  }
+
+  if (isCheck) {
+    let existing: string;
+    try {
+      existing = await readFile(OUTPUT_PATH, "utf-8");
+    } catch {
+      console.error(
+        "openapi.yaml does not exist. Run: bun run generate:openapi",
+      );
+      process.exit(1);
+    }
+    if (existing !== yamlOutput) {
+      console.error("openapi.yaml is stale. Run: bun run generate:openapi");
+      // Emit the first byte-level divergence and a windowed diff around it
+      // so CI logs are actionable without a follow-up local repro.
+      const maxLen = Math.max(existing.length, yamlOutput.length);
+      let firstDiff = -1;
+      for (let i = 0; i < maxLen; i++) {
+        if (existing[i] !== yamlOutput[i]) {
+          firstDiff = i;
+          break;
+        }
+      }
+      if (firstDiff >= 0) {
+        const lineNo = (existing.slice(0, firstDiff).match(/\n/g) ?? []).length + 1;
+        const winStart = Math.max(0, firstDiff - 120);
+        const winEnd = Math.min(maxLen, firstDiff + 120);
+        console.error(`First divergence at byte ${firstDiff} (~line ${lineNo}):`);
+        console.error(`  existing[${winStart}..${winEnd}]:`);
+        console.error(`    ${JSON.stringify(existing.slice(winStart, winEnd))}`);
+        console.error(`  generated[${winStart}..${winEnd}]:`);
+        console.error(`    ${JSON.stringify(yamlOutput.slice(winStart, winEnd))}`);
+      }
+      // Also flag which path operations are present in one but not the other —
+      // the common failure mode is a missing or duplicated route entry, and
+      // the path keys are the actionable thing for the human reading the log.
+      const pathsRe = /^\s\s(\/\S+):/gm;
+      const existingPaths = new Set(
+        Array.from(existing.matchAll(pathsRe), (m) => m[1]),
+      );
+      const generatedPaths = new Set(
+        Array.from(yamlOutput.matchAll(pathsRe), (m) => m[1]),
+      );
+      const inExistingOnly = [...existingPaths].filter(
+        (p) => !generatedPaths.has(p),
+      );
+      const inGeneratedOnly = [...generatedPaths].filter(
+        (p) => !existingPaths.has(p),
+      );
+      if (inExistingOnly.length || inGeneratedOnly.length) {
+        console.error(
+          `Path set drift: existing has ${existingPaths.size} paths, generated has ${generatedPaths.size}`,
+        );
+        if (inGeneratedOnly.length) {
+          console.error(`  Only in generated (missing from committed yaml):`);
+          for (const p of inGeneratedOnly.slice(0, 20)) console.error(`    + ${p}`);
+        }
+        if (inExistingOnly.length) {
+          console.error(`  Only in existing (stale entries in committed yaml):`);
+          for (const p of inExistingOnly.slice(0, 20)) console.error(`    - ${p}`);
+        }
+      }
+      process.exit(1);
+    }
+    console.log("openapi.yaml is up to date.");
+    return;
+  }
+
+  await writeFile(OUTPUT_PATH, yamlOutput);
+
+  // Count stats
+  const pathCount = Object.keys(spec.paths as Record<string, unknown>).length;
+  const operationCount = Object.values(
+    spec.paths as Record<string, Record<string, unknown>>,
+  ).reduce((n, methods) => n + Object.keys(methods).length, 0);
+
+  console.log(`Generated ${OUTPUT_PATH}`);
+  console.log(`  ${pathCount} paths, ${operationCount} operations`);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -1,0 +1,485 @@
+/**
+ * Route handler for the assistant-events SSE endpoint.
+ *
+ * GET /v1/events?conversationKey=...
+ *
+ * JWT bearer auth is enforced by RuntimeHttpServer before this handler
+ * is called. The AuthContext is threaded through from the HTTP server
+ * layer, so no additional actor-token verification is needed here.
+ *
+ * When `conversationKey` is provided, subscribers receive events scoped to
+ * that conversation. When omitted, subscribers receive events from ALL
+ * conversations for this assistant (unfiltered).
+ *
+ * Client registration:
+ *   Clients may send `X-Vellum-Client-Id` and `X-Vellum-Interface-Id`
+ *   request headers. When both are present, the subscriber is registered
+ *   as a client in the event hub with derived capabilities. The hub
+ *   handles registration, touch (heartbeat), and unregistration (dispose).
+ */
+
+import { type IntervalHistogram, monitorEventLoopDelay } from "node:perf_hooks";
+
+import * as Sentry from "@sentry/node";
+import { z } from "zod";
+
+import type { HostProxyCapability } from "../../channels/types.js";
+import { parseInterfaceId, supportsHostProxy } from "../../channels/types.js";
+import { emitContactChange } from "../../contacts/contact-events.js";
+import { getOrCreateConversation } from "../../memory/conversation-key-store.js";
+import { getLogger } from "../../util/logger.js";
+import { formatSseFrame, formatSseHeartbeat } from "../assistant-event.js";
+import type {
+  AssistantEventCallback,
+  AssistantEventFilter,
+  AssistantEventSubscription,
+} from "../assistant-event-hub.js";
+import {
+  AssistantEventHub,
+  assistantEventHub,
+} from "../assistant-event-hub.js";
+import { resolveActorPrincipalIdForLocalGuardian } from "../local-actor-identity.js";
+import { BadRequestError, ServiceUnavailableError } from "./errors.js";
+import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
+
+const log = getLogger("events-routes");
+
+/** Keep-alive comment sent to idle clients every 7 s by default. */
+const DEFAULT_HEARTBEAT_INTERVAL_MS = 7_000;
+
+/**
+ * Resolution of the event-loop delay histogram, per
+ * https://nodejs.org/api/perf_hooks.html#perf_hooksmonitoreventloopdelayoptions.
+ * A 20 ms resolution gives sub-tick visibility while keeping overhead near zero.
+ */
+const EVENT_LOOP_DELAY_RESOLUTION_MS = 20;
+
+/**
+ * How often we reset the cumulative event-loop delay histogram so subsequent
+ * percentile snapshots reflect recent behavior rather than the entire process
+ * lifetime. Matches the default window used by `@fastify/under-pressure` and
+ * `prom-client` for runtime-pressure metrics.
+ */
+const EVENT_LOOP_DELAY_RESET_INTERVAL_MS = 60_000;
+
+let eventLoopDelay: IntervalHistogram | null = null;
+let eventLoopResetTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Lazily start a cumulative event-loop delay histogram on the first SSE
+ * subscriber, and schedule a periodic reset so percentile readings stay
+ * meaningful across long-lived daemon processes.
+ *
+ * Guarded with try/catch because `node:perf_hooks.monitorEventLoopDelay`
+ * was a stub in some older Bun versions; if the runtime ever regresses,
+ * we still emit the shed log + Sentry capture without lag stats rather
+ * than crashing the SSE handler.
+ */
+function ensureEventLoopDelayMonitorStarted(): void {
+  if (eventLoopDelay !== null) return;
+  try {
+    const histogram = monitorEventLoopDelay({
+      resolution: EVENT_LOOP_DELAY_RESOLUTION_MS,
+    });
+    histogram.enable();
+    eventLoopDelay = histogram;
+    eventLoopResetTimer = setInterval(() => {
+      try {
+        histogram.reset();
+      } catch {
+        if (eventLoopResetTimer) {
+          clearInterval(eventLoopResetTimer);
+          eventLoopResetTimer = null;
+        }
+      }
+    }, EVENT_LOOP_DELAY_RESET_INTERVAL_MS);
+    eventLoopResetTimer.unref?.();
+  } catch (err) {
+    log.warn({ err }, "failed to start event-loop delay monitor");
+    eventLoopDelay = null;
+  }
+}
+
+export interface EventLoopDelaySnapshot {
+  mean_ms: number | null;
+  p99_ms: number | null;
+  max_ms: number | null;
+}
+
+function nsToMs(ns: number): number | null {
+  if (!Number.isFinite(ns)) return null;
+  // Round to the nearest microsecond, then express in ms (3 decimal places).
+  return Math.round(ns / 1e3) / 1e3;
+}
+
+function sampleEventLoopDelay(): EventLoopDelaySnapshot {
+  const histogram = eventLoopDelay;
+  if (histogram === null) {
+    return { mean_ms: null, p99_ms: null, max_ms: null };
+  }
+  try {
+    return {
+      mean_ms: nsToMs(histogram.mean),
+      p99_ms: nsToMs(histogram.percentile(99)),
+      max_ms: nsToMs(histogram.max),
+    };
+  } catch {
+    return { mean_ms: null, p99_ms: null, max_ms: null };
+  }
+}
+
+export interface SseSubscriberInstrumentation {
+  subscribedAtMs: number;
+  eventsDelivered: number;
+  heartbeatsSent: number;
+  clientId: string | null;
+  interfaceId: string | null;
+  conversationKey: string | null;
+}
+
+export type SseShedReason = "callback_backpressure" | "heartbeat_backpressure";
+
+export type SseShedReporter = (
+  reason: SseShedReason,
+  inst: SseSubscriberInstrumentation,
+) => void;
+
+/**
+ * Build the structured payload sent to Sentry when an SSE subscriber is
+ * shed under backpressure.
+ *
+ * The conversation key is deliberately excluded: for channel-backed
+ * conversations (WhatsApp, Telegram, etc.) the key embeds external
+ * identifiers — phone numbers, chat IDs — and Sentry contexts are not
+ * run through the PII redactor in `instrument.ts` (only
+ * `exception.values`, `breadcrumbs`, and `extra` are). Correlation
+ * with the client-side `sse_watchdog_fired` event is achieved via the
+ * `client_id` tag + timestamp instead.
+ */
+export function buildSseShedSentryContext(
+  reason: SseShedReason,
+  inst: SseSubscriberInstrumentation,
+  elDelay: EventLoopDelaySnapshot,
+  nowMs: number,
+): Record<string, unknown> {
+  return {
+    reason,
+    subscription_age_ms: nowMs - inst.subscribedAtMs,
+    events_delivered: inst.eventsDelivered,
+    heartbeats_sent: inst.heartbeatsSent,
+    client_id: inst.clientId,
+    interface_id: inst.interfaceId,
+    event_loop_delay_mean_ms: elDelay.mean_ms,
+    event_loop_delay_p99_ms: elDelay.p99_ms,
+    event_loop_delay_max_ms: elDelay.max_ms,
+  };
+}
+
+/**
+ * Report a backpressure-shed event from an SSE subscriber to logs and Sentry.
+ *
+ * SSE subscribers are shed when `controller.desiredSize <= 0`: the consumer
+ * has stopped reading and the stream's bounded queue is full. From the
+ * daemon's side this looks identical to a hung client — and the visible
+ * symptom on the client side is the 45 s idle-watchdog firing (Sentry
+ * issue `sse_watchdog_fired`). Surfacing the shed lets us time-correlate
+ * the two sides and attribute stalls to either backpressure or another
+ * cause (network drop, event-loop starvation, etc.).
+ *
+ * The Sentry call uses level="warning" intentionally: a shed is a
+ * saturation event, not an internal error.
+ */
+const defaultSseShedReporter: SseShedReporter = (reason, inst) => {
+  const elDelay = sampleEventLoopDelay();
+  const sentryContext = buildSseShedSentryContext(
+    reason,
+    inst,
+    elDelay,
+    Date.now(),
+  );
+  log.warn(
+    { ...sentryContext, conversation_key: inst.conversationKey },
+    "sse subscriber shed under backpressure",
+  );
+
+  try {
+    Sentry.withScope((scope) => {
+      scope.setLevel("warning");
+      scope.setTag("sse_shed_reason", reason);
+      if (inst.clientId) scope.setTag("client_id", inst.clientId);
+      if (inst.interfaceId) scope.setTag("interface_id", inst.interfaceId);
+      scope.setContext("sse_shed", sentryContext);
+      Sentry.captureMessage(`sse_subscriber_shed:${reason}`);
+    });
+  } catch {
+    // Never let a telemetry failure break the SSE path.
+  }
+};
+
+/**
+ * Stream assistant events as Server-Sent Events.
+ *
+ * Query params:
+ *   conversationKey -- optional; when provided, scopes the stream to one
+ *                      conversation. When omitted, the stream delivers events
+ *                      from ALL conversations for this assistant.
+ *
+ * Headers (optional):
+ *   X-Vellum-Client-Id    -- stable per-install UUID identifying this client.
+ *   X-Vellum-Interface-Id -- interface type (e.g. "macos", "ios", "web").
+ *
+ *   When both are present, the subscriber is registered as a client in the
+ *   event hub with metadata (interfaceId, capabilities). The hub handles
+ *   lifecycle — dispose() unregisters the client automatically.
+ *
+ * Options (for testing):
+ *   hub               -- override the event hub (defaults to process singleton).
+ *   heartbeatIntervalMs -- how often to emit keep-alive comments (default 7 s).
+ *   shedReporter      -- override the callback invoked when a subscriber is shed
+ *                        under backpressure (defaults to log + Sentry capture).
+ */
+export function handleSubscribeAssistantEvents(
+  args: RouteHandlerArgs,
+  options?: {
+    hub?: AssistantEventHub;
+    heartbeatIntervalMs?: number;
+    shedReporter?: SseShedReporter;
+  },
+): ReadableStream<Uint8Array> {
+  const { queryParams, headers, abortSignal } = args;
+
+  const conversationKey = queryParams?.conversationKey;
+  if ("conversationKey" in (queryParams ?? {}) && !conversationKey?.trim()) {
+    throw new BadRequestError("conversationKey must not be empty");
+  }
+
+  // ── Client identity from headers ──────────────────────────────────────
+  const rawClientId = headers?.["x-vellum-client-id"];
+  const rawInterfaceId = headers?.["x-vellum-interface-id"];
+  const rawMachineName = headers?.["x-vellum-machine-name"];
+  const rawActorPrincipalId = headers?.["x-vellum-actor-principal-id"];
+  const clientId = rawClientId?.trim() || null;
+  const interfaceId = clientId
+    ? parseInterfaceId(rawInterfaceId?.trim())
+    : null;
+  // Verified by RuntimeHttpServer and forwarded by the http-adapter from the
+  // bearer token's AuthContext. May be absent for legacy / service-token
+  // connections that have no principal. See `resolveActorPrincipalId` for the
+  // dev-bypass translation rationale.
+  const actorPrincipalId = resolveActorPrincipalIdForLocalGuardian(
+    rawActorPrincipalId?.trim() || undefined,
+  );
+
+  if (clientId && !interfaceId) {
+    log.error(
+      { clientId, rawInterfaceId },
+      "client registration failed: invalid or missing X-Vellum-Interface-Id",
+    );
+    throw new BadRequestError(
+      "X-Vellum-Interface-Id is required when X-Vellum-Client-Id is provided",
+    );
+  }
+
+  const hub = options?.hub ?? assistantEventHub;
+  const heartbeatIntervalMs =
+    options?.heartbeatIntervalMs ?? DEFAULT_HEARTBEAT_INTERVAL_MS;
+  const shedReporter = options?.shedReporter ?? defaultSseShedReporter;
+
+  const ALL_CAPABILITIES: HostProxyCapability[] = [
+    "host_bash",
+    "host_file",
+    "host_cu",
+    "host_app_control",
+    "host_browser",
+  ];
+
+  const filter: AssistantEventFilter = {};
+  if (conversationKey) {
+    const mapping = getOrCreateConversation(conversationKey);
+    filter.conversationId = mapping.conversationId;
+  }
+
+  const encoder = new TextEncoder();
+
+  // -- Eager subscribe --------------------------------------------------------
+  // Subscribe before creating the ReadableStream so the callback and onEvict
+  // closures are in place before events can arrive.  `controllerRef` is set
+  // synchronously inside ReadableStream's start(), so it is non-null by the
+  // time any event or eviction fires.
+  let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  let sub!: AssistantEventSubscription;
+
+  const instrumentation: SseSubscriberInstrumentation = {
+    subscribedAtMs: Date.now(),
+    eventsDelivered: 0,
+    heartbeatsSent: 0,
+    clientId,
+    interfaceId,
+    conversationKey: conversationKey ?? null,
+  };
+
+  ensureEventLoopDelayMonitorStarted();
+
+  function cleanup() {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+    try {
+      controllerRef?.close();
+    } catch {
+      /* already closed */
+    }
+  }
+
+  const callback: AssistantEventCallback = (event) => {
+    const controller = controllerRef;
+    if (!controller) return;
+    try {
+      if (controller.desiredSize != null && controller.desiredSize <= 0) {
+        shedReporter("callback_backpressure", instrumentation);
+        sub.dispose();
+        cleanup();
+        return;
+      }
+      controller.enqueue(encoder.encode(formatSseFrame(event)));
+      instrumentation.eventsDelivered += 1;
+    } catch {
+      sub.dispose();
+      cleanup();
+    }
+  };
+
+  try {
+    const subscriberBase = {
+      filter,
+      callback,
+      onEvict: cleanup,
+    };
+
+    sub =
+      clientId && interfaceId
+        ? hub.subscribe({
+            ...subscriberBase,
+            type: "client" as const,
+            clientId,
+            interfaceId,
+            capabilities: ALL_CAPABILITIES.filter((cap) =>
+              supportsHostProxy(interfaceId, cap),
+            ),
+            machineName: rawMachineName?.trim() || undefined,
+            actorPrincipalId,
+          })
+        : hub.subscribe({
+            ...subscriberBase,
+            type: "process" as const,
+          });
+  } catch (err) {
+    if (err instanceof RangeError) {
+      throw new ServiceUnavailableError("Too many concurrent connections");
+    }
+    throw err;
+  }
+
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      start(controller) {
+        controllerRef = controller;
+
+        if (abortSignal?.aborted) {
+          sub.dispose();
+          cleanup();
+          return;
+        }
+
+        controller.enqueue(encoder.encode(formatSseHeartbeat()));
+        instrumentation.heartbeatsSent += 1;
+
+        heartbeatTimer = setInterval(() => {
+          try {
+            if (controller.desiredSize != null && controller.desiredSize <= 0) {
+              shedReporter("heartbeat_backpressure", instrumentation);
+              sub.dispose();
+              cleanup();
+              return;
+            }
+            if (clientId) {
+              hub.touchClient(clientId);
+            }
+            controller.enqueue(encoder.encode(formatSseHeartbeat()));
+            instrumentation.heartbeatsSent += 1;
+          } catch {
+            sub.dispose();
+            cleanup();
+          }
+        }, heartbeatIntervalMs);
+
+        abortSignal?.addEventListener(
+          "abort",
+          () => {
+            sub.dispose();
+            cleanup();
+          },
+          { once: true },
+        );
+      },
+      cancel() {
+        sub.dispose();
+        cleanup();
+      },
+    },
+    new CountQueuingStrategy({ highWaterMark: 16 }),
+  );
+
+  return stream;
+}
+
+// ---------------------------------------------------------------------------
+// Route definitions
+// ---------------------------------------------------------------------------
+
+const EmitEventBodySchema = z.object({
+  kind: z.enum(["contacts_changed"]),
+});
+
+export const ROUTES: RouteDefinition[] = [
+  {
+    operationId: "emit_event",
+    endpoint: "events/emit",
+    method: "POST",
+    summary: "Emit an assistant event",
+    description:
+      "Trigger an in-process assistant event by kind. Used by the gateway after owning a write that the assistant runtime would normally emit.",
+    tags: ["events"],
+    requestBody: EmitEventBodySchema,
+    responseStatus: "204",
+    handler: ({ body }) => {
+      const { kind } = EmitEventBodySchema.parse(body);
+      if (kind === "contacts_changed") {
+        emitContactChange();
+      }
+      return null;
+    },
+  },
+  {
+    operationId: "subscribe_assistant_events",
+    endpoint: "events",
+    method: "GET",
+    summary: "Subscribe to assistant events",
+    description: "Stream assistant events as Server-Sent Events (SSE).",
+    tags: ["events"],
+    queryParams: [
+      {
+        name: "conversationKey",
+        description: "Scope to a single conversation",
+      },
+    ],
+    responseHeaders: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+    handler: (args) => handleSubscribeAssistantEvents(args),
+  },
+];

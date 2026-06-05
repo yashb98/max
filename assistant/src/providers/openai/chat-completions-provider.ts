@@ -1,0 +1,642 @@
+import OpenAI from "openai";
+
+import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "../../prompts/cache-boundary.js";
+import { isAbortReason } from "../../util/abort-reasons.js";
+import { ProviderError } from "../../util/errors.js";
+import { extractRetryAfterMs } from "../../util/retry.js";
+import { escapeXmlAttr } from "../../util/xml.js";
+import { createStreamTimeout } from "../stream-timeout.js";
+import type {
+  ContentBlock,
+  Message,
+  Provider,
+  ProviderResponse,
+  SendMessageOptions,
+  ToolDefinition,
+} from "../types.js";
+import {
+  ContextOverflowError,
+  extractOverflowTokensFromMessage,
+} from "../types.js";
+
+/**
+ * Detect OpenAI-compatible context-overflow signals on an `OpenAI.APIError`.
+ *
+ * OpenAI proper returns HTTP 400 with body
+ *   `{ error: { code: "context_length_exceeded", message, ... } }`
+ * Other OpenAI-compatible providers (OpenRouter, Fireworks, Ollama, etc.)
+ * forward similar shapes; not all populate `code` so we also probe the
+ * message/param fields. Returns an object with any extractable token counts
+ * when the error matches, or `null` when it does not.
+ *
+ * Most OpenAI-compatible providers do not report `actualTokens`/`maxTokens`
+ * in the error body, but the typed wrapper is still valuable as a stable
+ * signal for the agent loop.
+ */
+export function detectOpenAICompatibleContextOverflow(
+  error: InstanceType<typeof OpenAI.APIError>,
+): { actualTokens?: number; maxTokens?: number } | null {
+  // OpenAI-compatible providers use 400 (most) or 413 (rarer payload-too-large).
+  const status = error.status;
+  if (status !== 400 && status !== 413) return null;
+  const code = error.code;
+  const codeMatches =
+    typeof code === "string" &&
+    /context_length_exceeded|context_window_exceeded|input_too_long|prompt_too_long/i.test(
+      code,
+    );
+  const message = error.message ?? "";
+  const messageMatches =
+    /context.?length.?exceeded|context.?window.?exceeded|prompt.?is.?too.?long|prompt_too_long|input.?too.?long|too.?many.?(?:input.?)?tokens|maximum.?context/i.test(
+      message,
+    );
+  if (!codeMatches && !messageMatches) return null;
+  // OpenAI-compatible providers rarely report usable token counts; best-effort extract.
+  return extractOverflowTokensFromMessage(message);
+}
+
+export interface OpenAIChatCompletionsProviderOptions {
+  baseURL?: string;
+  providerName?: string;
+  providerLabel?: string;
+  streamTimeoutMs?: number;
+  /** Provider-level request headers merged into every API request. */
+  requestHeaders?: Record<string, string>;
+  /** Extra params spread into every chat.completions.create call (e.g. reasoning). */
+  extraCreateParams?: Record<string, unknown>;
+  /** Upper bound for `reasoning_effort` sent on the wire. Defaults to "xhigh"
+   *  (OpenAI's current ceiling). Compatibility providers whose APIs only
+   *  document `low|medium|high` (e.g. Fireworks) should set this to "high" so
+   *  Vellum's `xhigh`/`max` tiers don't 4xx upstream. */
+  maxReasoningEffort?: "high" | "xhigh";
+  /** When true, treat the OpenAI-compatible API as supporting Kimi-style
+   *  `reasoning_content` round-tripping: capture `delta.reasoning_content`
+   *  during streaming, emit `thinking` blocks in the response, and re-include
+   *  `reasoning_content` on prior assistant messages when serializing the
+   *  conversation history. Required for Moonshot's K2.6 thinking mode where
+   *  the API rejects multi-turn requests if a prior assistant tool-call
+   *  message lacks `reasoning_content`. Default false (OpenAI/OpenRouter/
+   *  Fireworks/Ollama don't accept the field). */
+  supportsReasoningRoundTrip?: boolean;
+}
+
+/** Map our internal effort values to OpenAI's reasoning_effort parameter.
+ *  OpenAI caps at "xhigh", so our "max" tier collapses to "xhigh". `"none"` is
+ *  passed through explicitly because OpenAI defaults `reasoning_effort` to
+ *  "medium" when the field is omitted — the user's opt-out is only honored
+ *  when we send it on the wire. */
+const EFFORT_TO_REASONING_EFFORT: Record<
+  string,
+  NonNullable<
+    OpenAI.Chat.Completions.ChatCompletionCreateParams["reasoning_effort"]
+  >
+> = {
+  none: "none",
+  low: "low",
+  medium: "medium",
+  high: "high",
+  xhigh: "xhigh",
+  max: "xhigh",
+};
+
+const OPENAI_SUPPORTED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
+
+/**
+ * OpenAI-compatible chat-completions transport.
+ *
+ * Encapsulates the request/stream-parsing logic for `chat.completions.create`,
+ * tool-call chunk assembly, usage mapping, and error wrapping. Used directly by
+ * OpenRouter, Fireworks, Ollama, and other OpenAI-compatible providers.
+ */
+export class OpenAIChatCompletionsProvider implements Provider {
+  public readonly name: string;
+  private readonly providerLabel: string;
+  private client: OpenAI;
+  private model: string;
+  private streamTimeoutMs: number;
+  private extraCreateParams: Record<string, unknown>;
+  private maxReasoningEffort: "high" | "xhigh";
+  private requestHeaders: Record<string, string>;
+  private supportsReasoningRoundTrip: boolean;
+
+  constructor(
+    apiKey: string,
+    model: string,
+    options: OpenAIChatCompletionsProviderOptions = {},
+  ) {
+    this.name = options.providerName ?? "openai";
+    this.providerLabel = options.providerLabel ?? "OpenAI";
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: options.baseURL,
+    });
+    this.model = model;
+    this.streamTimeoutMs = options.streamTimeoutMs ?? 1_800_000;
+    this.extraCreateParams = options.extraCreateParams ?? {};
+    this.maxReasoningEffort = options.maxReasoningEffort ?? "xhigh";
+    this.requestHeaders = options.requestHeaders ?? {};
+    this.supportsReasoningRoundTrip =
+      options.supportsReasoningRoundTrip ?? false;
+  }
+
+  async sendMessage(
+    messages: Message[],
+    tools?: ToolDefinition[],
+    systemPrompt?: string,
+    options?: SendMessageOptions,
+  ): Promise<ProviderResponse> {
+    const { config, onEvent, signal } = options ?? {};
+    const configObj = config as Record<string, unknown> | undefined;
+    const maxTokens = configObj?.max_tokens as number | undefined;
+    const modelOverride = configObj?.model as string | undefined;
+    const effort = configObj?.effort as string | undefined;
+    const usageAttributionHeaders = configObj?.usageAttributionHeaders as
+      | Record<string, string>
+      | undefined;
+
+    try {
+      const openaiMessages = this.toOpenAIMessages(messages, systemPrompt);
+
+      const params: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming =
+        {
+          model: modelOverride ?? this.model,
+          messages: openaiMessages,
+          stream: true as const,
+          stream_options: { include_usage: true },
+          ...this.buildExtraCreateParams(options),
+        };
+
+      if (maxTokens) {
+        params.max_completion_tokens = maxTokens;
+      }
+
+      const reasoningEffort = effort
+        ? EFFORT_TO_REASONING_EFFORT[effort]
+        : undefined;
+      if (reasoningEffort) {
+        params.reasoning_effort =
+          reasoningEffort === "xhigh" && this.maxReasoningEffort === "high"
+            ? "high"
+            : reasoningEffort;
+      }
+
+      if (tools && tools.length > 0) {
+        params.tools = tools.map((t) => ({
+          type: "function" as const,
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.input_schema as OpenAI.FunctionParameters,
+          },
+        }));
+      }
+
+      const { signal: timeoutSignal, cleanup: cleanupTimeout } =
+        createStreamTimeout(this.streamTimeoutMs, signal);
+
+      // Accumulate the response from chunks
+      let contentText = "";
+      let reasoningText = "";
+      const toolCallMap = new Map<
+        number,
+        { id: string; name: string; args: string }
+      >();
+      let finishReason = "unknown";
+      let responseModel = modelOverride ?? this.model;
+      let promptTokens = 0;
+      let completionTokens = 0;
+      let reasoningTokens = 0;
+      let cachedPromptTokens = 0;
+
+      try {
+        const requestHeaders = {
+          ...this.requestHeaders,
+          ...(usageAttributionHeaders ?? {}),
+        };
+        const stream = await this.client.chat.completions.create(params, {
+          signal: timeoutSignal,
+          ...(Object.keys(requestHeaders).length > 0
+            ? { headers: requestHeaders }
+            : {}),
+        });
+
+        for await (const chunk of stream) {
+          const choice = chunk.choices[0];
+          if (choice) {
+            if (choice.delta.content) {
+              contentText += choice.delta.content;
+              onEvent?.({ type: "text_delta", text: choice.delta.content });
+            }
+
+            // Kimi (Moonshot) emits reasoning as `delta.reasoning_content`
+            // in thinking mode. Capture so we can both stream it to clients
+            // and round-trip it on subsequent turns (K2.6 rejects multi-turn
+            // requests when a prior assistant tool-call message lacks
+            // `reasoning_content`). Only accept the field for providers
+            // configured to round-trip it; other OpenAI-compatible adapters
+            // never receive it from the wire so the gate is defensive.
+            if (this.supportsReasoningRoundTrip) {
+              const reasoningDelta = (
+                choice.delta as { reasoning_content?: string }
+              ).reasoning_content;
+              if (reasoningDelta) {
+                reasoningText += reasoningDelta;
+                onEvent?.({ type: "thinking_delta", thinking: reasoningDelta });
+              }
+            }
+
+            if (choice.delta.tool_calls) {
+              for (const tc of choice.delta.tool_calls) {
+                if (!toolCallMap.has(tc.index)) {
+                  toolCallMap.set(tc.index, { id: "", name: "", args: "" });
+                }
+                const entry = toolCallMap.get(tc.index)!;
+                if (tc.id) entry.id = tc.id;
+                if (tc.function?.name) entry.name += tc.function.name;
+                if (tc.function?.arguments) entry.args += tc.function.arguments;
+              }
+            }
+
+            if (choice.finish_reason) {
+              finishReason = choice.finish_reason;
+            }
+          }
+
+          if (chunk.usage) {
+            promptTokens = chunk.usage.prompt_tokens;
+            completionTokens = chunk.usage.completion_tokens;
+            const completionDetails = (
+              chunk.usage as {
+                completion_tokens_details?: { reasoning_tokens?: number };
+              }
+            ).completion_tokens_details;
+            reasoningTokens = completionDetails?.reasoning_tokens ?? 0;
+            const promptDetails = (
+              chunk.usage as {
+                prompt_tokens_details?: { cached_tokens?: number };
+              }
+            ).prompt_tokens_details;
+            cachedPromptTokens = promptDetails?.cached_tokens ?? 0;
+          }
+
+          responseModel = chunk.model;
+        }
+      } finally {
+        cleanupTimeout();
+      }
+
+      // Build content blocks. Thinking goes first so the conversation
+      // serializer sees it in canonical order (matches Anthropic's
+      // thinking-then-text-then-tool_use ordering and keeps the round-trip
+      // shape stable).
+      const content: ContentBlock[] = [];
+      if (reasoningText) {
+        content.push({
+          type: "thinking",
+          thinking: reasoningText,
+          // OpenAI-compatible providers don't sign reasoning blocks the way
+          // Anthropic does. Empty signature is valid for our `ThinkingContent`
+          // shape and signals "no upstream signature available".
+          signature: "",
+        });
+      }
+      if (contentText) {
+        content.push({ type: "text", text: contentText });
+      }
+      for (const [, tc] of toolCallMap) {
+        let input: Record<string, unknown>;
+        try {
+          input = JSON.parse(tc.args);
+        } catch {
+          input = { _raw: tc.args };
+        }
+        content.push({
+          type: "tool_use",
+          id: tc.id,
+          name: tc.name,
+          input,
+        });
+      }
+
+      // Build a synthetic response object from accumulated streaming data
+      const rawResponse = {
+        model: responseModel,
+        choices: [
+          {
+            message: {
+              role: "assistant",
+              content: contentText || null,
+              tool_calls:
+                toolCallMap.size > 0
+                  ? Array.from(toolCallMap.values()).map((tc) => ({
+                      id: tc.id,
+                      type: "function",
+                      function: { name: tc.name, arguments: tc.args },
+                    }))
+                  : undefined,
+            },
+            finish_reason: finishReason,
+          },
+        ],
+        usage: {
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          ...(reasoningTokens > 0
+            ? {
+                completion_tokens_details: {
+                  reasoning_tokens: reasoningTokens,
+                },
+              }
+            : {}),
+          ...(cachedPromptTokens > 0
+            ? {
+                prompt_tokens_details: {
+                  cached_tokens: cachedPromptTokens,
+                },
+              }
+            : {}),
+        },
+      };
+
+      return {
+        content,
+        model: responseModel,
+        usage: {
+          inputTokens: promptTokens,
+          outputTokens: completionTokens,
+          ...(reasoningTokens > 0 ? { reasoningTokens } : {}),
+          ...(cachedPromptTokens > 0
+            ? { cacheReadInputTokens: cachedPromptTokens }
+            : {}),
+        },
+        stopReason: finishReason,
+        rawRequest: params,
+        rawResponse,
+      };
+    } catch (error) {
+      // Propagate a tagged AbortReason (set by the daemon at controller.abort())
+      // so wrapped errors can be classified as user cancellation downstream.
+      const abortReason =
+        signal?.aborted && isAbortReason(signal.reason)
+          ? signal.reason
+          : undefined;
+      if (error instanceof OpenAI.APIError) {
+        const overflow = detectOpenAICompatibleContextOverflow(error);
+        if (overflow) {
+          throw new ContextOverflowError(
+            `${this.providerLabel} API error (${error.status}): ${error.message}`,
+            this.name,
+            {
+              actualTokens: overflow.actualTokens,
+              maxTokens: overflow.maxTokens,
+              statusCode: error.status,
+              cause: error,
+            },
+          );
+        }
+        const retryAfterMs = extractRetryAfterMs(error.headers);
+        const errorOptions: {
+          retryAfterMs?: number;
+          abortReason?: unknown;
+        } = {};
+        if (retryAfterMs !== undefined)
+          errorOptions.retryAfterMs = retryAfterMs;
+        if (abortReason) errorOptions.abortReason = abortReason;
+        throw new ProviderError(
+          `${this.providerLabel} API error (${error.status}): ${error.message}`,
+          this.name,
+          error.status,
+          Object.keys(errorOptions).length > 0 ? errorOptions : undefined,
+        );
+      }
+      throw new ProviderError(
+        `${this.providerLabel} request failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        this.name,
+        undefined,
+        abortReason ? { cause: error, abortReason } : { cause: error },
+      );
+    }
+  }
+
+  /**
+   * Hook for subclasses to inject request-specific extra params. Defaults to
+   * the static `extraCreateParams` set on the constructor; subclasses (e.g.
+   * OpenRouter) can override to build params dynamically from `options`.
+   */
+  protected buildExtraCreateParams(
+    _options?: SendMessageOptions,
+  ): Record<string, unknown> {
+    return this.extraCreateParams;
+  }
+
+  /** Convert neutral messages + system prompt to OpenAI message format. */
+  private toOpenAIMessages(
+    messages: Message[],
+    systemPrompt?: string,
+  ): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+    const result: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [];
+
+    if (systemPrompt) {
+      result.push({
+        role: "system",
+        content: systemPrompt.replaceAll(SYSTEM_PROMPT_CACHE_BOUNDARY, "\n"),
+      });
+    }
+
+    for (const msg of messages) {
+      if (msg.role === "assistant") {
+        result.push(this.toOpenAIAssistantMessage(msg));
+      } else {
+        // User messages may contain tool_result blocks mixed with text/image
+        const toolResults = msg.content.filter(
+          (b): b is Extract<ContentBlock, { type: "tool_result" }> =>
+            b.type === "tool_result",
+        );
+        const otherBlocks = msg.content.filter(
+          (b) =>
+            b.type !== "tool_result" &&
+            b.type !== "thinking" &&
+            b.type !== "redacted_thinking",
+        );
+        // Note: thinking/redacted_thinking blocks on user-role messages are
+        // dropped here intentionally — `reasoning_content` round-trips on
+        // assistant messages only. User turns never carry them in practice.
+
+        // Emit tool results as separate tool-role messages
+        // OpenAI's API only supports string content in tool messages, so images
+        // from contentBlocks are collected and injected as a user message below.
+        const toolResultImages: ContentBlock[] = [];
+        for (const tr of toolResults) {
+          let textContent = tr.content;
+          if (tr.contentBlocks && tr.contentBlocks.length > 0) {
+            const extraText = tr.contentBlocks
+              .filter(
+                (cb): cb is Extract<ContentBlock, { type: "text" }> =>
+                  cb.type === "text",
+              )
+              .map((cb) => cb.text);
+            if (extraText.length > 0) {
+              textContent = textContent + "\n" + extraText.join("\n");
+            }
+            for (const cb of tr.contentBlocks) {
+              if (cb.type === "image") toolResultImages.push(cb);
+            }
+          }
+          result.push({
+            role: "tool",
+            tool_call_id: tr.tool_use_id,
+            content: tr.is_error ? `[ERROR] ${textContent}` : textContent,
+          });
+        }
+
+        // Emit remaining content + any tool result images as a user message.
+        // Images from tool results (e.g. browser_screenshot) must go in a user
+        // message because OpenAI-compatible APIs don't support images in tool messages.
+        const userContent = [...otherBlocks, ...toolResultImages];
+        if (userContent.length > 0) {
+          result.push(this.toOpenAIUserMessage(userContent));
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /** Convert an assistant message with text + tool_use blocks to OpenAI format. */
+  private toOpenAIAssistantMessage(
+    msg: Message,
+  ): OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam {
+    const textParts: string[] = [];
+    const toolCalls: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[] =
+      [];
+    // Collected only when the adapter is configured to round-trip reasoning
+    // (Kimi K2.6). Other OpenAI-compatible providers reject the field, so
+    // gate on the provider option rather than block presence.
+    const reasoningParts: string[] = [];
+
+    for (const block of msg.content) {
+      switch (block.type) {
+        case "text":
+          textParts.push(block.text);
+          break;
+        case "tool_use":
+          toolCalls.push({
+            id: block.id,
+            type: "function",
+            function: {
+              name: block.name,
+              arguments: JSON.stringify(block.input),
+            },
+          });
+          break;
+        case "thinking":
+          if (this.supportsReasoningRoundTrip) {
+            reasoningParts.push(block.thinking);
+          }
+          break;
+        case "server_tool_use":
+          textParts.push(`[Web search: ${block.name}]`);
+          break;
+        case "web_search_tool_result":
+          textParts.push("[Web search results]");
+          break;
+        // redacted_thinking, image — not applicable for OpenAI assistant messages
+      }
+    }
+
+    const result: OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam =
+      {
+        role: "assistant",
+        content: textParts.length > 0 ? textParts.join("") : null,
+      };
+
+    if (toolCalls.length > 0) {
+      result.tool_calls = toolCalls;
+    }
+
+    if (this.supportsReasoningRoundTrip && reasoningParts.length > 0) {
+      // Moonshot K2.6 thinking mode requires `reasoning_content` on every
+      // prior assistant turn that the model generated with thinking on
+      // (most critically when the turn includes tool_calls — the API hard-
+      // rejects that combo without it). The OpenAI SDK type doesn't include
+      // the field, so cast through a typed extension.
+      (
+        result as OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
+          reasoning_content?: string;
+        }
+      ).reasoning_content = reasoningParts.join("");
+    }
+
+    return result;
+  }
+
+  /** Convert user content blocks (text, image) to an OpenAI user message. */
+  private toOpenAIUserMessage(
+    blocks: ContentBlock[],
+  ): OpenAI.Chat.Completions.ChatCompletionUserMessageParam {
+    // If only a single text block, use plain string (simpler, fewer tokens)
+    if (blocks.length === 1 && blocks[0].type === "text") {
+      return { role: "user", content: blocks[0].text };
+    }
+
+    const parts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
+    for (const block of blocks) {
+      switch (block.type) {
+        case "text":
+          parts.push({ type: "text", text: block.text });
+          break;
+        case "image":
+          if (!OPENAI_SUPPORTED_IMAGE_TYPES.has(block.source.media_type)) {
+            parts.push({
+              type: "text",
+              text: `[Image: ${block.source.media_type} — format not supported by this provider]`,
+            });
+          } else {
+            parts.push({
+              type: "image_url",
+              image_url: {
+                url: `data:${block.source.media_type};base64,${block.source.data}`,
+              },
+            });
+          }
+          break;
+        case "file":
+          parts.push({
+            type: "text",
+            text: this.fileBlockToText(block),
+          });
+          break;
+        case "server_tool_use":
+          parts.push({
+            type: "text",
+            text: `[Web search: ${block.name}]`,
+          });
+          break;
+        case "web_search_tool_result":
+          parts.push({ type: "text", text: "[Web search results]" });
+          break;
+      }
+    }
+
+    return { role: "user", content: parts };
+  }
+
+  private fileBlockToText(
+    block: Extract<ContentBlock, { type: "file" }>,
+  ): string {
+    const header = `<attached_file name="${escapeXmlAttr(
+      block.source.filename,
+    )}" type="${escapeXmlAttr(block.source.media_type)}" />`;
+    if (block.extracted_text && block.extracted_text.trim().length > 0) {
+      return `${header}\n${block.extracted_text}`;
+    }
+    return `${header}\nNo extracted text available.`;
+  }
+}

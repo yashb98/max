@@ -1,0 +1,23 @@
+{
+  "capabilities": [
+    "completion",
+    "vision",
+    "tools",
+    "thinking"
+  ],
+  "model_info": {
+    "general.architecture": "qwen35",
+    "general.parameter_count": 27781427952,
+    "qwen35.context_length": 262144
+  },
+  "details": {
+    "parent_model": "",
+    "format": "gguf",
+    "family": "qwen35",
+    "families": [
+      "qwen35"
+    ],
+    "parameter_size": "27.8B",
+    "quantization_level": "F16"
+  }
+}

@@ -1,0 +1,983 @@
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, dirname, join } from "node:path";
+
+import { safeStatSync } from "../util/fs.js";
+import { getLogger } from "../util/logger.js";
+import {
+  ensureDataDir,
+  getWorkspaceConfigPath,
+  getWorkspaceDir,
+} from "../util/platform.js";
+import { isAssistantFeatureFlagEnabled } from "./assistant-feature-flags.js";
+import { withConfigWriteLock } from "./config-mutex.js";
+import { AssistantConfigSchema } from "./schema.js";
+import type { AssistantConfig } from "./types.js";
+
+export { API_KEY_PROVIDERS } from "../providers/provider-secret-catalog.js";
+
+const log = getLogger("config");
+
+let cached: AssistantConfig | null = null;
+let cachedFileSignature: ConfigFileSignature | null = null;
+let loading = false;
+
+type ConfigFileSignature =
+  | {
+      path: string;
+      exists: true;
+      size: number;
+      mtimeMs: number;
+      ctimeMs: number;
+    }
+  | {
+      path: string;
+      exists: false;
+    };
+
+function getConfigPath(): string {
+  return getWorkspaceConfigPath();
+}
+
+function ensureMigratedDataDir(): void {
+  ensureDataDir();
+}
+
+function readConfigFileSignature(configPath: string): ConfigFileSignature {
+  const stats = safeStatSync(configPath);
+  if (!stats) {
+    return {
+      path: configPath,
+      exists: false,
+    };
+  }
+
+  return {
+    path: configPath,
+    exists: true,
+    size: stats.size,
+    mtimeMs: stats.mtimeMs,
+    ctimeMs: stats.ctimeMs,
+  };
+}
+
+function configFileSignaturesEqual(
+  a: ConfigFileSignature,
+  b: ConfigFileSignature,
+): boolean {
+  if (a.path !== b.path || a.exists !== b.exists) return false;
+  if (!a.exists || !b.exists) return true;
+  return (
+    a.size === b.size && a.mtimeMs === b.mtimeMs && a.ctimeMs === b.ctimeMs
+  );
+}
+
+function getCachedConfigIfFresh(): AssistantConfig | null {
+  if (!cached || !cachedFileSignature) return null;
+
+  const currentSignature = readConfigFileSignature(getConfigPath());
+  if (configFileSignaturesEqual(cachedFileSignature, currentSignature)) {
+    return cached;
+  }
+
+  cached = null;
+  cachedFileSignature = null;
+  return null;
+}
+
+/**
+ * Parse a raw config through the Zod schema, applying all nested defaults.
+ *
+ * All nested object schemas use `.default(SubSchema.parse({}))` which
+ * pre-computes fully-resolved defaults at schema construction time, so a
+ * single parse is sufficient to cascade defaults through every nesting level.
+ */
+export function applyNestedDefaults(config: unknown): AssistantConfig {
+  return structuredClone(
+    AssistantConfigSchema.parse(config),
+  ) as AssistantConfig;
+}
+
+function cloneDefaultConfig(): AssistantConfig {
+  return applyNestedDefaults({});
+}
+
+/**
+ * Returns deployment-context-aware config defaults that override schema
+ * defaults for platform-managed assistants. Applied to every `loadConfig()`
+ * call as a fill-only pass — they only fill keys that are absent from the
+ * raw config on disk, so an explicit user choice (e.g. saving "your-own"
+ * via the macOS Models & Services UI) always wins.
+ *
+ * IS_PLATFORM is set by the Vellum platform launcher for all hosted
+ * assistant deployments. Local, Docker, and bare-metal assistants are
+ * unaffected.
+ */
+export function getDeploymentContextDefaults(): Record<string, unknown> {
+  if (process.env.IS_PLATFORM !== "true" && process.env.IS_PLATFORM !== "1") {
+    return {};
+  }
+  const managed = { mode: "managed" as const };
+  return {
+    services: {
+      "image-generation": managed,
+      "web-search": managed,
+      "google-oauth": managed,
+      "outlook-oauth": managed,
+      "linear-oauth": managed,
+      "github-oauth": managed,
+      "notion-oauth": managed,
+      "asana-oauth": managed,
+      "todoist-oauth": managed,
+      "discord-oauth": managed,
+      "hubspot-oauth": managed,
+    },
+  };
+}
+
+/**
+ * Apply `contextDefaults` to `target` for any leaf keys that are absent from
+ * `fileConfig` (the raw config-on-disk payload). Mutates `target` in place.
+ *
+ * "Absent" is checked at the leaf level by walking the `contextDefaults`
+ * shape: nested objects recurse so a partial override on disk (e.g.
+ * `{services: {inference: {model: "x"}}}` with no explicit `mode`) lets the
+ * context default for `mode` win while leaving the user's `model` untouched.
+ *
+ * Pre-condition: `target` has already been passed through `validateWithSchema`
+ * so every nested object in `contextDefaults` has a corresponding object in
+ * `target`. The defensive whole-subtree assignment in the `!targetChild`
+ * branch only fires for malformed inputs.
+ */
+export function fillContextDefaultsForMissingKeys(
+  target: Record<string, unknown>,
+  fileConfig: Record<string, unknown>,
+  contextDefaults: Record<string, unknown>,
+): void {
+  for (const [key, value] of Object.entries(contextDefaults)) {
+    const fileVal = fileConfig[key];
+    if (
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value)
+    ) {
+      const targetChild = readPlainObject(target[key]);
+      const fileChild = readPlainObject(fileVal);
+      if (targetChild) {
+        fillContextDefaultsForMissingKeys(
+          targetChild,
+          fileChild ?? {},
+          value as Record<string, unknown>,
+        );
+      } else {
+        target[key] = structuredClone(value);
+      }
+    } else if (fileVal === undefined) {
+      target[key] = value;
+    }
+  }
+}
+
+/**
+ * Build a filesystem-safe ISO-8601 timestamp for use in quarantine filenames.
+ * Replaces `:` (invalid on Windows, confusing on macOS Finder) with `-` so the
+ * resulting string is safe on every supported platform.
+ */
+function filesystemSafeTimestamp(date: Date = new Date()): string {
+  return date.toISOString().replace(/:/g, "-");
+}
+
+/**
+ * Rename a corrupt config file to a quarantine path so the bad content is
+ * preserved for debug while the daemon falls through to defaults. Logs at
+ * `error` level with a remediation hint. Best-effort: if the rename itself
+ * fails (missing permissions, readonly FS, etc.) we still fall through to
+ * defaults — startup must never block.
+ *
+ * The quarantine filename encodes a millisecond-precision timestamp and ends
+ * in `.json` so editors syntax-highlight the preserved content:
+ *   `<path>.corrupt-<ISO-timestamp>.json`
+ *
+ * On a successful rename, also appends a bulletin to `<workspace>/UPDATES.md`
+ * so the background update-bulletin job surfaces the event to the user
+ * proactively on their next interaction (log-level errors alone are invisible
+ * to users).
+ */
+function quarantineCorruptConfig(configPath: string, err: unknown): string {
+  const quarantinePath = `${configPath}.corrupt-${filesystemSafeTimestamp()}.json`;
+  try {
+    renameSync(configPath, quarantinePath);
+    log.error(
+      `config file at ${configPath} was corrupt (${String(err)}); ` +
+        `quarantined to ${quarantinePath} and loaded defaults. ` +
+        `Inspect the quarantined file to recover any hand-edited settings.`,
+    );
+    appendQuarantineBulletin(configPath, quarantinePath);
+  } catch (renameErr) {
+    log.error(
+      { renameErr },
+      `config file at ${configPath} was corrupt (${String(err)}) but could ` +
+        `not be renamed for quarantine; loaded defaults.`,
+    );
+  }
+  return quarantinePath;
+}
+
+/**
+ * Append a config-quarantine bulletin to `<workspace>/UPDATES.md`. On the
+ * next daemon boot the background update-bulletin job picks up UPDATES.md
+ * and processes it inside a background-only conversation (not the user's
+ * chat). The agent decides whether and when to surface the event — typical
+ * cases are the user asking why their settings changed or noticing missing
+ * API keys. The bulletin is agent-visible context, not a push notification.
+ *
+ * Idempotency: the appended block embeds a marker keyed on the quarantine
+ * filename's basename. If that marker is already present in UPDATES.md (a
+ * prior append succeeded but the process crashed before control returned, or
+ * the file was hand-edited), the function is a no-op. This mirrors the
+ * pattern release-notes workspace migrations use — see the "Release Update
+ * Hygiene" section in the root `AGENTS.md`.
+ *
+ * Best-effort: any write failure is logged at `warn` and swallowed. The
+ * quarantine path must never block startup, and the error log from
+ * `quarantineCorruptConfig` remains the authoritative record.
+ *
+ * Exported with an underscore-prefixed alias (`_appendQuarantineBulletin`) so
+ * tests can exercise the idempotent-skip branch directly with a deterministic
+ * quarantine basename. Non-test callers should never import the underscore
+ * alias — the wiring into `quarantineCorruptConfig` is the production entry
+ * point.
+ */
+function appendQuarantineBulletin(
+  originalPath: string,
+  quarantinePath: string,
+): void {
+  try {
+    const updatesPath = join(getWorkspaceDir(), "UPDATES.md");
+    const quarantineBasename = basename(quarantinePath);
+    const marker = `<!-- config-quarantine:${quarantineBasename} -->`;
+
+    const existing = existsSync(updatesPath)
+      ? readFileSync(updatesPath, "utf-8")
+      : "";
+    if (existing.includes(marker)) return;
+
+    const timestamp = new Date().toISOString();
+    const block =
+      `## Config was reset to defaults\n\n` +
+      `Your \`config.json\` was unreadable at ${timestamp} and couldn't be parsed ` +
+      `as JSON. The assistant preserved the original file at \`${quarantinePath}\` ` +
+      `and loaded defaults so the app stays working.\n\n` +
+      `If you had custom settings (API keys, model choices, voice preferences), ` +
+      `they are still in the quarantined file — \`cat ${quarantinePath}\` to ` +
+      `recover them, then re-enter through Settings or the CLI.\n\n` +
+      `${marker}\n`;
+
+    const toWrite = existing.length === 0 ? block : `${existing}\n${block}`;
+    writeFileSync(updatesPath, toWrite, "utf-8");
+    log.info(
+      `Appended config-quarantine bulletin to ${updatesPath} for ${originalPath} ` +
+        `(quarantined as ${quarantineBasename}).`,
+    );
+  } catch (bulletinErr) {
+    log.warn(
+      { bulletinErr },
+      `Failed to append config-quarantine bulletin to UPDATES.md; ` +
+        `the quarantine event is still recorded in the assistant logs.`,
+    );
+  }
+}
+
+/**
+ * Validate a raw config object with Zod. Invalid fields are logged as warnings
+ * and replaced with defaults (matching prior behavior of per-field fallback).
+ */
+function validateWithSchema(raw: Record<string, unknown>): AssistantConfig {
+  const result = AssistantConfigSchema.safeParse(raw);
+  if (result.success) {
+    return applyNestedDefaults(result.data);
+  }
+
+  // Log each validation issue as a warning
+  for (const issue of result.error.issues) {
+    const path = issue.path.join(".");
+    log.warn(
+      `Invalid config${path ? ` at "${path}"` : ""}: ${
+        issue.message
+      }. Falling back to default.`,
+    );
+  }
+
+  // Strip invalid fields by setting them to undefined so Zod defaults apply,
+  // then re-parse. We walk the error paths and delete the offending keys.
+  const cleaned = structuredClone(raw);
+  for (const issue of result.error.issues) {
+    if (issue.path.length === 0) {
+      // Top-level error — return full defaults
+      return cloneDefaultConfig();
+    }
+    deleteNestedKey(cleaned, issue.path as (string | number)[]);
+  }
+
+  const retry = AssistantConfigSchema.safeParse(cleaned);
+  if (retry.success) {
+    return applyNestedDefaults(retry.data);
+  }
+
+  // If still failing, fall back to full defaults
+  log.warn("Config validation failed after cleanup. Using full defaults.");
+  return cloneDefaultConfig();
+}
+
+function deleteNestedKey(
+  obj: Record<string, unknown>,
+  path: (string | number)[],
+): void {
+  let current: unknown = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    if (current == null || typeof current !== "object") return;
+    current = (current as Record<string, unknown>)[String(path[i])];
+  }
+  if (current != null && typeof current === "object") {
+    delete (current as Record<string, unknown>)[String(path[path.length - 1])];
+  }
+}
+
+/**
+ * Deprecated config fields that have been removed. Each entry maps a
+ * dot-separated path to the deprecation message shown to the user.
+ */
+const DEPRECATED_FIELDS: Record<string, string> = {
+  "rateLimit.maxTokensPerSession":
+    "rateLimit.maxTokensPerSession has been removed and is no longer enforced. " +
+    "Per-session token budget tracking is no longer supported. " +
+    "The field will be removed from your config file.",
+  providerOrder:
+    "providerOrder has been removed from the config schema. " +
+    "Provider selection is now handled automatically. " +
+    "The field will be removed from your config file.",
+  "permissions.dangerouslySkipPermissions":
+    "permissions.dangerouslySkipPermissions has been removed. " +
+    "Permission prompts are now always shown when required. " +
+    "The field will be removed from your config file.",
+  "permissions.mode":
+    "permissions.mode has been removed. The gateway now controls all auto-approve " +
+    "thresholds. The field will be removed from your config file.",
+  "permissions.autoApproveUpTo":
+    "permissions.autoApproveUpTo has been removed. The gateway now controls all " +
+    "auto-approve thresholds. The field will be removed from your config file.",
+  "memory.jobs.batchSize":
+    "memory.jobs.batchSize has been removed. The memory job worker now uses " +
+    "per-lane concurrency caps (slowLlmConcurrency, fastConcurrency, " +
+    "embedConcurrency) instead of a single batch size. " +
+    "The field will be removed from your config file.",
+};
+
+/**
+ * Check for deprecated config fields, log a warning for each one found,
+ * and strip them from both the in-memory object and the on-disk config file
+ * so the warning is only emitted once.
+ */
+
+function warnAndStripDeprecatedFields(
+  fileConfig: Record<string, unknown>,
+  configPath: string,
+): void {
+  const found: string[] = [];
+  for (const dotPath of Object.keys(DEPRECATED_FIELDS)) {
+    if (getNestedValue(fileConfig, dotPath) !== undefined) {
+      log.warn(DEPRECATED_FIELDS[dotPath]);
+      found.push(dotPath);
+    }
+  }
+
+  if (found.length === 0) return;
+
+  // Strip from the in-memory object so Zod never sees them
+  for (const dotPath of found) {
+    deleteNestedKeyByDotPath(fileConfig, dotPath);
+  }
+
+  // Persist the cleaned config to disk so the warning doesn't repeat
+  try {
+    if (existsSync(configPath)) {
+      const raw = JSON.parse(readFileSync(configPath, "utf-8"));
+      if (raw != null && typeof raw === "object" && !Array.isArray(raw)) {
+        for (const dotPath of found) {
+          deleteNestedKeyByDotPath(raw as Record<string, unknown>, dotPath);
+        }
+        writeFileSync(configPath, JSON.stringify(raw, null, 2) + "\n");
+      }
+    }
+  } catch {
+    // Best-effort — if the file can't be rewritten, the warning will repeat
+    // on next load, which is acceptable.
+  }
+}
+
+function deleteNestedKeyByDotPath(
+  obj: Record<string, unknown>,
+  dotPath: string,
+): void {
+  const keys = dotPath.split(".");
+  deleteNestedKey(obj, keys);
+}
+
+/**
+ * Recursively strip `null` leaves from a plain-object value, returning a
+ * deep clone with all `null`-valued keys removed at every nesting level.
+ * Non-object inputs (scalars, arrays, `null` itself) are returned as-is.
+ *
+ * Used to sanitize `overrides` before assigning whole subtrees in
+ * `deepMergeOverwrite`, so deletion-sentinel semantics apply uniformly
+ * even when the corresponding `target` key does not yet exist.
+ */
+function stripNullLeaves(value: unknown): unknown {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (v === null) continue;
+    out[k] = stripNullLeaves(v);
+  }
+  return out;
+}
+
+function readPlainObject(value: unknown): Record<string, unknown> | null {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+/**
+ * Deep-merge `overrides` into `target`, overwriting leaf values.
+ * Recursively merges nested objects; scalars and arrays from `overrides`
+ * replace corresponding values in `target`.
+ *
+ * JSON `null` semantics depend on what the target currently holds at
+ * that key:
+ *
+ * - **Target holds a non-null object** (not array): `null` deletes the
+ *   key, removing the entire subtree. This supports "clear entry"
+ *   semantics (e.g. the macOS SettingsStore clearing a call-site
+ *   override via `{ callSites: { memoryRetrieval: null } }`).
+ *
+ * - **Target holds a scalar, null, or array**: `null` is assigned as the
+ *   value, preserving nullable config fields like `activeHoursStart`
+ *   and `llmRequestLogRetentionMs` where `null` is a valid schema
+ *   value meaning "disabled / no limit".
+ *
+ * - **Key absent from target**: no-op. Assigning null to a missing key
+ *   would create a spurious entry; callers that want to establish a
+ *   null value should set the key to its default first.
+ *
+ * When an override assigns a whole object subtree to a key that does
+ * not yet exist on `target` (or whose existing value is a scalar/array),
+ * `stripNullLeaves` drops any `null` leaves inside that subtree before
+ * assignment so no invalid nulls get persisted for non-nullable fields.
+ */
+export function deepMergeOverwrite(
+  target: Record<string, unknown>,
+  overrides: Record<string, unknown>,
+): void {
+  for (const key of Object.keys(overrides)) {
+    const ov = overrides[key];
+    if (ov === null) {
+      if (!(key in target)) continue;
+      const existing = target[key];
+      if (
+        existing != null &&
+        typeof existing === "object" &&
+        !Array.isArray(existing)
+      ) {
+        delete target[key];
+      } else {
+        target[key] = null;
+      }
+    } else if (
+      ov !== undefined &&
+      typeof ov === "object" &&
+      !Array.isArray(ov) &&
+      target[key] != null &&
+      typeof target[key] === "object" &&
+      !Array.isArray(target[key])
+    ) {
+      deepMergeOverwrite(
+        target[key] as Record<string, unknown>,
+        ov as Record<string, unknown>,
+      );
+    } else {
+      target[key] = stripNullLeaves(ov);
+    }
+  }
+}
+
+export type DefaultWorkspaceConfigMergeResult = {
+  hadOverlay: boolean;
+  providedLlmProfileNames: Set<string>;
+  providedLlmActiveProfile: boolean;
+};
+
+function emptyDefaultWorkspaceConfigMergeResult(): DefaultWorkspaceConfigMergeResult {
+  return {
+    hadOverlay: false,
+    providedLlmProfileNames: new Set(),
+    providedLlmActiveProfile: false,
+  };
+}
+
+/**
+ * Merge default workspace config from the file referenced by
+ * VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH into the workspace config on disk.
+ *
+ * Called once at daemon startup (before the first loadConfig()) so platform
+ * overrides are persisted to disk before the daemon's first config read.
+ * Schema defaults are no longer materialized into the file on load — the
+ * in-memory `loadConfig()` cache applies them at access time instead.
+ */
+export function mergeDefaultWorkspaceConfig(): DefaultWorkspaceConfigMergeResult {
+  const defaultConfigPath = process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+  if (!defaultConfigPath || !existsSync(defaultConfigPath)) {
+    return emptyDefaultWorkspaceConfigMergeResult();
+  }
+
+  let defaults: unknown;
+  try {
+    defaults = JSON.parse(readFileSync(defaultConfigPath, "utf-8"));
+  } catch (err) {
+    log.warn(
+      { err },
+      "Failed to read default workspace config from %s",
+      defaultConfigPath,
+    );
+    return emptyDefaultWorkspaceConfigMergeResult();
+  }
+
+  if (
+    defaults == null ||
+    typeof defaults !== "object" ||
+    Array.isArray(defaults)
+  ) {
+    return emptyDefaultWorkspaceConfigMergeResult();
+  }
+
+  const llmDefaults = readPlainObject(
+    (defaults as Record<string, unknown>).llm,
+  );
+  const providedProfiles = readPlainObject(llmDefaults?.profiles);
+  const mergeResult: DefaultWorkspaceConfigMergeResult = {
+    hadOverlay: true,
+    providedLlmProfileNames: new Set(
+      providedProfiles ? Object.keys(providedProfiles) : [],
+    ),
+    providedLlmActiveProfile:
+      llmDefaults != null &&
+      Object.prototype.hasOwnProperty.call(llmDefaults, "activeProfile"),
+  };
+
+  const configPath = getConfigPath();
+  let existing: Record<string, unknown> = {};
+  if (existsSync(configPath)) {
+    try {
+      existing = JSON.parse(readFileSync(configPath, "utf-8"));
+    } catch (err) {
+      quarantineCorruptConfig(configPath, err);
+      // After preserving the corrupt file, start fresh so the default overlay
+      // can still initialize a valid config for this startup.
+    }
+  }
+
+  if (mergeResult.providedLlmProfileNames.size > 0) {
+    // Default-config profile entries are authoritative fragments. Remove any
+    // old same-name profile first so recursive merge does not leave stale
+    // provider-specific leaves behind.
+    const existingLlm = readPlainObject(existing.llm);
+    const existingProfiles = readPlainObject(existingLlm?.profiles);
+    if (existingProfiles) {
+      for (const name of mergeResult.providedLlmProfileNames) {
+        delete existingProfiles[name];
+      }
+    }
+  }
+
+  deepMergeOverwrite(existing, defaults as Record<string, unknown>);
+
+  const dir = dirname(configPath);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  writeFileSync(configPath, JSON.stringify(existing, null, 2) + "\n");
+  invalidateConfigCache();
+
+  // Move the temp file into the workspace directory as a permanent record.
+  // This prevents re-application on daemon restart (the env var still points
+  // at the old /tmp path which no longer exists).
+  try {
+    const dest = join(dir, "default-config.json");
+    renameSync(defaultConfigPath, dest);
+    log.info(
+      "Merged default workspace config from %s (archived to %s)",
+      defaultConfigPath,
+      dest,
+    );
+  } catch {
+    log.info("Merged default workspace config from %s", defaultConfigPath);
+  }
+
+  return mergeResult;
+}
+
+export function loadConfig(): AssistantConfig {
+  const freshCached = getCachedConfigIfFresh();
+  if (freshCached) return freshCached;
+
+  // Re-entrancy guard: log calls during loading (e.g. file-mode warning)
+  // can trigger loadConfig again. Return defaults to break the cycle
+  // instead of recursing to stack overflow.
+  if (loading) return cloneDefaultConfig();
+  loading = true;
+
+  try {
+    ensureMigratedDataDir();
+    const configPath = getConfigPath();
+
+    let fileConfig: Record<string, unknown> = {};
+    let configFileExisted = true;
+    if (existsSync(configPath)) {
+      try {
+        const parsed: unknown = JSON.parse(readFileSync(configPath, "utf-8"));
+        if (!isPlainObject(parsed)) {
+          // Same shape contract as `loadRawConfig`: top-level value must be a
+          // plain object. A `null`, primitive, or array is treated like a
+          // parse error so downstream code (`warnAndStripDeprecatedFields`,
+          // `setNestedValue` in the managed-Gemini migration block, etc.)
+          // never iterates a non-record. Quarantine + fall through to defaults.
+          quarantineCorruptConfig(
+            configPath,
+            new Error(
+              `config.json must contain a JSON object at the top level; got ${describeJsonShape(parsed)}`,
+            ),
+          );
+          fileConfig = {};
+          configFileExisted = false;
+        } else {
+          fileConfig = parsed;
+        }
+      } catch (err) {
+        // The daemon must never block startup (assistant/CLAUDE.md). A config
+        // file that fails JSON.parse — truncated during a mid-write crash, or
+        // hand-edited to invalid JSON — is quarantined so the content is
+        // preserved for debug, and startup proceeds with the same default-
+        // config path used when config.json does not exist.
+        quarantineCorruptConfig(configPath, err);
+        fileConfig = {};
+        configFileExisted = false;
+      }
+    } else {
+      configFileExisted = false;
+    }
+
+    // Warn about and strip deprecated config fields so users know their
+    // settings are no longer honored rather than silently dropping them.
+    warnAndStripDeprecatedFields(fileConfig, configPath);
+
+    // Validate and apply defaults via Zod schema
+    let config = validateWithSchema(fileConfig);
+
+    // Managed Gemini embedding defaults migration.
+    // When on a managed platform (IS_PLATFORM=true) with the feature flag
+    // enabled and no explicit embedding provider chosen (provider=auto),
+    // persist Gemini embedding defaults into the raw config file.
+    // Idempotent: once provider=gemini is written, subsequent loads skip this.
+    if (config.memory.embeddings.provider === "auto") {
+      try {
+        if (
+          (process.env.IS_PLATFORM === "true" ||
+            process.env.IS_PLATFORM === "1") &&
+          isManagedGeminiFFEnabled(config)
+        ) {
+          setNestedValue(fileConfig, "memory.embeddings.provider", "gemini");
+          setNestedValue(
+            fileConfig,
+            "memory.embeddings.geminiModel",
+            "gemini-embedding-2",
+          );
+          setNestedValue(
+            fileConfig,
+            "memory.embeddings.geminiDimensions",
+            3072,
+          );
+          setNestedValue(fileConfig, "memory.qdrant.vectorSize", 3072);
+          writeFileSync(configPath, JSON.stringify(fileConfig, null, 2) + "\n");
+          log.info(
+            "Applied managed Gemini embedding defaults (provider=gemini, model=gemini-embedding-2, dimensions=3072, vectorSize=3072)",
+          );
+          // Re-validate so the returned config reflects the migration.
+          config = validateWithSchema(fileConfig);
+        }
+      } catch (err) {
+        log.warn(
+          { err },
+          "Managed Gemini defaults migration failed — continuing with existing config",
+        );
+      }
+    }
+
+    // Layer deployment-context defaults (e.g. IS_PLATFORM=true → all service
+    // modes = "managed") onto the in-memory config for any leaves that aren't
+    // explicitly set in `fileConfig`. This runs on every load — not just the
+    // first — because the workspace config file is written by upstream
+    // lifecycle steps (`mergeDefaultWorkspaceConfig`, `seedInferenceProfiles`)
+    // before `loadConfig()` is reached. Gating on `!configFileExisted` would
+    // make the context defaults dead code on platform-managed daemons whose
+    // config.json was created by those earlier steps without service-mode
+    // entries. Explicit user choices on disk are preserved because the helper
+    // only fills missing keys.
+    const contextDefaults = getDeploymentContextDefaults();
+    if (Object.keys(contextDefaults).length > 0) {
+      fillContextDefaultsForMissingKeys(
+        config as unknown as Record<string, unknown>,
+        fileConfig,
+        contextDefaults,
+      );
+    }
+
+    // First-launch seed only: when config.json does not exist, write the full
+    // schema defaults (with any deployment-context overrides already applied
+    // above) to disk so users can discover and edit all available options.
+    // When the file already exists, leave it alone — disk represents user
+    // intent, while the in-memory `cached: AssistantConfig` (above) has all
+    // schema defaults applied via `applyNestedDefaults`/`validateWithSchema`,
+    // so consumers calling `getConfig().memory.v2.bm25_b` continue to receive
+    // the schema default whenever the field is absent on disk.
+    //
+    // The previous behavior — eagerly merging missing keys back into the file
+    // on every load — silently baked stale defaults into existing users'
+    // config.json. Once a default landed in the file, future schema-default
+    // changes were inert because the merge only filled absent keys and never
+    // reconciled existing values. Contract: disk = user intent, in-memory
+    // cache = effective values.
+    if (!configFileExisted) {
+      try {
+        const dir = dirname(configPath);
+        if (!existsSync(dir)) {
+          mkdirSync(dir, { recursive: true });
+        }
+        // Strip dataDir (runtime-derived) from the persisted config
+        const { dataDir: _, ...persistable } = config;
+        writeFileSync(configPath, JSON.stringify(persistable, null, 2) + "\n");
+        log.info("Wrote default config to %s", configPath);
+      } catch (err) {
+        log.warn({ err }, "Failed to write default config file");
+      }
+    }
+
+    cached = config;
+    cachedFileSignature = readConfigFileSignature(configPath);
+
+    loading = false;
+    return config;
+  } catch (err) {
+    // Loading failed — clear cached so the next call retries
+    cached = null;
+    cachedFileSignature = null;
+    loading = false;
+    throw err;
+  }
+}
+
+/**
+ * Check whether the managed-gemini-embeddings-enabled feature flag is on.
+ * Wrapped in a try/catch so a flag-resolver failure never breaks config loading.
+ */
+function isManagedGeminiFFEnabled(config: AssistantConfig): boolean {
+  try {
+    return isAssistantFeatureFlagEnabled(
+      "managed-gemini-embeddings-enabled",
+      config,
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function getConfig(): AssistantConfig {
+  return loadConfig();
+}
+
+/**
+ * Read-only config accessor: returns the current config without creating
+ * directories or writing files. Reads config.json if it exists on disk;
+ * returns schema defaults otherwise. Unlike `getConfig()` / `loadConfig()`,
+ * this never calls `ensureDataDir()` or writes a default config to disk,
+ * making it safe to call during CLI program construction before the
+ * workspace-existence check runs.
+ */
+export function getConfigReadOnly(): AssistantConfig {
+  const freshCached = getCachedConfigIfFresh();
+  if (freshCached) return freshCached;
+
+  const configPath = getConfigPath();
+  let fileConfig: Record<string, unknown> = {};
+  if (existsSync(configPath)) {
+    try {
+      fileConfig = JSON.parse(readFileSync(configPath, "utf-8"));
+    } catch {
+      return cloneDefaultConfig();
+    }
+  }
+
+  return validateWithSchema(fileConfig);
+}
+
+export function invalidateConfigCache(): void {
+  cached = null;
+  cachedFileSignature = null;
+  loading = false;
+}
+
+/**
+ * Load the raw config from disk without any secure-storage merging.
+ * Used by CLI config commands to read/write the file directly.
+ * API keys in secure storage are managed via `assistant keys` commands.
+ *
+ * Contract: returns a plain object (`Record<string, unknown>`). When
+ * `config.json` is missing → returns `{}`. When the file is unparseable
+ * (truncated, hand-edited to invalid JSON) OR when it parses to a value
+ * that is technically valid JSON but NOT a plain object (`null`, a
+ * primitive like `42`, `"hello"`, `true`, or an array `[…]`) → quarantines
+ * the file and returns `{}`. Callers can therefore rely on the return
+ * type without runtime shape-checking — the boundary check happens here.
+ */
+export function loadRawConfig(): Record<string, unknown> {
+  ensureMigratedDataDir();
+  const configPath = getConfigPath();
+  if (!existsSync(configPath)) {
+    return {};
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(configPath, "utf-8"));
+  } catch (err) {
+    // Mirror loadConfig(): quarantine the corrupt file and return an empty
+    // object rather than throwing. This prevents /v1/config from surfacing
+    // a 500 when the user's config.json is malformed.
+    quarantineCorruptConfig(configPath, err);
+    return {};
+  }
+
+  if (!isPlainObject(parsed)) {
+    // Valid JSON but the wrong shape — `null`, a primitive, or an array.
+    // Treat the same as a parse error so the return-type contract above is
+    // truthful and downstream callers (e.g. /v1/config handlers, twilio
+    // integration routes, settings routes) can iterate keys safely.
+    quarantineCorruptConfig(
+      configPath,
+      new Error(
+        `config.json must contain a JSON object at the top level; got ${describeJsonShape(parsed)}`,
+      ),
+    );
+    return {};
+  }
+
+  return parsed;
+}
+
+/**
+ * Predicate for "the value is a plain JSON object" — i.e. not `null`, not
+ * a primitive, and not an array. The cast on the truthy branch is safe
+ * because the caller's static type narrowed accordingly.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Human-readable shape label for error messages. Distinguishes the four
+ * non-object JSON shapes the loader rejects.
+ */
+function describeJsonShape(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "an array";
+  return `a ${typeof value}`;
+}
+
+export async function saveRawConfig(
+  config: Record<string, unknown>,
+  options: { withinLock?: boolean } = {},
+): Promise<void> {
+  ensureMigratedDataDir();
+  const configPath = getConfigPath();
+
+  // Strip legacy apiKeys — provider keys belong in secure storage, not plaintext config
+  delete config.apiKeys;
+
+  const serialized = JSON.stringify(config, null, 2) + "\n";
+
+  // Callers that already hold the shared config-write mutex (e.g. the
+  // discovery service's read-modify-write critical section) pass
+  // `withinLock: true` to avoid re-entering and deadlocking. Everyone else
+  // acquires the lock here so concurrent writes never tear the file.
+  const write = (): void => {
+    const tmpPath = `${configPath}.tmp-${process.pid}-${Date.now()}`;
+    writeFileSync(tmpPath, serialized);
+    renameSync(tmpPath, configPath);
+  };
+  if (options.withinLock) {
+    write();
+  } else {
+    await withConfigWriteLock(async () => {
+      write();
+    });
+  }
+
+  cached = null; // invalidate cache
+  cachedFileSignature = null;
+}
+
+export function getNestedValue(
+  obj: Record<string, unknown>,
+  path: string,
+): unknown {
+  const keys = path.split(".");
+  let current: unknown = obj;
+  for (const key of keys) {
+    if (current == null || typeof current !== "object") {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+  return current;
+}
+
+export function setNestedValue(
+  obj: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): void {
+  const keys = path.split(".");
+  let current = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (current[key] == null || typeof current[key] !== "object") {
+      current[key] = {};
+    }
+    current = current[key] as Record<string, unknown>;
+  }
+  current[keys[keys.length - 1]] = value;
+}
+
+/**
+ * Test-only alias for `appendQuarantineBulletin`. Exists so the crash-mid-
+ * append idempotency branch can be exercised with a deterministic quarantine
+ * basename without widening the runtime surface. Not for production use.
+ */
+export const _appendQuarantineBulletin = appendQuarantineBulletin;

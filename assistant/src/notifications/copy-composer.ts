@@ -1,0 +1,663 @@
+/**
+ * Deterministic, template-based copy generation for notification deliveries.
+ *
+ * This is the fallback path used when the decision engine's LLM-generated
+ * copy is unavailable (fallbackUsed === true). It generates reasonable
+ * copy from the signal's sourceEventName, contextPayload, and attentionHints.
+ *
+ * Each source event name has a set of fallback templates that interpolate
+ * values from the context payload.
+ */
+
+import {
+  buildGuardianRequestCodeInstruction,
+  resolveGuardianQuestionInstructionMode,
+} from "./guardian-question-mode.js";
+import type {
+  NotificationSignal,
+  NotificationSourceEventName,
+} from "./signal.js";
+import type { NotificationChannel, RenderedChannelCopy } from "./types.js";
+
+type CopyTemplate = (payload: Record<string, unknown>) => RenderedChannelCopy;
+
+function str(value: unknown, fallback: string): string {
+  if (typeof value === "string" && value.length > 0) return value;
+  return fallback;
+}
+
+export function nonEmpty(value: string | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function looksLikeIntermediaryInstruction(text: string): boolean {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  const intermediaryAction =
+    "(?:tell|telling|ask|asking|remind|reminding|nudge|nudging|prompt|prompting|notify|notifying|encourage|encouraging|prime|priming|brief|briefing|coach|coaching)";
+  const target = "(?:the\\s+)?(?:guardian|recipient|user)";
+  return (
+    /\b(?:assistant|agent|system|model|watcher)\s+(?:should|needs?\s+to|must|can|could)\b/i.test(
+      normalized,
+    ) ||
+    new RegExp(
+      `\\b(?:consider|try|please)\\s+${intermediaryAction}\\s+${target}\\b`,
+      "i",
+    ).test(normalized) ||
+    new RegExp(
+      `\\b${intermediaryAction}\\s+${target}\\s+(?:to|that|about|with)\\b`,
+      "i",
+    ).test(normalized) ||
+    new RegExp(
+      `\\b${target}\\s+(?:should|needs?\\s+to|must|might\\s+want\\s+to)\\b`,
+      "i",
+    ).test(normalized) ||
+    new RegExp(`\\b(?:for|to)\\s+${target}\\s+to\\b`, "i").test(normalized)
+  );
+}
+
+function buildHeartbeatAlertCopy(
+  payload: Record<string, unknown>,
+): RenderedChannelCopy {
+  const summary = str(
+    payload.summary,
+    str(payload.body, "Your assistant found something worth your attention."),
+  ).trim();
+  const safePopupBody = looksLikeIntermediaryInstruction(summary)
+    ? "I found something worth your attention in a heartbeat check. Open the conversation for details."
+    : summary;
+
+  return {
+    title: str(payload.title, "Heartbeat Alert"),
+    body: safePopupBody,
+    deliveryText: safePopupBody,
+    conversationTitle: str(payload.conversationTitle, "Heartbeat"),
+    conversationSeedMessage: summary,
+  };
+}
+
+// ── Access-request copy contract ─────────────────────────────────────────────
+//
+// Deterministic helpers for building guardian-facing access-request copy.
+// These are used both by the fallback template and the decision-engine
+// post-generation enforcement to ensure required directives always appear.
+
+const IDENTITY_FIELD_MAX_LENGTH = 120;
+
+/**
+ * Sanitize an untrusted identity field for inclusion in notification copy.
+ *
+ * - Strips control characters (U+0000–U+001F, U+007F–U+009F) and newlines.
+ * - Clamps to IDENTITY_FIELD_MAX_LENGTH characters.
+ * - Wraps in quotes to neutralize instruction-like payload text.
+ */
+export function sanitizeIdentityField(value: string): string {
+  const stripped = value.replace(/[\x00-\x1f\x7f-\x9f\r\n]+/g, " ").trim();
+  const clamped =
+    stripped.length > IDENTITY_FIELD_MAX_LENGTH
+      ? stripped.slice(0, IDENTITY_FIELD_MAX_LENGTH) + "…"
+      : stripped;
+  return clamped;
+}
+
+export function buildAccessRequestIdentityLine(
+  payload: Record<string, unknown>,
+): string {
+  const requester = sanitizeIdentityField(
+    str(payload.senderIdentifier, "Someone"),
+  );
+  const sourceChannel =
+    typeof payload.sourceChannel === "string"
+      ? payload.sourceChannel
+      : undefined;
+  const callerName = nonEmpty(
+    typeof payload.actorDisplayName === "string"
+      ? payload.actorDisplayName
+      : undefined,
+  );
+  const actorUsername = nonEmpty(
+    typeof payload.actorUsername === "string"
+      ? payload.actorUsername
+      : undefined,
+  );
+  const actorExternalId = nonEmpty(
+    typeof payload.actorExternalId === "string"
+      ? payload.actorExternalId
+      : undefined,
+  );
+
+  if (sourceChannel === "phone" && callerName) {
+    const safeName = sanitizeIdentityField(callerName);
+    const safeId = sanitizeIdentityField(
+      str(payload.actorExternalId, requester),
+    );
+    return `${safeName} (${safeId}) is calling and requesting access to the assistant.`;
+  }
+
+  // For non-voice, include extra context when available.
+  // Sanitize before comparing to avoid deduplication failures when identity
+  // fields contain control characters that are stripped from `requester`.
+  const sanitizedUsername = actorUsername
+    ? sanitizeIdentityField(actorUsername)
+    : undefined;
+  const sanitizedExternalId = actorExternalId
+    ? sanitizeIdentityField(actorExternalId)
+    : undefined;
+  // When the requester is a raw Slack user ID (e.g. the fallback path in
+  // access-request-helper sets senderIdentifier to the raw actorExternalId),
+  // format it as a Slack mention so it renders as a clickable display name.
+  const formattedRequester =
+    sourceChannel === "slack" && /^U[A-Z0-9]+$/i.test(requester)
+      ? `<@${requester}>`
+      : requester;
+  const parts = [formattedRequester];
+  if (sanitizedUsername && sanitizedUsername !== requester) {
+    parts.push(`@${sanitizedUsername}`);
+  }
+  if (
+    sanitizedExternalId &&
+    sanitizedExternalId !== requester &&
+    sanitizedExternalId !== sanitizedUsername
+  ) {
+    // For Slack, use the <@U...> mention format so Slack auto-renders
+    // the user ID as a clickable display name.
+    const formattedId =
+      sourceChannel === "slack" && /^U[A-Z0-9]+$/i.test(sanitizedExternalId)
+        ? `<@${sanitizedExternalId}>`
+        : `[${sanitizedExternalId}]`;
+    parts.push(formattedId);
+  }
+  if (sourceChannel) {
+    parts.push(`via ${sourceChannel}`);
+  }
+
+  return `${parts.join(" ")} is requesting access to the assistant.`;
+}
+
+export const MESSAGE_PREVIEW_MAX_LENGTH = 200;
+
+/**
+ * Sanitize an untrusted message preview for inclusion in notification copy.
+ *
+ * Like {@link sanitizeIdentityField} but uses the higher
+ * MESSAGE_PREVIEW_MAX_LENGTH limit (200 chars) instead of the identity
+ * field limit (120 chars).
+ */
+export function sanitizeMessagePreview(value: string): string {
+  const stripped = value.replace(/[\x00-\x1f\x7f-\x9f\r\n]+/g, " ").trim();
+  const clamped =
+    stripped.length > MESSAGE_PREVIEW_MAX_LENGTH
+      ? stripped.slice(0, MESSAGE_PREVIEW_MAX_LENGTH) + "…"
+      : stripped;
+  return clamped;
+}
+
+/**
+ * Build a quoted preview of the requester's original message for inclusion
+ * in guardian-facing access-request copy. Sanitizes and truncates to keep
+ * the notification concise.
+ *
+ * Returns `undefined` when no usable preview is available.
+ */
+function buildAccessRequestMessagePreview(
+  payload: Record<string, unknown>,
+): string | undefined {
+  const raw =
+    typeof payload.messagePreview === "string"
+      ? payload.messagePreview
+      : undefined;
+  if (!raw) return undefined;
+
+  const sanitized = sanitizeMessagePreview(raw);
+  if (sanitized.length === 0) return undefined;
+
+  return `> Their message: "${sanitized}"`;
+}
+
+export function buildAccessRequestInviteDirective(): string {
+  return 'Reply "open invite flow" to start Trusted Contacts invite flow.';
+}
+
+/**
+ * Normalize text before running directive-matching regexes.
+ *
+ * - Replaces smart/curly apostrophes (\u2018, \u2019, \u201B) with ASCII `'`
+ *   so contractions like "Don\u2019t" are matched by the `n't` lookbehind.
+ * - Collapses runs of whitespace into a single space so "Do not   reply"
+ *   is matched by the single-space negative lookbehind.
+ * - Trims leading/trailing whitespace.
+ */
+export function normalizeForDirectiveMatching(text: string): string {
+  return text
+    .replace(/[\u2018\u2019\u201B]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Check whether a text contains the required access-request instruction elements:
+ * 1. Approve directive: Reply "CODE approve"
+ * 2. Reject directive: Reply "CODE reject"
+ * 3. Invite directive: Reply "open invite flow"
+ *
+ * Each directive is matched independently using negative lookbehind to reject
+ * matches preceded by negation words ("not", "n't", "never"). This prevents
+ * contradictory copy like `Do not reply "CODE reject"` from satisfying the
+ * check even when a positive approve directive exists nearby.
+ *
+ * The text is normalized before matching to handle smart apostrophes and
+ * multiple whitespace characters that would otherwise bypass negation detection.
+ */
+export function hasAccessRequestInstructions(
+  text: string | undefined,
+  requestCode: string,
+): boolean {
+  if (typeof text !== "string") return false;
+  const normalized = normalizeForDirectiveMatching(text);
+  const escapedCode = requestCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Each directive must follow "reply" without a preceding negation word.
+  // Negative lookbehinds reject "do not reply", "don't reply", "never reply".
+  const approveRe = new RegExp(
+    `(?<!not\\s)(?<!n't\\s)(?<!never\\s)reply\\b[^.!?\\n]*?"${escapedCode}\\s+approve"`,
+    "i",
+  );
+  const rejectRe = new RegExp(
+    `(?<!not\\s)(?<!n't\\s)(?<!never\\s)reply\\b[^.!?\\n]*?"${escapedCode}\\s+reject"`,
+    "i",
+  );
+  const inviteRe =
+    /(?<!not\s)(?<!n't\s)(?<!never\s)reply\b[^.!?\n]*?"open invite flow"/i;
+
+  return (
+    approveRe.test(normalized) &&
+    rejectRe.test(normalized) &&
+    inviteRe.test(normalized)
+  );
+}
+
+/**
+ * Check whether text contains the invite-flow directive ("open invite flow")
+ * using the same normalized negative-lookbehind pattern as the full check.
+ * This is used for enforcement when requestCode is absent but the invite
+ * directive should still be present.
+ */
+export function hasInviteFlowDirective(text: string | undefined): boolean {
+  if (typeof text !== "string") return false;
+  const normalized = normalizeForDirectiveMatching(text);
+  const inviteRe =
+    /(?<!not\s)(?<!n't\s)(?<!never\s)reply\b[^.!?\n]*?"open invite flow"/i;
+  return inviteRe.test(normalized);
+}
+
+/**
+ * Build the deterministic access-request contract text from payload fields.
+ * This is the canonical baseline that enforcement can append when generated
+ * copy is missing required elements.
+ *
+ * Channel-agnostic by design: this function reads from the generic
+ * `contextPayload` and works identically regardless of which channel
+ * (Slack, Telegram, desktop, etc.) the notification is delivered to.
+ * When `guardianResolutionSource` is present and not `"source-channel-contact"`,
+ * the guardian was resolved via fallback (e.g. vellum anchor) rather than
+ * a verified same-channel contact — downstream copy or routing can use
+ * this to append verification CTAs like "Was this you?".
+ */
+export function buildAccessRequestContractText(
+  payload: Record<string, unknown>,
+): string {
+  const requestCode = nonEmpty(
+    typeof payload.requestCode === "string" ? payload.requestCode : undefined,
+  );
+  const previousMemberStatus =
+    typeof payload.previousMemberStatus === "string"
+      ? payload.previousMemberStatus
+      : undefined;
+
+  const guardianResolutionSource =
+    typeof payload.guardianResolutionSource === "string"
+      ? payload.guardianResolutionSource
+      : undefined;
+  const sourceChannel =
+    typeof payload.sourceChannel === "string"
+      ? payload.sourceChannel
+      : undefined;
+
+  const lines: string[] = [];
+  lines.push(buildAccessRequestIdentityLine(payload));
+  const preview = buildAccessRequestMessagePreview(payload);
+  if (preview) {
+    lines.push(preview);
+  }
+  if (previousMemberStatus === "revoked") {
+    lines.push("Note: this user was previously revoked.");
+  }
+  if (requestCode) {
+    const code = requestCode.toUpperCase();
+    lines.push(
+      `Reply "${code} approve" to grant access or "${code} reject" to deny.`,
+    );
+  }
+  lines.push(buildAccessRequestInviteDirective());
+  if (
+    (guardianResolutionSource === "vellum-anchor" ||
+      guardianResolutionSource === "none") &&
+    sourceChannel
+  ) {
+    lines.push(
+      `Note: You haven't verified your identity on ${sourceChannel} yet. If this was you trying to message your assistant, say "help me verify as guardian on ${sourceChannel}" to set up direct access.`,
+    );
+  }
+  return lines.join("\n");
+}
+
+// Templates keyed by dot-separated sourceEventName strings matching producers.
+const TEMPLATES: Partial<Record<NotificationSourceEventName, CopyTemplate>> = {
+  "schedule.notify": (payload) => ({
+    title: "Reminder",
+    body: str(payload.message, str(payload.label, "A reminder has fired")),
+  }),
+
+  "guardian.question": (payload) => {
+    const question = str(
+      payload.questionText,
+      "A guardian question needs your attention",
+    );
+    const requestCode = nonEmpty(
+      typeof payload.requestCode === "string" ? payload.requestCode : undefined,
+    );
+
+    // For tool_grant_request, the questionText already includes requester name + input summary.
+    // Use it directly as the conversation seed to avoid LLM-generated filler.
+    const isToolGrant = payload.requestKind === "tool_grant_request";
+    const conversationSeedMessage = isToolGrant ? question : undefined;
+
+    if (!requestCode) {
+      return {
+        title: "Guardian Question",
+        body: question,
+        conversationSeedMessage,
+      };
+    }
+
+    const normalizedCode = requestCode.toUpperCase();
+    const modeResolution = resolveGuardianQuestionInstructionMode(payload);
+    const instruction = buildGuardianRequestCodeInstruction(
+      normalizedCode,
+      modeResolution.mode,
+    );
+    return {
+      title: "Guardian Question",
+      body: `${question}\n\n${instruction}`,
+      conversationSeedMessage,
+    };
+  },
+
+  "guardian.channel_activation": (payload) => {
+    const code = str(payload.verificationCode, "------");
+    const channel = str(payload.sourceChannel, "a channel");
+    return {
+      title: "Guardian Verification Code",
+      body: `Your ${channel} verification code is: ${code}\n\nEnter this code in your ${channel} chat to verify your identity as guardian.`,
+    };
+  },
+
+  "ingress.access_request": (payload) => ({
+    title: "Access Request",
+    body: buildAccessRequestContractText(payload),
+  }),
+
+  "ingress.access_request.callback_handoff": (payload) => {
+    const callerName = nonEmpty(
+      typeof payload.callerName === "string" ? payload.callerName : undefined,
+    );
+    const callerPhone = nonEmpty(
+      typeof payload.callerPhoneNumber === "string"
+        ? payload.callerPhoneNumber
+        : undefined,
+    );
+    const requestCode = nonEmpty(
+      typeof payload.requestCode === "string" ? payload.requestCode : undefined,
+    );
+    const memberId = nonEmpty(
+      typeof payload.requesterMemberId === "string"
+        ? payload.requesterMemberId
+        : undefined,
+    );
+
+    const callerIdentity =
+      callerName && callerPhone
+        ? `${callerName} (${callerPhone})`
+        : (callerName ?? callerPhone ?? "An unknown caller");
+
+    const lines: string[] = [];
+    lines.push(
+      `${callerIdentity} called and requested a callback while you were unreachable.`,
+    );
+
+    if (requestCode) {
+      lines.push(`Request code: ${requestCode.toUpperCase()}`);
+    }
+    if (memberId) {
+      lines.push(`This caller is a trusted contact (member ID: ${memberId}).`);
+    }
+
+    return {
+      title: "Callback Requested",
+      body: lines.join("\n"),
+    };
+  },
+
+  "ingress.trusted_contact.guardian_decision": (payload) => {
+    const decision = str(payload.decision, "decided on");
+    const sourceChannel =
+      typeof payload.sourceChannel === "string"
+        ? payload.sourceChannel
+        : undefined;
+
+    const requesterDisplayName =
+      typeof payload.requesterDisplayName === "string" &&
+      payload.requesterDisplayName.length > 0
+        ? payload.requesterDisplayName
+        : undefined;
+    const requesterExternalUserId =
+      typeof payload.requesterExternalUserId === "string" &&
+      payload.requesterExternalUserId.length > 0
+        ? payload.requesterExternalUserId
+        : undefined;
+    const requesterLabel = sanitizeIdentityField(
+      requesterDisplayName ??
+        (sourceChannel === "slack" &&
+        requesterExternalUserId &&
+        /^U[A-Z0-9]+$/i.test(requesterExternalUserId)
+          ? `<@${requesterExternalUserId}>`
+          : requesterExternalUserId) ??
+        "Someone",
+    );
+
+    const decidedByDisplayName =
+      typeof payload.decidedByDisplayName === "string" &&
+      payload.decidedByDisplayName.length > 0
+        ? payload.decidedByDisplayName
+        : undefined;
+    const decidedByExternalUserId =
+      typeof payload.decidedByExternalUserId === "string" &&
+      payload.decidedByExternalUserId.length > 0
+        ? payload.decidedByExternalUserId
+        : undefined;
+    const decidedByLabel = sanitizeIdentityField(
+      decidedByDisplayName ??
+        (sourceChannel === "slack" &&
+        decidedByExternalUserId &&
+        /^U[A-Z0-9]+$/i.test(decidedByExternalUserId)
+          ? `<@${decidedByExternalUserId}>`
+          : decidedByExternalUserId) ??
+        "a guardian",
+    );
+
+    const verb = decision === "approved" ? "approved" : "denied";
+    return {
+      title: "Trusted Contact Decision",
+      body: `${requesterLabel}'s access request has been ${verb} by ${decidedByLabel}.`,
+    };
+  },
+
+  "ingress.trusted_contact.denied": (payload) => {
+    const sourceChannel =
+      typeof payload.sourceChannel === "string"
+        ? payload.sourceChannel
+        : undefined;
+
+    const requesterDisplayName =
+      typeof payload.requesterDisplayName === "string" &&
+      payload.requesterDisplayName.length > 0
+        ? payload.requesterDisplayName
+        : undefined;
+    const requesterExternalUserId =
+      typeof payload.requesterExternalUserId === "string" &&
+      payload.requesterExternalUserId.length > 0
+        ? payload.requesterExternalUserId
+        : undefined;
+    const requesterLabel = sanitizeIdentityField(
+      requesterDisplayName ??
+        (sourceChannel === "slack" &&
+        requesterExternalUserId &&
+        /^U[A-Z0-9]+$/i.test(requesterExternalUserId)
+          ? `<@${requesterExternalUserId}>`
+          : requesterExternalUserId) ??
+        "Someone",
+    );
+
+    return {
+      title: "Trusted Contact Denied",
+      body: `A trusted contact request from ${requesterLabel} has been denied.`,
+    };
+  },
+
+  "ingress.escalation": (payload) => ({
+    title: "Escalation",
+    body:
+      str(payload.senderIdentifier, "An incoming message") + " needs attention",
+  }),
+
+  "watcher.notification": (payload) => ({
+    title: str(payload.title, "Watcher Notification"),
+    body: str(payload.body, "A watcher event occurred"),
+  }),
+
+  "watcher.escalation": (payload) => ({
+    title: str(payload.title, "Watcher Escalation"),
+    body: str(payload.body, "A watcher event requires your attention"),
+  }),
+
+  "heartbeat.alert": buildHeartbeatAlertCopy,
+
+  "tool_confirmation.required_action": (payload) => ({
+    title: "Tool Confirmation",
+    body: str(payload.toolName, "A tool") + " requires your confirmation",
+  }),
+
+  "activity.complete": (payload) => ({
+    title: "Activity Complete",
+    body: str(payload.summary, "An activity has completed"),
+  }),
+
+  "activity.failed": (payload) => {
+    const jobName = str(payload.jobName, "background job");
+    const errorKind = str(payload.errorKind, "exception");
+    const rawMessage =
+      typeof payload.errorMessage === "string"
+        ? payload.errorMessage
+        : "no message";
+    const truncated =
+      rawMessage.length > 200 ? rawMessage.slice(0, 200) + "…" : rawMessage;
+    return {
+      title: `Background job failed: ${jobName}`,
+      body: `${errorKind}: ${truncated}`,
+    };
+  },
+
+  "quick_chat.response_ready": (payload) => ({
+    title: "Response Ready",
+    body: str(payload.preview, "Your quick chat response is ready"),
+  }),
+
+  "voice.response_ready": (payload) => ({
+    title: "Voice Response",
+    body: str(payload.preview, "A voice response is ready"),
+  }),
+};
+
+/**
+ * Compose fallback notification copy for a signal when the decision
+ * engine's LLM path is unavailable.
+ *
+ * Returns a map of channel -> RenderedChannelCopy for the requested channels.
+ * Base title/body content comes from templates, then channel-specific
+ * defaults are applied (for example Telegram deliveryText).
+ */
+export function composeFallbackCopy(
+  signal: NotificationSignal,
+  channels: NotificationChannel[],
+): Partial<Record<NotificationChannel, RenderedChannelCopy>> {
+  const template =
+    TEMPLATES[signal.sourceEventName as NotificationSourceEventName];
+
+  const baseCopy: RenderedChannelCopy = template
+    ? template(signal.contextPayload)
+    : buildGenericCopy(signal);
+
+  const result: Partial<Record<NotificationChannel, RenderedChannelCopy>> = {};
+  for (const ch of channels) {
+    result[ch] = applyChannelDefaults(ch, baseCopy, signal);
+  }
+  return result;
+}
+
+function applyChannelDefaults(
+  channel: NotificationChannel,
+  baseCopy: RenderedChannelCopy,
+  signal: NotificationSignal,
+): RenderedChannelCopy {
+  const copy: RenderedChannelCopy = { ...baseCopy };
+
+  if (channel === "telegram") {
+    copy.deliveryText = buildChatSurfaceFallbackDeliveryText(baseCopy, signal);
+  }
+
+  return copy;
+}
+
+function buildChatSurfaceFallbackDeliveryText(
+  baseCopy: RenderedChannelCopy,
+  signal: NotificationSignal,
+): string {
+  const explicit = nonEmpty(baseCopy.deliveryText);
+  if (explicit) return explicit;
+
+  const body = nonEmpty(baseCopy.body);
+  if (body) return body;
+
+  const title = nonEmpty(baseCopy.title);
+  if (title) return title;
+
+  return signal.sourceEventName.replace(/[._]/g, " ");
+}
+
+/**
+ * Build generic copy when no template matches. Uses the signal's
+ * sourceEventName and attention hints to produce something reasonable.
+ */
+function buildGenericCopy(signal: NotificationSignal): RenderedChannelCopy {
+  const humanName = signal.sourceEventName.replace(/[._]/g, " ");
+  const urgencyPrefix =
+    signal.attentionHints.urgency === "high" ? "Urgent: " : "";
+  const actionSuffix = signal.attentionHints.requiresAction
+    ? " — action required"
+    : "";
+
+  return {
+    title: "Notification",
+    body: `${urgencyPrefix}${humanName}${actionSuffix}`,
+  };
+}

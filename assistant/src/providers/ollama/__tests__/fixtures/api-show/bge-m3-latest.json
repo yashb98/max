@@ -1,0 +1,20 @@
+{
+  "capabilities": [
+    "embedding"
+  ],
+  "model_info": {
+    "bert.context_length": 8192,
+    "general.architecture": "bert",
+    "general.parameter_count": 566703104
+  },
+  "details": {
+    "parent_model": "",
+    "format": "gguf",
+    "family": "bert",
+    "families": [
+      "bert"
+    ],
+    "parameter_size": "566.70M",
+    "quantization_level": "F16"
+  }
+}
