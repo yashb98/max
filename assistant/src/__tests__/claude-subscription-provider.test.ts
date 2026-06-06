@@ -24,6 +24,7 @@ import type {
   ToolBridgeInvocation,
   ToolDefinition,
 } from "../providers/types.js";
+import { isContextOverflowError } from "../providers/types.js";
 
 // ---------------------------------------------------------------------------
 // Mock Agent SDK — must run BEFORE importing the provider under test.
@@ -210,7 +211,9 @@ describe("SDK isolation options (security)", () => {
     const canUseTool = lastQueryOptions!.canUseTool as (
       name: string,
     ) => Promise<{ behavior: string }>;
-    expect((await canUseTool("mcp__vellum-skills__foo")).behavior).toBe("allow");
+    expect((await canUseTool("mcp__vellum-skills__foo")).behavior).toBe(
+      "allow",
+    );
     expect((await canUseTool("Task")).behavior).toBe("allow");
   });
 
@@ -220,7 +223,15 @@ describe("SDK isolation options (security)", () => {
     const canUseTool = lastQueryOptions!.canUseTool as (
       name: string,
     ) => Promise<{ behavior: string; message?: string }>;
-    for (const name of ["Bash", "Read", "Write", "Edit", "WebFetch", "Glob", "Grep"]) {
+    for (const name of [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "WebFetch",
+      "Glob",
+      "Grep",
+    ]) {
       const r = await canUseTool(name);
       expect(r.behavior).toBe("deny");
       expect(r.message).toContain(name);
@@ -252,12 +263,14 @@ describe("SDK isolation options (security)", () => {
     const canUseTool = lastQueryOptions!.canUseTool as (
       name: string,
     ) => Promise<{ behavior: string }>;
-    expect((await canUseTool("mcp__attacker__exfiltrate")).behavior).toBe("deny");
-    expect((await canUseTool("../escape")).behavior).toBe("deny");
-    expect((await canUseTool("")).behavior).toBe("deny");
-    expect((await canUseTool("mcp__vellum-skills__not_registered")).behavior).toBe(
+    expect((await canUseTool("mcp__attacker__exfiltrate")).behavior).toBe(
       "deny",
     );
+    expect((await canUseTool("../escape")).behavior).toBe("deny");
+    expect((await canUseTool("")).behavior).toBe("deny");
+    expect(
+      (await canUseTool("mcp__vellum-skills__not_registered")).behavior,
+    ).toBe("deny");
   });
 
   test("registers exactly one MCP server named 'vellum-skills'", async () => {
@@ -273,15 +286,17 @@ describe("SDK isolation options (security)", () => {
     expect(lastQueryOptions!.abortController).toBeInstanceOf(AbortController);
   });
 
-  test("sets a hard maxTurns bound (cost+latency control for runaway sub-agent recursion)", async () => {
-    // I-19 finding: without maxTurns, the SDK can recurse sub-agents for
-    // 20+ minutes. The cap is the only protection against runaway cost
-    // and latency. Regression-critical.
+  test("sets a hard maxTurns bound (runaway backstop for sub-agent recursion)", async () => {
+    // I-19 found unbounded sub-agent recursion can run for 20+ minutes.
+    // Per user direction (2026-06-06) the cap is now a RUNAWAY BACKSTOP,
+    // not a work bound — tasks run as long as they need; the 3h provider
+    // stream timeout is the operative wall-clock guard. The assertion
+    // pins only that SOME finite bound is always passed to the SDK.
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], [], "sys");
     expect(typeof lastQueryOptions!.maxTurns).toBe("number");
     expect(lastQueryOptions!.maxTurns as number).toBeGreaterThan(0);
-    expect(lastQueryOptions!.maxTurns as number).toBeLessThanOrEqual(50);
+    expect(lastQueryOptions!.maxTurns as number).toBeLessThanOrEqual(100000);
   });
 });
 
@@ -299,9 +314,9 @@ describe("Streaming + usage", () => {
     const resp = await p.sendMessage([userText("hi")], [], "sys", {
       onEvent: (e) => seen.push(e as { type: string; text?: string }),
     });
-    expect(seen.filter((e) => e.type === "text_delta").map((e) => e.text)).toEqual(
-      ["hello ", "world"],
-    );
+    expect(
+      seen.filter((e) => e.type === "text_delta").map((e) => e.text),
+    ).toEqual(["hello ", "world"]);
     expect(resp.content).toEqual([{ type: "text", text: "hello world" }]);
   });
 
@@ -363,7 +378,9 @@ describe("Streaming + usage", () => {
   });
 
   test("maps result subtype to stopReason", async () => {
-    scriptedAttempts = [[initMsg(), assistantText("a"), resultMsg(undefined, "success")]];
+    scriptedAttempts = [
+      [initMsg(), assistantText("a"), resultMsg(undefined, "success")],
+    ];
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     expect((await p.sendMessage([userText("hi")], [], "sys")).stopReason).toBe(
       "end_turn",
@@ -379,7 +396,11 @@ describe("Streaming + usage", () => {
 
     queryCallCount = 0;
     scriptedAttempts = [
-      [initMsg(), assistantText("e"), resultMsg(undefined, "error_during_execution")],
+      [
+        initMsg(),
+        assistantText("e"),
+        resultMsg(undefined, "error_during_execution"),
+      ],
     ];
     expect((await p.sendMessage([userText("hi")], [], "sys")).stopReason).toBe(
       "error",
@@ -410,7 +431,12 @@ describe("Bridge resolution precedence", () => {
     text?: string;
     data?: string;
     mimeType?: string;
-    resource?: { uri?: string; mimeType?: string; blob?: string; text?: string };
+    resource?: {
+      uri?: string;
+      mimeType?: string;
+      blob?: string;
+      text?: string;
+    };
   };
 
   async function invokeCallTool(
@@ -450,7 +476,9 @@ describe("Bridge resolution precedence", () => {
       { name: "echo", description: "e", input_schema: { type: "object" } },
     ];
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
-    await p.sendMessage([userText("hi")], tools, "sys", { toolBridge: perCall });
+    await p.sendMessage([userText("hi")], tools, "sys", {
+      toolBridge: perCall,
+    });
     await invokeCallTool("echo", { x: 1 });
     expect(calls).toEqual(["per-call"]);
   });
@@ -545,7 +573,11 @@ describe("Bridge resolution precedence", () => {
     // mapping, not the image format itself.
     const validBase64 = "aGVsbG8gd29ybGQ=";
     const tools: ToolDefinition[] = [
-      { name: "screenshot", description: "s", input_schema: { type: "object" } },
+      {
+        name: "screenshot",
+        description: "s",
+        input_schema: { type: "object" },
+      },
     ];
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], tools, "sys", {
@@ -564,7 +596,10 @@ describe("Bridge resolution precedence", () => {
       }),
     });
     const result = await invokeCallTool("screenshot", {});
-    expect(result.content[0]).toEqual({ type: "text", text: "Screenshot captured" });
+    expect(result.content[0]).toEqual({
+      type: "text",
+      text: "Screenshot captured",
+    });
     expect(result.content[1]).toEqual({
       type: "image",
       data: validBase64,
@@ -618,7 +653,10 @@ describe("Bridge resolution precedence", () => {
     });
     const result = await invokeCallTool("pdf", {});
     expect(result.content).toHaveLength(2);
-    expect(result.content[1]).toEqual({ type: "text", text: "page 1 body text" });
+    expect(result.content[1]).toEqual({
+      type: "text",
+      text: "page 1 body text",
+    });
   });
 
   test("FileContent without extracted_text is dropped (with warning) rather than blowing up", async () => {
@@ -660,7 +698,11 @@ describe("Bridge resolution precedence", () => {
           { type: "redacted_thinking", data: "opaque" },
           {
             type: "image",
-            source: { type: "base64", media_type: "image/jpeg", data: "/9j/4AAQ" },
+            source: {
+              type: "base64",
+              media_type: "image/jpeg",
+              data: "/9j/4AAQ",
+            },
           },
         ],
       }),
@@ -769,7 +811,11 @@ describe("Bridge resolution precedence", () => {
 
   test("ToolBridgeResult.sensitiveBindings is accepted without altering content/blocks", async () => {
     const tools: ToolDefinition[] = [
-      { name: "rich-secret", description: "r", input_schema: { type: "object" } },
+      {
+        name: "rich-secret",
+        description: "r",
+        input_schema: { type: "object" },
+      },
     ];
     const validBase64 = "aGVsbG8gd29ybGQ=";
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
@@ -779,7 +825,11 @@ describe("Bridge resolution precedence", () => {
         contentBlocks: [
           {
             type: "image",
-            source: { type: "base64", media_type: "image/png", data: validBase64 },
+            source: {
+              type: "base64",
+              media_type: "image/png",
+              data: validBase64,
+            },
           },
         ],
         sensitiveBindings: [
@@ -809,7 +859,11 @@ describe("Bridge resolution precedence", () => {
         contentBlocks: [
           {
             type: "image",
-            source: { type: "base64", media_type: "image/png", data: validBase64 },
+            source: {
+              type: "base64",
+              media_type: "image/png",
+              data: validBase64,
+            },
           },
         ],
       }),
@@ -858,7 +912,9 @@ describe("D-5 auth retry", () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await expect(
       p.sendMessage([userText("hi")], [], "sys"),
-    ).rejects.toMatchObject({ message: expect.stringMatching(/claude login/i) });
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/claude login/i),
+    });
     expect(queryCallCount).toBe(2);
   });
 
@@ -882,6 +938,69 @@ describe("D-5 auth retry", () => {
       expect(queryCallCount).toBe(2);
       expect(resp.content[0]).toMatchObject({ text: "recovered" });
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Context overflow → typed ContextOverflowError (NOT a retryable 500 bridge
+// error). The CLI reports overflow as an error result ("Claude Code returned
+// an error result: Prompt is too long"); wrapping that at statusCode 500 made
+// RetryProvider burn 3 futile retries before the daemon's overflow-recovery
+// compaction could engage.
+// ---------------------------------------------------------------------------
+
+describe("context overflow classification", () => {
+  test("'Prompt is too long' CLI result → typed ContextOverflowError, no auth retry", async () => {
+    scriptedAttempts = [
+      {
+        __throw: new Error(
+          "Claude Code returned an error result: Prompt is too long",
+        ),
+      },
+    ];
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
+    let caught: unknown;
+    try {
+      await p.sendMessage([userText("hi")], [], "sys");
+    } catch (err) {
+      caught = err;
+    }
+    expect(isContextOverflowError(caught)).toBe(true);
+    expect((caught as Error).message).toContain("Prompt is too long");
+    expect(queryCallCount).toBe(1);
+  });
+
+  test("overflow message with token counts populates actualTokens/maxTokens", async () => {
+    scriptedAttempts = [
+      {
+        __throw: new Error(
+          "Claude Code returned an error result: prompt is too long: 242201 tokens > 200000 maximum",
+        ),
+      },
+    ];
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
+    let caught: unknown;
+    try {
+      await p.sendMessage([userText("hi")], [], "sys");
+    } catch (err) {
+      caught = err;
+    }
+    expect(isContextOverflowError(caught)).toBe(true);
+    const overflow = caught as { actualTokens?: number; maxTokens?: number };
+    expect(overflow.actualTokens).toBe(242201);
+    expect(overflow.maxTokens).toBe(200000);
+  });
+
+  test("non-overflow errors still surface as bridge errors", async () => {
+    scriptedAttempts = [{ __throw: new Error("Network unreachable") }];
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
+    let caught: unknown;
+    try {
+      await p.sendMessage([userText("hi")], [], "sys");
+    } catch (err) {
+      caught = err;
+    }
+    expect(isContextOverflowError(caught)).toBe(false);
   });
 });
 
@@ -939,7 +1058,11 @@ describe("I-4 / I-5 inheritance: bridge propagates slow async tool execution", (
 
   test("simulated approval-prompt pattern: bridge waits on an external promise then returns", async () => {
     const tools: ToolDefinition[] = [
-      { name: "needs_approval", description: "a", input_schema: { type: "object" } },
+      {
+        name: "needs_approval",
+        description: "a",
+        input_schema: { type: "object" },
+      },
     ];
     let resolveApproval: ((v: { content: string }) => void) | undefined;
     const approvalPromise = new Promise<{ content: string }>((r) => {
@@ -977,7 +1100,9 @@ describe("I-9 abort propagation", () => {
     const external = new AbortController();
     external.abort();
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
-    await p.sendMessage([userText("hi")], [], "sys", { signal: external.signal });
+    await p.sendMessage([userText("hi")], [], "sys", {
+      signal: external.signal,
+    });
     const sdkAbort = lastQueryOptions!.abortController as AbortController;
     expect(sdkAbort.signal.aborted).toBe(true);
   });
@@ -986,7 +1111,9 @@ describe("I-9 abort propagation", () => {
     scriptedAttempts = [[initMsg(), assistantText("ok"), resultMsg()]];
     const external = new AbortController();
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
-    await p.sendMessage([userText("hi")], [], "sys", { signal: external.signal });
+    await p.sendMessage([userText("hi")], [], "sys", {
+      signal: external.signal,
+    });
     const sdkAbort = lastQueryOptions!.abortController as AbortController;
     expect(sdkAbort.signal.aborted).toBe(false);
     external.abort();
@@ -1073,11 +1200,23 @@ describe("I-19 code-level: canUseTool is race-free under concurrent load", () =>
       name: string,
     ) => Promise<{ behavior: string }>;
 
-    const allowed = ["mcp__vellum-skills__alpha", "mcp__vellum-skills__beta", "Task"];
-    const denied = ["Bash", "Read", "Write", "mcp__claude_ai_Gmail__send", "Task2"];
+    const allowed = [
+      "mcp__vellum-skills__alpha",
+      "mcp__vellum-skills__beta",
+      "Task",
+    ];
+    const denied = [
+      "Bash",
+      "Read",
+      "Write",
+      "mcp__claude_ai_Gmail__send",
+      "Task2",
+    ];
     const names: string[] = [];
     for (let i = 0; i < 1000; i++) {
-      names.push((i % 2 === 0 ? allowed : denied)[i % allowed.length] ?? "Bash");
+      names.push(
+        (i % 2 === 0 ? allowed : denied)[i % allowed.length] ?? "Bash",
+      );
     }
 
     const results = await Promise.all(names.map((n) => canUseTool(n)));
@@ -1099,7 +1238,9 @@ describe("I-19 code-level: canUseTool is race-free under concurrent load", () =>
     ) => Promise<{ behavior: string }>;
     // Many calls — same name — same verdict every time.
     const verdicts = await Promise.all(
-      Array.from({ length: 100 }, () => canUseTool("mcp__vellum-skills__stable")),
+      Array.from({ length: 100 }, () =>
+        canUseTool("mcp__vellum-skills__stable"),
+      ),
     );
     expect(verdicts.every((v) => v.behavior === "allow")).toBe(true);
     const denyVerdicts = await Promise.all(
@@ -1190,7 +1331,11 @@ describe("Phase 2.5 — onChunk plumbed as tool_output_chunk events", () => {
     };
 
     const tools: ToolDefinition[] = [
-      { name: "stream_tool", description: "s", input_schema: { type: "object" } },
+      {
+        name: "stream_tool",
+        description: "s",
+        input_schema: { type: "object" },
+      },
     ];
     const provider = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await provider.sendMessage([userText("hi")], tools, "sys", {
@@ -1228,7 +1373,11 @@ describe("Phase 2.5 — onChunk plumbed as tool_output_chunk events", () => {
     };
 
     const tools: ToolDefinition[] = [
-      { name: "stream_tool", description: "s", input_schema: { type: "object" } },
+      {
+        name: "stream_tool",
+        description: "s",
+        input_schema: { type: "object" },
+      },
     ];
     const provider = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await provider.sendMessage([userText("hi")], tools, "sys", {
@@ -1253,7 +1402,11 @@ describe("Phase 2.5 — onChunk plumbed as tool_output_chunk events", () => {
     };
 
     const tools: ToolDefinition[] = [
-      { name: "stream_tool", description: "s", input_schema: { type: "object" } },
+      {
+        name: "stream_tool",
+        description: "s",
+        input_schema: { type: "object" },
+      },
     ];
     const provider = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     // Note: no onEvent supplied.

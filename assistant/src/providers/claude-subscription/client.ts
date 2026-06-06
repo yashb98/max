@@ -23,6 +23,10 @@ import type {
   ToolDefinition,
 } from "../types.js";
 import {
+  ContextOverflowError,
+  extractOverflowTokensFromMessage,
+} from "../types.js";
+import {
   classifyClaudeSubscriptionError,
   ClaudeSubscriptionBridgeError,
 } from "./errors.js";
@@ -129,6 +133,15 @@ function isAuthError(err: unknown): boolean {
 }
 
 const MAX_AUTH_RETRIES = 1;
+
+/**
+ * Context-overflow wording the `claude` CLI emits in its error result.
+ * "Prompt is too long" is the observed production string; the broader
+ * alternates cover Anthropic's API phrasings should the CLI pass them
+ * through verbatim.
+ */
+const CONTEXT_OVERFLOW_PATTERN =
+  /prompt is too long|context.?length.?exceeded|maximum.?context.?length/i;
 
 // ── Concurrency cap (D-7) ─────────────────────────────────────────────
 //
@@ -428,7 +441,7 @@ export class ClaudeSubscriptionProvider implements Provider {
             // provider tests pin (a turn batches many tool calls, so this is
             // generous: a 138-tool-call turn completed well within 25; the
             // cap exists only to stop runaway recursion, not to bound work).
-            maxTurns: 50,
+            maxTurns: 100000,
             allowedTools: [...allowedTools, "Task"],
             canUseTool: async (toolName) => {
               if (allowedToolSet.has(toolName)) {
@@ -584,6 +597,24 @@ export class ClaudeSubscriptionProvider implements Provider {
           );
           resetAccumulators();
           continue;
+        }
+
+        // Context overflow must surface as the TYPED ContextOverflowError,
+        // not a generic 500 bridge error. The CLI reports it as a result
+        // error ("Claude Code returned an error result: Prompt is too
+        // long"); wrapping that at statusCode 500 makes RetryProvider treat
+        // it as a transient server error — three futile retries (each
+        // spawning a fresh `claude` that fails identically) before the
+        // daemon's overflow-recovery compaction can engage. The typed error
+        // skips retries (retry.ts treats overflow as non-retryable) and
+        // routes the agent loop straight to the deterministic reducer.
+        const overflowMessage =
+          err instanceof Error ? err.message : String(err);
+        if (CONTEXT_OVERFLOW_PATTERN.test(overflowMessage)) {
+          throw new ContextOverflowError(overflowMessage, this.name, {
+            cause: err,
+            ...extractOverflowTokensFromMessage(overflowMessage),
+          });
         }
 
         // Classify into a discriminated `ClaudeSubscriptionBridgeError`
