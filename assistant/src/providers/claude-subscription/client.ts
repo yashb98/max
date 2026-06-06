@@ -11,10 +11,6 @@ import {
 
 import { truncateToolResultText } from "../../context/tool-result-truncation.js";
 import { getLogger } from "../../util/logger.js";
-import {
-  ClaudeSubscriptionBridgeError,
-  classifyClaudeSubscriptionError,
-} from "./errors.js";
 import type {
   ContentBlock,
   Message,
@@ -26,6 +22,10 @@ import type {
   ToolBridgeResult,
   ToolDefinition,
 } from "../types.js";
+import {
+  classifyClaudeSubscriptionError,
+  ClaudeSubscriptionBridgeError,
+} from "./errors.js";
 
 const log = getLogger("claude-subscription-client");
 
@@ -254,7 +254,10 @@ function mapContentBlocksToMcp(
           out.push({ type: "text", text: block.extracted_text });
         } else {
           log.warn(
-            { filename: block.source.filename, mediaType: block.source.media_type },
+            {
+              filename: block.source.filename,
+              mediaType: block.source.media_type,
+            },
             "claude-subscription bridge dropped a file content block without extracted_text",
           );
         }
@@ -373,227 +376,233 @@ export class ClaudeSubscriptionProvider implements Provider {
     };
 
     let attempts = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-    try {
-      // SDK isolation strategy (each option matters; verified empirically in
-      // `docs/architecture/claude-subscription-bridge.md` § I-11):
-      //
-      //   `tools: ["Task"]`      → enable the `Task` built-in (sub-agent
-      //                            spawn) but disable every other built-in
-      //                            (Bash/Read/Write/Edit/WebFetch/…).
-      //                            Sub-agents are a product decision (D-3);
-      //                            re-verify isolation if you change this.
-      //   `settingSources: []`   → skip loading user/project/local settings
-      //                            so the user's `~/.claude/settings.json`
-      //                            MCP server list is not auto-attached.
-      //   `permissionMode:        → require explicit per-call permission;
-      //      "default"`            never auto-bypass.
-      //   `canUseTool`           → hard runtime deny for anything not on
-      //                            the bridge's allowlist. Catches MCP
-      //                            tools the SDK may still surface from
-      //                            the user's Anthropic-account
-      //                            integrations (Gmail, Drive, etc.) which
-      //                            `settingSources: []` does NOT exclude.
-      //                            `"Task"` is allowed so sub-agents can
-      //                            spawn — they inherit this same callback,
-      //                            so the same isolation applies to them.
-      //   `mcpServers: {…}`      → register ONLY our in-process bridge.
-      //
-      // DO NOT change these without re-running the I-11 isolation test.
-      const allowedToolSet = new Set<string>([...allowedTools, "Task"]);
-      const claudeCliPath = await resolveClaudeCliPath();
-      const stream = query({
-        prompt,
-        options: {
-          model: this.model,
-          // Bun's `--compile` strips the SDK's bundled native CLI binary,
-          // so fall back to the user's locally-installed `claude` CLI when
-          // we can resolve it. Without this the SDK throws "Native CLI
-          // binary for darwin-arm64 not found" on the first send.
-          ...(claudeCliPath
-            ? { pathToClaudeCodeExecutable: claudeCliPath }
-            : {}),
-          permissionMode: "default",
-          settingSources: [],
-          tools: ["Task"],
-          // Hard bound on the SDK's agent-loop recursion. Without this,
-          // sub-agents can spawn deeper sub-agents and a single
-          // `sendMessage` call can run for tens of minutes (observed
-          // empirically during I-19). The cap covers parent turns +
-          // every nested sub-agent turn. Tuneable; start conservative.
-          maxTurns: 25,
-          allowedTools: [...allowedTools, "Task"],
-          canUseTool: async (toolName) => {
-            if (allowedToolSet.has(toolName)) {
-              return { behavior: "allow" };
-            }
-            log.warn(
-              { toolName },
-              "claude-subscription canUseTool denied a non-allowlisted tool",
-            );
-            return {
-              behavior: "deny",
-              message: `Tool '${toolName}' is not available in this session.`,
-            };
-          },
-          mcpServers: {
-            [MCP_SERVER_NAME]: {
-              type: "sdk",
-              name: MCP_SERVER_NAME,
-              instance: mcpServer,
-            },
-          },
-          abortController: sdkAbort,
-          // `systemPrompt: <string>` REPLACES Claude Code's default
-          // coding-agent prompt with Vellum's prompt (SOUL.md +
-          // identity). `customSystemPrompt` is not a real SDK option;
-          // an earlier draft passed that and it was silently ignored,
-          // leaving Claude Code's coding-agent persona in place. I-22
-          // verified the replace behavior with this option. DO NOT
-          // change to the `{type:"preset",preset:"claude_code",append}`
-          // shape unless you want Claude Code's biases to leak.
-          ...(systemPrompt ? { systemPrompt } : {}),
-        },
-      });
 
-      for await (const msg of stream as AsyncIterable<SDKMessage>) {
-        if (msg.type === "assistant") {
-          for (const block of msg.message.content) {
-            if (block.type === "text") {
-              assistantText += block.text;
-              onEvent?.({ type: "text_delta", text: block.text });
-            } else if (block.type === "thinking") {
-              onEvent?.({
-                type: "thinking_delta",
-                thinking: block.thinking,
-              });
-            } else if (block.type === "tool_use") {
-              // Surface the SDK's tool-call lifecycle to Vellum's outer
-              // ProviderEvent stream so the composer renders bridged tool
-              // calls the same way it renders outer-loop ones (Kimi /
-              // Ollama). The SDK's `id` is the real tool_use_id assigned
-              // by Anthropic; the outer-loop adapter in `agent/loop.ts`
-              // forwards both events as AgentEvents. Tool execution itself
-              // still runs inside the SDK loop via the MCP bridge — these
-              // events are observation-only at this seam, mirroring how
-              // anthropic.ts emits them for non-bridged tools.
-              //
-              // The SDK delivers a complete tool_use block per assistant
-              // message (input JSON is already fully assembled by the time
-              // it reaches us), so we emit a single `input_json_delta`
-              // carrying the complete accumulated input rather than
-              // streaming partial deltas. Matches the contract of
-              // `input_json_delta.accumulatedJson` in `providers/types.ts`.
-              const toolName: string =
-                typeof (block as { name?: unknown }).name === "string"
-                  ? (block as { name: string }).name
-                  : "";
-              const toolUseId: string =
-                typeof (block as { id?: unknown }).id === "string"
-                  ? (block as { id: string }).id
-                  : "";
-              if (toolName && toolUseId) {
-                // Record the real tool_use_id for the MCP CallTool handler
-                // to consume — every chunk it emits for this call carries
-                // the SDK's id instead of the synthetic fallback so the UI
-                // can correlate the preview_start, input, and chunk events.
-                const queue = pendingToolUseIds.get(toolName) ?? [];
-                queue.push(toolUseId);
-                pendingToolUseIds.set(toolName, queue);
+    while (true) {
+      try {
+        // SDK isolation strategy (each option matters; verified empirically in
+        // `docs/architecture/claude-subscription-bridge.md` § I-11):
+        //
+        //   `tools: ["Task"]`      → enable the `Task` built-in (sub-agent
+        //                            spawn) but disable every other built-in
+        //                            (Bash/Read/Write/Edit/WebFetch/…).
+        //                            Sub-agents are a product decision (D-3);
+        //                            re-verify isolation if you change this.
+        //   `settingSources: []`   → skip loading user/project/local settings
+        //                            so the user's `~/.claude/settings.json`
+        //                            MCP server list is not auto-attached.
+        //   `permissionMode:        → require explicit per-call permission;
+        //      "default"`            never auto-bypass.
+        //   `canUseTool`           → hard runtime deny for anything not on
+        //                            the bridge's allowlist. Catches MCP
+        //                            tools the SDK may still surface from
+        //                            the user's Anthropic-account
+        //                            integrations (Gmail, Drive, etc.) which
+        //                            `settingSources: []` does NOT exclude.
+        //                            `"Task"` is allowed so sub-agents can
+        //                            spawn — they inherit this same callback,
+        //                            so the same isolation applies to them.
+        //   `mcpServers: {…}`      → register ONLY our in-process bridge.
+        //
+        // DO NOT change these without re-running the I-11 isolation test.
+        const allowedToolSet = new Set<string>([...allowedTools, "Task"]);
+        const claudeCliPath = await resolveClaudeCliPath();
+        const stream = query({
+          prompt,
+          options: {
+            model: this.model,
+            // Bun's `--compile` strips the SDK's bundled native CLI binary,
+            // so fall back to the user's locally-installed `claude` CLI when
+            // we can resolve it. Without this the SDK throws "Native CLI
+            // binary for darwin-arm64 not found" on the first send.
+            ...(claudeCliPath
+              ? { pathToClaudeCodeExecutable: claudeCliPath }
+              : {}),
+            permissionMode: "default",
+            settingSources: [],
+            tools: ["Task"],
+            // Hard bound on the SDK's agent-loop recursion. Without this,
+            // sub-agents can spawn deeper sub-agents and a single
+            // `sendMessage` call can run for tens of minutes (observed
+            // empirically during I-19). The cap covers parent turns +
+            // every nested sub-agent turn. 50 = the safety ceiling the
+            // provider tests pin (a turn batches many tool calls, so this is
+            // generous: a 138-tool-call turn completed well within 25; the
+            // cap exists only to stop runaway recursion, not to bound work).
+            maxTurns: 50,
+            allowedTools: [...allowedTools, "Task"],
+            canUseTool: async (toolName) => {
+              if (allowedToolSet.has(toolName)) {
+                return { behavior: "allow" };
+              }
+              log.warn(
+                { toolName },
+                "claude-subscription canUseTool denied a non-allowlisted tool",
+              );
+              return {
+                behavior: "deny",
+                message: `Tool '${toolName}' is not available in this session.`,
+              };
+            },
+            mcpServers: {
+              [MCP_SERVER_NAME]: {
+                type: "sdk",
+                name: MCP_SERVER_NAME,
+                instance: mcpServer,
+              },
+            },
+            abortController: sdkAbort,
+            // `systemPrompt: <string>` REPLACES Claude Code's default
+            // coding-agent prompt with Vellum's prompt (SOUL.md +
+            // identity). `customSystemPrompt` is not a real SDK option;
+            // an earlier draft passed that and it was silently ignored,
+            // leaving Claude Code's coding-agent persona in place. I-22
+            // verified the replace behavior with this option. DO NOT
+            // change to the `{type:"preset",preset:"claude_code",append}`
+            // shape unless you want Claude Code's biases to leak.
+            ...(systemPrompt ? { systemPrompt } : {}),
+          },
+        });
+
+        for await (const msg of stream as AsyncIterable<SDKMessage>) {
+          if (msg.type === "assistant") {
+            for (const block of msg.message.content) {
+              if (block.type === "text") {
+                assistantText += block.text;
+                onEvent?.({ type: "text_delta", text: block.text });
+              } else if (block.type === "thinking") {
                 onEvent?.({
-                  type: "tool_use_preview_start",
-                  toolUseId,
-                  toolName,
+                  type: "thinking_delta",
+                  thinking: block.thinking,
                 });
-                const rawInput = (block as { input?: unknown }).input;
-                const inputRecord =
-                  rawInput && typeof rawInput === "object"
-                    ? (rawInput as Record<string, unknown>)
-                    : {};
-                let accumulatedJson: string;
-                try {
-                  accumulatedJson = JSON.stringify(inputRecord);
-                } catch {
-                  accumulatedJson = "";
-                }
-                if (accumulatedJson) {
+              } else if (block.type === "tool_use") {
+                // Surface the SDK's tool-call lifecycle to Vellum's outer
+                // ProviderEvent stream so the composer renders bridged tool
+                // calls the same way it renders outer-loop ones (Kimi /
+                // Ollama). The SDK's `id` is the real tool_use_id assigned
+                // by Anthropic; the outer-loop adapter in `agent/loop.ts`
+                // forwards both events as AgentEvents. Tool execution itself
+                // still runs inside the SDK loop via the MCP bridge — these
+                // events are observation-only at this seam, mirroring how
+                // anthropic.ts emits them for non-bridged tools.
+                //
+                // The SDK delivers a complete tool_use block per assistant
+                // message (input JSON is already fully assembled by the time
+                // it reaches us), so we emit a single `input_json_delta`
+                // carrying the complete accumulated input rather than
+                // streaming partial deltas. Matches the contract of
+                // `input_json_delta.accumulatedJson` in `providers/types.ts`.
+                const toolName: string =
+                  typeof (block as { name?: unknown }).name === "string"
+                    ? (block as { name: string }).name
+                    : "";
+                const toolUseId: string =
+                  typeof (block as { id?: unknown }).id === "string"
+                    ? (block as { id: string }).id
+                    : "";
+                if (toolName && toolUseId) {
+                  // Record the real tool_use_id for the MCP CallTool handler
+                  // to consume — every chunk it emits for this call carries
+                  // the SDK's id instead of the synthetic fallback so the UI
+                  // can correlate the preview_start, input, and chunk events.
+                  const queue = pendingToolUseIds.get(toolName) ?? [];
+                  queue.push(toolUseId);
+                  pendingToolUseIds.set(toolName, queue);
                   onEvent?.({
-                    type: "input_json_delta",
-                    toolName,
+                    type: "tool_use_preview_start",
                     toolUseId,
-                    accumulatedJson,
+                    toolName,
+                  });
+                  const rawInput = (block as { input?: unknown }).input;
+                  const inputRecord =
+                    rawInput && typeof rawInput === "object"
+                      ? (rawInput as Record<string, unknown>)
+                      : {};
+                  let accumulatedJson: string;
+                  try {
+                    accumulatedJson = JSON.stringify(inputRecord);
+                  } catch {
+                    accumulatedJson = "";
+                  }
+                  if (accumulatedJson) {
+                    onEvent?.({
+                      type: "input_json_delta",
+                      toolName,
+                      toolUseId,
+                      accumulatedJson,
+                    });
+                  }
+                  // Committed tool_use — the loop adapter forwards this as
+                  // `AgentEvent.tool_use` so the composer renders the
+                  // tool-call card the same way it does for non-bridged
+                  // providers. Without this, the outer loop never sees a
+                  // committed tool_use (the SDK is the one dispatching the
+                  // tool) and the UI shows nothing inline.
+                  onEvent?.({
+                    type: "bridged_tool_committed",
+                    toolUseId,
+                    toolName,
+                    input: inputRecord,
                   });
                 }
-                // Committed tool_use — the loop adapter forwards this as
-                // `AgentEvent.tool_use` so the composer renders the
-                // tool-call card the same way it does for non-bridged
-                // providers. Without this, the outer loop never sees a
-                // committed tool_use (the SDK is the one dispatching the
-                // tool) and the UI shows nothing inline.
-                onEvent?.({
-                  type: "bridged_tool_committed",
-                  toolUseId,
-                  toolName,
-                  input: inputRecord,
-                });
               }
             }
+          } else if (msg.type === "system" && msg.subtype === "init") {
+            if (typeof msg.model === "string") modelUsed = msg.model;
+          } else if (msg.type === "result") {
+            const u = (msg.usage ?? {}) as unknown as Record<
+              string,
+              number | undefined
+            >;
+            const cacheCreation = u.cache_creation_input_tokens ?? 0;
+            const cacheRead = u.cache_read_input_tokens ?? 0;
+            usage.inputTokens =
+              (u.input_tokens ?? 0) + cacheCreation + cacheRead;
+            usage.outputTokens = u.output_tokens ?? 0;
+            usage.cacheCreationInputTokens = cacheCreation;
+            usage.cacheReadInputTokens = cacheRead;
+            if (msg.subtype === "error_max_turns") stopReason = "max_turns";
+            else if (msg.subtype === "success") stopReason = "end_turn";
+            else stopReason = "error";
           }
-        } else if (msg.type === "system" && msg.subtype === "init") {
-          if (typeof msg.model === "string") modelUsed = msg.model;
-        } else if (msg.type === "result") {
-          const u = (msg.usage ?? {}) as unknown as Record<string, number | undefined>;
-          const cacheCreation = u.cache_creation_input_tokens ?? 0;
-          const cacheRead = u.cache_read_input_tokens ?? 0;
-          usage.inputTokens =
-            (u.input_tokens ?? 0) + cacheCreation + cacheRead;
-          usage.outputTokens = u.output_tokens ?? 0;
-          usage.cacheCreationInputTokens = cacheCreation;
-          usage.cacheReadInputTokens = cacheRead;
-          if (msg.subtype === "error_max_turns") stopReason = "max_turns";
-          else if (msg.subtype === "success") stopReason = "end_turn";
-          else stopReason = "error";
         }
-      }
-      // Successful stream consumption — break out of the retry loop.
-      break;
-    } catch (err) {
-      const authError = isAuthError(err);
-      const hadPartialOutput = assistantText.length > 0;
+        // Successful stream consumption — break out of the retry loop.
+        break;
+      } catch (err) {
+        const authError = isAuthError(err);
+        const hadPartialOutput = assistantText.length > 0;
 
-      // Retry policy: ONLY auth errors, ONLY if no output streamed,
-      // ONLY MAX_AUTH_RETRIES times. The SDK's `claude` subprocess
-      // usually refreshes OAuth tokens silently across spawns; this
-      // retry exists for the case where a token rotation happened to
-      // race the first call.
-      if (authError && !hadPartialOutput && attempts < MAX_AUTH_RETRIES) {
-        attempts++;
-        log.warn(
-          { err: err instanceof Error ? err.message : String(err) },
-          `Auth error from Agent SDK; retrying once (attempt ${attempts}/${MAX_AUTH_RETRIES})`,
-        );
-        resetAccumulators();
-        continue;
-      }
+        // Retry policy: ONLY auth errors, ONLY if no output streamed,
+        // ONLY MAX_AUTH_RETRIES times. The SDK's `claude` subprocess
+        // usually refreshes OAuth tokens silently across spawns; this
+        // retry exists for the case where a token rotation happened to
+        // race the first call.
+        if (authError && !hadPartialOutput && attempts < MAX_AUTH_RETRIES) {
+          attempts++;
+          log.warn(
+            { err: err instanceof Error ? err.message : String(err) },
+            `Auth error from Agent SDK; retrying once (attempt ${attempts}/${MAX_AUTH_RETRIES})`,
+          );
+          resetAccumulators();
+          continue;
+        }
 
-      // Classify into a discriminated `ClaudeSubscriptionBridgeError`
-      // subtype so the UI gets reason-specific copy (e.g. "Install
-      // Claude Code" vs "Run `claude login`") instead of a generic
-      // "provider failed" banner. Phase 3.2 in
-      // docs/architecture/claude-subscription-bridge.md.
-      const kind = classifyClaudeSubscriptionError(err);
-      const statusCode =
-        kind === "token-expired" ||
-        kind === "not-logged-in" ||
-        kind === "cli-not-installed"
-          ? 401
-          : 500;
-      throw new ClaudeSubscriptionBridgeError(kind, {
-        cause: err,
-        statusCode,
-      });
-    }
+        // Classify into a discriminated `ClaudeSubscriptionBridgeError`
+        // subtype so the UI gets reason-specific copy (e.g. "Install
+        // Claude Code" vs "Run `claude login`") instead of a generic
+        // "provider failed" banner. Phase 3.2 in
+        // docs/architecture/claude-subscription-bridge.md.
+        const kind = classifyClaudeSubscriptionError(err);
+        const statusCode =
+          kind === "token-expired" ||
+          kind === "not-logged-in" ||
+          kind === "cli-not-installed"
+            ? 401
+            : 500;
+        throw new ClaudeSubscriptionBridgeError(kind, {
+          cause: err,
+          statusCode,
+        });
+      }
     } // end while (retry loop)
 
     const content: ContentBlock[] = assistantText
@@ -781,9 +790,7 @@ export class ClaudeSubscriptionProvider implements Provider {
       if (block.type === "text") {
         parts.push(block.text);
       } else if (block.type === "tool_use") {
-        parts.push(
-          `[tool_use ${block.name}(${JSON.stringify(block.input)})]`,
-        );
+        parts.push(`[tool_use ${block.name}(${JSON.stringify(block.input)})]`);
       } else if (block.type === "tool_result") {
         const text =
           typeof block.content === "string"
