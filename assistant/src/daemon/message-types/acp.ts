@@ -34,7 +34,15 @@ export interface AcpSessionCompleted {
     | "max_tokens"
     | "max_turn_requests"
     | "refusal"
-    | "cancelled";
+    | "cancelled"
+    // Agentic bridge providers (kimi-agent) additionally report:
+    // step-cap interrupt, user abort, and stream wall-clock timeout.
+    // Swift decodes unknown values to `.unknown`, so additions here are
+    // forward-compatible with older clients.
+    | "max_turns"
+    | "aborted"
+    | "timeout"
+    | "error";
 }
 
 export interface AcpSessionError {

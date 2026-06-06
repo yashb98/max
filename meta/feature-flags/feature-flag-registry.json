@@ -310,7 +310,15 @@
       "scope": "assistant",
       "key": "claude-subscription-provider",
       "label": "Claude Subscription Provider",
-      "description": "Enable the `claude-subscription` LLM provider. Uses the Claude Code CLI's stored OAuth token (Max subscription) instead of an Anthropic API key, and bridges the Agent SDK's tool calls back to Vellum's ToolExecutor via an in-process MCP server. Rollout status: GA — `defaultEnabled: true` once all Phase 3 operational items (error classes, telemetry, runbook) shipped. To roll back globally: flip to `false` and restart the daemon; the picker will hide the row and existing pinned conversations will surface `not-enabled` at call time. There is no per-user override — disable affects all users. See `assistant/docs/architecture/claude-subscription-bridge.md` for architecture and `assistant/docs/runbook-claude-subscription.md` for diagnostics.",
+      "description": "Enable the `claude-subscription` LLM provider. Uses the Claude Code CLI's stored OAuth token (Max subscription) instead of an Anthropic API key, and bridges the Agent SDK's tool calls back to Vellum's ToolExecutor via an in-process MCP server. Rollout status: GA \u2014 `defaultEnabled: true` once all Phase 3 operational items (error classes, telemetry, runbook) shipped. To roll back globally: flip to `false` and restart the daemon; the picker will hide the row and existing pinned conversations will surface `not-enabled` at call time. There is no per-user override \u2014 disable affects all users. See `assistant/docs/architecture/claude-subscription-bridge.md` for architecture and `assistant/docs/runbook-claude-subscription.md` for diagnostics.",
+      "defaultEnabled": true
+    },
+    {
+      "id": "kimi-agent-provider",
+      "scope": "assistant",
+      "key": "kimi-agent-provider",
+      "label": "Kimi Agent SDK Provider",
+      "description": "Enable the `kimi-agent` LLM provider. Drives the Kimi Code CLI (@moonshot-ai/kimi-agent-sdk) as an in-process agentic runtime; bridges tool calls to Vellum's ToolExecutor via external tools. Requires the kimi CLI + a Kimi/Moonshot login. Isolation (Vellum-native, trusted-local): the provider ships a restrictive `agentFile` whose positive allowlist enables ONLY kimi's free managed SearchWeb natively; every other built-in (ReadFile/ReadMediaFile/Glob/Grep/Shell/WriteFile/StrReplaceFile/FetchURL) and all subagents are excluded and route through Vellum's audited tools. Ambient MCP servers (~/.kimi/mcp.json) are suppressed pre-advertisement by staging an MCP-free share dir (KIMI_SHARE_DIR); the approval-deny loop remains as defense-in-depth. Closes the 2026-06-03 finding that the exec/egress built-ins were reachable ungated. Accepted residual: native SearchWeb runs without Vellum audit \u2014 acceptable for a trusted single-user agent only. Empirically verified (scripts/kimi-agent/isolation-agentfile.mjs, sharedir-probe.mjs, resume-probe.mjs). Roll back: flip `false` + restart the daemon. See `assistant/docs/architecture/kimi-agent-bridge.md`.",
       "defaultEnabled": true
     }
   ]

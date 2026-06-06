@@ -66,6 +66,13 @@ public struct ACPSessionState: Codable, Equatable, Identifiable, Sendable {
         case maxTurnRequests = "max_turn_requests"
         case refusal
         case cancelled
+        /// Agentic bridge providers (kimi-agent): inner-loop step cap hit.
+        case maxTurns = "max_turns"
+        /// Agentic bridge providers: the user aborted the turn mid-stream.
+        case aborted
+        /// Agentic bridge providers: the stream wall-clock guard fired.
+        case timeout
+        case error
         case unknown
 
         /// Fall back to `.unknown` for unrecognized stop reasons.

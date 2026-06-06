@@ -106,6 +106,7 @@ const {
   _resetKimiAgentSemaphoreForTests,
   _getKimiAgentSemaphoreStateForTests,
   _resetKimiCliPathForTests,
+  _resetKimiSessionSeedingForTests,
 } = await import("../providers/kimi-agent/client.js");
 
 // ---------------------------------------------------------------------------
@@ -148,7 +149,19 @@ beforeEach(() => {
   // authoritative even when a sibling test file resolved the real path
   // first in a combined run.
   _resetKimiCliPathForTests();
+  // Forget session-continuity seeding so each test starts cold.
+  _resetKimiSessionSeedingForTests();
 });
+
+/** Returns the prompt content passed to the most-recent session.prompt(). */
+function lastPromptArg(): unknown {
+  const session = createSession.mock.results[
+    createSession.mock.results.length - 1
+  ]?.value as { prompt: ReturnType<typeof mock> };
+  const calls = session.prompt.mock.calls;
+
+  return (calls[calls.length - 1] as unknown[])?.[0];
+}
 
 // ---------------------------------------------------------------------------
 // Construction & identity
@@ -1214,20 +1227,253 @@ describe("max_turns step-limit note", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Empty-turn nudge capability flag
+// Empty-turn nudge capability — PER-CALL on the response, never static
 // ---------------------------------------------------------------------------
 
 describe("supportsEmptyTurnNudge capability", () => {
-  test("kimi-agent does NOT declare nudge support until session continuity ships", () => {
-    // client.ts only resumes the inner session when
-    // `options.conversationKey` is set — and nothing in the daemon's send
-    // path sets it today (session-continuity plumbing is a planned,
-    // unshipped feature). Until then a nudge retry would hit a FRESH inner
-    // session, re-running the tool loop — the same re-execution risk that
-    // keeps the gate closed for claude-subscription. Flip this (and the
-    // provider flag) when conversationKey plumbing lands.
+  test("the STATIC provider flag stays undeclared (routing wrappers can't reflect it)", () => {
+    // The agent loop's provider is a routing wrapper; a static capability
+    // can't know which provider a call actually hit. Nudge safety is
+    // reported per call on ProviderResponse instead.
     const p: Provider = new KimiAgentProvider("kimi-k2");
     expect(p.supportsEmptyTurnNudge ?? false).toBe(false);
+  });
+
+  test("response declares nudge-safe when the call carried a conversationKey (session will resume)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      conversationKey: "conv-nudge",
+    });
+    expect(resp.supportsEmptyTurnNudge).toBe(true);
+  });
+
+  test("response does NOT declare nudge-safe without a conversationKey (fresh inner session each call)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const resp = await p.sendMessage([userText("hi")], [], undefined);
+    expect(resp.supportsEmptyTurnNudge).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Session continuity (Gap D) — sessionId, seed-once, resume prompt
+// ---------------------------------------------------------------------------
+
+describe("Session continuity via conversationKey", () => {
+  const assistantText = (text: string): Message => ({
+    role: "assistant",
+    content: [{ type: "text", text }],
+  });
+
+  test("conversationKey → sessionId 'vellum-<key>-<bootEpoch>'; no key → no sessionId", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    await p.sendMessage([userText("hi")], [], undefined, {
+      conversationKey: "conv-1",
+    });
+    const withKey = lastSessionOptions();
+    expect(withKey.sessionId).toMatch(/^vellum-conv-1-[0-9a-f]{8}$/);
+
+    await p.sendMessage([userText("hi")], [], undefined);
+    expect("sessionId" in lastSessionOptions()).toBe(false);
+  });
+
+  test("first call seeds full history; second call sends ONLY the new user text (resume)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const history: Message[] = [
+      userText("first question"),
+      assistantText("first answer"),
+      userText("second question"),
+    ];
+    await p.sendMessage(history, [], undefined, { conversationKey: "conv-2" });
+    const firstPrompt = lastPromptArg() as string;
+    expect(firstPrompt).toContain("# Prior conversation");
+    expect(firstPrompt).toContain("first question");
+    expect(firstPrompt).toContain("second question");
+
+    // Turn 2: history grew by the assistant reply + a new user message.
+    const history2: Message[] = [
+      ...history,
+      assistantText("second answer"),
+      userText("third question"),
+    ];
+    await p.sendMessage(history2, [], undefined, { conversationKey: "conv-2" });
+    const secondPrompt = lastPromptArg() as string;
+    // ONLY the new user input — the session restores everything earlier
+    // from its own context.jsonl. No flatten header, no old turns, and no
+    // assistant text (the session's own record is richer).
+    expect(secondPrompt).toBe("third question");
+  });
+
+  test("resume skips tool_result-only user messages (session already has the real results)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    await p.sendMessage([userText("start")], [], undefined, {
+      conversationKey: "conv-3",
+    });
+    const history2: Message[] = [
+      userText("start"),
+      assistantText("partial"),
+      {
+        role: "user",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: "t1",
+            content: "orphaned bridged result",
+          } as any,
+        ],
+      },
+      userText("continue"),
+    ];
+    await p.sendMessage(history2, [], undefined, { conversationKey: "conv-3" });
+    const prompt = lastPromptArg() as string;
+    expect(prompt).toBe("continue");
+    expect(prompt).not.toContain("orphaned bridged result");
+  });
+
+  test("resume with NO new user text falls back to the continue stub", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    await p.sendMessage([userText("go")], [], undefined, {
+      conversationKey: "conv-4",
+    });
+    const history2: Message[] = [userText("go"), assistantText("did it")];
+    await p.sendMessage(history2, [], undefined, { conversationKey: "conv-4" });
+    expect(lastPromptArg()).toBe("Continue from where you left off.");
+  });
+
+  test("different conversationKey gets a fresh full-history seed (no cross-conversation bleed)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const history: Message[] = [
+      userText("a"),
+      assistantText("b"),
+      userText("c"),
+    ];
+    await p.sendMessage(history, [], undefined, { conversationKey: "conv-5" });
+    await p.sendMessage(history, [], undefined, { conversationKey: "conv-6" });
+    const prompt = lastPromptArg() as string;
+    expect(prompt).toContain("# Prior conversation");
+  });
+
+  test("no conversationKey → every call sends the full flatten (prior behavior preserved)", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const history: Message[] = [
+      userText("a"),
+      assistantText("b"),
+      userText("c"),
+    ];
+    await p.sendMessage(history, [], undefined);
+    await p.sendMessage(history, [], undefined);
+    const prompt = lastPromptArg() as string;
+    expect(prompt).toContain("# Prior conversation");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Per-call profile config (Gap E) — options.config.{model,maxTurns}
+// ---------------------------------------------------------------------------
+
+describe("Per-call config overrides", () => {
+  const steps = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      type: "StepBegin",
+      payload: { n: i + 1 },
+    }));
+
+  test("config.maxTurns caps the step budget for this call", async () => {
+    scriptedEvents = [...steps(6), TURN_END];
+    const p = new KimiAgentProvider("kimi-k2");
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      config: { maxTurns: 5 },
+    });
+    expect(resp.stopReason).toBe("max_turns");
+    expect((resp.content[0] as { text: string }).text).toContain(
+      "5-step limit",
+    );
+  });
+
+  test("config.maxTurns wins over the construction-time maxTurnsOverride", async () => {
+    scriptedEvents = [...steps(4), TURN_END];
+    const p = new KimiAgentProvider("kimi-k2", { maxTurnsOverride: 2 });
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      config: { maxTurns: 10 },
+    });
+    expect(resp.stopReason).toBe("end_turn");
+  });
+
+  test("config.model resolves the mode per call (agent preset on an instant-constructed provider)", async () => {
+    scriptedEvents = [...steps(81), TURN_END];
+    const p = new KimiAgentProvider("kimi-k2.6-instant");
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      config: { model: "kimi-k2.6-agent" },
+    });
+    // Agent preset: thinking on, cap 95 — so 81 steps do NOT interrupt.
+    expect(lastSessionOptions().thinking).toBe(true);
+    expect(resp.stopReason).toBe("end_turn");
+  });
+
+  test("config.maxTurns above the 200 safety clamp is clamped", async () => {
+    scriptedEvents = [TURN_END];
+    const p = new KimiAgentProvider("kimi-k2");
+    // No interrupt expected; just ensure the call succeeds with a huge value
+    // (the clamp keeps the guard arithmetic sane).
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      config: { maxTurns: 9999 },
+    });
+    expect(resp.stopReason).toBe("end_turn");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stopReason: aborted / timeout — distinct from clean end_turn
+// ---------------------------------------------------------------------------
+
+describe("stopReason for abort and timeout interrupts", () => {
+  test("pre-aborted signal → stopReason 'aborted' (not end_turn)", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const p = new KimiAgentProvider("kimi-k2");
+    const resp = await p.sendMessage([userText("hi")], [], undefined, {
+      signal: controller.signal,
+    });
+    expect(resp.stopReason).toBe("aborted");
+  });
+
+  test("stream wall-clock timeout → stopReason 'timeout' + explanatory note", async () => {
+    // A turn whose stream hangs until interrupt() is called — the timeout
+    // guard must fire, mark the cause, and interrupt the turn.
+    let release: (() => void) | undefined;
+    const hangingTurn = {
+      approve: mock(async () => {}),
+      respondQuestion: mock(async () => {}),
+      interrupt: mock(async () => {
+        release?.();
+      }),
+      result: Promise.resolve({ status: "interrupted" as const }),
+      async *[Symbol.asyncIterator]() {
+        yield {
+          type: "ContentPart",
+          payload: { type: "text", text: "partial" },
+        };
+        await new Promise<void>((r) => {
+          release = r;
+        });
+      },
+    };
+
+    (createSession as any).mockImplementationOnce(() => ({
+      prompt: mock(() => hangingTurn),
+      close: mock(async () => {}),
+    }));
+    const p = new KimiAgentProvider("kimi-k2", { streamTimeoutMs: 25 });
+    const resp = await p.sendMessage([userText("hi")], [], undefined);
+    expect(resp.stopReason).toBe("timeout");
+    const text = (resp.content[0] as { text: string }).text;
+    expect(text).toContain("partial");
+    expect(text).toContain("time limit");
+  });
+
+  test("clean completion still reports end_turn", async () => {
+    const p = new KimiAgentProvider("kimi-k2");
+    const resp = await p.sendMessage([userText("hi")], [], undefined);
+    expect(resp.stopReason).toBe("end_turn");
   });
 });
 

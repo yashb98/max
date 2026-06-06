@@ -111,6 +111,17 @@ export interface ProviderResponse {
     reasoningTokens?: number;
   };
   stopReason: string;
+  /**
+   * Per-call nudge-safety signal from agentic bridge providers: true when a
+   * follow-up `sendMessage` for the same conversation will RESUME the
+   * provider's inner session (so an empty-turn nudge re-infers over the
+   * remembered tool work instead of re-running — and re-executing — the tool
+   * loop). The agent loop reads this alongside the static
+   * `Provider.supportsEmptyTurnNudge`; per-call truth is required because
+   * the loop's provider is a routing wrapper whose static flag cannot
+   * reflect the routed target. Unset/false keeps the nudge gate closed.
+   */
+  supportsEmptyTurnNudge?: boolean;
   /** Raw JSON request body sent to the provider (for diagnostics logging). */
   rawRequest?: unknown;
   /** Raw JSON response body received from the provider (for diagnostics logging). */
@@ -184,6 +195,14 @@ export type ProviderEvent =
 
 export interface SendMessageConfig {
   model?: string;
+  /**
+   * Per-call step budget for agentic bridge providers (currently only
+   * `kimi-agent`): caps the inner SDK loop's steps for this call. Resolved
+   * from the profile's `maxTurns` field by `RetryProvider`'s call-site
+   * resolver and stripped for providers that don't consume it (it is not a
+   * wire-format field). Schema-validated 1..200.
+   */
+  maxTurns?: number;
   /**
    * LLM call-site identifier. `RetryProvider` resolves
    * provider/model/maxTokens/effort/speed/verbosity/temperature/thinking/
@@ -319,6 +338,14 @@ export interface SendMessageOptions {
    */
   toolBridge?: ProviderToolBridge;
   /**
+   * Stable per-conversation key. Agentic providers that maintain their own
+   * SDK session (e.g. `kimi-agent`) derive a deterministic `sessionId` from
+   * this value so the same conversation resumes the same SDK session across
+   * turns, enabling continuity and prompt-cache reuse. When absent the
+   * provider starts a fresh session each call.
+   */
+  conversationKey?: string;
+  /**
    * Maximum characters for a single bridged tool result before it is
    * truncated with a clear suffix. Only consulted by agentic providers
    * that route Vellum tool calls internally (currently
@@ -343,6 +370,20 @@ export interface Provider {
    * Falls back to `name` when unset.
    */
   tokenEstimationProvider?: string;
+  /**
+   * Whether the agent loop may re-query this provider with an
+   * empty-response nudge after a turn that ran BRIDGED tools but produced
+   * no text. Only safe for agentic bridge providers that resume their
+   * inner session across `sendMessage` calls: the resumed session
+   * remembers the tool work and can answer the nudge with text. For
+   * non-resuming bridges a nudge spins up a FRESH inner session that
+   * re-runs the whole tool loop — re-executing side-effecting tools — so
+   * the gate must stay closed and the zero-content persistence fallback
+   * handles user visibility instead. No provider declares this yet:
+   * kimi-agent's sessionId resume requires `conversationKey` plumbing
+   * that hasn't shipped, and claude-subscription never resumes.
+   */
+  readonly supportsEmptyTurnNudge?: boolean;
   sendMessage(
     messages: Message[],
     tools?: ToolDefinition[],

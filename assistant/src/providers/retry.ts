@@ -252,6 +252,17 @@ function normalizeSendMessageOptions(
     if (nextConfig.thinking === undefined && resolved.thinking !== undefined) {
       nextConfig.thinking = resolved.thinking;
     }
+    // `maxTurns` is the per-profile step budget for agentic bridge providers.
+    // Forward only for `kimi-agent` (the sole consumer today) — for any other
+    // provider it would leak into strict-schema wire bodies. The symmetric
+    // strip below covers passthrough callers that set it without a callSite.
+    if (
+      providerName === "kimi-agent" &&
+      nextConfig.maxTurns === undefined &&
+      resolved.maxTurns !== undefined
+    ) {
+      nextConfig.maxTurns = resolved.maxTurns;
+    }
     // Forward OpenRouter-only routing preferences so `OpenRouterProvider` can
     // translate `openrouter.only` into the wire-format `provider: { only: [...] }`
     // body field on both the OpenAI-compat and Anthropic-compat endpoints.
@@ -295,6 +306,13 @@ function normalizeSendMessageOptions(
     nextConfig.thinking !== undefined
   ) {
     delete nextConfig.thinking;
+  }
+
+  // `maxTurns` is consumed only by `kimi-agent` (inner-loop step budget); for
+  // any other provider it is an unknown field that strict-schema wire clients
+  // (e.g. Anthropic) reject. Strip it everywhere else.
+  if (providerName !== "kimi-agent" && nextConfig.maxTurns !== undefined) {
+    delete nextConfig.maxTurns;
   }
 
   // Anthropic (and OpenRouter fronting Anthropic) rejects requests that

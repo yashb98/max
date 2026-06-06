@@ -9,6 +9,7 @@ import {
   getCalibrationProviderKey,
 } from "../context/token-estimator.js";
 import { calculateMaxToolResultChars } from "../context/tool-result-truncation.js";
+import { recordBridgedToolCall } from "../memory/bridged-tool-calls-store.js";
 import { defaultEmptyResponseTerminal } from "../plugins/defaults/empty-response.js";
 import { defaultToolErrorTerminal } from "../plugins/defaults/tool-error.js";
 import { defaultToolResultTruncateTerminal } from "../plugins/defaults/tool-result-truncate.js";
@@ -34,7 +35,6 @@ import type {
   ToolDefinition,
   ToolResultContent,
 } from "../providers/types.js";
-import { recordBridgedToolCall } from "../memory/bridged-tool-calls-store.js";
 import type { SensitiveOutputBinding } from "../tools/sensitive-output-placeholders.js";
 import {
   applyStreamingSubstitution,
@@ -394,6 +394,17 @@ export class AgentLoop {
     let consecutiveErrorTurns = 0;
     let emptyResponseRetries = 0;
     let lastLlmCallTime = 0;
+    // Bridged tool activity observed this run. Agentic bridge providers
+    // (kimi-agent, claude-subscription) dispatch tools inside the SDK loop,
+    // so their tool calls never become outer-loop tool_use blocks and
+    // `toolUseTurns` stays 0. The empty-response gate needs this counter to
+    // recognize "inner tool work happened but no text came back" turns.
+    // Incremented on `bridged_tool_committed` and `bridged_tool_result` —
+    // both are emitted ONLY by bridge providers (unlike
+    // `tool_use_preview_start`, which the plain anthropic provider also
+    // emits for its own streaming). A single call may bump it twice, which
+    // is fine: the gate only checks > 0.
+    let bridgedToolCalls = 0;
     const rlog = requestId ? log.child({ requestId }) : log;
 
     // Per-run substitution map for sensitive output placeholders.
@@ -578,9 +589,10 @@ export class AgentLoop {
         // no-op fallback. Phase 2.5 in
         // docs/architecture/claude-subscription-bridge.md.
         //
-        // Providers other than `claude-subscription` ignore
-        // `options.toolBridge`; allocating the closure each turn costs
-        // a few bytes per LLM call.
+        // Only SDK-driven providers (`claude-subscription`,
+        // `kimi-agent`) consume `options.toolBridge`; other providers
+        // ignore it, so allocating the closure each turn costs a few
+        // bytes per LLM call.
         const toolBridge: ProviderToolBridge | undefined = this.toolExecutor
           ? async ({ toolName, input, onChunk }) => {
               const bridgeStartedAt = Date.now();
@@ -597,14 +609,17 @@ export class AgentLoop {
               // store is a no-op when `collectUsageData` is disabled,
               // so this is safe to call unconditionally. Structured log
               // line is also emitted for grep-based ops observability;
-              // see `claude_subscription.tool_call` in vellum.log.
+              // the event name is provider-derived, e.g.
+              // `claude_subscription.tool_call` / `kimi_agent.tool_call`
+              // in vellum.log.
               const bridgeDurationMs = Date.now() - bridgeStartedAt;
+              const bridgeProvider = this.provider.name;
               try {
                 recordBridgedToolCall({
                   toolName,
                   conversationId: turnCtx?.conversationId ?? null,
                   trustClass: turnCtx?.trust?.trustClass ?? null,
-                  provider: "claude-subscription",
+                  provider: bridgeProvider,
                   model: null,
                   durationMs: bridgeDurationMs,
                   isError: !!result.isError,
@@ -624,9 +639,10 @@ export class AgentLoop {
                   "recordBridgedToolCall failed (non-fatal)",
                 );
               }
+              const bridgeEventKey = `${this.provider.name.replace(/-/g, "_")}.tool_call`;
               log.info(
                 {
-                  event: "claude_subscription.tool_call",
+                  event: bridgeEventKey,
                   toolName,
                   trustClass: turnCtx?.trust?.trustClass ?? null,
                   durationMs: bridgeDurationMs,
@@ -714,6 +730,15 @@ export class AgentLoop {
           systemPrompt: turnSystemPrompt,
           options: {
             config: providerConfig,
+            // Stable per-conversation key for agentic bridge providers that
+            // resume their inner SDK session across turns (kimi-agent maps
+            // it to a session id). Only the real conversation identity
+            // qualifies — when the loop runs standalone (unit tests, no
+            // turnContext) the key is omitted and every call is a fresh
+            // inner session.
+            ...(turnContext?.conversationId
+              ? { conversationKey: turnContext.conversationId }
+              : {}),
             ...(toolBridge
               ? { toolBridge, maxToolResultChars: bridgeMaxToolResultChars }
               : {}),
@@ -783,6 +808,7 @@ export class AgentLoop {
                 // Forward the committed tool-use shape so the composer
                 // renders the tool-call card identically to non-bridged
                 // tool calls.
+                bridgedToolCalls++;
                 onEvent({
                   type: "tool_use",
                   id: event.toolUseId,
@@ -790,6 +816,7 @@ export class AgentLoop {
                   input: event.input,
                 });
               } else if (event.type === "bridged_tool_result") {
+                bridgedToolCalls++;
                 onEvent({
                   type: "tool_result",
                   toolUseId: event.toolUseId,
@@ -922,10 +949,23 @@ export class AgentLoop {
           return false;
         })();
 
+        // Bridged tool activity only opens the nudge gate for providers
+        // that resume their inner session across sendMessage calls — a
+        // nudge to a non-resuming bridge (claude-subscription) would spin
+        // up a fresh inner agent run and re-execute side-effecting tools.
+        // Safety is read PER CALL from the response (kimi-agent sets it
+        // exactly when the call carried a conversationKey, i.e. a nudge
+        // retry will resume the same inner session); the static provider
+        // flag remains as a secondary path for non-routing providers.
+        const nudgeSafe =
+          response.supportsEmptyTurnNudge === true ||
+          this.provider.supportsEmptyTurnNudge === true;
+        const nudgeSafeBridgedToolCalls = nudgeSafe ? bridgedToolCalls : 0;
         const emptyResponseArgs: EmptyResponseArgs = {
           responseContent: response.content,
           toolUseBlocksLength: toolUseBlocks.length,
           toolUseTurns,
+          bridgedToolCalls: nudgeSafeBridgedToolCalls,
           emptyResponseRetries,
           maxEmptyResponseRetries: MAX_EMPTY_RESPONSE_RETRIES,
           priorAssistantHadVisibleText,
@@ -981,11 +1021,15 @@ export class AgentLoop {
         if (
           !hasVisibleText &&
           toolUseBlocks.length === 0 &&
-          toolUseTurns > 0 &&
+          (toolUseTurns > 0 || nudgeSafeBridgedToolCalls > 0) &&
           !priorAssistantHadVisibleText
         ) {
           rlog.error(
-            { turn: toolUseTurns, retries: emptyResponseRetries },
+            {
+              turn: toolUseTurns,
+              retries: emptyResponseRetries,
+              bridgedToolCalls,
+            },
             "Model returned empty response after tool results — retries exhausted",
           );
         }

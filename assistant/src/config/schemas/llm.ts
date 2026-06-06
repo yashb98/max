@@ -303,6 +303,14 @@ export const LLMConfigBase = z.object({
   verbosity: VerbosityEnum.default("medium"),
   temperature: TemperatureSchema.default(null),
   thinking: ThinkingSchema.default(ThinkingSchema.parse({})),
+  /**
+   * Per-call step budget for agentic bridge providers (currently only
+   * `kimi-agent`): caps the provider's inner SDK loop per call. Optional with
+   * NO default — when unset, the provider's own mode preset decides, so this
+   * field never clobbers preset behavior. Forwarded by `RetryProvider`'s
+   * resolver only to providers that consume it.
+   */
+  maxTurns: z.number().int().min(1).max(200).optional(),
   contextWindow: ContextWindowSchema.default(ContextWindowSchema.parse({})),
   openrouter: OpenRouterSchema.default(OpenRouterSchema.parse({})),
 });
@@ -323,6 +331,8 @@ const LLMConfigFragment = z.object({
   verbosity: VerbosityEnum.optional(),
   temperature: TemperatureSchema.optional(),
   thinking: ThinkingFragmentSchema.optional(),
+  /** See `LLMConfigBase.maxTurns` — agentic step budget, kimi-agent only. */
+  maxTurns: z.number().int().min(1).max(200).optional(),
   contextWindow: ContextWindowDeepPartialSchema.optional(),
   openrouter: OpenRouterDeepPartialSchema.optional(),
 });

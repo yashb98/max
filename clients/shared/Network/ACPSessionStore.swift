@@ -278,7 +278,8 @@ open class ACPSessionStore {
         guard let viewModel = sessions[message.acpSessionId] else { return }
         viewModel.state = makeTerminalState(
             from: viewModel.state,
-            status: message.stopReason == .cancelled ? .cancelled : .completed,
+            status: message.stopReason == .cancelled || message.stopReason == .aborted
+                ? .cancelled : .completed,
             stopReason: message.stopReason,
             error: viewModel.state.error
         )

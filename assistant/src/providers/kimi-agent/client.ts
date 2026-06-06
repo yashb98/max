@@ -189,6 +189,48 @@ export function _getKimiAgentSemaphoreStateForTests(): {
  */
 const MAX_TURNS = 80;
 
+// ── Session continuity (Gap D) ────────────────────────────────────────────
+//
+// When the caller provides `options.conversationKey` (the daemon sets it to
+// the Vellum conversation id), the provider reuses ONE kimi-cli session per
+// conversation: the CLI is spawned with `--session <id>`, restores
+// `context.jsonl` from disk, and the model keeps its own memory of prior
+// turns — including its internal tool calls, which Vellum's text-only
+// persistence cannot reconstruct. That makes "continue" a TRUE resume and
+// makes the empty-turn nudge safe (the resumed session can answer from its
+// tool results without re-executing anything).
+//
+// The session id embeds a per-daemon-boot epoch: `vellum-<key>-<epoch>`.
+// Rationale: `seededSessions` (below) tracks which conversations already had
+// their Vellum-side history serialized into the session. After a daemon
+// restart that map is empty, but the old session would still exist on disk —
+// re-seeding full history into it would DUPLICATE context. A fresh epoch ⇒
+// fresh session ⇒ seed-once semantics hold per boot. Stale epochs' session
+// dirs are abandoned on disk (small JSONL files; kimi prunes empty ones).
+const BOOT_SESSION_EPOCH = randomUUID().slice(0, 8);
+
+/**
+ * conversationKey → number of Vellum messages already serialized into the
+ * kimi session (set after each SUCCESSFUL call). Presence means the session
+ * exists and holds the history up to that count, so the next call sends only
+ * the new user input. Bounded: oldest entries evicted past 1000 keys.
+ */
+const seededSessions = new Map<string, number>();
+const SEEDED_SESSIONS_MAX = 1000;
+
+function recordSeededSession(key: string, messageCount: number): void {
+  if (!seededSessions.has(key) && seededSessions.size >= SEEDED_SESSIONS_MAX) {
+    const oldest = seededSessions.keys().next().value;
+    if (oldest !== undefined) seededSessions.delete(oldest);
+  }
+  seededSessions.set(key, messageCount);
+}
+
+/** Test hook — forget all seeded sessions so each test starts cold. */
+export function _resetKimiSessionSeedingForTests(): void {
+  seededSessions.clear();
+}
+
 /**
  * K2.6 mode presets surfaced as picker "models" (mirrors kimi.com's
  * Instant/Thinking/Agent). The catalog model id flows verbatim into
@@ -260,15 +302,14 @@ export interface KimiAgentOptions {
 
 export class KimiAgentProvider implements Provider {
   readonly name = "kimi-agent";
-  // `supportsEmptyTurnNudge` is deliberately NOT declared: the sessionId
-  // resume below only activates when `options.conversationKey` is set, and
-  // nothing in the daemon's send path sets it yet (session-continuity
-  // plumbing is a planned feature). Until it ships, an empty-turn nudge
-  // would hit a FRESH inner session and re-run the tool loop — the same
-  // re-execution risk that keeps the gate closed for claude-subscription.
-  // Declare the flag (and flip its pin test) when conversationKey plumbing
-  // lands. Empty turns are covered meanwhile by the denial/max-turns
-  // synthesis in this file and the zero-content persistence fallback.
+  // The STATIC `supportsEmptyTurnNudge` flag is deliberately NOT declared:
+  // the agent loop's provider is a routing wrapper, so a static capability
+  // can't reflect which provider a call actually hit. Nudge safety is
+  // reported PER CALL instead, on `ProviderResponse.supportsEmptyTurnNudge`
+  // — true exactly when `options.conversationKey` was provided, because only
+  // then does the next call resume the same kimi session (which remembers
+  // its tool work) rather than spinning a fresh inner loop that would
+  // re-execute side-effecting tools.
   /** Use Kimi estimation rules for this provider family. */
   readonly tokenEstimationProvider = "kimi";
 
@@ -337,9 +378,32 @@ export class KimiAgentProvider implements Provider {
     // failure.
     // Resolve the selected K2.6 mode (Instant/Thinking/Agent) → thinking flag,
     // step budget, and optional autonomy nudge. See KIMI_MODE_CONFIG.
-    const mode = resolveKimiMode(this.model);
+    //
+    // Per-call config (Gap E): `options.config` carries the RESOLVED profile
+    // values from RetryProvider's call-site resolver, so a conversation pinned
+    // to a different kimi profile gets that profile's mode/budget even though
+    // the provider instance is shared:
+    //   - `config.model` — the profile's model id (may be a mode preset id);
+    //     wins over the construction-time model for mode resolution.
+    //   - `config.maxTurns` — per-profile step budget (schema-validated
+    //     1..200); wins over the construction-time override and the preset.
+    // `thinking` intentionally does NOT flow per-call: the resolver always
+    // emits a thinking value (schema default), which would clobber the mode
+    // presets' Instant/Thinking distinction. Thinking is controlled by the
+    // mode id (or the construction-time `thinkingOverride`).
+    const cfg = options?.config;
+    const modeModel =
+      typeof cfg?.model === "string" && cfg.model.length > 0
+        ? cfg.model
+        : this.model;
+    const mode = resolveKimiMode(modeModel);
     const thinking = this.opts.thinkingOverride ?? mode.thinking;
-    const maxTurns = Math.min(this.opts.maxTurnsOverride ?? mode.maxTurns, 200);
+    const maxTurns = Math.min(
+      typeof cfg?.maxTurns === "number" && Number.isFinite(cfg.maxTurns)
+        ? cfg.maxTurns
+        : (this.opts.maxTurnsOverride ?? mode.maxTurns),
+      200,
+    );
     const effectiveSystemPrompt =
       [systemPrompt, mode.systemNudge].filter(Boolean).join("\n\n") ||
       undefined;
@@ -362,7 +426,7 @@ export class KimiAgentProvider implements Provider {
     // scripts/kimi-agent/sharedir-probe.mjs. On staging failure this is
     // undefined and the session falls back to the real share dir, where the
     // ApprovalRequest deny gate below still contains ambient MCP.
-    const stagedShareDir = stageMcpFreeShareDir(tmpDir);
+    const stagedShareDir = stageMcpFreeShareDir(tmpDir, process.cwd());
 
     // When kimi's native (free) `SearchWeb` is enabled, drop Vellum's paid
     // `web_search` from the bridged tools so searches use kimi's managed
@@ -405,10 +469,14 @@ export class KimiAgentProvider implements Provider {
       // both the API-key product and the managed coding plan.
       ...(this.opts.apiKey && mode.realModel ? { model: mode.realModel } : {}),
       // Resume the same Kimi SDK session across turns of one Vellum
-      // conversation so context and prompt-cache state survive. Falls back
-      // to a fresh session when no stable key is provided.
+      // conversation so context and prompt-cache state survive. The boot
+      // epoch guarantees seed-once semantics per daemon process (see
+      // BOOT_SESSION_EPOCH). Falls back to a fresh session per call when no
+      // stable key is provided (background jobs never pass one).
       ...(options?.conversationKey
-        ? { sessionId: `vellum-${options.conversationKey}` }
+        ? {
+            sessionId: `vellum-${options.conversationKey}-${BOOT_SESSION_EPOCH}`,
+          }
         : {}),
       yoloMode: false,
       thinking,
@@ -423,8 +491,21 @@ export class KimiAgentProvider implements Provider {
     // clearTimeout — even if an exception were thrown before it's assigned.
     let streamTimer: ReturnType<typeof setTimeout> | undefined;
 
+    // Session resume (Gap D): when this conversation's session was already
+    // seeded this boot, send ONLY the messages added since — the session
+    // restores its own (richer) record of everything earlier, including its
+    // internal tool calls. Re-sending the full flatten would duplicate
+    // context. First call per conversation per boot seeds the full history.
+    const conversationKey = options?.conversationKey;
+    const seededCount = conversationKey
+      ? seededSessions.get(conversationKey)
+      : undefined;
+    const isResume = seededCount !== undefined;
+
     try {
-      const prompt = this.buildSdkPrompt(messages);
+      const prompt = isResume
+        ? this.buildResumePrompt(messages.slice(seededCount))
+        : this.buildSdkPrompt(messages);
       const turn = session.prompt(prompt);
       // Expose the turn to the external-tool handler's yieldToUser path.
       activeTurn = turn;
@@ -436,28 +517,37 @@ export class KimiAgentProvider implements Provider {
         void t.interrupt().catch(() => {});
       };
 
+      // Why the turn was interrupted, when it wasn't the model finishing or
+      // the step cap: "aborted" = the external signal fired (user stop);
+      // "timeout" = the stream wall-clock guard fired. Recorded so the
+      // returned stopReason distinguishes these from a clean "end_turn" —
+      // previously both surfaced as end_turn, indistinguishable from success.
+      let interruptCause: "aborted" | "timeout" | undefined;
+
       // Abort wiring: if the external signal is already aborted, call
       // safeInterrupt() immediately. Otherwise, listen for the abort
       // event and forward it. This ensures pre-aborted signals work
       // without relying solely on addEventListener (which never fires if
       // the signal was already aborted at entry).
+      const onAbort = (): void => {
+        interruptCause = "aborted";
+        safeInterrupt(turn);
+      };
       if (externalSignal) {
         if (externalSignal.aborted) {
-          safeInterrupt(turn);
+          onAbort();
         } else {
-          externalSignal.addEventListener("abort", () => safeInterrupt(turn), {
-            once: true,
-          });
+          externalSignal.addEventListener("abort", onAbort, { once: true });
         }
       }
 
       // Wall-clock guard: if the stream never ends within streamTimeoutMs,
       // interrupt the turn so the daemon cannot be hung indefinitely by a
       // stalled Kimi session. Cleared in the finally block on all paths.
-      streamTimer = setTimeout(
-        () => safeInterrupt(turn),
-        this.opts.streamTimeoutMs ?? 1_800_000,
-      );
+      streamTimer = setTimeout(() => {
+        interruptCause = "timeout";
+        safeInterrupt(turn);
+      }, this.opts.streamTimeoutMs ?? 1_800_000);
 
       // Build the set of allowlisted tool names for approval filtering.
       // Approved: ONLY the caller's Vellum tools. All Kimi native built-ins
@@ -677,7 +767,14 @@ export class KimiAgentProvider implements Provider {
 
         // Break out after interrupt so we don't keep iterating on a
         // session that has been asked to stop.
-        if (stopReason === "max_turns") break;
+        if (stopReason === "max_turns" || interruptCause !== undefined) break;
+      }
+
+      // Surface abort/timeout interrupts as their own stopReasons so callers
+      // can tell them apart from a clean completion. The step-cap branch wins
+      // when both raced (it already carries the user-facing note).
+      if (interruptCause !== undefined && stopReason === "end_turn") {
+        stopReason = interruptCause;
       }
 
       // Recovery synthesis. The outer agent loop persists whatever content
@@ -709,15 +806,40 @@ export class KimiAgentProvider implements Provider {
         finalText = `${finalText}${sep}${note}`;
       }
 
+      // Timeout note: same contract as the step-limit note — an interrupted
+      // turn must explain itself. (No note for "aborted": the user cancelled
+      // deliberately and the outer loop handles aborted turns itself.)
+      if (stopReason === "timeout") {
+        const note = `[Stopped early: the turn hit its wall-clock time limit before finishing. Say "continue" and I'll pick up where I left off.]`;
+        const sep = finalText ? "\n\n" : "";
+        onEvent?.({ type: "text_delta", text: sep + note });
+        finalText = `${finalText}${sep}${note}`;
+      }
+
       const content: ContentBlock[] = finalText
         ? [{ type: "text", text: finalText }]
         : [];
+
+      // Session-continuity bookkeeping: the kimi session now holds this
+      // call's full exchange (we record on abort/timeout/step-cap too — the
+      // session consumed the prompt and its partial work; the next call
+      // should resume, not re-seed). Recorded only on the success path: a
+      // thrown error gives no confidence the session saw the prompt.
+      if (conversationKey) {
+        recordSeededSession(conversationKey, messages.length);
+      }
 
       return {
         content,
         model: this.model,
         usage,
         stopReason,
+        // Per-call nudge-safety: with a conversationKey the NEXT sendMessage
+        // resumes this same kimi session (which remembers its tool work), so
+        // the outer loop's empty-turn nudge cannot re-execute tools. Without
+        // a key every call is a fresh inner session — nudging would re-run
+        // the whole tool loop, so the gate must stay closed.
+        supportsEmptyTurnNudge: conversationKey !== undefined,
       };
     } catch (err) {
       // Map any SDK/transport error that propagates through the await path
@@ -757,6 +879,34 @@ export class KimiAgentProvider implements Provider {
         }
       }
     }
+  }
+
+  /**
+   * Build the prompt for a RESUMED session: only the messages added since
+   * the last call (the session restores everything earlier from its own
+   * `context.jsonl`, including its internal tool calls). Only user-authored
+   * text is sent — assistant messages are skipped (the session's own record
+   * of its output is richer than Vellum's text-only persistence), and
+   * tool_result blocks are skipped (the session already has the actual tool
+   * results). New media in the slice still flows via ContentPart media parts.
+   */
+  private buildResumePrompt(newMessages: Message[]): string | ContentPart[] {
+    const texts: string[] = [];
+    for (const m of newMessages) {
+      if (m.role !== "user") continue;
+      for (const block of m.content) {
+        if (block.type === "text" && block.text.trim().length > 0) {
+          texts.push(block.text);
+        }
+      }
+    }
+    const text =
+      texts.length > 0
+        ? texts.join("\n\n")
+        : "Continue from where you left off.";
+    const media = collectMediaParts(newMessages);
+    if (media.length === 0) return text;
+    return [{ type: "text", text }, ...media];
   }
 
   /**

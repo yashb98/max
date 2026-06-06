@@ -14,6 +14,8 @@ import { describe, expect, test } from "bun:test";
 
 import { stageMcpFreeShareDir } from "../share-dir.js";
 
+const WORK_DIR = "/fake/work/dir";
+
 /** Build a fake ~/.kimi with the entries the real one carries. */
 function makeFakeShareDir(): string {
   const dir = mkdtempSync(join(tmpdir(), "fake-kimi-share-"));
@@ -22,7 +24,14 @@ function makeFakeShareDir(): string {
     'default_model = "kimi-code/kimi-for-coding"\n',
   );
   writeFileSync(join(dir, "device_id"), "dev-123");
-  writeFileSync(join(dir, "kimi.json"), JSON.stringify({ work_dirs: [] }));
+  writeFileSync(
+    join(dir, "kimi.json"),
+    JSON.stringify({
+      work_dirs: [
+        { path: "/some/other/dir", kaos: "local", last_session_id: "old-id" },
+      ],
+    }),
+  );
   writeFileSync(
     join(dir, "mcp.json"),
     JSON.stringify({
@@ -40,12 +49,12 @@ function makeFakeShareDir(): string {
   return dir;
 }
 
-describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
-  test("stages a share dir: everything symlinked EXCEPT mcp.json, which is written empty", () => {
+describe("stageMcpFreeShareDir (ambient-MCP suppression + resume seeding)", () => {
+  test("stages a share dir: everything symlinked EXCEPT mcp.json (empty) and kimi.json (seeded real file)", () => {
     const source = makeFakeShareDir();
     const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
     try {
-      const staged = stageMcpFreeShareDir(parent, source);
+      const staged = stageMcpFreeShareDir(parent, WORK_DIR, source);
       expect(staged).toBeDefined();
 
       // mcp.json is a REAL file with zero servers — the ambient playwright
@@ -55,12 +64,36 @@ describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
       const mcp = JSON.parse(readFileSync(join(staged!, "mcp.json"), "utf-8"));
       expect(mcp).toEqual({ mcpServers: {} });
 
+      // kimi.json is a REAL file too (a symlink would be clobbered by
+      // kimi-cli ≥1.14's atomic write+rename) seeded with the workDir entry
+      // Session.find needs for resume — while preserving real entries.
+      const kimiStat = lstatSync(join(staged!, "kimi.json"));
+      expect(kimiStat.isSymbolicLink()).toBe(false);
+      const kimi = JSON.parse(
+        readFileSync(join(staged!, "kimi.json"), "utf-8"),
+      ) as {
+        work_dirs: Array<{
+          path: string;
+          kaos: string;
+          last_session_id: string | null;
+        }>;
+      };
+      expect(kimi.work_dirs).toContainEqual({
+        path: WORK_DIR,
+        kaos: "local",
+        last_session_id: null,
+      });
+      expect(kimi.work_dirs).toContainEqual({
+        path: "/some/other/dir",
+        kaos: "local",
+        last_session_id: "old-id",
+      });
+
       // Everything else is a symlink pointing back at the real entry, so
       // auth/config/session state stays shared with the real dir.
       for (const entry of [
         "config.toml",
         "device_id",
-        "kimi.json",
         "credentials",
         "sessions",
       ]) {
@@ -81,15 +114,63 @@ describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
     }
   });
 
-  test("source dir without an mcp.json still stages (empty mcp.json written)", () => {
+  test("workDir already registered in real kimi.json → no duplicate entry", () => {
     const source = makeFakeShareDir();
-    rmSync(join(source, "mcp.json"));
+    writeFileSync(
+      join(source, "kimi.json"),
+      JSON.stringify({
+        work_dirs: [{ path: WORK_DIR, kaos: "local", last_session_id: "s1" }],
+      }),
+    );
     const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
     try {
-      const staged = stageMcpFreeShareDir(parent, source);
+      const staged = stageMcpFreeShareDir(parent, WORK_DIR, source);
+      const kimi = JSON.parse(
+        readFileSync(join(staged!, "kimi.json"), "utf-8"),
+      ) as {
+        work_dirs: Array<{ path: string; last_session_id: string | null }>;
+      };
+      const entries = kimi.work_dirs.filter((w) => w.path === WORK_DIR);
+      expect(entries).toHaveLength(1);
+      // The real entry (with its last_session_id) is preserved verbatim.
+      expect(entries[0].last_session_id).toBe("s1");
+    } finally {
+      rmSync(source, { recursive: true, force: true });
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
+  test("source dir without mcp.json/kimi.json still stages (both written fresh)", () => {
+    const source = makeFakeShareDir();
+    rmSync(join(source, "mcp.json"));
+    rmSync(join(source, "kimi.json"));
+    const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
+    try {
+      const staged = stageMcpFreeShareDir(parent, WORK_DIR, source);
       expect(staged).toBeDefined();
       const mcp = JSON.parse(readFileSync(join(staged!, "mcp.json"), "utf-8"));
       expect(mcp).toEqual({ mcpServers: {} });
+      const kimi = JSON.parse(
+        readFileSync(join(staged!, "kimi.json"), "utf-8"),
+      ) as { work_dirs: Array<{ path: string }> };
+      expect(kimi.work_dirs.some((w) => w.path === WORK_DIR)).toBe(true);
+    } finally {
+      rmSync(source, { recursive: true, force: true });
+      rmSync(parent, { recursive: true, force: true });
+    }
+  });
+
+  test("corrupt real kimi.json → seeded fresh, staging still succeeds", () => {
+    const source = makeFakeShareDir();
+    writeFileSync(join(source, "kimi.json"), "{not json!!");
+    const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
+    try {
+      const staged = stageMcpFreeShareDir(parent, WORK_DIR, source);
+      expect(staged).toBeDefined();
+      const kimi = JSON.parse(
+        readFileSync(join(staged!, "kimi.json"), "utf-8"),
+      ) as { work_dirs: Array<{ path: string }> };
+      expect(kimi.work_dirs.some((w) => w.path === WORK_DIR)).toBe(true);
     } finally {
       rmSync(source, { recursive: true, force: true });
       rmSync(parent, { recursive: true, force: true });
@@ -100,7 +181,7 @@ describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
     const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
     try {
       expect(
-        stageMcpFreeShareDir(parent, join(parent, "does-not-exist")),
+        stageMcpFreeShareDir(parent, WORK_DIR, join(parent, "does-not-exist")),
       ).toBeUndefined();
     } finally {
       rmSync(parent, { recursive: true, force: true });
@@ -116,7 +197,7 @@ describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
     const source = makeFakeShareDir();
     const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
     try {
-      stageMcpFreeShareDir(parent, source);
+      stageMcpFreeShareDir(parent, WORK_DIR, source);
       writeFileSync(join(source, "credentials", "sentinel.json"), "{}");
 
       // Mirror the provider's real cleanup: remove the whole PARENT.
@@ -140,8 +221,8 @@ describe("stageMcpFreeShareDir (ambient-MCP suppression)", () => {
     const source = makeFakeShareDir();
     const parent = mkdtempSync(join(tmpdir(), "kimi-staging-"));
     try {
-      const a = stageMcpFreeShareDir(parent, source);
-      const b = stageMcpFreeShareDir(parent, source);
+      const a = stageMcpFreeShareDir(parent, WORK_DIR, source);
+      const b = stageMcpFreeShareDir(parent, WORK_DIR, source);
       expect(a).toBe(b!);
       const mcp = JSON.parse(readFileSync(join(b!, "mcp.json"), "utf-8"));
       expect(mcp).toEqual({ mcpServers: {} });

@@ -32,7 +32,7 @@ const { tmpDir: agentDir, agentFile } = writeKimiAgentFiles(
   "You are a test agent.",
 );
 
-const staged = stageMcpFreeShareDir(stagingParent);
+const staged = stageMcpFreeShareDir(stagingParent, workDir);
 if (!staged) {
   console.error("FAIL: stageMcpFreeShareDir returned undefined (no ~/.kimi?)");
   process.exit(1);
@@ -69,7 +69,8 @@ const turn = session.prompt(
   `Do BOTH of these, in order, no questions asked:\n` +
     `1. Call the browser_navigate tool with url "https://example.com". If the\n` +
     `   tool does not exist, say exactly TOOL-MISSING and move on.\n` +
-    `2. Call vellum_echo with text "done".`,
+    `2. You MUST invoke the vellum_echo TOOL with text "done" — actually call\n` +
+    `   the tool; writing the word done as plain text does NOT count.`,
 );
 
 const approvalSenders = [];
