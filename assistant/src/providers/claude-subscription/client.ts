@@ -331,6 +331,28 @@ export class ClaudeSubscriptionProvider implements Provider {
     const bridge: ProviderToolBridge =
       options?.toolBridge ?? registryBridge ?? stubBridge;
 
+    // Per-call model: honor the model the routing layer resolved for THIS
+    // call (`options.config.model`) over the construction-time `this.model`.
+    //
+    // Why this matters: provider instances are cached per CONNECTION
+    // (`resolveProviderFromConnection`), and every claude-subscription model
+    // profile — "Claude (Max Plan)" (sonnet), "Claude Opus 4.8", "Claude
+    // Opus 4.7", … — shares the one `claude-subscription-personal`
+    // connection. With `this.model` frozen at construction, switching the
+    // in-chat (per-conversation) model picker set the override but the
+    // cached provider kept sending the original model — conversations pinned
+    // to "Opus 4.7" actually billed sonnet-4-6 (verified in the usage
+    // ledger). `RetryProvider.normalizeSendMessageOptions` already resolves
+    // the active/override profile to `config.model` per call; honoring it
+    // here makes the picker actually change the model. Falls back to
+    // `this.model` for direct construction (tests, early-boot) where no
+    // routing layer supplies a per-call model.
+    const callModel =
+      typeof options?.config?.model === "string" &&
+      options.config.model.length > 0
+        ? options.config.model
+        : this.model;
+
     // Build the AbortController FIRST so we can hand its `.abort()` into
     // the MCP server (needed for yieldToUser → loop-abort, D-2).
     const sdkAbort = new AbortController();
@@ -370,7 +392,7 @@ export class ClaudeSubscriptionProvider implements Provider {
     // retry would double-apply them.
     let assistantText = "";
     let stopReason = "end_turn";
-    let modelUsed = this.model;
+    let modelUsed = callModel;
     const usage: ProviderResponse["usage"] = {
       inputTokens: 0,
       outputTokens: 0,
@@ -381,7 +403,7 @@ export class ClaudeSubscriptionProvider implements Provider {
     const resetAccumulators = () => {
       assistantText = "";
       stopReason = "end_turn";
-      modelUsed = this.model;
+      modelUsed = callModel;
       usage.inputTokens = 0;
       usage.outputTokens = 0;
       usage.cacheCreationInputTokens = 0;
@@ -422,7 +444,7 @@ export class ClaudeSubscriptionProvider implements Provider {
         const stream = query({
           prompt,
           options: {
-            model: this.model,
+            model: callModel,
             // Bun's `--compile` strips the SDK's bundled native CLI binary,
             // so fall back to the user's locally-installed `claude` CLI when
             // we can resolve it. Without this the SDK throws "Native CLI

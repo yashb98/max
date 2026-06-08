@@ -182,6 +182,37 @@ describe("SDK isolation options (security)", () => {
     expect("customSystemPrompt" in lastQueryOptions!).toBe(false);
   });
 
+  test("honors the per-call resolved model over the construction-time model", async () => {
+    // Provider instances are cached per CONNECTION and shared by every
+    // claude-subscription model profile. The model the user picked is
+    // resolved per call into `options.config.model`; the provider must send
+    // THAT, not the model it was constructed with — otherwise switching the
+    // in-chat picker between two claude-subscription models does nothing
+    // (the cached provider keeps sending its original model).
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-6");
+    await p.sendMessage([userText("hi")], [], "sys", {
+      config: { model: "claude-opus-4-8" },
+    });
+    // The model SENT to the CLI is the per-call resolved one. (The response's
+    // `.model` echoes whatever the CLI reports back in its init/result
+    // messages, which the mock controls separately.)
+    expect(lastQueryOptions!.model).toBe("claude-opus-4-8");
+  });
+
+  test("falls back to the construction-time model when no per-call model is set", async () => {
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-6");
+    await p.sendMessage([userText("hi")], [], "sys");
+    expect(lastQueryOptions!.model).toBe("claude-sonnet-4-6");
+  });
+
+  test("ignores an empty per-call model string (falls back to construction model)", async () => {
+    const p = new ClaudeSubscriptionProvider("claude-sonnet-4-6");
+    await p.sendMessage([userText("hi")], [], "sys", {
+      config: { model: "" },
+    });
+    expect(lastQueryOptions!.model).toBe("claude-sonnet-4-6");
+  });
+
   test("omits systemPrompt when none provided", async () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], [], undefined);
