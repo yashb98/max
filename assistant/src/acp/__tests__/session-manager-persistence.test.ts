@@ -17,7 +17,7 @@ mock.module("../../util/logger.js", () => ({
     }),
 }));
 
-import { VellumAcpClientHandler } from "../../acp/client-handler.js";
+import { MaxAcpClientHandler } from "../../acp/client-handler.js";
 import { AcpSessionManager } from "../../acp/session-manager.js";
 import type { ServerMessage } from "../../daemon/message-protocol.js";
 import type { AcpSessionUpdate } from "../../daemon/message-types/acp.js";
@@ -69,7 +69,7 @@ function buildSessionWithFakeProcess(opts: {
 } {
   const manager = new AcpSessionManager(1);
   const sent: ServerMessage[] = [];
-  const sendToVellum = (msg: ServerMessage) => sent.push(msg);
+  const sendToMax = (msg: ServerMessage) => sent.push(msg);
 
   let resolvePrompt!: (v: { stopReason: string }) => void;
   let rejectPrompt!: (e: Error) => void;
@@ -104,10 +104,10 @@ function buildSessionWithFakeProcess(opts: {
         }
       ).appendToBuffer(opts.id, msg);
     }
-    sendToVellum(msg);
+    sendToMax(msg);
   };
 
-  const clientHandler = new VellumAcpClientHandler(
+  const clientHandler = new MaxAcpClientHandler(
     opts.id,
     wrappedSend,
     opts.parentConversationId,
@@ -123,7 +123,7 @@ function buildSessionWithFakeProcess(opts: {
       startedAt: Date.now(),
     },
     clientHandler,
-    sendToVellum: wrappedSend,
+    sendToMax: wrappedSend,
     currentPrompt: null as Promise<unknown> | null,
     parentConversationId: opts.parentConversationId,
     cwd: "/tmp",
@@ -145,7 +145,7 @@ function buildSessionWithFakeProcess(opts: {
   entry.currentPrompt = bgPromise;
 
   // Helper that pushes an update through the wrapped sender — exactly
-  // matching what VellumAcpClientHandler.sessionUpdate does.
+  // matching what MaxAcpClientHandler.sessionUpdate does.
   const emitUpdate = (update: AcpSessionUpdate) => {
     wrappedSend(update);
   };

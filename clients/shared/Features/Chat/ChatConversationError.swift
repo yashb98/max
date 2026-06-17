@@ -67,7 +67,7 @@ public enum ConversationErrorCategory: Equatable, Sendable {
         case .rateLimit:
             return "Wait 30–60 seconds, then click Retry."
         case .managedUsageLimit:
-            return "This is a Vellum-managed usage limit. Wait for it to reset or switch to your API key in Settings."
+            return "This is a Max-managed usage limit. Wait for it to reset or switch to your API key in Settings."
         case .providerOverloaded:
             return "This is usually temporary — click Retry in a moment."
         case .providerApi:
@@ -157,7 +157,7 @@ public struct ConversationError: Equatable {
         self.profileName = profileName
     }
 
-    /// Whether this error indicates that Vellum-managed credits are exhausted.
+    /// Whether this error indicates that Max-managed credits are exhausted.
     /// Matches both plain "credits_exhausted" and prefixed variants like "regenerate:credits_exhausted".
     public var isManagedCreditsExhausted: Bool {
         Self.isManagedCreditsExhausted(errorCategory)
@@ -218,7 +218,7 @@ public struct ConversationError: Equatable {
 
     private static func recoverySuggestion(for category: ConversationErrorCategory, errorCategory: String?) -> String {
         if isManagedCreditsExhausted(errorCategory) {
-            return "Add credits to your Vellum account or switch to your API key in Settings."
+            return "Add credits to your Max account or switch to your API key in Settings."
         }
         if isProviderBilling(category: category, errorCategory: errorCategory) {
             return ConversationErrorCategory.providerBilling.recoverySuggestion

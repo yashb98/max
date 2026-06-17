@@ -41,7 +41,7 @@ function rowToPreference(
 
 export interface AppliesWhenConditions {
   timeRange?: { after?: string; before?: string }; // e.g. "22:00", "06:00"
-  channels?: string[]; // e.g. ["telegram", "vellum"]
+  channels?: string[]; // e.g. ["telegram", "max"]
   urgencyLevels?: string[]; // e.g. ["high", "critical"]
   contexts?: string[]; // e.g. ["work_calls", "meetings"]
   [key: string]: unknown;

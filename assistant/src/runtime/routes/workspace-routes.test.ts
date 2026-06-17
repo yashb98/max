@@ -17,7 +17,7 @@ import { assistantEventHub } from "../assistant-event-hub.js";
 // Create a temp workspace directory for isolation
 // ---------------------------------------------------------------------------
 
-const testWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testWorkspaceDir = process.env.MAX_WORKSPACE_DIR!;
 
 import { BadRequestError, ConflictError, NotFoundError } from "./errors.js";
 import type { RouteDefinition } from "./types.js";

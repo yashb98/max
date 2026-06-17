@@ -91,7 +91,7 @@ function makeDeps(): EventHandlerDeps {
       provider: { name: "anthropic" },
       traceEmitter: { emit: () => {} },
       trustContext: {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "guardian",
       },
     } as unknown as EventHandlerDeps["ctx"],
@@ -103,8 +103,8 @@ function makeDeps(): EventHandlerDeps {
       get: () => () => {},
     }) as unknown as EventHandlerDeps["rlog"],
     turnChannelContext: {
-      userMessageChannel: "vellum",
-      assistantMessageChannel: "vellum",
+      userMessageChannel: "max",
+      assistantMessageChannel: "max",
     } as EventHandlerDeps["turnChannelContext"],
     turnInterfaceContext: {
       userMessageInterface: "web",

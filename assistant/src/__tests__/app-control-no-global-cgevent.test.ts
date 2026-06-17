@@ -7,7 +7,7 @@
  * `CGEventPost(...)` posts to the system-wide event tap, which would leak
  * input to whichever app currently has user focus. That defeats the whole
  * point of per-process app control and is a security hazard, so we keep
- * it out of `clients/macos/vellum-assistant/AppControl/` entirely.
+ * it out of `clients/macos/max-assistant/AppControl/` entirely.
  *
  * The guard flags any standalone `CGEventPost(...)` call (i.e. the parens
  * follow the symbol directly, not preceded by `.`). Allowed forms:
@@ -27,7 +27,7 @@ const APP_CONTROL_DIR = join(
   "..",
   "clients",
   "macos",
-  "vellum-assistant",
+  "max-assistant",
   "AppControl",
 );
 
@@ -63,7 +63,7 @@ const GLOBAL_CGEVENT_POST = /\bCGEventPost\(/;
 const ALLOW_COMMENT = /\/\/\s*allow:\s*CGEventPost/i;
 
 describe("app-control: no global CGEventPost in Swift sources", () => {
-  test("CGEventPost(...) is forbidden in clients/macos/vellum-assistant/AppControl/", () => {
+  test("CGEventPost(...) is forbidden in clients/macos/max-assistant/AppControl/", () => {
     const files = collectSwiftFiles(APP_CONTROL_DIR);
     expect(files.length).toBeGreaterThan(0);
 

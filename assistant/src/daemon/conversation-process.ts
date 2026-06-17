@@ -1256,7 +1256,7 @@ export async function processMessage(
     trimmedContent.length > 0
       ? listPendingRequestsByConversationScope(
           conversation.conversationId,
-          "vellum",
+          "max",
         ).map((request) => request.id)
       : [];
   const canonicalPendingRequestIdsForConversation =
@@ -1270,12 +1270,12 @@ export async function processMessage(
   if (trimmedContent.length > 0) {
     const routerResult = await routeGuardianReply({
       messageText: trimmedContent,
-      channel: "vellum",
+      channel: "max",
       actor: {
         actorPrincipalId:
           conversation.trustContext?.guardianPrincipalId ?? undefined,
         actorExternalUserId: conversation.trustContext?.guardianExternalUserId,
-        channel: "vellum",
+        channel: "max",
         guardianPrincipalId:
           conversation.trustContext?.guardianPrincipalId ?? undefined,
       },
@@ -1297,8 +1297,8 @@ export async function processMessage(
         }
       }
       const routerChannelMeta = {
-        userMessageChannel: "vellum" as const,
-        assistantMessageChannel: "vellum" as const,
+        userMessageChannel: "max" as const,
+        assistantMessageChannel: "max" as const,
         userMessageInterface: guardianIfCtx?.userMessageInterface ?? "web",
         assistantMessageInterface:
           guardianIfCtx?.assistantMessageInterface ?? "web",

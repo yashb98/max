@@ -3,7 +3,7 @@ import type { SkillFileEntry } from "./skill-file-types.js";
 
 /**
  * A file provider can resolve file listings and single-file content for
- * skills that are NOT installed locally. Each origin (vellum catalog,
+ * skills that are NOT installed locally. Each origin (max catalog,
  * skills.sh, clawhub) implements this interface.
  */
 export interface SkillFileProvider {

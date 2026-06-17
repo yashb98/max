@@ -521,8 +521,8 @@ describe("voice-session-bridge", () => {
     await startVoiceTurn({
       conversationId: conversation.id,
       voiceSessionId: "local-live-voice-session-1",
-      userMessageChannel: "vellum",
-      assistantMessageChannel: "vellum",
+      userMessageChannel: "max",
+      assistantMessageChannel: "max",
       userMessageInterface: "macos",
       assistantMessageInterface: "macos",
       voiceControlPrompt:
@@ -544,7 +544,7 @@ describe("voice-session-bridge", () => {
 
     await new Promise((r) => setTimeout(r, 50));
 
-    expect(capturedTransport).toEqual({ channelId: "vellum" });
+    expect(capturedTransport).toEqual({ channelId: "max" });
     expect(capturedVoiceSessionId).toBe("local-live-voice-session-1");
     expect(capturedPrompts[0]).toBe(
       "You are speaking in a local live voice session. Keep replies brief and conversational.",
@@ -559,8 +559,8 @@ describe("voice-session-bridge", () => {
     const metadata = parsePersistedMetadata(persisted?.metadata);
     expect(persisted).toBeDefined();
     expect(metadata).toMatchObject({
-      userMessageChannel: "vellum",
-      assistantMessageChannel: "vellum",
+      userMessageChannel: "max",
+      assistantMessageChannel: "max",
       userMessageInterface: "macos",
       assistantMessageInterface: "macos",
     });

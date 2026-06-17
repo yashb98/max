@@ -124,7 +124,7 @@ async function setupTestDirs(): Promise<void> {
   testAssistantDb = db;
 
   // Point gateway at temp dirs
-  process.env.VELLUM_WORKSPACE_DIR = testRoot;
+  process.env.MAX_WORKSPACE_DIR = testRoot;
   process.env.GATEWAY_SECURITY_DIR = securityDir;
 
   // Initialize gateway DB so token operations can write to it
@@ -249,7 +249,7 @@ describe("guardian/init bootstrap secret", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.guardianPrincipalId).toMatch(/^vellum-principal-/);
+    expect(body.guardianPrincipalId).toMatch(/^max-principal-/);
     expect(body.accessToken).toBeTruthy();
     expect(body.refreshToken).toBeTruthy();
     expect(body.isNew).toBe(true);
@@ -288,7 +288,7 @@ describe("guardian/init one-time-use lockfile", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.guardianPrincipalId).toMatch(/^vellum-principal-/);
+    expect(body.guardianPrincipalId).toMatch(/^max-principal-/);
     expect(body.accessToken).toBeTruthy();
     expect(body.refreshToken).toBeTruthy();
     expect(lockFileExists()).toBe(true);
@@ -378,7 +378,7 @@ describe("guardian/init one-time-use lockfile", () => {
       .query<
         { type: string; status: string },
         []
-      >("SELECT type, status FROM contact_channels WHERE type = 'vellum'")
+      >("SELECT type, status FROM contact_channels WHERE type = 'max'")
       .get();
     expect(channel).toBeTruthy();
     expect(channel!.status).toBe("active");

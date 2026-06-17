@@ -229,7 +229,7 @@ Examples:
               opts.output ??
               join(
                 tmpdir(),
-                `vellum-tts-${randomUUID()}.${extensionForMime(contentType)}`,
+                `max-tts-${randomUUID()}.${extensionForMime(contentType)}`,
               );
 
             // Write audio to disk.

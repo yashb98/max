@@ -1,5 +1,5 @@
 /**
- * Types and serialization for .vellum manifest files.
+ * Types and serialization for .max manifest files.
  */
 
 export interface AppManifest {
@@ -9,7 +9,7 @@ export interface AppManifest {
   icon?: string; // single emoji
   preview?: string; // base64-encoded PNG thumbnail, max ~50KB
   created_at: string; // ISO 8601
-  created_by: string; // "vellum-assistant/{version}"
+  created_by: string; // "max-assistant/{version}"
   entry: string; // "index.html"
   capabilities: string[]; // empty for MVP
   version?: string; // semver, defaults to "1.0.0"

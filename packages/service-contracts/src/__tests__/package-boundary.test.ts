@@ -1,17 +1,17 @@
 /**
- * Package boundary tests for @vellumai/service-contracts.
+ * Package boundary tests for @maxai/service-contracts.
  *
  * Ensures the package:
  * 1. Does NOT import from assistant, gateway, credential-executor, or other
  *    service runtime modules.
  * 2. Does NOT import from runtime shared packages that sit above it in the
- *    dependency hierarchy (@vellumai/credential-storage, @vellumai/egress-proxy,
- *    @vellumai/skill-host-contracts).
- * 3. Does NOT import from x-client packages (@vellumai/assistant-client,
- *    @vellumai/ces-client, @vellumai/gateway-client).
+ *    dependency hierarchy (@maxai/credential-storage, @maxai/egress-proxy,
+ *    @maxai/skill-host-contracts).
+ * 3. Does NOT import from x-client packages (@maxai/assistant-client,
+ *    @maxai/ces-client, @maxai/gateway-client).
  * 4. Remains a pure schema/type package — no runtime dependencies beyond zod.
  *
- * @vellumai/service-contracts is the lowest layer of the shared packages
+ * @maxai/service-contracts is the lowest layer of the shared packages
  * hierarchy and must not depend on any higher-layer package.
  */
 
@@ -53,36 +53,36 @@ const FORBIDDEN_IMPORT_PATTERNS = [
   // Assistant runtime
   /from\s+["'](?:\.\.\/)*assistant(?:\/|["'])/,
   /require\s*\(\s*["'](?:\.\.\/)*assistant(?:\/|["'])/,
-  /from\s+["']@vellumai\/assistant(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/assistant(?:\/|["'])/,
+  /from\s+["']@maxai\/assistant(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/assistant(?:\/|["'])/,
 
   // Gateway
   /from\s+["'](?:\.\.\/)*gateway(?:\/|["'])/,
   /require\s*\(\s*["'](?:\.\.\/)*gateway(?:\/|["'])/,
-  /from\s+["']@vellumai\/(?:vellum-)?gateway(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/(?:vellum-)?gateway(?:\/|["'])/,
+  /from\s+["']@maxai\/(?:max-)?gateway(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/(?:max-)?gateway(?:\/|["'])/,
 
   // Credential executor
   /from\s+["'](?:\.\.\/)*credential-executor(?:\/|["'])/,
   /require\s*\(\s*["'](?:\.\.\/)*credential-executor(?:\/|["'])/,
-  /from\s+["']@vellumai\/credential-executor(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/credential-executor(?:\/|["'])/,
+  /from\s+["']@maxai\/credential-executor(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/credential-executor(?:\/|["'])/,
 
   // Runtime shared packages (higher layer)
-  /from\s+["']@vellumai\/credential-storage(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/credential-storage(?:\/|["'])/,
-  /from\s+["']@vellumai\/egress-proxy(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/egress-proxy(?:\/|["'])/,
-  /from\s+["']@vellumai\/skill-host-contracts(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/skill-host-contracts(?:\/|["'])/,
+  /from\s+["']@maxai\/credential-storage(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/credential-storage(?:\/|["'])/,
+  /from\s+["']@maxai\/egress-proxy(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/egress-proxy(?:\/|["'])/,
+  /from\s+["']@maxai\/skill-host-contracts(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/skill-host-contracts(?:\/|["'])/,
 
   // x-client packages (higher layer)
-  /from\s+["']@vellumai\/assistant-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/assistant-client(?:\/|["'])/,
-  /from\s+["']@vellumai\/ces-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/ces-client(?:\/|["'])/,
-  /from\s+["']@vellumai\/gateway-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/gateway-client(?:\/|["'])/,
+  /from\s+["']@maxai\/assistant-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/assistant-client(?:\/|["'])/,
+  /from\s+["']@maxai\/ces-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/ces-client(?:\/|["'])/,
+  /from\s+["']@maxai\/gateway-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/gateway-client(?:\/|["'])/,
 ];
 
 describe("package boundary", () => {
@@ -115,7 +115,7 @@ describe("package boundary", () => {
         `Found ${violations.length} forbidden import(s) in service-contracts package:\n` +
           violations.map((v) => `  - ${v}`).join("\n") +
           "\n\n" +
-          "@vellumai/service-contracts is a pure schema/type package and must not\n" +
+          "@maxai/service-contracts is a pure schema/type package and must not\n" +
           "import from runtime services or higher-layer packages.",
       );
     }
@@ -140,13 +140,13 @@ describe("package boundary", () => {
 
     const forbidden = Object.keys(allDeps).filter((dep) =>
       [
-        "@vellumai/assistant",
-        "@vellumai/credential-storage",
-        "@vellumai/egress-proxy",
-        "@vellumai/skill-host-contracts",
-        "@vellumai/assistant-client",
-        "@vellumai/ces-client",
-        "@vellumai/gateway-client",
+        "@maxai/assistant",
+        "@maxai/credential-storage",
+        "@maxai/egress-proxy",
+        "@maxai/skill-host-contracts",
+        "@maxai/assistant-client",
+        "@maxai/ces-client",
+        "@maxai/gateway-client",
       ].includes(dep),
     );
 

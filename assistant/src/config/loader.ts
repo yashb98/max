@@ -114,7 +114,7 @@ function cloneDefaultConfig(): AssistantConfig {
  * raw config on disk, so an explicit user choice (e.g. saving "your-own"
  * via the macOS Models & Services UI) always wins.
  *
- * IS_PLATFORM is set by the Vellum platform launcher for all hosted
+ * IS_PLATFORM is set by the Max platform launcher for all hosted
  * assistant deployments. Local, Docker, and bare-metal assistants are
  * unaffected.
  */
@@ -535,7 +535,7 @@ function emptyDefaultWorkspaceConfigMergeResult(): DefaultWorkspaceConfigMergeRe
 
 /**
  * Merge default workspace config from the file referenced by
- * VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH into the workspace config on disk.
+ * MAX_DEFAULT_WORKSPACE_CONFIG_PATH into the workspace config on disk.
  *
  * Called once at daemon startup (before the first loadConfig()) so platform
  * overrides are persisted to disk before the daemon's first config read.
@@ -543,7 +543,7 @@ function emptyDefaultWorkspaceConfigMergeResult(): DefaultWorkspaceConfigMergeRe
  * in-memory `loadConfig()` cache applies them at access time instead.
  */
 export function mergeDefaultWorkspaceConfig(): DefaultWorkspaceConfigMergeResult {
-  const defaultConfigPath = process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+  const defaultConfigPath = process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
   if (!defaultConfigPath || !existsSync(defaultConfigPath)) {
     return emptyDefaultWorkspaceConfigMergeResult();
   }

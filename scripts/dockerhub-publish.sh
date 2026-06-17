@@ -4,7 +4,7 @@
 #
 # Builds multi-arch (linux/amd64, linux/arm64) images for the assistant,
 # gateway, and credential-executor services, then pushes them to Docker Hub
-# under the vellumai/ namespace.
+# under the maxai/ namespace.
 #
 # Prerequisites:
 #   - Docker with buildx support (Docker Desktop or buildx plugin)
@@ -84,7 +84,7 @@ fi
 # Configuration (override any value via environment variables)
 # ---------------------------------------------------------------------------
 
-DOCKERHUB_ORG="${DOCKERHUB_ORG:-vellumai}"
+DOCKERHUB_ORG="${DOCKERHUB_ORG:-maxai}"
 DOCKERHUB_USER="${DOCKERHUB_USER:-}"
 DOCKERHUB_ACCESS_TOKEN="${DOCKERHUB_ACCESS_TOKEN:-}"
 PLATFORMS="${DOCKERHUB_PLATFORMS:-linux/amd64,linux/arm64}"
@@ -93,9 +93,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # Service configuration lookup helpers (compatible with bash 3.2 / macOS)
 image_name_for() {
   case "$1" in
-    assistant)            echo "${ASSISTANT_IMAGE_NAME:-vellum-assistant}" ;;
-    credential-executor)  echo "${CREDENTIAL_EXECUTOR_IMAGE_NAME:-vellum-credential-executor}" ;;
-    gateway)              echo "${GATEWAY_IMAGE_NAME:-vellum-gateway}" ;;
+    assistant)            echo "${ASSISTANT_IMAGE_NAME:-max-assistant}" ;;
+    credential-executor)  echo "${CREDENTIAL_EXECUTOR_IMAGE_NAME:-max-credential-executor}" ;;
+    gateway)              echo "${GATEWAY_IMAGE_NAME:-max-gateway}" ;;
   esac
 }
 
@@ -169,7 +169,7 @@ echo ""
 
 echo "==> Setting up Docker Buildx"
 
-BUILDER_NAME="vellum-multiarch"
+BUILDER_NAME="max-multiarch"
 if ! docker buildx inspect "$BUILDER_NAME" &>/dev/null; then
   echo "  Creating buildx builder: ${BUILDER_NAME}"
   docker buildx create --name "$BUILDER_NAME" --driver docker-container --use

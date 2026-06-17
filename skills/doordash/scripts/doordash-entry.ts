@@ -5,7 +5,7 @@
  * Invoked via `bun {baseDir}/scripts/doordash-entry.ts <subcommand>`.
  *
  * registerDoordashCommand() creates a nested `doordash` subcommand
- * (designed for `vellum doordash <sub>`). We extract that subcommand
+ * (designed for `max doordash <sub>`). We extract that subcommand
  * and use it as the root so `doordash status` works directly.
  */
 

@@ -1,10 +1,10 @@
 ---
 name: watcher
 description: Create and manage polling watchers that monitor external services (Gmail, Google Calendar, GitHub, Linear, Outlook) for events and process them with custom action prompts
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "👀"
-  vellum:
+  max:
     display-name: "Watcher"
 ---
 

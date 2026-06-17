@@ -276,7 +276,7 @@ export class LocalEmbeddingBackend implements EmbeddingBackend {
     // Worker is running — drain stderr in background for ongoing logging
     this.drainStderr(proc.stderr);
 
-    // Write PID file so `vellum ps` can see the embed worker
+    // Write PID file so `max ps` can see the embed worker
     this.writePidFile(proc.pid);
 
     log.info(
@@ -475,7 +475,7 @@ export class LocalEmbeddingBackend implements EmbeddingBackend {
    * original worker exited and the OS recycled the PID.
    *
    * Matching `embed-worker` alone would also match a sibling assistant
-   * instance's worker (different VELLUM_WORKSPACE_DIR), so we match against
+   * instance's worker (different MAX_WORKSPACE_DIR), so we match against
    * the absolute worker script path, which lives under THIS workspace's
    * embedding-models directory and is therefore unique per instance.
    */

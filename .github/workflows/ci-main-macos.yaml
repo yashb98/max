@@ -69,14 +69,14 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 20
     env:
-      APP_DISPLAY_NAME: Vellum
+      APP_DISPLAY_NAME: Max
     steps:
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Cancel if superseded by a newer run
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
@@ -127,7 +127,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 30
     env:
-      APP_DISPLAY_NAME: Vellum
+      APP_DISPLAY_NAME: Max
       KEYCHAIN_NAME: ci-build.keychain
       KEYCHAIN_PASSWORD: temporary-ci-password
     steps:
@@ -136,8 +136,8 @@ jobs:
         continue-on-error: true
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Wait before token retry
         if: steps.app-token.outcome == 'failure'
@@ -150,8 +150,8 @@ jobs:
         if: steps.app-token.outcome == 'failure'
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Cancel if superseded by a newer run
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
@@ -283,7 +283,7 @@ jobs:
           BUNDLE_DISPLAY_NAME="$APP_DISPLAY_NAME" \
           DISPLAY_VERSION="${{ steps.version.outputs.dev_version }}" \
           COMMIT_SHA="${{ github.sha }}" \
-          VELLUM_ENVIRONMENT=dev \
+          MAX_ENVIRONMENT=dev \
           ./build.sh 2>&1 | while IFS= read -r line; do
             echo "[$(date -u '+%H:%M:%S')] $line"
           done
@@ -319,17 +319,17 @@ jobs:
         run: |
           DEV_VERSION="${{ steps.version.outputs.dev_version }}"
           hdiutil create \
-            -volname "Vellum ${DEV_VERSION}" \
+            -volname "Max ${DEV_VERSION}" \
             -srcfolder "dist/${APP_DISPLAY_NAME}.app" \
             -ov -format UDZO \
-            "vellum-assistant-${DEV_VERSION}.dmg"
-          ls -lh "vellum-assistant-${DEV_VERSION}.dmg"
+            "max-assistant-${DEV_VERSION}.dmg"
+          ls -lh "max-assistant-${DEV_VERSION}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: vellum-assistant-${{ steps.version.outputs.dev_version }}.dmg
-          path: clients/macos/vellum-assistant-${{ steps.version.outputs.dev_version }}.dmg
+          name: max-assistant-${{ steps.version.outputs.dev_version }}.dmg
+          path: clients/macos/max-assistant-${{ steps.version.outputs.dev_version }}.dmg
           retention-days: 30
           if-no-files-found: error
 

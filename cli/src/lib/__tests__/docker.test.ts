@@ -10,9 +10,9 @@ import { buildServiceRunArgs } from "../statefulset.js";
 
 const instanceName = "test-instance";
 const imageTags: Record<ServiceName, string> = {
-  assistant: "vellumai/vellum-assistant:test",
-  "credential-executor": "vellumai/vellum-credential-executor:test",
-  gateway: "vellumai/vellum-gateway:test",
+  assistant: "maxai/max-assistant:test",
+  "credential-executor": "maxai/max-credential-executor:test",
+  gateway: "maxai/max-gateway:test",
 };
 
 function buildAssistantArgs(
@@ -73,8 +73,8 @@ describe("buildServiceRunArgs — assistant", () => {
   test("preserves existing required env vars", () => {
     const args = buildAssistantArgs();
     expect(args).toContain("IS_CONTAINERIZED=true");
-    expect(args).toContain("VELLUM_WORKSPACE_DIR=/workspace");
-    expect(args).toContain(`VELLUM_ASSISTANT_NAME=${instanceName}`);
+    expect(args).toContain("MAX_WORKSPACE_DIR=/workspace");
+    expect(args).toContain(`MAX_ASSISTANT_NAME=${instanceName}`);
   });
 
   test("publishes the assistant HTTP port on all host interfaces so sibling bot containers can reach the daemon via host.docker.internal on both Docker Desktop and Linux", () => {
@@ -141,7 +141,7 @@ describe("buildServiceRunArgs — gateway", () => {
   });
 });
 
-describe("VELLUM_AVATAR_DEVICE passthrough", () => {
+describe("MAX_AVATAR_DEVICE passthrough", () => {
   const savedValue = process.env[AVATAR_DEVICE_ENV_VAR];
 
   beforeEach(() => {

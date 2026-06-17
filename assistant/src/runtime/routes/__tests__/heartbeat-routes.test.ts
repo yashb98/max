@@ -40,18 +40,18 @@ function readConfig(): Record<string, unknown> {
 }
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-hbr-"));
-  origWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = workspaceDir;
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-hbr-"));
+  origWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = workspaceDir;
   configPath = join(workspaceDir, "config.json");
   invalidateConfigCache();
 });
 
 afterEach(() => {
   if (origWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = origWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = origWorkspaceDir;
   }
   invalidateConfigCache();
   try {

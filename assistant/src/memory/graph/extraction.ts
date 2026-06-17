@@ -1105,7 +1105,7 @@ export async function runGraphExtraction(
   // TODO: full supersession is not yet implemented. When it lands, iterate
   // BOTH `diff.createEdges` (existing → existing) AND `deferredEdges`
   // (new → existing, the typical supersession case).
-  // Tracked by https://github.com/vellum-ai/vellum-assistant/pull/27057 (Devin).
+  // Tracked by https://github.com/max-ai/max-assistant/pull/27057 (Devin).
   for (const edge of diff.createEdges) {
     if (edge.relationship === "supersedes") {
       // Placeholder — see TODO above.

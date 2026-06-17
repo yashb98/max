@@ -217,7 +217,7 @@ describe("addPointerMessage", () => {
 
   test("explicit untrusted audience mode skips processor", () => {
     const convId = "conv-ptr-explicit-untrusted";
-    ensureConversation(convId, { originChannel: "vellum" });
+    ensureConversation(convId, { originChannel: "max" });
 
     const processorCalled = { value: false };
     setPointerMessageProcessor(async () => {
@@ -238,7 +238,7 @@ describe("addPointerMessage", () => {
 
   test("trusted audience routes through daemon processor with required facts", async () => {
     const convId = "conv-ptr-trusted";
-    ensureConversation(convId, { originChannel: "vellum" });
+    ensureConversation(convId, { originChannel: "max" });
 
     let capturedInstruction = "";
     let capturedFacts: string[] = [];
@@ -263,7 +263,7 @@ describe("addPointerMessage", () => {
 
   test("trusted audience falls back to deterministic on processor failure", async () => {
     const convId = "conv-ptr-processor-fail";
-    ensureConversation(convId, { originChannel: "vellum" });
+    ensureConversation(convId, { originChannel: "max" });
 
     setPointerMessageProcessor(async () => {
       throw new Error("Daemon unavailable");
@@ -277,9 +277,9 @@ describe("addPointerMessage", () => {
     expect(text).toContain("failed: busy");
   });
 
-  test("vellum origin channel is detected as trusted audience", async () => {
-    const convId = "conv-ptr-vellum";
-    ensureConversation(convId, { originChannel: "vellum" });
+  test("max origin channel is detected as trusted audience", async () => {
+    const convId = "conv-ptr-max";
+    ensureConversation(convId, { originChannel: "max" });
 
     let processorCalled = false;
     setPointerMessageProcessor(async () => {

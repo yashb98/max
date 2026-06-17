@@ -1,10 +1,10 @@
 import { resolveAssistant } from "../lib/assistant-config";
 import { runNgrokTunnel } from "../lib/ngrok";
 
-const VALID_PROVIDERS = ["vellum", "ngrok", "cloudflare", "tailscale"] as const;
+const VALID_PROVIDERS = ["max", "ngrok", "cloudflare", "tailscale"] as const;
 type TunnelProvider = (typeof VALID_PROVIDERS)[number];
 
-const DEFAULT_PROVIDER: TunnelProvider = "vellum";
+const DEFAULT_PROVIDER: TunnelProvider = "max";
 
 interface TunnelArgs {
   assistantName: string | null;
@@ -19,7 +19,7 @@ function parseArgs(): TunnelArgs {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--help" || arg === "-h") {
-      console.log("Usage: vellum tunnel [<name>] [options]");
+      console.log("Usage: max tunnel [<name>] [options]");
       console.log("");
       console.log("Create a tunnel for a locally hosted assistant.");
       console.log("");
@@ -68,7 +68,7 @@ export async function tunnel(): Promise<void> {
         `No assistant instance found with name '${assistantName}'.`,
       );
     } else {
-      console.error("No assistant instance found. Run `vellum hatch` first.");
+      console.error("No assistant instance found. Run `max hatch` first.");
     }
     process.exit(1);
   }

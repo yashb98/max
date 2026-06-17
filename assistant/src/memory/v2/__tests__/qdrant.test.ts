@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { makeMockLogger } from "../../../__tests__/helpers/mock-logger.js";
 
 // Per-suite tmp data dir so the reembed sentinel never lands in the
-// developer's real ~/.vellum workspace.
+// developer's real ~/.max workspace.
 const TEST_DATA_DIR = mkdtempSync(join(tmpdir(), "memory-v2-qdrant-test-"));
 const REEMBED_SENTINEL_PATH = join(
   TEST_DATA_DIR,

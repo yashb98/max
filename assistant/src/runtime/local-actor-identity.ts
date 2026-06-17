@@ -3,12 +3,12 @@
  *
  * Local connections come from the native app via local HTTP sessions.
  * No actor token is sent over the connection; instead, the daemon assigns a
- * deterministic local actor identity server-side by looking up the vellum
+ * deterministic local actor identity server-side by looking up the max
  * channel guardian binding.
  *
  * This routes local connections through the same `resolveTrustContext`
  * pathway used by HTTP channel ingress, producing equivalent
- * guardian-context behavior for the vellum channel.
+ * guardian-context behavior for the max channel.
  */
 
 import type { ChannelId } from "../channels/types.js";
@@ -45,14 +45,14 @@ export function buildLocalAuthContext(conversationId: string): AuthContext {
 }
 
 /**
- * Look up the local vellum guardian's principalId from the contacts table.
+ * Look up the local max guardian's principalId from the contacts table.
  *
- * Returns `undefined` when no vellum guardian binding exists (e.g. fresh
+ * Returns `undefined` when no max guardian binding exists (e.g. fresh
  * install before bootstrap). Callers should treat that case as
  * "not yet available" and either fall back or proceed without a principalId.
  */
 export function findLocalGuardianPrincipalId(): string | undefined {
-  return findGuardianForChannel("vellum")?.contact.principalId ?? undefined;
+  return findGuardianForChannel("max")?.contact.principalId ?? undefined;
 }
 
 /**
@@ -85,7 +85,7 @@ export function resolveActorPrincipalIdForLocalGuardian(
   if (guardianPrincipalId) return guardianPrincipalId;
 
   log.warn(
-    "dev-bypass actor principal received but no vellum guardian binding found; returning undefined",
+    "dev-bypass actor principal received but no max guardian binding found; returning undefined",
   );
   return undefined;
 }
@@ -93,17 +93,17 @@ export function resolveActorPrincipalIdForLocalGuardian(
 /**
  * Resolve the guardian runtime context for a local connection.
  *
- * Looks up the vellum guardian binding to obtain the `guardianPrincipalId`,
+ * Looks up the max guardian binding to obtain the `guardianPrincipalId`,
  * then passes it as the sender identity through `resolveTrustContext` --
  * the same pathway HTTP channel routes use. This ensures local and HTTP
- * produce equivalent trust classification for the vellum channel.
+ * produce equivalent trust classification for the max channel.
  *
- * When no vellum guardian binding exists (e.g. fresh install before
+ * When no max guardian binding exists (e.g. fresh install before
  * bootstrap), falls back to a minimal guardian context so the local
  * user is not incorrectly denied.
  */
 export function resolveLocalTrustContext(
-  sourceChannel: ChannelId = "vellum",
+  sourceChannel: ChannelId = "max",
 ): TrustContext {
   const assistantId = DAEMON_INTERNAL_ASSISTANT_ID;
 
@@ -111,7 +111,7 @@ export function resolveLocalTrustContext(
   if (guardianPrincipalId) {
     const trustCtx = resolveTrustContext({
       assistantId,
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       conversationExternalId: "local",
       actorExternalId: guardianPrincipalId,
     });
@@ -119,11 +119,11 @@ export function resolveLocalTrustContext(
   }
 
   log.warn(
-    "No vellum guardian binding found — gateway may not have started yet; falling back to minimal trust context",
+    "No max guardian binding found — gateway may not have started yet; falling back to minimal trust context",
   );
   const trustCtx = resolveTrustContext({
     assistantId,
-    sourceChannel: "vellum",
+    sourceChannel: "max",
     conversationExternalId: "local",
     actorExternalId: "local",
   });
@@ -135,7 +135,7 @@ export function resolveLocalTrustContext(
  *
  * Produces the same AuthContext shape that HTTP routes receive from JWT
  * verification, using the `local_v1` scope profile. The `actorPrincipalId`
- * is populated from the vellum guardian binding when available, enabling
+ * is populated from the max guardian binding when available, enabling
  * downstream code to resolve guardian context using the same
  * `authContext.actorPrincipalId` path as HTTP sessions.
  */
@@ -148,7 +148,7 @@ export function resolveLocalAuthContext(conversationId: string): AuthContext {
   }
 
   log.warn(
-    "No vellum guardian binding found — gateway may not have started yet; returning without actorPrincipalId",
+    "No max guardian binding found — gateway may not have started yet; returning without actorPrincipalId",
   );
   return authContext;
 }

@@ -1,10 +1,10 @@
 ---
 name: start-the-day
 description: Get a personalized daily briefing with weather, news, and actionable insights
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🌅"
-  vellum:
+  max:
     display-name: "Start the Day"
 ---
 

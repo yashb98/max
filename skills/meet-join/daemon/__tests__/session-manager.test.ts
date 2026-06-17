@@ -18,7 +18,7 @@ import {
   test,
 } from "bun:test";
 
-import type { AssistantEvent } from "@vellumai/skill-host-contracts";
+import type { AssistantEvent } from "@maxai/skill-host-contracts";
 
 import {
   buildTestHost,
@@ -236,7 +236,7 @@ describe("MeetSessionManager.join", () => {
       // Force the display-name resolver to return null so the JOIN_NAME
       // assertion below is deterministic — without this override the real
       // `getAssistantName()` reads `IDENTITY.md` from whatever workspace
-      // happens to be on disk (the user's real `~/.vellum/workspace/` if
+      // happens to be on disk (the user's real `~/.max/workspace/` if
       // no preload is wired), which would leak into the assertion.
       resolveAssistantDisplayName: () => null,
     });
@@ -292,17 +292,17 @@ describe("MeetSessionManager.join", () => {
       network: string;
       labels: Record<string, string>;
     };
-    expect(runOpts.image).toBe("vellum-meet-bot:dev");
+    expect(runOpts.image).toBe("max-meet-bot:dev");
     expect(runOpts.env.MEET_URL).toBe("https://meet.google.com/xyz-abc-def");
     expect(runOpts.env.MEETING_ID).toBe("m1");
     // `services.meet.joinName` is null by default → session manager falls
     // back to the assistant display name, then to MEET_JOIN_NAME_FALLBACK.
     // The test wires `resolveAssistantDisplayName: () => null` above, so
     // we land on the hard fallback regardless of what `IDENTITY.md` says.
-    expect(runOpts.env.JOIN_NAME).toBe("Vellum");
+    expect(runOpts.env.JOIN_NAME).toBe("Max");
     // `{assistantName}` is substituted in the session manager using the
     // same effective name that `JOIN_NAME` resolves to.
-    expect(runOpts.env.CONSENT_MESSAGE).toContain("Vellum");
+    expect(runOpts.env.CONSENT_MESSAGE).toContain("Max");
     expect(runOpts.env.CONSENT_MESSAGE).not.toContain("{assistantName}");
     expect(runOpts.env.DAEMON_URL).toBe("http://host.docker.internal:7821");
     expect(runOpts.env.BOT_API_TOKEN).toBe(session.botApiToken);
@@ -323,17 +323,17 @@ describe("MeetSessionManager.join", () => {
       },
     ]);
 
-    expect(runOpts.name).toBe("vellum-meet-m1");
+    expect(runOpts.name).toBe("max-meet-m1");
     expect(runOpts.network).toBe("bridge");
 
     // Container labels consumed by the startup orphan reaper. The
-    // `vellum.meet.instance` label scopes the bot to this daemon's data
+    // `max.meet.instance` label scopes the bot to this daemon's data
     // root so a concurrently-running second daemon (different instance
     // root) cannot cross-kill this container via its own reaper. See
     // `docker-runner.ts:reapOrphanedMeetBots` for the full contract.
-    expect(runOpts.labels["vellum.meet.bot"]).toBe("true");
-    expect(runOpts.labels["vellum.meet.meetingId"]).toBe("m1");
-    expect(runOpts.labels["vellum.meet.instance"]).toMatch(/^[0-9a-f]{16}$/);
+    expect(runOpts.labels["max.meet.bot"]).toBe("true");
+    expect(runOpts.labels["max.meet.meetingId"]).toBe("m1");
+    expect(runOpts.labels["max.meet.instance"]).toMatch(/^[0-9a-f]{16}$/);
 
     // activeSessions and getSession both reflect the new record.
     expect(manager.activeSessions()).toHaveLength(1);
@@ -2254,7 +2254,7 @@ describe("MeetSessionManager TTS lip-sync forwarder wiring", () => {
 /**
  * Covers the preflight that verifies the avatar device node is present
  * inside the container when `services.meet.avatar.enabled` is true. The
- * CLI passes `VELLUM_AVATAR_DEVICE` and bind-mounts the device when it
+ * CLI passes `MAX_AVATAR_DEVICE` and bind-mounts the device when it
  * exists on the host. If the device is missing, the inner `dockerd` would
  * reject container-create with a cryptic "device not found" error. The
  * preflight moves the failure to meet-join time with a clear message.
@@ -2335,7 +2335,7 @@ describe("MeetSessionManager Docker-mode avatar-device preflight", () => {
     await expect(joinPromise).rejects.toBeInstanceOf(
       MeetAvatarDeviceMissingError,
     );
-    await expect(joinPromise).rejects.toThrow(/VELLUM_AVATAR_DEVICE/);
+    await expect(joinPromise).rejects.toThrow(/MAX_AVATAR_DEVICE/);
     await expect(joinPromise).rejects.toThrow(/\/dev\/video10/);
 
     // Preflight short-circuits before the Docker runner is ever touched.

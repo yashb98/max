@@ -21,11 +21,11 @@ function getAssistantRootDir(entry: AssistantEntry): string {
       `Local assistant '${entry.assistantId}' is missing resource configuration. Re-hatch to fix.`,
     );
   }
-  return join(entry.resources.instanceDir, ".vellum");
+  return join(entry.resources.instanceDir, ".max");
 }
 
-function readActiveCallLeases(vellumDir: string): ActiveCallLease[] {
-  const path = join(vellumDir, ACTIVE_CALL_LEASES_FILE);
+function readActiveCallLeases(maxDir: string): ActiveCallLease[] {
+  const path = join(maxDir, ACTIVE_CALL_LEASES_FILE);
   if (!existsSync(path)) {
     return [];
   }
@@ -48,7 +48,7 @@ function readActiveCallLeases(vellumDir: string): ActiveCallLease[] {
 export async function sleep(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum sleep [<name>] [--force]");
+    console.log("Usage: max sleep [<name>] [--force]");
     console.log("");
     console.log("Stop the assistant and gateway processes.");
     console.log("");
@@ -84,7 +84,7 @@ export async function sleep(): Promise<void> {
 
   if (entry.cloud && entry.cloud !== "local") {
     console.error(
-      `Error: 'vellum sleep' only works with local and docker assistants. '${entry.assistantId}' is a ${entry.cloud} instance.`,
+      `Error: 'max sleep' only works with local and docker assistants. '${entry.assistantId}' is a ${entry.cloud} instance.`,
     );
     process.exit(1);
   }
@@ -97,14 +97,14 @@ export async function sleep(): Promise<void> {
   }
   const resources = entry.resources;
   const assistantPidFile = getDaemonPidPath(resources);
-  const vellumDir = getAssistantRootDir(entry);
-  const gatewayPidFile = join(vellumDir, "gateway.pid");
+  const maxDir = getAssistantRootDir(entry);
+  const gatewayPidFile = join(maxDir, "gateway.pid");
 
   if (!force) {
     const assistantAlive = isProcessAlive(assistantPidFile).alive;
     if (assistantAlive) {
       try {
-        const activeCallLeases = readActiveCallLeases(vellumDir);
+        const activeCallLeases = readActiveCallLeases(maxDir);
         if (activeCallLeases.length > 0) {
           const activeIds = activeCallLeases.map(
             (lease) => lease.callSessionId,
@@ -112,7 +112,7 @@ export async function sleep(): Promise<void> {
           console.error(
             `Error: assistant is staying awake for active phone calls (${activeIds.join(
               ", ",
-            )}). Use 'vellum sleep --force' to stop it anyway.`,
+            )}). Use 'max sleep --force' to stop it anyway.`,
           );
           process.exit(1);
         }
@@ -120,7 +120,7 @@ export async function sleep(): Promise<void> {
         console.error(
           `Error: ${
             err instanceof Error ? err.message : String(err)
-          }. Use 'vellum sleep --force' to override if you want to stop the assistant anyway.`,
+          }. Use 'max sleep --force' to override if you want to stop the assistant anyway.`,
         );
         process.exit(1);
       }

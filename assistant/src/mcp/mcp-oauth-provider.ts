@@ -119,7 +119,7 @@ export class McpOAuthProvider implements OAuthClientProvider {
 
   get clientMetadata(): OAuthClientMetadata {
     return {
-      client_name: "Vellum Assistant",
+      client_name: "Max Assistant",
       redirect_uris: this._redirectUrl ? [this._redirectUrl] : [],
       token_endpoint_auth_method: "none",
       grant_types: ["authorization_code", "refresh_token"],

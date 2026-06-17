@@ -10,33 +10,33 @@ import { join } from "node:path";
 // any tool name not registered. So a built-in omitted from `tools` is a TRUE
 // pre-execution disable — the model cannot invoke it at all.
 //
-// VELLUM-NATIVE POSTURE (2026-06-05) with ONE exception: kimi's free managed
-// `SearchWeb` is enabled natively (saves the user's paid Vellum web_search
-// key). Every OTHER tool call routes through Vellum's native tool system:
+// MAX-NATIVE POSTURE (2026-06-05) with ONE exception: kimi's free managed
+// `SearchWeb` is enabled natively (saves the user's paid Max web_search
+// key). Every OTHER tool call routes through Max's native tool system:
 //
-//   - ReadFile → Vellum's file_read (audited, permission-gated)
-//   - ReadMediaFile → Vellum's ReadMediaFile (audited, permission-gated)
-//   - Glob → Vellum's Glob (audited, permission-gated)
-//   - Grep → Vellum's Grep (audited, permission-gated)
-//   - Shell → Vellum's bash (audited, permission-gated)
-//   - WriteFile → Vellum's file_write (audited, permission-gated)
-//   - StrReplaceFile → Vellum's file_edit (audited, permission-gated)
-//   - FetchURL → Vellum's web_fetch (audited, permission-gated)
-//   - SearchWeb → Vellum's web_search (audited, permission-gated)
+//   - ReadFile → Max's file_read (audited, permission-gated)
+//   - ReadMediaFile → Max's ReadMediaFile (audited, permission-gated)
+//   - Glob → Max's Glob (audited, permission-gated)
+//   - Grep → Max's Grep (audited, permission-gated)
+//   - Shell → Max's bash (audited, permission-gated)
+//   - WriteFile → Max's file_write (audited, permission-gated)
+//   - StrReplaceFile → Max's file_edit (audited, permission-gated)
+//   - FetchURL → Max's web_fetch (audited, permission-gated)
+//   - SearchWeb → Max's web_search (audited, permission-gated)
 //   - Task / subagents → disabled entirely (subagents: {})
 //
-// Every tool call goes through Vellum's full allowlist → permission → approval
-// → audit pipeline. No tool runs ungated. No tool bypasses Vellum's audit log.
-// The model uses Vellum's tool schemas for all operations.
+// Every tool call goes through Max's full allowlist → permission → approval
+// → audit pipeline. No tool runs ungated. No tool bypasses Max's audit log.
+// The model uses Max's tool schemas for all operations.
 
 /**
  * Native kimi built-in tools the model may use directly.
  *
  * Only kimi's FREE managed web search (`SearchWeb`, included in the kimi-code
  * subscription) is enabled — so searches use it instead of the user's own paid
- * Vellum `web_search` key. It runs UNGATED (no Vellum audit), accepted as a
+ * Max `web_search` key. It runs UNGATED (no Max audit), accepted as a
  * trusted single-user trade. Everything else (file/shell/edit/`FetchURL`) stays
- * disabled and routes through Vellum's audited tools. NEVER add `FetchURL`
+ * disabled and routes through Max's audited tools. NEVER add `FetchURL`
  * (SSRF) or any write/exec tool here without re-running the isolation probe.
  */
 export const KIMI_BUILTIN_TOOL_ALLOWLIST: readonly string[] = [
@@ -65,7 +65,7 @@ function buildAgentSpecYaml(): string {
   return [
     "version: 1",
     "agent:",
-    '  name: "vellum-kimi-agent"',
+    '  name: "max-kimi-agent"',
     "  system_prompt_path: ./system.md",
     toolsBlock,
     "  subagents: {}",

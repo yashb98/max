@@ -16,7 +16,7 @@ export interface MemoryEntry {
   readonly createdAt: number;
 }
 
-import type { PluginLogger } from "@vellumai/plugin-api";
+import type { PluginLogger } from "@maxai/plugin-api";
 
 export interface PluginState {
   /** Absolute path to the JSONL file backing the in-memory store. */

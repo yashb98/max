@@ -8,7 +8,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 mock.module("../channels/config.js", () => ({
-  getDeliverableChannels: () => ["vellum", "telegram", "slack"],
+  getDeliverableChannels: () => ["max", "telegram", "slack"],
 }));
 
 mock.module("../notifications/decisions-store.js", () => ({
@@ -83,14 +83,14 @@ describe("notification decision fallback copy", () => {
   test("uses human-friendly template copy for guardian.question", async () => {
     const signal = makeSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(true);
-    expect(decision.renderedCopy.vellum?.title).toBe("Guardian Question");
-    expect(decision.renderedCopy.vellum?.body).toBe("What is the gate code?");
-    expect(decision.renderedCopy.vellum?.title).not.toBe("guardian.question");
-    expect(decision.renderedCopy.vellum?.body).not.toContain(
+    expect(decision.renderedCopy.max?.title).toBe("Guardian Question");
+    expect(decision.renderedCopy.max?.body).toBe("What is the gate code?");
+    expect(decision.renderedCopy.max?.title).not.toBe("guardian.question");
+    expect(decision.renderedCopy.max?.body).not.toContain(
       "Action required: guardian.question",
     );
   });
@@ -100,10 +100,10 @@ describe("notification decision fallback copy", () => {
     extractedToolUse = {
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "Heartbeat found a useful follow-up.",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Heartbeat Follow-up",
             body: "The daily tracker is ready; consider reminding the guardian to review it before the next check-in.",
           },
@@ -129,15 +129,15 @@ describe("notification decision fallback copy", () => {
           visibleInSourceNow: false,
         },
       }),
-      ["vellum"] as NotificationChannel[],
+      ["max"] as NotificationChannel[],
     );
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.title).toBe("Heartbeat Alert");
-    expect(decision.renderedCopy.vellum?.body).toBe(
+    expect(decision.renderedCopy.max?.title).toBe("Heartbeat Alert");
+    expect(decision.renderedCopy.max?.body).toBe(
       "I found something worth your attention in a heartbeat check. Open the conversation for details.",
     );
-    expect(decision.renderedCopy.vellum?.body).not.toContain(
+    expect(decision.renderedCopy.max?.body).not.toContain(
       "reminding the guardian",
     );
   });
@@ -147,10 +147,10 @@ describe("notification decision fallback copy", () => {
     extractedToolUse = {
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "Heartbeat found a useful follow-up.",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Tracker Ready",
             body: "Your daily tracker is ready. Review it before the next check-in.",
           },
@@ -176,12 +176,12 @@ describe("notification decision fallback copy", () => {
           visibleInSourceNow: false,
         },
       }),
-      ["vellum"] as NotificationChannel[],
+      ["max"] as NotificationChannel[],
     );
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.title).toBe("Tracker Ready");
-    expect(decision.renderedCopy.vellum?.body).toBe(
+    expect(decision.renderedCopy.max?.title).toBe("Tracker Ready");
+    expect(decision.renderedCopy.max?.body).toBe(
       "Your daily tracker is ready. Review it before the next check-in.",
     );
   });
@@ -198,14 +198,14 @@ describe("notification decision fallback copy", () => {
       },
     });
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(true);
-    expect(decision.renderedCopy.vellum?.body).toContain("A1B2C3");
-    expect(decision.renderedCopy.vellum?.body).toContain("<your answer>");
-    expect(decision.renderedCopy.vellum?.body).not.toContain("approve");
-    expect(decision.renderedCopy.vellum?.body).not.toContain("reject");
+    expect(decision.renderedCopy.max?.body).toContain("A1B2C3");
+    expect(decision.renderedCopy.max?.body).toContain("<your answer>");
+    expect(decision.renderedCopy.max?.body).not.toContain("approve");
+    expect(decision.renderedCopy.max?.body).not.toContain("reject");
   });
 
   test("enforcement appends free-text answer instructions when LLM copy only mentions request code", async () => {
@@ -216,10 +216,10 @@ describe("notification decision fallback copy", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Guardian Question",
             body: "Use reference code A1B2C3 for this request.",
           },
@@ -241,17 +241,17 @@ describe("notification decision fallback copy", () => {
     });
 
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain(
+    expect(decision.renderedCopy.max?.body).toContain(
       '"A1B2C3 <your answer>"',
     );
-    expect(decision.renderedCopy.vellum?.body).not.toContain(
+    expect(decision.renderedCopy.max?.body).not.toContain(
       '"A1B2C3 approve"',
     );
-    expect(decision.renderedCopy.vellum?.body).not.toContain('"A1B2C3 reject"');
+    expect(decision.renderedCopy.max?.body).not.toContain('"A1B2C3 reject"');
   });
 
   test("enforcement appends answer instructions when LLM copy incorrectly uses approve/reject wording", async () => {
@@ -262,10 +262,10 @@ describe("notification decision fallback copy", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Guardian Question",
             body: 'Reference code: A1B2C3. Reply "A1B2C3 approve" or "A1B2C3 reject".',
           },
@@ -287,11 +287,11 @@ describe("notification decision fallback copy", () => {
     });
 
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain(
+    expect(decision.renderedCopy.max?.body).toContain(
       '"A1B2C3 <your answer>"',
     );
   });
@@ -304,10 +304,10 @@ describe("notification decision fallback copy", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Guardian Question",
             body: "Use reference code A1B2C3 for this request.",
           },
@@ -328,12 +328,12 @@ describe("notification decision fallback copy", () => {
     });
 
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain('"A1B2C3 approve"');
-    expect(decision.renderedCopy.vellum?.body).toContain('"A1B2C3 reject"');
+    expect(decision.renderedCopy.max?.body).toContain('"A1B2C3 approve"');
+    expect(decision.renderedCopy.max?.body).toContain('"A1B2C3 reject"');
   });
 
   test("approval-mode enforcement removes conflicting answer-mode phrasing", async () => {
@@ -344,10 +344,10 @@ describe("notification decision fallback copy", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Guardian Question",
             body: 'Reference code: A1B2C3. Reply "A1B2C3 <your answer>".',
           },
@@ -368,13 +368,13 @@ describe("notification decision fallback copy", () => {
     });
 
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain('"A1B2C3 approve"');
-    expect(decision.renderedCopy.vellum?.body).toContain('"A1B2C3 reject"');
-    expect(decision.renderedCopy.vellum?.body).not.toContain("<your answer>");
+    expect(decision.renderedCopy.max?.body).toContain('"A1B2C3 approve"');
+    expect(decision.renderedCopy.max?.body).toContain('"A1B2C3 reject"');
+    expect(decision.renderedCopy.max?.body).not.toContain("<your answer>");
   });
 });
 
@@ -413,14 +413,14 @@ describe("access-request instruction enforcement", () => {
   test("fallback copy includes access-request contract elements", async () => {
     const signal = makeAccessRequestSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(true);
-    expect(decision.renderedCopy.vellum?.body).toContain("A1B2C3");
-    expect(decision.renderedCopy.vellum?.body).toContain("approve");
-    expect(decision.renderedCopy.vellum?.body).toContain("reject");
-    expect(decision.renderedCopy.vellum?.body).toContain("open invite flow");
+    expect(decision.renderedCopy.max?.body).toContain("A1B2C3");
+    expect(decision.renderedCopy.max?.body).toContain("approve");
+    expect(decision.renderedCopy.max?.body).toContain("reject");
+    expect(decision.renderedCopy.max?.body).toContain("open invite flow");
   });
 
   test("enforcement appends contract when LLM copy is missing request code", async () => {
@@ -431,10 +431,10 @@ describe("access-request instruction enforcement", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Access Request",
             body: "Someone wants access to your assistant.",
           },
@@ -446,14 +446,14 @@ describe("access-request instruction enforcement", () => {
 
     const signal = makeAccessRequestSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain("A1B2C3");
-    expect(decision.renderedCopy.vellum?.body).toContain("approve");
-    expect(decision.renderedCopy.vellum?.body).toContain("reject");
-    expect(decision.renderedCopy.vellum?.body).toContain("open invite flow");
+    expect(decision.renderedCopy.max?.body).toContain("A1B2C3");
+    expect(decision.renderedCopy.max?.body).toContain("approve");
+    expect(decision.renderedCopy.max?.body).toContain("reject");
+    expect(decision.renderedCopy.max?.body).toContain("open invite flow");
   });
 
   test("enforcement appends contract when LLM copy has code but missing invite flow", async () => {
@@ -464,10 +464,10 @@ describe("access-request instruction enforcement", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Access Request",
             body: 'Alice wants access. Reply "A1B2C3 approve" or "A1B2C3 reject".',
           },
@@ -479,11 +479,11 @@ describe("access-request instruction enforcement", () => {
 
     const signal = makeAccessRequestSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
-    expect(decision.renderedCopy.vellum?.body).toContain("open invite flow");
+    expect(decision.renderedCopy.max?.body).toContain("open invite flow");
   });
 
   test("enforcement does not duplicate when LLM copy already has all required elements", async () => {
@@ -496,10 +496,10 @@ describe("access-request instruction enforcement", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Access Request",
             body: fullBody,
           },
@@ -511,12 +511,12 @@ describe("access-request instruction enforcement", () => {
 
     const signal = makeAccessRequestSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
     // Body should remain unchanged when all required elements are present
-    expect(decision.renderedCopy.vellum?.body).toBe(fullBody);
+    expect(decision.renderedCopy.max?.body).toBe(fullBody);
   });
 
   test("enforcement also applies to deliveryText and conversationSeedMessage", async () => {
@@ -567,10 +567,10 @@ describe("access-request instruction enforcement", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Access Request",
             body: 'Alice wants access. Just reply "yes" or "no" to decide.',
           },
@@ -582,13 +582,13 @@ describe("access-request instruction enforcement", () => {
 
     const signal = makeAccessRequestSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     // Must contain the proper contract instructions despite conflicting LLM copy
-    expect(decision.renderedCopy.vellum?.body).toContain("A1B2C3 approve");
-    expect(decision.renderedCopy.vellum?.body).toContain("A1B2C3 reject");
-    expect(decision.renderedCopy.vellum?.body).toContain("open invite flow");
+    expect(decision.renderedCopy.max?.body).toContain("A1B2C3 approve");
+    expect(decision.renderedCopy.max?.body).toContain("A1B2C3 reject");
+    expect(decision.renderedCopy.max?.body).toContain("open invite flow");
   });
 
   test("enforcement appends invite directive when requestCode is absent", async () => {
@@ -599,10 +599,10 @@ describe("access-request instruction enforcement", () => {
       name: "record_notification_decision",
       input: {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "LLM decision",
         renderedCopy: {
-          vellum: {
+          max: {
             title: "Access Request",
             body: "Someone wants access to your assistant.",
           },
@@ -620,14 +620,14 @@ describe("access-request instruction enforcement", () => {
       },
     });
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(false);
     // Invite directive should still be enforced even without requestCode
-    expect(decision.renderedCopy.vellum?.body).toContain("open invite flow");
+    expect(decision.renderedCopy.max?.body).toContain("open invite flow");
     // Approve/reject should NOT be present since there is no requestCode
-    expect(decision.renderedCopy.vellum?.body).not.toContain("approve");
-    expect(decision.renderedCopy.vellum?.body).not.toContain("reject");
+    expect(decision.renderedCopy.max?.body).not.toContain("approve");
+    expect(decision.renderedCopy.max?.body).not.toContain("reject");
   });
 });

@@ -162,7 +162,7 @@ describe("conversation-attention-store", () => {
 
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "ios_conversation_opened",
         confidence: "explicit",
         source: "ios-client",
@@ -178,7 +178,7 @@ describe("conversation-attention-store", () => {
       ensureConversation("conv-1");
       const event = recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -203,7 +203,7 @@ describe("conversation-attention-store", () => {
       // Now record a seen signal
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -247,7 +247,7 @@ describe("conversation-attention-store", () => {
       // Mark as seen at msg-1
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -263,7 +263,7 @@ describe("conversation-attention-store", () => {
       // Mark as seen at msg-2
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -300,7 +300,7 @@ describe("conversation-attention-store", () => {
       // Record seen signal without any assistant message
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_notification_view",
         confidence: "inferred",
         source: "desktop-client",
@@ -325,7 +325,7 @@ describe("conversation-attention-store", () => {
       // Mark as seen
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -363,7 +363,7 @@ describe("conversation-attention-store", () => {
       });
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -399,7 +399,7 @@ describe("conversation-attention-store", () => {
       });
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -452,7 +452,7 @@ describe("conversation-attention-store", () => {
       });
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -572,7 +572,7 @@ describe("conversation-attention-store", () => {
       });
       recordConversationSeenSignal({
         conversationId: "conv-2",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -602,7 +602,7 @@ describe("conversation-attention-store", () => {
       });
       recordConversationSeenSignal({
         conversationId: "conv-2",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",
@@ -713,7 +713,7 @@ describe("conversation-attention-store", () => {
 
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_notification_view",
         confidence: "inferred",
         source: "desktop-client",
@@ -721,7 +721,7 @@ describe("conversation-attention-store", () => {
 
       recordConversationSeenSignal({
         conversationId: "conv-1",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         signalType: "macos_conversation_opened",
         confidence: "explicit",
         source: "desktop-client",

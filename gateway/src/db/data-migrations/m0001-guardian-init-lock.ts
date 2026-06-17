@@ -1,9 +1,9 @@
 /**
  * One-time migration: copy guardian-init lock files for the original
- * first-local assistant whose lock lived at `~/.vellum/`.
+ * first-local assistant whose lock lived at `~/.max/`.
  *
  * Guardian-init shipped 2026-03-15; the refactor that moved the lock into
- * `.vellum/protected/` shipped 2026-04-14, one day after multi-instance.
+ * `.max/protected/` shipped 2026-04-14, one day after multi-instance.
  * The only realistic case with a stranded legacy lock is the pre-multi-
  * instance first-local whose instanceDir is `$HOME`. We restrict to
  * exactly that case so the migration can never pick up an unrelated
@@ -27,7 +27,7 @@ export function up(): MigrationResult {
   const newDir = getGatewaySecurityDir();
 
   // Only the original first-local assistant (instanceDir === $HOME) can
-  // have a stranded legacy lock — its new dir resolves to `~/.vellum/protected`.
+  // have a stranded legacy lock — its new dir resolves to `~/.max/protected`.
   // Any other shape means this isn't that instance; skip. Normalize both
   // sides so a user-supplied GATEWAY_SECURITY_DIR with trailing slashes
   // still matches.

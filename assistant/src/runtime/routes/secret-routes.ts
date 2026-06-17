@@ -50,8 +50,8 @@ import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 
 const log = getLogger("runtime-http");
 const MANAGED_PROXY_CREDENTIALS = [
-  { service: "vellum", field: "assistant_api_key" },
-  { service: "vellum", field: "platform_base_url" },
+  { service: "max", field: "assistant_api_key" },
+  { service: "max", field: "platform_base_url" },
 ] as const;
 
 function isManagedProxyCredential(service: string, field: string): boolean {
@@ -226,7 +226,7 @@ async function handleAddSecret({ body }: RouteHandlerArgs) {
         "platform_user_id",
       ]);
       const isTrimmedIdentity =
-        service === "vellum" && TRIMMED_IDENTITY_FIELDS.has(field);
+        service === "max" && TRIMMED_IDENTITY_FIELDS.has(field);
       const effectiveValue = isTrimmedIdentity ? value.trim() : value;
 
       if (isTrimmedIdentity && effectiveValue === "") {
@@ -255,24 +255,24 @@ async function handleAddSecret({ body }: RouteHandlerArgs) {
         }
         upsertCredentialMetadata(service, field, {});
         await syncManualTokenConnection(service);
-        if (service === "vellum" && field === "platform_base_url") {
+        if (service === "max" && field === "platform_base_url") {
           setPlatformBaseUrl(effectiveValue);
         }
-        if (service === "vellum" && field === "platform_assistant_id") {
+        if (service === "max" && field === "platform_assistant_id") {
           setPlatformAssistantId(effectiveValue || undefined);
         }
-        if (service === "vellum" && field === "platform_organization_id") {
+        if (service === "max" && field === "platform_organization_id") {
           setPlatformOrganizationId(effectiveValue || undefined);
           setSentryOrganizationId(effectiveValue || undefined);
         }
-        if (service === "vellum" && field === "platform_user_id") {
+        if (service === "max" && field === "platform_user_id") {
           setPlatformUserId(effectiveValue || undefined);
           setSentryUserId(effectiveValue || undefined);
         }
       }
       if (isManagedProxyCredential(service, field)) {
         await refreshProvidersAfterSecretChange();
-        if (service === "vellum" && field === "assistant_api_key") {
+        if (service === "max" && field === "assistant_api_key") {
           const generation = ++apiKeyGeneration;
           const deps = getSecretsDeps();
           const cesClient = deps?.getCesClient?.();
@@ -482,17 +482,17 @@ async function handleDeleteSecret({ body }: RouteHandlerArgs) {
         );
       }
       deleteCredentialMetadata(service, field);
-      if (service === "vellum" && field === "platform_base_url") {
+      if (service === "max" && field === "platform_base_url") {
         setPlatformBaseUrl(undefined);
       }
-      if (service === "vellum" && field === "platform_assistant_id") {
+      if (service === "max" && field === "platform_assistant_id") {
         setPlatformAssistantId(undefined);
       }
-      if (service === "vellum" && field === "platform_organization_id") {
+      if (service === "max" && field === "platform_organization_id") {
         setPlatformOrganizationId(undefined);
         setSentryOrganizationId(undefined);
       }
-      if (service === "vellum" && field === "platform_user_id") {
+      if (service === "max" && field === "platform_user_id") {
         setPlatformUserId(undefined);
         setSentryUserId(undefined);
       }

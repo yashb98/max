@@ -50,7 +50,7 @@ mock.module("../broadcaster.js", () => ({
 }));
 
 mock.module("../adapters/macos.js", () => ({
-  VellumAdapter: class {},
+  MaxAdapter: class {},
   isGuardianSensitiveEvent: () => false,
 }));
 mock.module("../adapters/slack.js", () => ({
@@ -89,10 +89,10 @@ mock.module("../../contacts/contact-store.js", () => ({
 
 const stubDecision: NotificationDecision = {
   shouldNotify: true,
-  selectedChannels: ["vellum"],
+  selectedChannels: ["max"],
   reasoningSummary: "test",
   renderedCopy: {
-    vellum: { title: "Background job done", body: "Summary of what happened." },
+    max: { title: "Background job done", body: "Summary of what happened." },
   },
   dedupeKey: "dk-1",
   confidence: 1,
@@ -112,10 +112,10 @@ mock.module("../deterministic-checks.js", () => ({
 
 const stubDeliveryResults: NotificationDeliveryResult[] = [
   {
-    channel: "vellum",
-    destination: "vellum-client",
+    channel: "max",
+    destination: "max-client",
     status: "sent",
-    conversationId: "conv-vellum-1",
+    conversationId: "conv-max-1",
   },
 ];
 
@@ -158,7 +158,7 @@ describe("emitNotificationSignal home-feed wire-up", () => {
     expect(appended.id).toBe(`notif:${result.signalId}`);
     expect(appended.title).toBe("Background job done");
     expect(appended.summary).toBe("Summary of what happened.");
-    expect(appended.conversationId).toBe("conv-vellum-1");
+    expect(appended.conversationId).toBe("conv-max-1");
   });
 
   test("interactive standard conversation does NOT trigger appendFeedItem", async () => {

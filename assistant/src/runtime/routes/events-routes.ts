@@ -12,7 +12,7 @@
  * conversations for this assistant (unfiltered).
  *
  * Client registration:
- *   Clients may send `X-Vellum-Client-Id` and `X-Vellum-Interface-Id`
+ *   Clients may send `X-Max-Client-Id` and `X-Max-Interface-Id`
  *   request headers. When both are present, the subscriber is registered
  *   as a client in the event hub with derived capabilities. The hub
  *   handles registration, touch (heartbeat), and unregistration (dispose).
@@ -225,8 +225,8 @@ const defaultSseShedReporter: SseShedReporter = (reason, inst) => {
  *                      from ALL conversations for this assistant.
  *
  * Headers (optional):
- *   X-Vellum-Client-Id    -- stable per-install UUID identifying this client.
- *   X-Vellum-Interface-Id -- interface type (e.g. "macos", "ios", "web").
+ *   X-Max-Client-Id    -- stable per-install UUID identifying this client.
+ *   X-Max-Interface-Id -- interface type (e.g. "macos", "ios", "web").
  *
  *   When both are present, the subscriber is registered as a client in the
  *   event hub with metadata (interfaceId, capabilities). The hub handles
@@ -254,10 +254,10 @@ export function handleSubscribeAssistantEvents(
   }
 
   // ── Client identity from headers ──────────────────────────────────────
-  const rawClientId = headers?.["x-vellum-client-id"];
-  const rawInterfaceId = headers?.["x-vellum-interface-id"];
-  const rawMachineName = headers?.["x-vellum-machine-name"];
-  const rawActorPrincipalId = headers?.["x-vellum-actor-principal-id"];
+  const rawClientId = headers?.["x-max-client-id"];
+  const rawInterfaceId = headers?.["x-max-interface-id"];
+  const rawMachineName = headers?.["x-max-machine-name"];
+  const rawActorPrincipalId = headers?.["x-max-actor-principal-id"];
   const clientId = rawClientId?.trim() || null;
   const interfaceId = clientId
     ? parseInterfaceId(rawInterfaceId?.trim())
@@ -273,10 +273,10 @@ export function handleSubscribeAssistantEvents(
   if (clientId && !interfaceId) {
     log.error(
       { clientId, rawInterfaceId },
-      "client registration failed: invalid or missing X-Vellum-Interface-Id",
+      "client registration failed: invalid or missing X-Max-Interface-Id",
     );
     throw new BadRequestError(
-      "X-Vellum-Interface-Id is required when X-Vellum-Client-Id is provided",
+      "X-Max-Interface-Id is required when X-Max-Client-Id is provided",
     );
   }
 

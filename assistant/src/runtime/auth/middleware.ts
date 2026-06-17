@@ -5,13 +5,13 @@
  * builds an AuthContext from the claims.
  *
  * Accepts two JWT audiences:
- *   - `vellum-daemon` — primary audience, used by the gateway's runtime
+ *   - `max-daemon` — primary audience, used by the gateway's runtime
  *     proxy after token exchange.
- *   - `vellum-gateway` — fallback audience, used by direct local clients
+ *   - `max-gateway` — fallback audience, used by direct local clients
  *     (e.g., the macOS app's SettingsStore) that hold a guardian-issued
  *     JWT but call daemon endpoints directly without routing through the
  *     gateway's runtime proxy. Both daemon and gateway share the same
- *     HMAC signing key (~/.vellum/protected/actor-token-signing-key),
+ *     HMAC signing key (~/.max/protected/actor-token-signing-key),
  *     so the signature is valid regardless of audience.
  *
  * Replaces both the legacy bearer shared-secret check and the
@@ -100,19 +100,19 @@ export function authenticateRequest(req: Request): AuthenticateResult {
     };
   }
 
-  // Verify the JWT — prefer vellum-daemon audience (gateway-proxied requests
-  // and daemon-minted tokens), but also accept vellum-gateway audience for
+  // Verify the JWT — prefer max-daemon audience (gateway-proxied requests
+  // and daemon-minted tokens), but also accept max-gateway audience for
   // direct local clients (macOS SettingsStore) that hold a guardian-issued JWT
   // and call daemon endpoints without routing through the gateway runtime proxy.
-  let verifyResult = verifyToken(rawToken, "vellum-daemon");
+  let verifyResult = verifyToken(rawToken, "max-daemon");
   if (
     !verifyResult.ok &&
     verifyResult.reason?.startsWith("audience_mismatch")
   ) {
-    verifyResult = verifyToken(rawToken, "vellum-gateway");
+    verifyResult = verifyToken(rawToken, "max-gateway");
     // Normalize gateway-audience claims to daemon context so that
     // buildAuthContext applies the same assistantId normalization
-    // (aud=vellum-daemon → assistantId='self') that gateway-exchanged
+    // (aud=max-daemon → assistantId='self') that gateway-exchanged
     // tokens receive. Without this rewrite, the external assistant ID
     // from the guardian-issued JWT would leak into daemon-internal
     // scoping (storage keys, routing), violating the invariant
@@ -120,7 +120,7 @@ export function authenticateRequest(req: Request): AuthenticateResult {
     if (verifyResult.ok) {
       verifyResult = {
         ok: true,
-        claims: { ...verifyResult.claims, aud: "vellum-daemon" },
+        claims: { ...verifyResult.claims, aud: "max-daemon" },
       };
     }
   }

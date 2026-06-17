@@ -106,6 +106,17 @@ export function prepareUpstreamHeaders(
 // Timeout helpers
 // ---------------------------------------------------------------------------
 
+// Module-level singleton abort reason. Bun drops the abort reason when the
+// DOMException is reachable ONLY through the timer closure (signal.reason ends
+// up undefined) — a live reference outside the closure makes it survive. One
+// immutable TimeoutError instance is safe to share across calls: consumers only
+// read its `.name`, and it matches `AbortSignal.timeout()` semantics so
+// isTimeoutError(signal.reason) works at runtime, not just in tests.
+const TIMEOUT_REASON = new DOMException(
+  "The operation was aborted due to timeout",
+  "TimeoutError",
+);
+
 /**
  * Create an AbortController with a timeout. Returns both the controller and
  * a cleanup function that clears the timer. The timeout fires a
@@ -118,12 +129,7 @@ export function createTimeoutController(timeoutMs: number): {
 } {
   const controller = new AbortController();
   const id = setTimeout(() => {
-    controller.abort(
-      new DOMException(
-        "The operation was aborted due to timeout",
-        "TimeoutError",
-      ),
-    );
+    controller.abort(TIMEOUT_REASON);
   }, timeoutMs);
   return {
     controller,

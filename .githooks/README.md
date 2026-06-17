@@ -1,6 +1,6 @@
 # Git Hooks
 
-This directory contains shared git hooks for the vellum-assistant repository.
+This directory contains shared git hooks for the max-assistant repository.
 
 ## Installation
 
@@ -57,7 +57,7 @@ Runs the same generic-examples patterns as `pre-commit`, but against the commit 
 
 **What it checks:**
 
-- **Generic-examples rule on commit messages** — Runs `scripts/check-generic-examples.ts --commit-msg <path>` against the message git is about to record. The same shape patterns and any private patterns (`VELLUM_CONTENT_CHECK_PATTERNS`) apply.
+- **Generic-examples rule on commit messages** — Runs `scripts/check-generic-examples.ts --commit-msg <path>` against the message git is about to record. The same shape patterns and any private patterns (`MAX_CONTENT_CHECK_PATTERNS`) apply.
 
 **Behavior:**
 

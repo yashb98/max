@@ -1,5 +1,5 @@
 /**
- * SSE connection helper for vellum-cloud assistants.
+ * SSE connection helper for max-cloud assistants.
  *
  * Manages the connect/reconnect lifecycle for the cloud transport:
  * GET /v1/assistants/{assistantId}/events?conversationKey=...
@@ -8,8 +8,8 @@
  * and forwards unwrapped event payloads to the caller via `onMessage`.
  * It handles reconnection with exponential backoff on unexpected closes.
  *
- * Client registration headers (`X-Vellum-Client-Id`,
- * `X-Vellum-Interface-Id`) are sent on every connect so the daemon's
+ * Client registration headers (`X-Max-Client-Id`,
+ * `X-Max-Interface-Id`) are sent on every connect so the daemon's
  * ClientRegistry tracks this extension instance.
  */
 
@@ -21,12 +21,12 @@ const SSE_RECONNECT_MAX_MS = 30_000;
 
 /**
  * Connection mode for cloud assistants. The `runtimeUrl` is the
- * gateway base URL (e.g. `https://api.vellum.ai`); the `token` is the
+ * gateway base URL (e.g. `https://api.max.ai`); the `token` is the
  * bearer token for the gateway edge auth (WorkOS session JWT).
  */
 export type SseMode =
   | {
-      kind: 'vellum-cloud';
+      kind: 'max-cloud';
       runtimeUrl: string;
       assistantId: string;
       token: string | null;
@@ -142,7 +142,7 @@ export class SseConnection {
       Accept: 'text/event-stream',
       ...(await getClientRegistrationHeaders()),
     };
-    if (mode.kind === 'vellum-cloud') {
+    if (mode.kind === 'max-cloud') {
       if (mode.token) {
         headers['Authorization'] = `Bearer ${mode.token}`;
       }
@@ -150,7 +150,7 @@ export class SseConnection {
         headers['X-Session-Token'] = mode.sessionToken;
       }
       if (mode.organizationId) {
-        headers['Vellum-Organization-Id'] = mode.organizationId;
+        headers['Max-Organization-Id'] = mode.organizationId;
       }
     } else if (mode.kind === 'self-hosted' && mode.token) {
       headers['Authorization'] = `Bearer ${mode.token}`;

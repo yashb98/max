@@ -16,15 +16,15 @@ export type GetClientIp = () => string;
 /**
  * Auth strategy for a route:
  * - "none"         — no auth check, handler called directly
- * - "edge"         — edge JWT token required (aud=vellum-gateway)
+ * - "edge"         — edge JWT token required (aud=max-gateway)
  * - "edge-scoped"  — edge JWT + scope check (requires `scope` field)
- * - "edge-guardian" — caller must be the bound vellum guardian. In the default
+ * - "edge-guardian" — caller must be the bound max guardian. In the default
  *                      path, edge JWT is validated and the caller's actor
  *                      principal must match the guardian's principal id.
  *                      When DISABLE_HTTP_AUTH=true (platform-managed), the
- *                      caller is asserted via X-Vellum-User-Id forwarded by
+ *                      caller is asserted via X-Max-User-Id forwarded by
  *                      vembda, cross-referenced with the stored
- *                      vellum:platform_user_id credential.
+ *                      max:platform_user_id credential.
  * - "track-failures" — no gateway-level auth, but downstream 401s are
  *                      recorded against the rate limiter
  * - "custom"       — the handler manages auth internally

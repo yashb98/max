@@ -13,7 +13,7 @@ import { join, relative } from "node:path";
  * runtime artifacts that do not affect the skill's behavior.
  */
 const EXCLUDED_NAMES = new Set([
-  ".vellum-skill-run",
+  ".max-skill-run",
   "node_modules",
   ".git",
   "__pycache__",

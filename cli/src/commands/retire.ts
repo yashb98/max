@@ -59,9 +59,9 @@ async function retireCustom(entry: AssistantEntry): Promise<void> {
   console.log(`\u{1F5D1}\ufe0f  Retiring custom instance on ${sshHost}...\n`);
 
   const remoteCmd = [
-    "bunx vellum sleep 2>/dev/null || true",
+    "bunx max sleep 2>/dev/null || true",
     "pkill -f gateway 2>/dev/null || true",
-    "rm -rf ~/.vellum",
+    "rm -rf ~/.max",
   ].join(" && ");
 
   try {
@@ -86,7 +86,7 @@ async function retireCustom(entry: AssistantEntry): Promise<void> {
   console.log(`\u2705 Custom instance retired.`);
 }
 
-async function retireVellum(
+async function retireMax(
   assistantId: string,
   runtimeUrl?: string,
 ): Promise<void> {
@@ -95,7 +95,7 @@ async function retireVellum(
   const token = readPlatformToken();
   if (!token) {
     console.error(
-      "Error: Not logged in. Run `vellum login --token <token>` first.",
+      "Error: Not logged in. Run `max login --token <token>` first.",
     );
     process.exit(1);
   }
@@ -170,10 +170,10 @@ function teeConsoleToLogFile(fd: number | "ignore"): void {
 }
 
 export async function retire(): Promise<void> {
-  if (process.env.VELLUM_DESKTOP_APP) {
+  if (process.env.MAX_DESKTOP_APP) {
     resetLogFile("retire.log");
   }
-  const logFd = process.env.VELLUM_DESKTOP_APP
+  const logFd = process.env.MAX_DESKTOP_APP
     ? openLogFile("retire.log")
     : "ignore";
   teeConsoleToLogFile(logFd);
@@ -188,7 +188,7 @@ export async function retire(): Promise<void> {
 async function retireInner(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum retire <name> [--source <source>]");
+    console.log("Usage: max retire <name> [--source <source>]");
     console.log("");
     console.log("Delete an assistant instance and archive its data.");
     console.log("");
@@ -204,14 +204,14 @@ async function retireInner(): Promise<void> {
 
   if (!name) {
     console.error("Error: Instance name is required.");
-    console.error("Usage: vellum retire <name> [--source <source>]");
+    console.error("Usage: max retire <name> [--source <source>]");
     process.exit(1);
   }
 
   const entry = findAssistantByName(name);
   if (!entry) {
     console.error(`No assistant found with name '${name}'.`);
-    console.error("Run 'vellum hatch' first, or check the instance name.");
+    console.error("Run 'max hatch' first, or check the instance name.");
     process.exit(1);
   }
 
@@ -243,8 +243,8 @@ async function retireInner(): Promise<void> {
     await retireLocal(name, entry);
   } else if (cloud === "custom") {
     await retireCustom(entry);
-  } else if (cloud === "vellum") {
-    await retireVellum(entry.assistantId, entry.runtimeUrl);
+  } else if (cloud === "max") {
+    await retireMax(entry.assistantId, entry.runtimeUrl);
   } else {
     console.error(`Error: Unknown cloud type '${cloud}'.`);
     process.exit(1);
@@ -254,7 +254,7 @@ async function retireInner(): Promise<void> {
   console.log(`Removed ${name} from config.`);
 
   // When no assistants remain, remove the dock-display-name sentinel so
-  // the next build.sh run falls back to "Vellum" instead of using the
+  // the next build.sh run falls back to "Max" instead of using the
   // retired assistant's name.
   if (loadAllAssistants().length === 0) {
     const dockLabelFile = join(

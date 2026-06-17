@@ -3,7 +3,7 @@
  *
  * Covers the client-identity validation introduced by the targeted-host-proxy
  * plan: when a pending interaction has a `targetClientId`, the submitting
- * client must supply a matching `x-vellum-client-id` header or be rejected
+ * client must supply a matching `x-max-client-id` header or be rejected
  * with 400 (missing) or 403 (mismatch).
  */
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
@@ -147,7 +147,7 @@ describe("handleHostBashResult", () => {
 
       const result = await handleHostBashResult({
         body: bashBody(requestId),
-        headers: { "x-vellum-client-id": "client-abc" },
+        headers: { "x-max-client-id": "client-abc" },
       });
 
       expect(result).toEqual({ accepted: true });
@@ -170,7 +170,7 @@ describe("handleHostBashResult", () => {
   });
 
   describe("targeted request (targetClientId set)", () => {
-    test("accepts when x-vellum-client-id matches targetClientId", async () => {
+    test("accepts when x-max-client-id matches targetClientId", async () => {
       const requestId = "req-targeted-match";
       clientActorPrincipals.set("client-abc", "principal-1");
       registerPending(requestId, { targetClientId: "client-abc" });
@@ -178,8 +178,8 @@ describe("handleHostBashResult", () => {
       const result = await handleHostBashResult({
         body: bashBody(requestId),
         headers: {
-          "x-vellum-client-id": "client-abc",
-          "x-vellum-actor-principal-id": "principal-1",
+          "x-max-client-id": "client-abc",
+          "x-max-actor-principal-id": "principal-1",
         },
       });
 
@@ -189,7 +189,7 @@ describe("handleHostBashResult", () => {
       expect(resolvedIds).toContain(requestId);
     });
 
-    test("trims whitespace from x-vellum-client-id before comparing", async () => {
+    test("trims whitespace from x-max-client-id before comparing", async () => {
       const requestId = "req-targeted-trim";
       clientActorPrincipals.set("client-abc", "principal-1");
       registerPending(requestId, { targetClientId: "client-abc" });
@@ -197,8 +197,8 @@ describe("handleHostBashResult", () => {
       const result = await handleHostBashResult({
         body: bashBody(requestId),
         headers: {
-          "x-vellum-client-id": "  client-abc  ",
-          "x-vellum-actor-principal-id": "principal-1",
+          "x-max-client-id": "  client-abc  ",
+          "x-max-actor-principal-id": "principal-1",
         },
       });
 
@@ -217,8 +217,8 @@ describe("handleHostBashResult", () => {
       const result = await handleHostBashResult({
         body: bashBody(requestId),
         headers: {
-          "x-vellum-client-id": "client-abc",
-          "x-vellum-actor-principal-id": "principal-shared",
+          "x-max-client-id": "client-abc",
+          "x-max-actor-principal-id": "principal-shared",
         },
       });
 
@@ -236,8 +236,8 @@ describe("handleHostBashResult", () => {
         handleHostBashResult({
           body: bashBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-abc",
-            "x-vellum-actor-principal-id": "principal-attacker",
+            "x-max-client-id": "client-abc",
+            "x-max-actor-principal-id": "principal-attacker",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -252,8 +252,8 @@ describe("handleHostBashResult", () => {
         handleHostBashResult({
           body: bashBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-abc",
-            "x-vellum-actor-principal-id": "principal-attacker",
+            "x-max-client-id": "client-abc",
+            "x-max-actor-principal-id": "principal-attacker",
           },
         });
       } catch {
@@ -264,7 +264,7 @@ describe("handleHostBashResult", () => {
       expect(pendingStore.has(requestId)).toBe(true);
     });
 
-    test("throws ForbiddenError (403) when x-vellum-actor-principal-id header is missing entirely", () => {
+    test("throws ForbiddenError (403) when x-max-actor-principal-id header is missing entirely", () => {
       const requestId = "req-actor-missing";
       clientActorPrincipals.set("client-abc", "principal-victim");
       registerPending(requestId, { targetClientId: "client-abc" });
@@ -272,7 +272,7 @@ describe("handleHostBashResult", () => {
       expect(() =>
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "client-abc" },
+          headers: { "x-max-client-id": "client-abc" },
         }),
       ).toThrow(ForbiddenError);
     });
@@ -285,7 +285,7 @@ describe("handleHostBashResult", () => {
       try {
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "client-abc" },
+          headers: { "x-max-client-id": "client-abc" },
         });
       } catch {
         // expected
@@ -307,8 +307,8 @@ describe("handleHostBashResult", () => {
         handleHostBashResult({
           body: bashBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-abc",
-            "x-vellum-actor-principal-id": "principal-1",
+            "x-max-client-id": "client-abc",
+            "x-max-actor-principal-id": "principal-1",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -335,7 +335,7 @@ describe("handleHostBashResult", () => {
 
   // ── Error: missing header on targeted request ──────────────────────
 
-  describe("targeted request — missing x-vellum-client-id header", () => {
+  describe("targeted request — missing x-max-client-id header", () => {
     test("throws BadRequestError (400) when header is absent", () => {
       const requestId = "req-targeted-no-header";
       registerPending(requestId, { targetClientId: "client-abc" });
@@ -352,7 +352,7 @@ describe("handleHostBashResult", () => {
       expect(() =>
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "   " },
+          headers: { "x-max-client-id": "   " },
         }),
       ).toThrow(BadRequestError);
     });
@@ -374,7 +374,7 @@ describe("handleHostBashResult", () => {
 
   // ── Error: wrong client ────────────────────────────────────────────
 
-  describe("targeted request — mismatched x-vellum-client-id", () => {
+  describe("targeted request — mismatched x-max-client-id", () => {
     test("throws ForbiddenError (403) when client ID does not match", () => {
       const requestId = "req-targeted-mismatch";
       registerPending(requestId, { targetClientId: "client-abc" });
@@ -382,7 +382,7 @@ describe("handleHostBashResult", () => {
       expect(() =>
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "client-xyz" },
+          headers: { "x-max-client-id": "client-xyz" },
         }),
       ).toThrow(ForbiddenError);
     });
@@ -395,7 +395,7 @@ describe("handleHostBashResult", () => {
       try {
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "client-xyz" },
+          headers: { "x-max-client-id": "client-xyz" },
         });
       } catch (e) {
         caught = e;
@@ -414,7 +414,7 @@ describe("handleHostBashResult", () => {
       try {
         handleHostBashResult({
           body: bashBody(requestId),
-          headers: { "x-vellum-client-id": "client-xyz" },
+          headers: { "x-max-client-id": "client-xyz" },
         });
       } catch {
         // expected

@@ -4,7 +4,7 @@ import os
 private let log = Logger(subsystem: Bundle.appBundleIdentifier, category: "GuardianTokenFileReader")
 
 /// Reads guardian tokens persisted by the CLI at
-/// `$XDG_CONFIG_HOME/vellum{-env}/assistants/<assistantId>/guardian-token.json`.
+/// `$XDG_CONFIG_HOME/max{-env}/assistants/<assistantId>/guardian-token.json`.
 ///
 /// During hatch, the CLI bootstraps the guardian token via
 /// `POST /v1/guardian/init` and writes the result to disk. The desktop app
@@ -95,7 +95,7 @@ public enum GuardianTokenFileReader {
     /// file does not exist, is unreadable, or the refresh token is already
     /// expired.
     public static func importIfAvailable(assistantId: String) -> Bool {
-        let path = guardianTokenPath(for: assistantId, paths: VellumPaths.current)
+        let path = guardianTokenPath(for: assistantId, paths: MaxPaths.current)
         let nowMs = Int(Date().timeIntervalSince1970 * 1000)
 
         let decision = decideImport(fromPath: path, nowMs: nowMs)
@@ -189,7 +189,7 @@ public enum GuardianTokenFileReader {
     }
 
     /// Deletes the guardian-token file for the given assistant across every
-    /// `VellumEnvironment`'s config dir.
+    /// `MaxEnvironment`'s config dir.
     ///
     /// Recovery flows must invalidate every copy that the CLI's
     /// `seedGuardianTokenFromSiblingEnv` could re-import on next launch. A
@@ -201,9 +201,9 @@ public enum GuardianTokenFileReader {
     @discardableResult
     public static func deleteTokenFileAcrossAllEnvs(
         assistantId: String,
-        envPaths: [VellumPaths]? = nil
+        envPaths: [MaxPaths]? = nil
     ) -> Int {
-        let allEnvPaths = envPaths ?? VellumPaths.allEnvs()
+        let allEnvPaths = envPaths ?? MaxPaths.allEnvs()
         var deleted = 0
         for paths in allEnvPaths {
             let path = guardianTokenPath(for: assistantId, paths: paths)
@@ -221,9 +221,9 @@ public enum GuardianTokenFileReader {
 
     // MARK: - Path Resolution
 
-    /// Resolves `$XDG_CONFIG_HOME/vellum{-env}/assistants/<id>/guardian-token.json`,
+    /// Resolves `$XDG_CONFIG_HOME/max{-env}/assistants/<id>/guardian-token.json`,
     /// matching the CLI's `getGuardianTokenPath()`.
-    private static func guardianTokenPath(for assistantId: String, paths: VellumPaths) -> String {
+    private static func guardianTokenPath(for assistantId: String, paths: MaxPaths) -> String {
         return paths.configDir
             .appendingPathComponent("assistants")
             .appendingPathComponent(assistantId)

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# setup.sh — One-time local development setup for vellum-assistant.
+# setup.sh — One-time local development setup for max-assistant.
 #
 # Installs dependencies for each package, registers local packages as
 # linkable, links them into the meta package, and then links the global
-# `vellum` command to the local meta entry point.
+# `max` command to the local meta entry point.
 #
 # Usage:
 #   ./setup.sh
@@ -106,28 +106,28 @@ done
 # Link local packages into meta so it resolves to local source
 # ---------------------------------------------------------------------------
 info "Linking local packages into meta/"
-(cd "${REPO_ROOT}/meta" && bun link @vellumai/cli @vellumai/assistant @vellumai/vellum-gateway @vellumai/credential-executor)
+(cd "${REPO_ROOT}/meta" && bun link @maxai/cli @maxai/assistant @maxai/max-gateway @maxai/credential-executor)
 
 # ---------------------------------------------------------------------------
-# Link the global `vellum` command to this repo's meta package
+# Link the global `max` command to this repo's meta package
 # ---------------------------------------------------------------------------
-info "Linking global 'vellum' command to meta/"
+info "Linking global 'max' command to meta/"
 (cd "${REPO_ROOT}/meta" && bun link)
 
 # ---------------------------------------------------------------------------
-# Install shell completions for the `vellum` command
+# Install shell completions for the `max` command
 # ---------------------------------------------------------------------------
-info "Installing shell completions for vellum"
+info "Installing shell completions for max"
 
-VELLUM_COMP_DIR="${HOME}/.config/vellum/completions"
-mkdir -p "${VELLUM_COMP_DIR}"
+MAX_COMP_DIR="${HOME}/.config/max/completions"
+mkdir -p "${MAX_COMP_DIR}"
 
-LOCKFILE_PATH="${HOME}/.vellum.lock.json"
+LOCKFILE_PATH="${HOME}/.max.lock.json"
 LOCKFILE_GREP="grep -o '\"assistantId\"[[:space:]]*:[[:space:]]*\"[^\"]*\"' ${LOCKFILE_PATH} 2>/dev/null | awk -F'\"' '{print \$(NF-1)}'"
 
 # — Bash completions —
-cat > "${VELLUM_COMP_DIR}/completions.bash" << 'BASH_COMP'
-_vellum_completions() {
+cat > "${MAX_COMP_DIR}/completions.bash" << 'BASH_COMP'
+_max_completions() {
   local cur prev commands
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -141,18 +141,18 @@ _vellum_completions() {
 
   case "${COMP_WORDS[1]}" in
     hatch)
-      COMPREPLY=( $(compgen -W "openclaw vellum -d --name --remote" -- "${cur}") )
+      COMPREPLY=( $(compgen -W "openclaw max -d --name --remote" -- "${cur}") )
       ;;
     client|retire)
       local instances
 BASH_COMP
 
 # Append the dynamic lockfile lookup (needs variable expansion)
-cat >> "${VELLUM_COMP_DIR}/completions.bash" << BASH_COMP_DYN
+cat >> "${MAX_COMP_DIR}/completions.bash" << BASH_COMP_DYN
       instances="\$(${LOCKFILE_GREP} | tr '\n' ' ')"
 BASH_COMP_DYN
 
-cat >> "${VELLUM_COMP_DIR}/completions.bash" << 'BASH_COMP_END'
+cat >> "${MAX_COMP_DIR}/completions.bash" << 'BASH_COMP_END'
       COMPREPLY=( $(compgen -W "${instances}" -- "${cur}") )
       ;;
   esac
@@ -160,12 +160,12 @@ cat >> "${VELLUM_COMP_DIR}/completions.bash" << 'BASH_COMP_END'
   return 0
 }
 
-complete -F _vellum_completions vellum
+complete -F _max_completions max
 BASH_COMP_END
 
 # — Zsh completions —
-cat > "${VELLUM_COMP_DIR}/completions.zsh" << 'ZSH_COMP'
-_vellum() {
+cat > "${MAX_COMP_DIR}/completions.zsh" << 'ZSH_COMP'
+_max() {
   local -a commands
   commands=(
     'client'
@@ -187,18 +187,18 @@ _vellum() {
     args)
       case $words[1] in
         hatch)
-          _arguments '*:species:(openclaw vellum -d --name --remote)'
+          _arguments '*:species:(openclaw max -d --name --remote)'
           ;;
         client|retire)
           local -a instances
 ZSH_COMP
 
 # Append the dynamic lockfile lookup (needs variable expansion)
-cat >> "${VELLUM_COMP_DIR}/completions.zsh" << ZSH_COMP_DYN
+cat >> "${MAX_COMP_DIR}/completions.zsh" << ZSH_COMP_DYN
           instances=(\${(f)"\$(${LOCKFILE_GREP})"})
 ZSH_COMP_DYN
 
-cat >> "${VELLUM_COMP_DIR}/completions.zsh" << 'ZSH_COMP_END'
+cat >> "${MAX_COMP_DIR}/completions.zsh" << 'ZSH_COMP_END'
           _describe 'instance' instances
           ;;
       esac
@@ -206,20 +206,20 @@ cat >> "${VELLUM_COMP_DIR}/completions.zsh" << 'ZSH_COMP_END'
   esac
 }
 
-compdef _vellum vellum
+compdef _max max
 ZSH_COMP_END
 
 # — Source completions from shell rc files —
 if [ -f "${HOME}/.bashrc" ]; then
-  if ! grep -q '.config/vellum/completions/completions.bash' "${HOME}/.bashrc"; then
-    printf '\n# vellum completions\nsource ~/.config/vellum/completions/completions.bash\n' >> "${HOME}/.bashrc"
+  if ! grep -q '.config/max/completions/completions.bash' "${HOME}/.bashrc"; then
+    printf '\n# max completions\nsource ~/.config/max/completions/completions.bash\n' >> "${HOME}/.bashrc"
   fi
 fi
 
 if [ -f "${HOME}/.zshrc" ]; then
-  if ! grep -q '.config/vellum/completions/completions.zsh' "${HOME}/.zshrc"; then
-    printf '\n# vellum completions\nsource ~/.config/vellum/completions/completions.zsh\n' >> "${HOME}/.zshrc"
+  if ! grep -q '.config/max/completions/completions.zsh' "${HOME}/.zshrc"; then
+    printf '\n# max completions\nsource ~/.config/max/completions/completions.zsh\n' >> "${HOME}/.zshrc"
   fi
 fi
 
-info "Setup complete! Run 'vellum --version' to verify."
+info "Setup complete! Run 'max --version' to verify."

@@ -58,7 +58,7 @@ describe("notification decision strategy", () => {
   // -- Copy composer exhaustiveness ------------------------------------------
 
   describe("copy-composer fallback templates", () => {
-    const channels: NotificationChannel[] = ["vellum", "telegram"];
+    const channels: NotificationChannel[] = ["max", "telegram"];
 
     test("guardian.question template includes question text from payload", () => {
       const signal = makeSignal({
@@ -67,8 +67,8 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("What is the gate code?");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("What is the gate code?");
     });
 
     test("guardian.question template includes free-text answer instructions when requestCode is present", () => {
@@ -85,11 +85,11 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("A1B2C3");
-      expect(copy.vellum!.body).toContain("<your answer>");
-      expect(copy.vellum!.body).not.toContain("approve");
-      expect(copy.vellum!.body).not.toContain("reject");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("A1B2C3");
+      expect(copy.max!.body).toContain("<your answer>");
+      expect(copy.max!.body).not.toContain("approve");
+      expect(copy.max!.body).not.toContain("reject");
       expect(copy.telegram!.deliveryText).toContain("A1B2C3");
     });
 
@@ -106,10 +106,10 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("D4E5F6");
-      expect(copy.vellum!.body).toContain("approve");
-      expect(copy.vellum!.body).toContain("reject");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("D4E5F6");
+      expect(copy.max!.body).toContain("approve");
+      expect(copy.max!.body).toContain("reject");
     });
 
     test("guardian.question template uses approve/reject for tool-backed pending_question payloads", () => {
@@ -127,11 +127,11 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("A1B2C3");
-      expect(copy.vellum!.body).toContain("approve");
-      expect(copy.vellum!.body).toContain("reject");
-      expect(copy.vellum!.body).not.toContain("<your answer>");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("A1B2C3");
+      expect(copy.max!.body).toContain("approve");
+      expect(copy.max!.body).toContain("reject");
+      expect(copy.max!.body).not.toContain("<your answer>");
     });
 
     test("schedule.notify template uses message from payload", () => {
@@ -141,9 +141,9 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toBe("Take out the trash");
-      expect(copy.vellum!.title).toBe("Reminder");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toBe("Take out the trash");
+      expect(copy.max!.title).toBe("Reminder");
       expect(copy.telegram!.deliveryText).toBe("Take out the trash");
     });
 
@@ -159,10 +159,10 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.title).toBe("Notification");
-      expect(copy.vellum!.body).toContain("Urgent:");
-      expect(copy.vellum!.body).toContain("action required");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.title).toBe("Notification");
+      expect(copy.max!.body).toContain("Urgent:");
+      expect(copy.max!.body).toContain("action required");
       expect(copy.telegram!.deliveryText).toBe(copy.telegram!.body);
     });
 
@@ -178,11 +178,11 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).not.toContain("Urgent:");
-      expect(copy.vellum!.body).not.toContain("action required");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).not.toContain("Urgent:");
+      expect(copy.max!.body).not.toContain("action required");
       // Dots and underscores in event name are replaced with spaces
-      expect(copy.vellum!.body).toContain("background sync complete");
+      expect(copy.max!.body).toContain("background sync complete");
     });
 
     test("fallback copy is generated for every requested channel", () => {
@@ -192,14 +192,14 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
+      expect(copy.max).toBeDefined();
       expect(copy.telegram).toBeDefined();
       // Both channels get the same copy
-      expect(copy.vellum!.title).toBe(copy.telegram!.title);
-      expect(copy.vellum!.body).toBe(copy.telegram!.body);
-      // Telegram gets a dedicated chat message field; vellum does not.
+      expect(copy.max!.title).toBe(copy.telegram!.title);
+      expect(copy.max!.body).toBe(copy.telegram!.body);
+      // Telegram gets a dedicated chat message field; max does not.
       expect(copy.telegram!.deliveryText).toBe(copy.telegram!.body);
-      expect(copy.vellum!.deliveryText).toBeUndefined();
+      expect(copy.max!.deliveryText).toBeUndefined();
     });
 
     test("ingress.access_request template includes richer identity context with username and channel", () => {
@@ -215,11 +215,11 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("Alice");
-      expect(copy.vellum!.body).toContain("@alice_tg");
-      expect(copy.vellum!.body).toContain("[12345678]");
-      expect(copy.vellum!.body).toContain("via telegram");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("Alice");
+      expect(copy.max!.body).toContain("@alice_tg");
+      expect(copy.max!.body).toContain("[12345678]");
+      expect(copy.max!.body).toContain("via telegram");
     });
 
     test("ingress.access_request template omits duplicate identity fields", () => {
@@ -235,9 +235,9 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
+      expect(copy.max).toBeDefined();
       // Should not repeat alice_tg multiple times in the identity line
-      const bodyLines = copy.vellum!.body.split("\n");
+      const bodyLines = copy.max!.body.split("\n");
       const identityLine = bodyLines[0];
       const occurrences = identityLine.split("alice_tg").length - 1;
       expect(occurrences).toBe(1);
@@ -253,10 +253,10 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.title).toBe("Access Request");
-      expect(copy.vellum!.body).toContain("Alice");
-      expect(copy.vellum!.body).toContain("requesting access");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.title).toBe("Access Request");
+      expect(copy.max!.body).toContain("Alice");
+      expect(copy.max!.body).toContain("requesting access");
     });
 
     test("ingress.access_request template includes request code instruction when present", () => {
@@ -269,10 +269,10 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("D4E5F6");
-      expect(copy.vellum!.body).toContain("approve");
-      expect(copy.vellum!.body).toContain("reject");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("D4E5F6");
+      expect(copy.max!.body).toContain("approve");
+      expect(copy.max!.body).toContain("reject");
     });
 
     test("ingress.access_request template includes invite flow instruction", () => {
@@ -284,8 +284,8 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("open invite flow");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("open invite flow");
     });
 
     test("ingress.access_request template includes revoked-member context when provided", () => {
@@ -298,8 +298,8 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toContain("previously revoked");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toContain("previously revoked");
     });
 
     test("ingress.access_request template includes caller name for voice-originated requests", () => {
@@ -318,12 +318,12 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.title).toBe("Access Request");
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.title).toBe("Access Request");
       // Voice-originated requests should include the caller name and phone number in parentheses
-      expect(copy.vellum!.body).toContain("Alice Smith");
-      expect(copy.vellum!.body).toContain("(+15559998888)");
-      expect(copy.vellum!.body).toContain("calling");
+      expect(copy.max!.body).toContain("Alice Smith");
+      expect(copy.max!.body).toContain("(+15559998888)");
+      expect(copy.max!.body).toContain("calling");
     });
 
     test("ingress.access_request template falls back to non-voice copy when sourceChannel is not voice", () => {
@@ -338,11 +338,11 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
+      expect(copy.max).toBeDefined();
       // Non-voice should use the standard "requesting access" text, not "calling"
-      expect(copy.vellum!.body).toContain("user-123");
-      expect(copy.vellum!.body).toContain("requesting access");
-      expect(copy.vellum!.body).not.toContain("calling");
+      expect(copy.max!.body).toContain("user-123");
+      expect(copy.max!.body).toContain("requesting access");
+      expect(copy.max!.body).not.toContain("calling");
     });
 
     test("ingress.access_request Telegram deliveryText is concise", () => {
@@ -368,8 +368,8 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.body).toBe(
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.body).toBe(
         "A guardian question needs your attention",
       );
     });
@@ -385,24 +385,24 @@ describe("notification decision strategy", () => {
       });
 
       const copy = composeFallbackCopy(signal, channels);
-      expect(copy.vellum).toBeDefined();
-      expect(copy.vellum!.title).toBe("Heartbeat Alert");
-      expect(copy.vellum!.body).toBe(
+      expect(copy.max).toBeDefined();
+      expect(copy.max!.title).toBe("Heartbeat Alert");
+      expect(copy.max!.body).toBe(
         "I found something worth your attention in a heartbeat check. Open the conversation for details.",
       );
-      expect(copy.vellum!.conversationSeedMessage).toContain(
+      expect(copy.max!.conversationSeedMessage).toContain(
         "consider reminding the guardian",
       );
-      expect(copy.telegram!.deliveryText).toBe(copy.vellum!.body);
+      expect(copy.telegram!.deliveryText).toBe(copy.max!.body);
     });
   });
 
   // -- NotificationChannel type correctness ----------------------------------
 
   describe("NotificationChannel type", () => {
-    test("vellum and telegram are valid notification channels", () => {
+    test("max and telegram are valid notification channels", () => {
       // This validates the type definition at runtime.
-      const channels: NotificationChannel[] = ["vellum", "telegram"];
+      const channels: NotificationChannel[] = ["max", "telegram"];
       expect(channels).toHaveLength(2);
     });
   });
@@ -428,22 +428,22 @@ describe("notification decision strategy", () => {
   // -- Conversation action validation -----------------------------------------------
 
   describe("conversation action validation", () => {
-    const validChannels: NotificationChannel[] = ["vellum", "telegram"];
+    const validChannels: NotificationChannel[] = ["max", "telegram"];
     const candidateSet: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-001",
           title: "Reminder conversation",
           updatedAt: Date.now(),
           latestSourceEventName: "schedule.notify",
-          channel: "vellum",
+          channel: "max",
         },
         {
           conversationId: "conv-002",
           title: "Guardian conversation",
           updatedAt: Date.now(),
           latestSourceEventName: "guardian.question",
-          channel: "vellum",
+          channel: "max",
           guardianContext: { pendingUnresolvedRequestCount: 2 },
         },
       ],
@@ -460,20 +460,20 @@ describe("notification decision strategy", () => {
 
     test("accepts start_new action", () => {
       const result = validateConversationActions(
-        { vellum: { action: "start_new" } },
+        { max: { action: "start_new" } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("accepts reuse_existing with valid candidate conversationId", () => {
       const result = validateConversationActions(
-        { vellum: { action: "reuse_existing", conversationId: "conv-001" } },
+        { max: { action: "reuse_existing", conversationId: "conv-001" } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({
+      expect(result.max).toEqual({
         action: "reuse_existing",
         conversationId: "conv-001",
       });
@@ -482,40 +482,40 @@ describe("notification decision strategy", () => {
     test("downgrades reuse_existing with invalid conversationId to start_new", () => {
       const result = validateConversationActions(
         {
-          vellum: { action: "reuse_existing", conversationId: "conv-INVALID" },
+          max: { action: "reuse_existing", conversationId: "conv-INVALID" },
         },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("downgrades reuse_existing without conversationId to start_new", () => {
       const result = validateConversationActions(
-        { vellum: { action: "reuse_existing" } },
+        { max: { action: "reuse_existing" } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("downgrades reuse_existing with empty conversationId to start_new", () => {
       const result = validateConversationActions(
-        { vellum: { action: "reuse_existing", conversationId: "  " } },
+        { max: { action: "reuse_existing", conversationId: "  " } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("rejects reuse_existing targeting a different channel candidate", () => {
-      // conv-003 is a telegram candidate, not a vellum candidate
+      // conv-003 is a telegram candidate, not a max candidate
       const result = validateConversationActions(
-        { vellum: { action: "reuse_existing", conversationId: "conv-003" } },
+        { max: { action: "reuse_existing", conversationId: "conv-003" } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("ignores conversation actions for channels not in validChannels", () => {
@@ -538,23 +538,23 @@ describe("notification decision strategy", () => {
 
     test("handles missing candidate set — all reuse_existing downgrade to start_new", () => {
       const result = validateConversationActions(
-        { vellum: { action: "reuse_existing", conversationId: "conv-001" } },
+        { max: { action: "reuse_existing", conversationId: "conv-001" } },
         validChannels,
         undefined,
       );
-      expect(result.vellum).toEqual({ action: "start_new" });
+      expect(result.max).toEqual({ action: "start_new" });
     });
 
     test("supports multiple channels simultaneously", () => {
       const result = validateConversationActions(
         {
-          vellum: { action: "reuse_existing", conversationId: "conv-002" },
+          max: { action: "reuse_existing", conversationId: "conv-002" },
           telegram: { action: "start_new" },
         },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toEqual({
+      expect(result.max).toEqual({
         action: "reuse_existing",
         conversationId: "conv-002",
       });
@@ -563,11 +563,11 @@ describe("notification decision strategy", () => {
 
     test("ignores unknown action values", () => {
       const result = validateConversationActions(
-        { vellum: { action: "unknown_action" } },
+        { max: { action: "unknown_action" } },
         validChannels,
         candidateSet,
       );
-      expect(result.vellum).toBeUndefined();
+      expect(result.max).toBeUndefined();
     });
   });
 
@@ -919,10 +919,10 @@ describe("notification decision strategy", () => {
     ): NotificationDecision {
       return {
         shouldNotify: true,
-        selectedChannels: ["vellum"],
+        selectedChannels: ["max"],
         reasoningSummary: "test",
         renderedCopy: {
-          vellum: { title: "Test", body: "Body" },
+          max: { title: "Test", body: "Body" },
         },
         dedupeKey: "test-key",
         confidence: 0.8,
@@ -931,7 +931,7 @@ describe("notification decision strategy", () => {
       };
     }
 
-    test("guardian.question with callSessionId and no affinity hint forces start_new for vellum", () => {
+    test("guardian.question with callSessionId and no affinity hint forces start_new for max", () => {
       const decision = makeDecision();
       const signal = makeSignal({
         sourceEventName: "guardian.question",
@@ -946,7 +946,7 @@ describe("notification decision strategy", () => {
       });
 
       const result = enforceGuardianCallConversationAffinity(decision, signal);
-      expect(result.conversationActions?.vellum).toEqual({
+      expect(result.conversationActions?.max).toEqual({
         action: "start_new",
       });
     });
@@ -954,7 +954,7 @@ describe("notification decision strategy", () => {
     test("guardian.question with callSessionId and existing affinity hint does not override", () => {
       const decision = makeDecision({
         conversationActions: {
-          vellum: { action: "reuse_existing", conversationId: "conv-123" },
+          max: { action: "reuse_existing", conversationId: "conv-123" },
         },
       });
       const signal = makeSignal({
@@ -967,12 +967,12 @@ describe("notification decision strategy", () => {
           callSessionId: "call-session-2",
           activeGuardianRequestCount: 2,
         },
-        conversationAffinityHint: { vellum: "conv-123" },
+        conversationAffinityHint: { max: "conv-123" },
       });
 
       const result = enforceGuardianCallConversationAffinity(decision, signal);
       // Should remain unchanged — the affinity hint takes precedence
-      expect(result.conversationActions?.vellum).toEqual({
+      expect(result.conversationActions?.max).toEqual({
         action: "reuse_existing",
         conversationId: "conv-123",
       });
@@ -981,7 +981,7 @@ describe("notification decision strategy", () => {
     test("non-guardian event is not affected by guardian call conversation affinity", () => {
       const decision = makeDecision({
         conversationActions: {
-          vellum: { action: "reuse_existing", conversationId: "conv-456" },
+          max: { action: "reuse_existing", conversationId: "conv-456" },
         },
       });
       const signal = makeSignal({
@@ -990,7 +990,7 @@ describe("notification decision strategy", () => {
       });
 
       const result = enforceGuardianCallConversationAffinity(decision, signal);
-      expect(result.conversationActions?.vellum).toEqual({
+      expect(result.conversationActions?.max).toEqual({
         action: "reuse_existing",
         conversationId: "conv-456",
       });

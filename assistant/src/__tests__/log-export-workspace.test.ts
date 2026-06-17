@@ -21,7 +21,7 @@ import { join } from "node:path";
 import { describe, expect, mock, test } from "bun:test";
 
 // Set up temp directories before mocking
-const testWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testWorkspaceDir = process.env.MAX_WORKSPACE_DIR!;
 mkdirSync(testWorkspaceDir, { recursive: true });
 
 mock.module("../util/logger.js", () => ({
@@ -153,7 +153,7 @@ writeFileSync(
   "log entry from Jan 25\n",
 );
 // Non-dated log file — should always be included regardless of time filter
-writeFileSync(join(logsDir, "vellum.log"), "non-dated log content\n");
+writeFileSync(join(logsDir, "max.log"), "non-dated log content\n");
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -260,7 +260,7 @@ describe("POST /v1/export — daemon log date filtering", () => {
     const dir = await extractArchive(res);
     try {
       const logFiles = readdirSync(join(dir, "daemon-logs"));
-      expect(logFiles).toContain("vellum.log");
+      expect(logFiles).toContain("max.log");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -275,7 +275,7 @@ describe("POST /v1/export — daemon log date filtering", () => {
       expect(logFiles).toContain("assistant-2025-01-15.log");
       expect(logFiles).toContain("assistant-2025-01-20.log");
       expect(logFiles).toContain("assistant-2025-01-25.log");
-      expect(logFiles).toContain("vellum.log");
+      expect(logFiles).toContain("max.log");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

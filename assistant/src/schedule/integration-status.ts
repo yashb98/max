@@ -44,8 +44,8 @@ async function isProviderConnectedOnPlatform(
   provider: string,
 ): Promise<boolean> {
   try {
-    const { VellumPlatformClient } = await import("../platform/client.js");
-    const client = await VellumPlatformClient.create();
+    const { MaxPlatformClient } = await import("../platform/client.js");
+    const client = await MaxPlatformClient.create();
     if (!client?.platformAssistantId) return false;
 
     const params = new URLSearchParams();

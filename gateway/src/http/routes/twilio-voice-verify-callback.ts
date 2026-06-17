@@ -120,19 +120,19 @@ export function createTwilioVoiceVerifyCallbackHandler(
     // Verification succeeded — create guardian binding if this is a guardian verification
     if (result.verificationType === "guardian") {
       try {
-        // Resolve the canonical principal from the vellum channel guardian binding
-        const vellumGuardians = await assistantDbQuery<{
+        // Resolve the canonical principal from the max channel guardian binding
+        const maxGuardians = await assistantDbQuery<{
           principalId: string | null;
         }>(
           `SELECT c.principal_id AS principalId
            FROM contacts c
            JOIN contact_channels cc ON cc.contact_id = c.id
-           WHERE c.role = 'guardian' AND cc.type = 'vellum' AND cc.status = 'active'
+           WHERE c.role = 'guardian' AND cc.type = 'max' AND cc.status = 'active'
            LIMIT 1`,
           [],
         );
         const canonicalPrincipal =
-          vellumGuardians[0]?.principalId ?? fromNumber;
+          maxGuardians[0]?.principalId ?? fromNumber;
 
         // Check for existing phone guardian binding conflict
         const existingPhoneGuardians = await assistantDbQuery<{
@@ -281,7 +281,7 @@ async function forwardToAssistant(
   try {
     const platformAssistantId = (
       await caches?.credentials?.get(
-        credentialKey("vellum", "platform_assistant_id"),
+        credentialKey("max", "platform_assistant_id"),
       )
     )?.trim();
     const runtimeResponse = await forwardTwilioVoiceWebhook(

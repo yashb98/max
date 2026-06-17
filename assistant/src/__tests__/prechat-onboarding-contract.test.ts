@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import type { OnboardingContext } from "../types/onboarding-context.js";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 import { mock } from "bun:test";
 

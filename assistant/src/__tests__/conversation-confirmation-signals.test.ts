@@ -267,7 +267,7 @@ function makeConversation(
     "system prompt",
     4096,
     sendToClient ?? (() => {}),
-    process.env.VELLUM_WORKSPACE_DIR!,
+    process.env.MAX_WORKSPACE_DIR!,
   );
 }
 

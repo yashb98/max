@@ -11,13 +11,13 @@
  *   ces set <account> <value>
  *   ces delete <account>
  *
- * Account format: `credential/<service>/<field>` (e.g. `credential/vellum/platform_organization_id`)
+ * Account format: `credential/<service>/<field>` (e.g. `credential/max/platform_organization_id`)
  *
  * Environment variables:
  *   CREDENTIAL_SECURITY_DIR — directory containing `keys.enc` + `store.key`
- *   CES_ASSISTANT_DATA_MOUNT — fallback root for `<mount>/.vellum/protected/`
+ *   CES_ASSISTANT_DATA_MOUNT — fallback root for `<mount>/.max/protected/`
  *
- * When neither is set, defaults to `~/.vellum/protected/` (local mode).
+ * When neither is set, defaults to `~/.max/protected/` (local mode).
  */
 
 import { join } from "node:path";
@@ -28,26 +28,26 @@ import { createLocalSecureKeyBackend } from "./materializers/local-secure-key-ba
 // Path resolution (mirrors managed-main.ts)
 // ---------------------------------------------------------------------------
 
-function resolveVellumRoot(): string {
+function resolveMaxRoot(): string {
   const secDir = process.env["CREDENTIAL_SECURITY_DIR"]?.trim();
   if (secDir) {
     // CREDENTIAL_SECURITY_DIR points directly at the dir containing
     // keys.enc, but createLocalSecureKeyBackend wants the parent
-    // (.vellum root) and appends /protected/ itself — unless
+    // (.max root) and appends /protected/ itself — unless
     // CREDENTIAL_SECURITY_DIR is set, in which case the backend reads
-    // from that dir directly. So we pass dirname(secDir) as vellumRoot.
+    // from that dir directly. So we pass dirname(secDir) as maxRoot.
     // Actually, looking at resolveSecurityDir(): if CREDENTIAL_SECURITY_DIR
-    // is set it uses that directly, ignoring vellumRoot. So vellumRoot
+    // is set it uses that directly, ignoring maxRoot. So maxRoot
     // can be anything — the env var takes precedence.
     return join(secDir, "..");
   }
 
   const mount = process.env["CES_ASSISTANT_DATA_MOUNT"]?.trim();
   if (mount) {
-    return join(mount, ".vellum");
+    return join(mount, ".max");
   }
 
-  return join(homedir(), ".vellum");
+  return join(homedir(), ".max");
 }
 
 // ---------------------------------------------------------------------------
@@ -62,8 +62,8 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const vellumRoot = resolveVellumRoot();
-  const backend = createLocalSecureKeyBackend(vellumRoot);
+  const maxRoot = resolveMaxRoot();
+  const backend = createLocalSecureKeyBackend(maxRoot);
 
   switch (command) {
     case "list": {
@@ -145,11 +145,11 @@ Usage:
 
 Account format:
   credential/<service>/<field>
-  Example: credential/vellum/platform_organization_id
+  Example: credential/max/platform_organization_id
 
 Environment:
   CREDENTIAL_SECURITY_DIR    Directory containing keys.enc + store.key
-  CES_ASSISTANT_DATA_MOUNT   Fallback: <mount>/.vellum/protected/`);
+  CES_ASSISTANT_DATA_MOUNT   Fallback: <mount>/.max/protected/`);
 }
 
 main().catch((err) => {

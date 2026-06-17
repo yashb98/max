@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Tests for the sliding-window pagination state that backs both the macOS
 /// and iOS message lists. The core contract:

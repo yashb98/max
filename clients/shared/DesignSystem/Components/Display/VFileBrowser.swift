@@ -53,7 +53,7 @@ public struct VFileBrowserNode: Identifiable, Hashable {
 ///
 /// The right pane content is provided via a `@ViewBuilder` closure so
 /// callers in the macOS target can pass `FileContentView` (which lives
-/// in VellumAssistantLib, not the shared module).
+/// in MaxAssistantLib, not the shared module).
 public struct VFileBrowser<
     HeaderActions: View,
     RowContextMenu: View,

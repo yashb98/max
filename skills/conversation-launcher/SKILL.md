@@ -1,10 +1,10 @@
 ---
 name: conversation-launcher
 description: Offer the user several spin-off conversations as clickable buttons on a single persistent card. Each click spawns a fresh seeded conversation in the sidebar; the user keeps their place in the current conversation. Use when you want to branch into N focused threads (research directions, draft choices, pending replies, triage of N items) without losing the current context. Not for single-destination pivots — just reply inline.
-compatibility: Designed for Vellum personal assistants
+compatibility: Designed for Max personal assistants
 metadata:
   emoji: "🧭"
-  vellum:
+  max:
     display-name: "Conversation Launcher"
 ---
 

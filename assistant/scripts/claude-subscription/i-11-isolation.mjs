@@ -19,9 +19,9 @@ const PROOF_PATH = "/tmp/i-11-proof-of-bash-execution";
 if (existsSync(PROOF_PATH)) unlinkSync(PROOF_PATH);
 
 // Minimal in-process MCP server with a noop tool — mirrors what the real
-// provider will look like once it wraps Vellum's tool list.
+// provider will look like once it wraps Max's tool list.
 const mcp = new McpServer(
-  { name: "vellum-skills", version: "1.0.0" },
+  { name: "max-skills", version: "1.0.0" },
   { capabilities: { tools: {} } }
 );
 mcp.server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -66,13 +66,13 @@ try {
       // Hard deny anything not on our allowlist, even if the SDK auto-loaded
       // it from the user's Anthropic account MCP integrations.
       canUseTool: async (toolName) => {
-        const ALLOW = new Set(["mcp__vellum-skills__noop"]);
+        const ALLOW = new Set(["mcp__max-skills__noop"]);
         if (ALLOW.has(toolName)) return { behavior: "allow", updatedInput: {} };
         console.log(`[i-11] canUseTool DENY: ${toolName}`);
         return { behavior: "deny", message: `Tool '${toolName}' is not available.` };
       },
       mcpServers: {
-        "vellum-skills": { type: "sdk", name: "vellum-skills", instance: mcp },
+        "max-skills": { type: "sdk", name: "max-skills", instance: mcp },
       },
       customSystemPrompt: "You are a test assistant. Follow user instructions exactly.",
     },

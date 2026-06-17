@@ -43,7 +43,7 @@ export interface OperationEntry {
   id: number;
   /** The correlation key (requestId from the host_browser envelope). */
   requestId: string;
-  /** The CDP method or synthetic Vellum.* method. */
+  /** The CDP method or synthetic Max.* method. */
   operationName: string;
   /** ISO 8601 timestamp of the request. */
   requestedAt: string;

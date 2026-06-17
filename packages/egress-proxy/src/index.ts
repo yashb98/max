@@ -1,5 +1,5 @@
 /**
- * @vellumai/egress-proxy — Reusable outbound proxy and request-policy core.
+ * @maxai/egress-proxy — Reusable outbound proxy and request-policy core.
  *
  * This package defines the portable primitives shared by the legacy
  * trusted-session shell proxy flows (assistant/src/outbound-proxy) and the

@@ -39,7 +39,7 @@ export interface ChannelInviteAdapter {
   /**
    * Resolve the channel-specific handle to reach the assistant (e.g.
    * // generic-examples:ignore-next-line — reason: illustrative docstring examples, not real data
-   * "@botName", "+15551234567", "hello@vellum.me").
+   * "@botName", "+15551234567", "hello@max.me").
    * Returns `undefined` when the handle cannot be resolved (e.g.
    * credentials not yet configured).
    */

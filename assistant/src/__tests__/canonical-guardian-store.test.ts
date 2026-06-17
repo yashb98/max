@@ -548,19 +548,19 @@ describe("canonical-guardian-store", () => {
 
     createCanonicalGuardianDelivery({
       requestId: pendingReq.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: "conv-guardian-1",
     });
     createCanonicalGuardianDelivery({
       requestId: resolvedReq.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: "conv-guardian-1",
     });
 
     const pending =
       listPendingCanonicalGuardianRequestsByDestinationConversation(
         "conv-guardian-1",
-        "vellum",
+        "max",
       );
     expect(pending).toHaveLength(1);
     expect(pending[0].id).toBe(pendingReq.id);
@@ -575,7 +575,7 @@ describe("canonical-guardian-store", () => {
 
     createCanonicalGuardianDelivery({
       requestId: req.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: "conv-guardian-2",
     });
     createCanonicalGuardianDelivery({

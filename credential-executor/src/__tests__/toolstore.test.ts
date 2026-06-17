@@ -321,15 +321,15 @@ describe("manifest validation helpers", () => {
   });
 
   describe("isWorkspaceOriginPath", () => {
-    test("detects .vellum/ paths", () => {
-      expect(isWorkspaceOriginPath("~/.vellum/workspace/tools/my-tool")).toBe(
+    test("detects .max/ paths", () => {
+      expect(isWorkspaceOriginPath("~/.max/workspace/tools/my-tool")).toBe(
         true,
       );
-      expect(isWorkspaceOriginPath(".vellum/workspace/tools/my-tool")).toBe(
+      expect(isWorkspaceOriginPath(".max/workspace/tools/my-tool")).toBe(
         true,
       );
       expect(
-        isWorkspaceOriginPath("/home/user/.vellum/workspace/tools/my-tool"),
+        isWorkspaceOriginPath("/home/user/.max/workspace/tools/my-tool"),
       ).toBe(true);
     });
 
@@ -385,7 +385,7 @@ describe("publishBundle — digest mismatch rejection", () => {
     // The toolstore directory should not contain a directory for the expected digest
     const toolstoreDir = join(
       testTmpDir,
-      ".vellum",
+      ".max",
       "protected",
       "credential-executor",
       "toolstore",
@@ -571,7 +571,7 @@ describe("publishBundle — source URL validation", () => {
   test("rejects workspace-origin source URL", () => {
     const result = publishBundle(
       buildPublishRequest({
-        sourceUrl: "https://example.com/.vellum/workspace/tools/bundle.tar.gz",
+        sourceUrl: "https://example.com/.max/workspace/tools/bundle.tar.gz",
       }),
     );
     expect(result.success).toBe(false);

@@ -16,7 +16,7 @@ import {
  * artifacts:
  *   - `meta/web-search-provider-catalog.json` — primary cross-package artifact.
  *   - `clients/shared/Resources/web-search-provider-catalog.json` — SwiftPM
- *     resource bundled into `VellumAssistantShared` (Swift cannot reach
+ *     resource bundled into `MaxAssistantShared` (Swift cannot reach
  *     files outside a target's source directory).
  *
  * These tests enforce structural equality between the TS catalog and the

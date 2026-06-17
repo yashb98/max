@@ -15,7 +15,7 @@
  *     at 10/minute per peer IP.
  *   - **Audit logging**: every rejected request emits a structured warn log.
  *
- * The client declares its type via the standard `X-Vellum-Interface-Id`
+ * The client declares its type via the standard `X-Max-Interface-Id`
  * header (e.g. `chrome-extension`). The returned JWT uses the
  * `actor_client_v1` scope profile (includes `approval.write`) and is valid
  * as a gateway edge token — send it as `Authorization: Bearer <token>` on
@@ -142,7 +142,7 @@ async function resolveLocalGuardianPrincipalId(): Promise<string> {
       `SELECT c.principal_id AS principalId
        FROM contacts c
        JOIN contact_channels cc ON cc.contact_id = c.id
-       WHERE c.role = 'guardian' AND cc.type = 'vellum' AND cc.status = 'active'
+       WHERE c.role = 'guardian' AND cc.type = 'max' AND cc.status = 'active'
        LIMIT 1`,
       [],
     );
@@ -197,7 +197,7 @@ function errorResponse(
 
 function getExternalAssistantId(): string {
   return (
-    process.env.VELLUM_ASSISTANT_NAME?.trim() || DAEMON_INTERNAL_ASSISTANT_ID
+    process.env.MAX_ASSISTANT_NAME?.trim() || DAEMON_INTERNAL_ASSISTANT_ID
   );
 }
 
@@ -259,13 +259,13 @@ export async function handlePair(
     );
   }
 
-  const interfaceId = req.headers.get("x-vellum-interface-id");
-  const clientId = req.headers.get("x-vellum-client-id");
+  const interfaceId = req.headers.get("x-max-interface-id");
+  const clientId = req.headers.get("x-max-client-id");
 
   if (!interfaceId) {
     return errorResponse(
       "BAD_REQUEST",
-      "missing required header: X-Vellum-Interface-Id",
+      "missing required header: X-Max-Interface-Id",
       400,
     );
   }
@@ -274,13 +274,13 @@ export async function handlePair(
   const assistantId = getExternalAssistantId();
 
   if (interfaceId === "chrome-extension") {
-    // Require the request to originate from a known Vellum extension origin.
+    // Require the request to originate from a known Max extension origin.
     //
     // Chrome sets the `Origin: chrome-extension://<id>` header on cross-origin
     // requests from extension service workers and enforces it at the network
     // layer — no extension can impersonate another extension's origin. Combined
     // with Chrome's Private Network Access preflight requirement for localhost
-    // access, this ensures only the Vellum extension (across all known
+    // access, this ensures only the Max extension (across all known
     // environments) can pair via this interface ID.
     //
     // The residual risk is a local process spoofing the Origin header, which
@@ -293,14 +293,14 @@ export async function handlePair(
       });
       return errorResponse(
         "FORBIDDEN",
-        "origin does not match a known Vellum extension",
+        "origin does not match a known Max extension",
         403,
       );
     }
 
     const expiresAt = Date.now() + PAIR_TOKEN_TTL_SECONDS * 1000;
     const token = mintToken({
-      aud: "vellum-gateway",
+      aud: "max-gateway",
       sub: `actor:${assistantId}:${guardianPrincipalId}`,
       scope_profile: "actor_client_v1",
       policy_epoch: CURRENT_POLICY_EPOCH,

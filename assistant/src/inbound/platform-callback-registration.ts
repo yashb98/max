@@ -10,7 +10,7 @@
  * connect` or the ensure-registration bootstrap).
  *
  * The platform endpoint is:
- *   POST {VELLUM_PLATFORM_URL}/v1/internal/gateway/callback-routes/register/
+ *   POST {MAX_PLATFORM_URL}/v1/internal/gateway/callback-routes/register/
  *
  * It accepts { assistant_id, callback_path, type } and returns a stable
  * callback_url that external services should use.
@@ -37,9 +37,9 @@ export async function resolvePlatformCallbackRegistrationContext(): Promise<Plat
   const platform = getIsPlatform();
   const [storedBaseUrlRaw, storedAssistantIdRaw, storedAssistantApiKeyRaw] =
     await Promise.all([
-      getSecureKeyAsync(credentialKey("vellum", "platform_base_url")),
-      getSecureKeyAsync(credentialKey("vellum", "platform_assistant_id")),
-      getSecureKeyAsync(credentialKey("vellum", "assistant_api_key")),
+      getSecureKeyAsync(credentialKey("max", "platform_base_url")),
+      getSecureKeyAsync(credentialKey("max", "platform_assistant_id")),
+      getSecureKeyAsync(credentialKey("max", "assistant_api_key")),
     ]);
 
   const storedBaseUrl = storedBaseUrlRaw?.trim();

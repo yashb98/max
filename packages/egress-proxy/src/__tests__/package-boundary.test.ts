@@ -1,14 +1,14 @@
 /**
- * Package boundary tests for @vellumai/egress-proxy.
+ * Package boundary tests for @maxai/egress-proxy.
  *
  * These tests ensure the egress-proxy package remains isolated from
  * assistant runtime and CES server implementation modules. If a direct
  * import of those modules is introduced, these tests will fail.
  *
  * Tightened boundaries (added):
- * - Does NOT import from x-client packages (@vellumai/assistant-client,
- *   @vellumai/ces-client, @vellumai/gateway-client).
- * - Does NOT import from @vellumai/service-contracts (the egress-proxy
+ * - Does NOT import from x-client packages (@maxai/assistant-client,
+ *   @maxai/ces-client, @maxai/gateway-client).
+ * - Does NOT import from @maxai/service-contracts (the egress-proxy
  *   package deals only with proxy session lifecycle and must not depend on
  *   CES wire-protocol types).
  */
@@ -52,46 +52,46 @@ async function readSource(filePath: string): Promise<string> {
 const FORBIDDEN_PATTERNS = [
   // Assistant runtime internals
   /from\s+['"].*\/assistant\/src\//,
-  /from\s+['"]@vellumai\/assistant/,
+  /from\s+['"]@maxai\/assistant/,
   /import\s*\(.*\/assistant\/src\//,
   /require\s*\(.*\/assistant\/src\//,
   /import\s+['"].*\/assistant\/src\//,
-  /import\s+['"]@vellumai\/assistant/,
+  /import\s+['"]@maxai\/assistant/,
 
   // CES server modules (future — reserve the boundary now)
   /from\s+['"].*\/ces\/src\//,
-  /from\s+['"]@vellumai\/ces/,
+  /from\s+['"]@maxai\/ces/,
   /import\s*\(.*\/ces\/src\//,
   /require\s*\(.*\/ces\/src\//,
   /import\s+['"].*\/ces\/src\//,
-  /import\s+['"]@vellumai\/ces/,
+  /import\s+['"]@maxai\/ces/,
 
   // Gateway internals
   /from\s+['"].*\/gateway\/src\//,
-  /from\s+['"]@vellumai\/vellum-gateway/,
+  /from\s+['"]@maxai\/max-gateway/,
   /import\s*\(.*\/gateway\/src\//,
   /require\s*\(.*\/gateway\/src\//,
   /import\s+['"].*\/gateway\/src\//,
-  /import\s+['"]@vellumai\/vellum-gateway/,
+  /import\s+['"]@maxai\/max-gateway/,
 
   // x-client packages (must not depend on any typed service client)
-  /from\s+['"]@vellumai\/assistant-client(?:\/|['"])/,
-  /import\s+['"]@vellumai\/assistant-client(?:\/|['"])/,
-  /require\s*\(['"]@vellumai\/assistant-client(?:\/|['"])/,
-  /from\s+['"]@vellumai\/ces-client(?:\/|['"])/,
-  /import\s+['"]@vellumai\/ces-client(?:\/|['"])/,
-  /require\s*\(['"]@vellumai\/ces-client(?:\/|['"])/,
-  /from\s+['"]@vellumai\/gateway-client(?:\/|['"])/,
-  /import\s+['"]@vellumai\/gateway-client(?:\/|['"])/,
-  /require\s*\(['"]@vellumai\/gateway-client(?:\/|['"])/,
+  /from\s+['"]@maxai\/assistant-client(?:\/|['"])/,
+  /import\s+['"]@maxai\/assistant-client(?:\/|['"])/,
+  /require\s*\(['"]@maxai\/assistant-client(?:\/|['"])/,
+  /from\s+['"]@maxai\/ces-client(?:\/|['"])/,
+  /import\s+['"]@maxai\/ces-client(?:\/|['"])/,
+  /require\s*\(['"]@maxai\/ces-client(?:\/|['"])/,
+  /from\s+['"]@maxai\/gateway-client(?:\/|['"])/,
+  /import\s+['"]@maxai\/gateway-client(?:\/|['"])/,
+  /require\s*\(['"]@maxai\/gateway-client(?:\/|['"])/,
 
   // service-contracts (RPC protocol types — egress-proxy must not depend on CES wire types)
-  /from\s+['"]@vellumai\/service-contracts(?:\/|['"])/,
-  /import\s+['"]@vellumai\/service-contracts(?:\/|['"])/,
-  /require\s*\(['"]@vellumai\/service-contracts(?:\/|['"])/,
-  /from\s+['"]@vellumai\/ces-contracts(?:\/|['"])/,
-  /import\s+['"]@vellumai\/ces-contracts(?:\/|['"])/,
-  /require\s*\(['"]@vellumai\/ces-contracts(?:\/|['"])/,
+  /from\s+['"]@maxai\/service-contracts(?:\/|['"])/,
+  /import\s+['"]@maxai\/service-contracts(?:\/|['"])/,
+  /require\s*\(['"]@maxai\/service-contracts(?:\/|['"])/,
+  /from\s+['"]@maxai\/ces-contracts(?:\/|['"])/,
+  /import\s+['"]@maxai\/ces-contracts(?:\/|['"])/,
+  /require\s*\(['"]@maxai\/ces-contracts(?:\/|['"])/,
 ];
 
 describe("package boundary", () => {
@@ -132,14 +132,14 @@ describe("package boundary", () => {
     };
 
     const forbidden = [
-      "@vellumai/assistant",
-      "@vellumai/ces",
-      "@vellumai/vellum-gateway",
-      "@vellumai/assistant-client",
-      "@vellumai/ces-client",
-      "@vellumai/ces-contracts",
-      "@vellumai/gateway-client",
-      "@vellumai/service-contracts",
+      "@maxai/assistant",
+      "@maxai/ces",
+      "@maxai/max-gateway",
+      "@maxai/assistant-client",
+      "@maxai/ces-client",
+      "@maxai/ces-contracts",
+      "@maxai/gateway-client",
+      "@maxai/service-contracts",
     ];
 
     for (const dep of forbidden) {

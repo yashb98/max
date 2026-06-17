@@ -59,7 +59,7 @@ export function formatShellOutput(
     try {
       fullOutputPath = join(
         tmpdir(),
-        `vellum-shell-output-${randomUUID()}.txt`,
+        `max-shell-output-${randomUUID()}.txt`,
       );
       writeFileSync(fullOutputPath, output, { encoding: "utf-8", mode: 0o600 });
       trackedTempFiles.add(fullOutputPath);

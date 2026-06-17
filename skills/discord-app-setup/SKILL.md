@@ -1,10 +1,10 @@
 ---
 name: discord-app-setup
 description: Connect a Discord bot to the assistant via the Discord Gateway with guided application creation and intent configuration
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎮"
-  vellum:
+  max:
     display-name: "Discord App Setup"
 ---
 

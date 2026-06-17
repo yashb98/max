@@ -27,44 +27,44 @@ export const SAFE_ENV_VARS = [
   "SSH_AGENT_PID",
   "GPG_TTY",
   "GNUPGHOME",
-  "VELLUM_DEV",
-  "VELLUM_DEBUG",
-  "VELLUM_ENVIRONMENT",
+  "MAX_DEV",
+  "MAX_DEBUG",
+  "MAX_ENVIRONMENT",
 
-  "VELLUM_WORKSPACE_DIR",
+  "MAX_WORKSPACE_DIR",
   "CES_BOOTSTRAP_SOCKET_DIR",
   "GATEWAY_INTERNAL_URL",
   "ASSISTANT_IPC_SOCKET_DIR",
   "ASSISTANT_SKILL_IPC_SOCKET_DIR",
   "GATEWAY_IPC_SOCKET_DIR",
   "GATEWAY_SECURITY_DIR",
-  "VELLUM_PLATFORM_URL",
-  "VELLUM_ASSISTANT_PLATFORM_URL",
-  "VELLUM_DOCS_BASE_URL",
+  "MAX_PLATFORM_URL",
+  "MAX_ASSISTANT_PLATFORM_URL",
+  "MAX_DOCS_BASE_URL",
   "CES_CREDENTIAL_URL",
   "CES_MANAGED_MODE",
   "IS_CONTAINERIZED",
   "IS_PLATFORM",
-  "VELLUM_CLOUD",
-  "VELLUM_SANDBOX_RUNTIME",
+  "MAX_CLOUD",
+  "MAX_SANDBOX_RUNTIME",
   "CES_SERVICE_TOKEN",
-  "VELLUM_PROFILER_RUN_ID",
-  "VELLUM_PROFILER_MODE",
-  "VELLUM_PROFILER_MAX_BYTES",
-  "VELLUM_PROFILER_MAX_RUNS",
-  "VELLUM_PROFILER_MIN_FREE_MB",
-  "VELLUM_MEMORY_LIMIT",
-  "VELLUM_CPU_LIMIT",
-  "VELLUM_MINIKUBE_STORAGE_SIZE",
-  "VELLUM_BACKUP_DIR",
-  "VELLUM_BACKUP_KEY_PATH",
+  "MAX_PROFILER_RUN_ID",
+  "MAX_PROFILER_MODE",
+  "MAX_PROFILER_MAX_BYTES",
+  "MAX_PROFILER_MAX_RUNS",
+  "MAX_PROFILER_MIN_FREE_MB",
+  "MAX_MEMORY_LIMIT",
+  "MAX_CPU_LIMIT",
+  "MAX_MINIKUBE_STORAGE_SIZE",
+  "MAX_BACKUP_DIR",
+  "MAX_BACKUP_KEY_PATH",
 ] as const;
 
 export const KATA_SAFE_ENV_VARS = [
   "LD_LIBRARY_PATH",
-  "VELLUM_APT_DATA_ROOT",
-  "VELLUM_APT_DATA_SUITE",
-  "VELLUM_APT_DATA_MIRROR",
+  "MAX_APT_DATA_ROOT",
+  "MAX_APT_DATA_SUITE",
+  "MAX_APT_DATA_MIRROR",
 ] as const;
 
 const KATA_APT_DATA_ROOT = "/data/system";
@@ -98,8 +98,8 @@ function kataAptLibraryPaths(dataRoot: string): string[] {
 export const ALWAYS_INJECTED_ENV_VARS = [
   "INTERNAL_GATEWAY_BASE_URL",
   "SPECIES",
-  "VELLUM_DATA_DIR",
-  "VELLUM_WORKSPACE_DIR",
+  "MAX_DATA_DIR",
+  "MAX_WORKSPACE_DIR",
 ] as const;
 
 function appendUniquePathEntries(
@@ -117,7 +117,7 @@ function appendUniquePathEntries(
 
 export function buildSanitizedEnv(): Record<string, string> {
   const env: Record<string, string> = {};
-  const isKataRuntime = process.env.VELLUM_SANDBOX_RUNTIME === "kata";
+  const isKataRuntime = process.env.MAX_SANDBOX_RUNTIME === "kata";
   const safeEnvVars = isKataRuntime
     ? [...SAFE_ENV_VARS, ...KATA_SAFE_ENV_VARS]
     : SAFE_ENV_VARS;
@@ -128,8 +128,8 @@ export function buildSanitizedEnv(): Record<string, string> {
     }
   }
   if (isKataRuntime) {
-    const kataAptDataRoot = env.VELLUM_APT_DATA_ROOT ?? KATA_APT_DATA_ROOT;
-    env.VELLUM_APT_DATA_ROOT = kataAptDataRoot;
+    const kataAptDataRoot = env.MAX_APT_DATA_ROOT ?? KATA_APT_DATA_ROOT;
+    env.MAX_APT_DATA_ROOT = kataAptDataRoot;
     env.PATH = appendUniquePathEntries(env.PATH, kataAptPaths(kataAptDataRoot));
     env.LD_LIBRARY_PATH = appendUniquePathEntries(
       env.LD_LIBRARY_PATH,
@@ -139,16 +139,16 @@ export function buildSanitizedEnv(): Record<string, string> {
   // Always inject an internal gateway base for local control-plane/API calls.
   const internalGatewayBase = getGatewayInternalBaseUrl();
   env.INTERNAL_GATEWAY_BASE_URL = internalGatewayBase;
-  // @deprecated — VELLUM_DATA_DIR is equivalent to $VELLUM_WORKSPACE_DIR/data.
+  // @deprecated — MAX_DATA_DIR is equivalent to $MAX_WORKSPACE_DIR/data.
   // Removing this requires an LLM-based migration or declarative migration
-  // file to update existing user-authored skills to use VELLUM_WORKSPACE_DIR.
-  env.VELLUM_DATA_DIR = getDataDir();
+  // file to update existing user-authored skills to use MAX_WORKSPACE_DIR.
+  env.MAX_DATA_DIR = getDataDir();
   // Expose the workspace directory so skills and child processes can read/write
   // workspace-scoped files (e.g. avatar traits, user data).
-  env.VELLUM_WORKSPACE_DIR = getWorkspaceDir();
+  env.MAX_WORKSPACE_DIR = getWorkspaceDir();
   // Identify the assistant species so skill scripts can gate on species-specific
-  // logic. Hardcoded to "vellum" — this is the Vellum assistant codebase.
-  env.SPECIES = "vellum";
+  // logic. Hardcoded to "max" — this is the Max assistant codebase.
+  env.SPECIES = "max";
   // Ensure UTF-8 locale so multi-byte characters (em dashes, curly quotes,
   // arrows, etc.) survive piping through tools like pbcopy without corruption.
   // macOS (Darwin) does not provide C.UTF-8, so use en_US.UTF-8 there.

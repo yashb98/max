@@ -56,7 +56,7 @@ async function discordGet<T>(path: string, token: string): Promise<T> {
   const res = await fetch(`${DISCORD_API}${path}`, {
     headers: {
       Authorization: `Bot ${token}`,
-      "User-Agent": "VellumAssistant (discord-app-setup, 1.0)",
+      "User-Agent": "MaxAssistant (discord-app-setup, 1.0)",
     },
   });
   if (!res.ok) {
@@ -68,7 +68,7 @@ async function discordGet<T>(path: string, token: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function validateVellum(): Promise<void> {
+async function validateMax(): Promise<void> {
   const token = await revealCredential("discord_channel", "bot_token");
   if (!token) {
     throw new Error(
@@ -98,9 +98,9 @@ async function validateVellum(): Promise<void> {
 
 async function main(): Promise<void> {
   switch (species) {
-    case "vellum":
+    case "max":
       try {
-        await validateVellum();
+        await validateMax();
       } catch (err) {
         console.error(err instanceof Error ? err.message : String(err));
         process.exitCode = 1;
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=vellum.`,
+        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=max.`,
       );
       process.exitCode = 1;
   }

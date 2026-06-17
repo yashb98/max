@@ -42,7 +42,7 @@ function redactObject(obj: unknown): unknown {
  * Call after dotenv has loaded so SENTRY_DSN_ASSISTANT is available.
  * Initializes Sentry when the DSN is set; no-ops when empty/unset so
  * local dev builds don't send crash reports. If the user later opts out
- * via the sendDiagnostics config key (or VELLUM_DEV=1), call closeSentry()
+ * via the sendDiagnostics config key (or MAX_DEV=1), call closeSentry()
  * after config is loaded to stop future event capturing.
  */
 export function initSentry(): void {
@@ -50,9 +50,9 @@ export function initSentry(): void {
   if (!dsn) return;
   Sentry.init({
     dsn,
-    release: `vellum-assistant@${APP_VERSION}`,
+    release: `max-assistant@${APP_VERSION}`,
     dist: COMMIT_SHA,
-    environment: process.env.VELLUM_ENVIRONMENT ?? "production",
+    environment: process.env.MAX_ENVIRONMENT ?? "production",
     sendDefaultPii: false,
     serverName: hostname(),
     initialScope: {

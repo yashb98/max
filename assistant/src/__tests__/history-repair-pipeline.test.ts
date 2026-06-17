@@ -40,7 +40,7 @@ import type {
 import type { Message } from "../providers/types.js";
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

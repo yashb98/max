@@ -26,11 +26,11 @@ export enum ErrorCode {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
-/** Root base class for all named Vellum errors. */
-export class VellumError extends Error {
+/** Root base class for all named Max errors. */
+export class MaxError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
-    this.name = "VellumError";
+    this.name = "MaxError";
   }
 }
 
@@ -40,7 +40,7 @@ export class VellumError extends Error {
  * Errors originating from infrastructure or external service calls.
  * Catch this when you want to handle any backend failure uniformly.
  */
-export class BackendError extends VellumError {
+export class BackendError extends MaxError {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = "BackendError";
@@ -75,7 +75,7 @@ export class RateLimitError extends BackendError {
  * Errors caused by user input, policy violations, or user-facing constraints.
  * Catch this when you want to present an actionable message to the user.
  */
-export class UserError extends VellumError {
+export class UserError extends MaxError {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = "UserError";
@@ -86,9 +86,9 @@ export class UserError extends VellumError {
 
 /**
  * Base class for errors originating from assistant logic (providers, tools,
- * permissions, config). Extends VellumError and carries a structured ErrorCode.
+ * permissions, config). Extends MaxError and carries a structured ErrorCode.
  */
-export class AssistantError extends VellumError {
+export class AssistantError extends MaxError {
   constructor(
     message: string,
     public readonly code: ErrorCode,

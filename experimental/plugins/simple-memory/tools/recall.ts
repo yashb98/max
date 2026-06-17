@@ -12,7 +12,7 @@
  * Convention: default export is the tool object the harness registers.
  */
 
-import type { ToolContext, ToolExecutionResult } from "@vellumai/plugin-api";
+import type { ToolContext, ToolExecutionResult } from "@maxai/plugin-api";
 
 import { searchEntries } from "../src/state.js";
 

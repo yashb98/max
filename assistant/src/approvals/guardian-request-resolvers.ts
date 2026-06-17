@@ -338,7 +338,7 @@ const accessRequestResolver: GuardianRequestResolver = {
       request.sourceChannel,
     )
       ? request.sourceChannel
-      : "vellum";
+      : "max";
     const requesterExternalUserId = request.requesterExternalUserId ?? "";
     const requesterChatId =
       request.requesterChatId ?? request.requesterExternalUserId ?? "";
@@ -461,9 +461,9 @@ const accessRequestResolver: GuardianRequestResolver = {
       return {
         ok: true,
         applied: true,
-        // Desktop actors (vellum channel) receive inline reply text; channel
+        // Desktop actors (max channel) receive inline reply text; channel
         // actors get replies delivered via the channel delivery context.
-        ...(ctx.actor.channel === "vellum"
+        ...(ctx.actor.channel === "max"
           ? { guardianReplyText: `Access denied for ${requesterLabel}.` }
           : {}),
       };
@@ -728,9 +728,9 @@ const accessRequestResolver: GuardianRequestResolver = {
     return {
       ok: true,
       applied: true,
-      // Desktop actors (vellum channel) receive inline reply text; channel
+      // Desktop actors (max channel) receive inline reply text; channel
       // actors get replies delivered via the channel delivery context.
-      ...(ctx.actor.channel === "vellum"
+      ...(ctx.actor.channel === "max"
         ? { guardianReplyText: verificationReplyText }
         : {}),
     };

@@ -25,8 +25,8 @@ const ALLOWLIST = new Set([
   "assistant/src/cli/commands/conversations.ts", // CLI wipe talks to runtime directly
   "clients/shared/Network/DaemonClient.swift",
   "clients/shared/App/Auth/PlatformOAuthService.swift", // comment explaining runtimeUrl vs platformUrl
-  "clients/macos/vellum-assistant/App/AppDelegate.swift",
-  "clients/macos/vellum-assistant/Features/Settings/SettingsConnectTab.swift",
+  "clients/macos/max-assistant/App/AppDelegate.swift",
+  "clients/macos/max-assistant/Features/Settings/SettingsConnectTab.swift",
   ".claude/skills/update/SKILL.md", // daemon health check script
 
   // --- Test fixtures that poll the daemon directly (gateway may require auth) ---

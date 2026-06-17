@@ -3,13 +3,13 @@ name: "llm-cost-optimizer"
 description: "Analyze and reduce LLM spend by mapping call-site overrides to managed profiles (Balanced / Quality / Speed). Covers spend analysis, profile assignment, and config correctness."
 metadata:
   emoji: "💸"
-  vellum:
+  max:
     display-name: "LLM Cost Optimizer"
 ---
 
 ## Overview
 
-This skill walks through analyzing and reducing LLM spend on a Vellum assistant. There are three layers:
+This skill walks through analyzing and reducing LLM spend on a Max assistant. There are three layers:
 
 1. **Provider connections** — named auth configs (e.g. `anthropic-managed`, `my-personal-key`)
 2. **Model profiles** — named presets (model + effort + thinking + contextWindow). Three managed defaults: `balanced`, `quality-optimized`, `cost-optimized`.

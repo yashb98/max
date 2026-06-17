@@ -34,7 +34,7 @@ import { APP_VERSION } from "../../version.js";
 import type { PathResolver } from "./vbundle-import-analyzer.js";
 import type { RuntimeCompatibility } from "./vbundle-import-policy.js";
 import * as policy from "./vbundle-import-policy.js";
-import { mergeMetadataPreservingVellum } from "./vbundle-metadata-merge.js";
+import { mergeMetadataPreservingMax } from "./vbundle-metadata-merge.js";
 import type { ManifestType, VBundleTarEntry } from "./vbundle-validator.js";
 import { validateVBundle } from "./vbundle-validator.js";
 
@@ -252,7 +252,7 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
   // runs. Step 1b wipes `data/credentials/`, so reading live metadata
   // later (during the per-file write loop) would always miss. The merge
   // helper needs this content to preserve the target's platform-identity
-  // (`vellum:*`) entries across the overwrite.
+  // (`max:*`) entries across the overwrite.
   let liveCredentialMetadataJson: string | null = null;
   const credentialMetadataDiskPath = pathResolver.resolve(
     policy.CREDENTIAL_METADATA_ARCHIVE_PATH,
@@ -266,7 +266,7 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
     } catch (err) {
       log.warn(
         { err, path: credentialMetadataDiskPath },
-        "Failed to read live credential metadata before import; vellum:* entries may not be preserved",
+        "Failed to read live credential metadata before import; max:* entries may not be preserved",
       );
     }
   }
@@ -621,15 +621,15 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
       dataToWrite = new TextEncoder().encode(sanitized);
     }
 
-    // Preserve target's `vellum:*` metadata entries across the overwrite.
+    // Preserve target's `max:*` metadata entries across the overwrite.
     // Django's post-hatch provisioning writes these on the target via
     // POST /v1/secrets; a naive overwrite of the bundle's metadata.json
-    // would wipe them and break the gateway's vellum credential read.
+    // would wipe them and break the gateway's max credential read.
     // We use the snapshot captured BEFORE the workspace clear because
     // Step 1b may have already removed the live file.
     if (policy.isCredentialMetadataArchivePath(fileEntry.path)) {
       const bundleJson = new TextDecoder().decode(archiveEntry.data);
-      const merged = mergeMetadataPreservingVellum(
+      const merged = mergeMetadataPreservingMax(
         bundleJson,
         liveCredentialMetadataJson,
       );
@@ -706,13 +706,13 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
   }
 
   // If Step 1b actually cleared the workspace AND the bundle did not
-  // carry a metadata.json entry, the target's vellum:* entries were
+  // carry a metadata.json entry, the target's max:* entries were
   // wiped along with the `data/credentials/` directory. Restore them by
   // writing a minimal file containing just the preserved entries so the
   // gateway can still locate the platform API key. When Step 1b did NOT
   // run (e.g. workspaceDir unset) the live metadata.json is still on
   // disk untouched — we must not rewrite it here or we would drop the
-  // non-vellum entries the caller chose to keep.
+  // non-max entries the caller chose to keep.
   const bundleHadMetadata = manifest.contents.some((f) =>
     policy.isCredentialMetadataArchivePath(f.path),
   );
@@ -722,7 +722,7 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
     liveCredentialMetadataJson &&
     credentialMetadataDiskPath
   ) {
-    const merged = mergeMetadataPreservingVellum(
+    const merged = mergeMetadataPreservingMax(
       JSON.stringify({ version: 5, credentials: [] }),
       liveCredentialMetadataJson,
     );
@@ -731,7 +731,7 @@ export function commitImport(options: ImportCommitOptions): ImportCommitResult {
       writeFileSync(credentialMetadataDiskPath, merged);
     } catch (err) {
       warnings.push(
-        `Failed to restore preserved vellum:* credential metadata: ${
+        `Failed to restore preserved max:* credential metadata: ${
           err instanceof Error ? err.message : String(err)
         }`,
       );

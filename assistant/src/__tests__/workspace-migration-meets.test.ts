@@ -29,7 +29,7 @@ import { createMeetsDirMigration } from "../workspace/migrations/037-create-meet
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-migration-037-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-migration-037-test-"));
 });
 
 afterEach(() => {

@@ -25,10 +25,10 @@ export function registerOAuthCommand(program: Command): void {
         `
 OAuth providers may support up to two modes – "managed" and "your-own".
   managed:
-    Requires a Vellum Platform account. For providers that support it, managed mode offloads the burden of needing to create and register an oauth app.
-    Vellum Platform manages oauth token management and refresh and proxies requests to the provier.
+    Requires a Max Platform account. For providers that support it, managed mode offloads the burden of needing to create and register an oauth app.
+    Max Platform manages oauth token management and refresh and proxies requests to the provier.
   you-own:
-    Provides ultimate control and removes dependency on Vellum Platform, but requires that you set up your own oauth app and register it
+    Provides ultimate control and removes dependency on Max Platform, but requires that you set up your own oauth app and register it
     via \`assistant oauth apps upsert\`.
 All commands are intended to work regardless of the provider's mode. Check and set the mode for a given provider with \`assistant oauth mode\`.
 

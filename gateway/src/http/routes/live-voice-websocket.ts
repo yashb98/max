@@ -1,4 +1,4 @@
-import { buildWsUpstreamUrl } from "@vellumai/assistant-client";
+import { buildWsUpstreamUrl } from "@maxai/assistant-client";
 
 import {
   validateEdgeToken,

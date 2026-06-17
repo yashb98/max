@@ -1,10 +1,10 @@
 ---
 name: screen-recording
 description: Record the user's screen as a video file
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎬"
-  vellum:
+  max:
     display-name: "Screen Recording"
 ---
 

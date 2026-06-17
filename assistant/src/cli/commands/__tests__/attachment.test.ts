@@ -264,7 +264,7 @@ describe("attachment register", () => {
     mockIpcResult = {
       ok: false,
       error:
-        "Could not connect to assistant. Is it running? Try 'vellum wake'.",
+        "Could not connect to assistant. Is it running? Try 'max wake'.",
     };
 
     const { exitCode } = await runCommand([
@@ -283,7 +283,7 @@ describe("attachment register", () => {
     mockIpcResult = {
       ok: false,
       error:
-        "Could not connect to assistant. Is it running? Try 'vellum wake'.",
+        "Could not connect to assistant. Is it running? Try 'max wake'.",
     };
 
     const { exitCode, stdout } = await runCommand([

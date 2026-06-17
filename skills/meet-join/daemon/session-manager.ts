@@ -58,7 +58,7 @@ import type {
   DaemonRuntimeMode,
   Logger,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 // Side-effect imports: every sub-module file calls `registerSubModule` at
 // module-load time so its factory is reachable via `getSubModule` below.
@@ -235,7 +235,7 @@ export const CHAT_OPPORTUNITY_LLM_MAX_TOKENS = 256;
  * before `IDENTITY.md` has been written. Matches the tool-side fallback
  * in `skills/meet-join/tools/meet-join-tool.ts`.
  */
-export const MEET_JOIN_NAME_FALLBACK = "Vellum";
+export const MEET_JOIN_NAME_FALLBACK = "Max";
 
 // ---------------------------------------------------------------------------
 // Domain errors
@@ -316,7 +316,7 @@ export class MeetBotAvatarError extends Error {
  * node is not present inside the daemon container.
  *
  * In Docker mode the CLI bind-mounts the host device into the assistant
- * container via `VELLUM_AVATAR_DEVICE`. If the avatar is enabled in config
+ * container via `MAX_AVATAR_DEVICE`. If the avatar is enabled in config
  * but the device node is not present, the daemon's Docker Engine API
  * `--device` pass-through would otherwise fail much later with a cryptic
  * "device not found" error from the inner `dockerd`. This class surfaces
@@ -334,8 +334,8 @@ export class MeetAvatarDeviceMissingError extends Error {
   constructor(devicePath: string) {
     super(
       `Meet avatar is enabled in services.meet.avatar but ${devicePath} is not present inside the assistant container. ` +
-        `The CLI passes VELLUM_AVATAR_DEVICE to the container and bind-mounts the device when it exists on the host. ` +
-        `Ensure the v4l2loopback module is loaded and the device path matches VELLUM_AVATAR_DEVICE (or services.meet.avatar.devicePath).`,
+        `The CLI passes MAX_AVATAR_DEVICE to the container and bind-mounts the device when it exists on the host. ` +
+        `Ensure the v4l2loopback module is loaded and the device path matches MAX_AVATAR_DEVICE (or services.meet.avatar.devicePath).`,
     );
     this.devicePath = devicePath;
   }
@@ -989,7 +989,7 @@ class MeetSessionManagerImpl {
       return this.pendingBotTokens.get(meetingId) ?? null;
     });
 
-    // One-shot startup orphan sweep. Any `vellum.meet.bot`-labeled container
+    // One-shot startup orphan sweep. Any `max.meet.bot`-labeled container
     // still running came from a crashed prior daemon run and must be
     // reaped. Fire-and-forget so construction stays synchronous; the
     // reaper logs its own outcome and catches per-container errors so a
@@ -1006,7 +1006,7 @@ class MeetSessionManagerImpl {
     //      before the session lands in the map) per-container, so a join
     //      that lands mid-sweep is observed before its meeting ID is
     //      evaluated.
-    //   3. `instanceHash` — derived from `vellumRoot()`, the daemon's
+    //   3. `instanceHash` — derived from `maxRoot()`, the daemon's
     //      per-instance data root. Multi-instance setups (prod/dev/test/
     //      local side-by-side) are common; without this guard a second
     //      daemon's startup reaper would SIGTERM the first daemon's live
@@ -1089,7 +1089,7 @@ class MeetSessionManagerImpl {
    * Preflight check invoked from {@link join} when the avatar feature is
    * enabled. In Docker mode, verifies that the configured v4l2loopback
    * device node is present inside the daemon container — the CLI
-   * (`cli/src/lib/docker.ts`) bind-mounts it via `VELLUM_AVATAR_DEVICE`.
+   * (`cli/src/lib/docker.ts`) bind-mounts it via `MAX_AVATAR_DEVICE`.
    * If the device is not present, the downstream `DockerRunner.run()`
    * would fail with a cryptic "device not found" error from the inner
    * `dockerd`. This check moves the failure to a deterministic point
@@ -1353,11 +1353,11 @@ class MeetSessionManagerImpl {
             protocol: "tcp",
           },
         ],
-        name: `vellum-meet-${meetingId}`,
+        name: `max-meet-${meetingId}`,
         network: meet.dockerNetwork,
         // Labels consumed by the orphan reaper on the next daemon boot.
         // See {@link reapOrphanedMeetBots} in `docker-runner.ts` for the
-        // full label scheme + reaper contract. The `vellum.meet.instance`
+        // full label scheme + reaper contract. The `max.meet.instance`
         // label scopes the bot to this daemon's instance root so a
         // concurrently-running second daemon cannot reap this container.
         labels: {
@@ -2707,7 +2707,7 @@ function buildSessionManagerTestHost(): SkillHost {
     },
     platform: {
       workspaceDir: () => "/tmp/session-manager-test-workspace",
-      vellumRoot: () => "/tmp/session-manager-test-vellum",
+      maxRoot: () => "/tmp/session-manager-test-max",
       runtimeMode: () => "bare-metal" as DaemonRuntimeMode,
     },
     providers: {

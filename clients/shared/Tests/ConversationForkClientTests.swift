@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 private final class MockConversationForkURLProtocol: URLProtocol {
     static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?

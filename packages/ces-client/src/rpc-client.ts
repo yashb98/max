@@ -2,7 +2,7 @@
  * CES RPC client.
  *
  * Provides a type-safe interface for communicating with the Credential
- * Execution Service using the shared @vellumai/service-contracts schema.
+ * Execution Service using the shared @maxai/service-contracts schema.
  * The client handles framing (newline-delimited JSON envelopes), request
  * correlation, handshake negotiation, and graceful error handling.
  *
@@ -21,7 +21,7 @@ import {
   type HandshakeAck,
   type RpcEnvelope,
   type RpcError,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 // ---------------------------------------------------------------------------
 // Transport abstraction

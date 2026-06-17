@@ -26,7 +26,7 @@ export function registerAuthCommand(program: Command): void {
         "after",
         `
 The auth namespace manages the assistant's authentication state with the
-Vellum platform. It provides commands to inspect identity and connection
+Max platform. It provides commands to inspect identity and connection
 status, helping diagnose configuration issues.
 
 Examples:
@@ -45,7 +45,7 @@ Examples:
           "after",
           `
 Fields:
-  platformUrl         The Vellum platform base URL this assistant connects to
+  platformUrl         The Max platform base URL this assistant connects to
   assistantId         This assistant's platform UUID
   organizationId      The organization this assistant belongs to (from PLATFORM_ORGANIZATION_ID)
   userId              The user who owns this assistant (from PLATFORM_USER_ID)

@@ -1,5 +1,5 @@
 /**
- * @vellumai/credential-storage
+ * @maxai/credential-storage
  *
  * Local credential persistence and materialization primitives.
  *

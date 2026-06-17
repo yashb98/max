@@ -1,6 +1,6 @@
 /**
  * Tests for `listSnapshotsInDir`. All tests run against a freshly-minted
- * temp directory to avoid touching the real `~/.vellum/` tree.
+ * temp directory to avoid touching the real `~/.max/` tree.
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -14,7 +14,7 @@ describe("listSnapshotsInDir", () => {
   let root: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), "vellum-list-snapshots-"));
+    root = mkdtempSync(join(tmpdir(), "max-list-snapshots-"));
   });
 
   afterEach(() => {

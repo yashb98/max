@@ -48,7 +48,7 @@ type ContextWindowResultShape = {
 };
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

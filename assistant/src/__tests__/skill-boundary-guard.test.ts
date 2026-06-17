@@ -8,7 +8,7 @@ import { Glob } from "bun";
  * Guard tests for the skill-isolation boundary. See AGENTS.md "Skill
  * Isolation". Both directions are enforced: zero relative imports across
  * `assistant/` ↔ `skills/`. Skills wire into the daemon through the
- * `SkillHost` contract in `@vellumai/skill-host-contracts`; the daemon
+ * `SkillHost` contract in `@maxai/skill-host-contracts`; the daemon
  * loads first-party skills as separate processes via the manifest in
  * `meet-host-startup.ts`.
  *

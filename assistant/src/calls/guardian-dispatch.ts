@@ -100,7 +100,7 @@ async function dispatchGuardianQuestionInner(
     // level guardian identity. Resolve the principal from the contacts table.
     let guardianPrincipalId: string | undefined;
 
-    const guardianResult = findGuardianForChannel("vellum");
+    const guardianResult = findGuardianForChannel("max");
     if (guardianResult?.contact.principalId) {
       guardianPrincipalId = guardianResult.contact.principalId;
     }
@@ -145,29 +145,29 @@ async function dispatchGuardianQuestionInner(
       sourceType: "voice",
     }).filter((r) => r.callSessionId === callSessionId).length;
 
-    // Look up the vellum conversation used for the first guardian question
+    // Look up the max conversation used for the first guardian question
     // delivery in this call session. When found, pass it as an affinity hint
     // so the notification pipeline deterministically routes to the same
     // conversation instead of letting the LLM choose a different conversation.
     // Find earlier canonical requests for this call session and check their
-    // deliveries for a vellum destination conversation ID.
+    // deliveries for a max destination conversation ID.
     let existingGuardianConversationId: string | null = null;
     const priorRequests = listCanonicalGuardianRequests({
       sourceType: "voice",
     }).filter((r) => r.callSessionId === callSessionId && r.id !== request.id);
     for (const priorReq of priorRequests) {
       const deliveries = listCanonicalGuardianDeliveries(priorReq.id);
-      const vellumDelivery = deliveries.find(
-        (d) => d.destinationChannel === "vellum" && d.destinationConversationId,
+      const maxDelivery = deliveries.find(
+        (d) => d.destinationChannel === "max" && d.destinationConversationId,
       );
-      if (vellumDelivery?.destinationConversationId) {
+      if (maxDelivery?.destinationConversationId) {
         existingGuardianConversationId =
-          vellumDelivery.destinationConversationId;
+          maxDelivery.destinationConversationId;
         break;
       }
     }
     const conversationAffinityHint = existingGuardianConversationId
-      ? { vellum: existingGuardianConversationId }
+      ? { max: existingGuardianConversationId }
       : undefined;
 
     if (existingGuardianConversationId) {
@@ -177,9 +177,9 @@ async function dispatchGuardianQuestionInner(
       );
     }
 
-    // Route through the canonical notification pipeline. The paired vellum
+    // Route through the canonical notification pipeline. The paired max
     // conversation from this pipeline is the canonical guardian conversation.
-    let vellumDeliveryId: string | null = null;
+    let maxDeliveryId: string | null = null;
     const requestCode =
       request.requestCode ?? request.id.slice(0, 6).toUpperCase();
     const signalResult = await emitNotificationSignal({
@@ -205,28 +205,28 @@ async function dispatchGuardianQuestionInner(
       conversationAffinityHint,
       dedupeKey: `guardian:${request.id}`,
       onConversationCreated: (info) => {
-        if (info.sourceEventName !== "guardian.question" || vellumDeliveryId)
+        if (info.sourceEventName !== "guardian.question" || maxDeliveryId)
           return;
         const delivery = createCanonicalGuardianDelivery({
           requestId: request.id,
-          destinationChannel: "vellum",
+          destinationChannel: "max",
           destinationConversationId: info.conversationId,
         });
-        vellumDeliveryId = delivery.id;
+        maxDeliveryId = delivery.id;
       },
     });
 
     for (const result of signalResult.deliveryResults) {
-      if (result.channel === "vellum") {
-        if (!vellumDeliveryId) {
+      if (result.channel === "max") {
+        if (!maxDeliveryId) {
           const delivery = createCanonicalGuardianDelivery({
             requestId: request.id,
-            destinationChannel: "vellum",
+            destinationChannel: "max",
             destinationConversationId: result.conversationId,
           });
-          vellumDeliveryId = delivery.id;
+          maxDeliveryId = delivery.id;
         }
-        applyDeliveryStatus(vellumDeliveryId, result);
+        applyDeliveryStatus(maxDeliveryId, result);
         continue;
       }
 
@@ -239,15 +239,15 @@ async function dispatchGuardianQuestionInner(
       applyDeliveryStatus(delivery.id, result);
     }
 
-    if (!vellumDeliveryId) {
+    if (!maxDeliveryId) {
       const fallback = createCanonicalGuardianDelivery({
         requestId: request.id,
-        destinationChannel: "vellum",
+        destinationChannel: "max",
       });
       updateCanonicalGuardianDelivery(fallback.id, { status: "failed" });
       log.warn(
         { requestId: request.id, reason: signalResult.reason },
-        "Notification pipeline did not produce a vellum delivery result",
+        "Notification pipeline did not produce a max delivery result",
       );
     }
   } catch (err) {

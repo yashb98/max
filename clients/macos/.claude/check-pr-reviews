@@ -62,7 +62,7 @@ fi
 PR_NUMBERS=("$@")
 NOW=$(date -u +%s)
 
-# Derive org/repo from git remote (e.g. "vellum-ai/vellum-assistant")
+# Derive org/repo from git remote (e.g. "max-ai/max-assistant")
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_SLUG=$(git -C "$REPO_ROOT" remote get-url origin | sed -E 's#.+github\.com[:/]##; s/\.git$//')
 

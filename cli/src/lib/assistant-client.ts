@@ -27,7 +27,7 @@ export interface AssistantClientOpts {
    * When provided alongside `orgId`, the client authenticates with a
    * session token instead of a guardian token.  The session token is
    * sent as `X-Session-Token: <sessionToken>` and the org id is
-   * sent via the `Vellum-Organization-Id` header.
+   * sent via the `Max-Organization-Id` header.
    */
   sessionToken?: string;
   /** Required when `sessionToken` is provided. */
@@ -64,7 +64,7 @@ export class AssistantClient {
       throw new Error(
         opts?.assistantId
           ? `No assistant found with name '${opts.assistantId}'.`
-          : "No assistant found. Hatch one first with 'vellum hatch'.",
+          : "No assistant found. Hatch one first with 'max hatch'.",
       );
     }
 
@@ -76,7 +76,7 @@ export class AssistantClient {
     this._assistantId = entry.assistantId;
 
     if (opts?.sessionToken) {
-      // Platform assistant: use X-Session-Token + Vellum-Organization-Id.
+      // Platform assistant: use X-Session-Token + Max-Organization-Id.
       this.token = opts.sessionToken;
       this.isSessionAuth = true;
       this.orgId = opts.orgId;
@@ -186,7 +186,7 @@ export class AssistantClient {
       }
     }
     if (this.orgId) {
-      headers["Vellum-Organization-Id"] ??= this.orgId;
+      headers["Max-Organization-Id"] ??= this.orgId;
     }
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";

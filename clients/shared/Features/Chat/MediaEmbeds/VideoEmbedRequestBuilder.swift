@@ -7,8 +7,8 @@ import Foundation
 /// don't naturally provide a page referrer, so we attach a stable HTTPS
 /// referer for YouTube requests to satisfy that requirement.
 public enum VideoEmbedRequestBuilder {
-    /// Stable HTTPS referer used to identify Vellum-hosted embeds.
-    public static let defaultReferer = "https://vellum.ai"
+    /// Stable HTTPS referer used to identify Max-hosted embeds.
+    public static let defaultReferer = "https://max.ai"
 
     public static func buildRequest(
         url: URL,

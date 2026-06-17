@@ -49,7 +49,7 @@ function getRegistryCandidates(): string[] {
   // 1. Bundled gateway-local copy
   candidates.push(join(srcDir, REGISTRY_FILENAME));
 
-  // 2. Packaged macOS app layout: <App>.app/Contents/MacOS/vellum-gateway
+  // 2. Packaged macOS app layout: <App>.app/Contents/MacOS/max-gateway
   //    defaults live under <App>.app/Contents/Resources/<file>.
   const execDir = dirname(process.execPath);
   candidates.push(join(execDir, "..", "Resources", REGISTRY_FILENAME));

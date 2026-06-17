@@ -400,7 +400,7 @@ export class FilingService {
       systemHint: opts.systemHint,
       prompt: opts.prompt,
       trustContext: {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "guardian",
       },
       callSite: opts.callSite,

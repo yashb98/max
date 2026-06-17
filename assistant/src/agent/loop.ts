@@ -185,7 +185,7 @@ function buildLoopTurnContext(
     conversationId: "agent-loop",
     turnIndex,
     trust: {
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "unknown",
     },
   };
@@ -567,7 +567,7 @@ export class AgentLoop {
         );
 
         // Bridge that lets an agentic provider (currently only
-        // `claude-subscription` via the Claude Agent SDK) invoke Vellum
+        // `claude-subscription` via the Claude Agent SDK) invoke Max
         // tools from inside its own loop. The closure delegates straight
         // to `this.toolExecutor` — the same callback the outer loop uses
         // at the post-`sendMessage` tool-dispatch site — so every
@@ -611,7 +611,7 @@ export class AgentLoop {
               // line is also emitted for grep-based ops observability;
               // the event name is provider-derived, e.g.
               // `claude_subscription.tool_call` / `kimi_agent.tool_call`
-              // in vellum.log.
+              // in max.log.
               const bridgeDurationMs = Date.now() - bridgeStartedAt;
               const bridgeProvider = this.provider.name;
               try {

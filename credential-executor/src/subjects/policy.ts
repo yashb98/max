@@ -15,7 +15,7 @@
  *   the list.
  */
 
-import type { StaticCredentialRecord } from "@vellumai/credential-storage";
+import type { StaticCredentialRecord } from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Result type

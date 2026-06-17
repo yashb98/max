@@ -43,8 +43,8 @@ All HTTP API requests use a single `Authorization: Bearer <jwt>` header for auth
 
 | Claim           | Type                                    | Description                                                        |
 | --------------- | --------------------------------------- | ------------------------------------------------------------------ |
-| `iss`           | `'vellum-auth'`                         | Issuer — always `vellum-auth`                                      |
-| `aud`           | `'vellum-daemon'` or `'vellum-gateway'` | Audience — which service the token targets                         |
+| `iss`           | `'max-auth'`                         | Issuer — always `max-auth`                                      |
+| `aud`           | `'max-daemon'` or `'max-gateway'` | Audience — which service the token targets                         |
 | `sub`           | string                                  | Subject — encodes principal type and identity (see patterns below) |
 | `scope_profile` | string                                  | Named permission bundle (see profiles below)                       |
 | `exp`           | number                                  | Expiry timestamp (seconds since epoch)                             |
@@ -761,7 +761,7 @@ Product-facing flows using service-first STT:
 
 Apple-native on-device recognition via `SFSpeechRecognizer` serves two roles in all three product-facing flows above: (1) it provides low-latency partial transcriptions for real-time display during recording, and (2) it provides the fallback final transcription when the STT service is unconfigured (HTTP 503), temporarily unavailable (HTTP 5xx), or returns an empty result. The `SpeechRecognizerAdapter` protocols on each platform abstract Apple Speech for **testability and dependency injection**.
 
-The macOS `SpeechRecognizerAdapter` protocol in `clients/macos/vellum-assistant/Features/Voice/SpeechRecognizerAdapter.swift` abstracts `SFSpeechRecognizer` static APIs and instance creation. `AppleSpeechRecognizerAdapter` is the production implementation. `OpenAIVoiceService` and `VoiceInputManager` consume the adapter via dependency injection. **Note:** The protocol leaks Apple Speech types through its surface — `authorizationStatus()` returns `SFSpeechRecognizerAuthorizationStatus` and `makeRecognizer(locale:)` returns `SFSpeechRecognizer?` directly. This means callers depend on the Speech framework at compile time.
+The macOS `SpeechRecognizerAdapter` protocol in `clients/macos/max-assistant/Features/Voice/SpeechRecognizerAdapter.swift` abstracts `SFSpeechRecognizer` static APIs and instance creation. `AppleSpeechRecognizerAdapter` is the production implementation. `OpenAIVoiceService` and `VoiceInputManager` consume the adapter via dependency injection. **Note:** The protocol leaks Apple Speech types through its surface — `authorizationStatus()` returns `SFSpeechRecognizerAuthorizationStatus` and `makeRecognizer(locale:)` returns `SFSpeechRecognizer?` directly. This means callers depend on the Speech framework at compile time.
 
 **Cross-boundary notes:**
 
@@ -806,11 +806,11 @@ The assistant feature-flag resolver (`src/config/assistant-feature-flags.ts`) is
 
 **Resolution priority** (highest wins):
 
-1. `~/.vellum/protected/feature-flags.json` overrides (local) or gateway HTTP API (Docker/containerized) — written by the gateway's PATCH endpoint
+1. `~/.max/protected/feature-flags.json` overrides (local) or gateway HTTP API (Docker/containerized) — written by the gateway's PATCH endpoint
 2. Defaults registry `defaultEnabled` — from the unified registry (`meta/feature-flags/feature-flag-registry.json`, filtered to `scope: "assistant"`)
 3. `true` — unknown/undeclared flags with no persisted override default to enabled
 
-**Storage:** Flags are persisted in `~/.vellum/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker), managed by the gateway's `/v1/feature-flags` API (see [`gateway/ARCHITECTURE.md`](../gateway/ARCHITECTURE.md)). The daemon's config watcher monitors the protected directory and hot-reloads flag changes, so mutations take effect on the next tool resolution or session.
+**Storage:** Flags are persisted in `~/.max/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker), managed by the gateway's `/v1/feature-flags` API (see [`gateway/ARCHITECTURE.md`](../gateway/ARCHITECTURE.md)). The daemon's config watcher monitors the protected directory and hot-reloads flag changes, so mutations take effect on the next tool resolution or session.
 
 **Public API:**
 
@@ -853,7 +853,7 @@ All six enforcement points derive the flag key via `skillFlagKey(skill)` — whi
 ```mermaid
 graph LR
     subgraph "Credential Store"
-        K1["API Key<br/>service: vellum-assistant<br/>account: anthropic<br/>stored via CES"]
+        K1["API Key<br/>service: max-assistant<br/>account: anthropic<br/>stored via CES"]
         K2["Credential Secrets<br/>key: credential/{service}/{field}<br/>stored via secure-keys.ts<br/>(encrypted file fallback)"]
     end
 
@@ -866,12 +866,12 @@ graph LR
         UD6["maxStepsPerSession"]
     end
 
-    subgraph "~/Library/Application Support/vellum-assistant/"
+    subgraph "~/Library/Application Support/max-assistant/"
         direction TB
         SL["logs/session-*.json<br/>───────────────<br/>Per-session JSON log<br/>task, start/end times, result<br/>Per-turn: AX tree, screenshot,<br/>action, token usage"]
     end
 
-    subgraph "~/.vellum/workspace/data/db/assistant.db (SQLite + WAL)"
+    subgraph "~/.max/workspace/data/db/assistant.db (SQLite + WAL)"
         direction TB
         CONV["conversations<br/>───────────────<br/>id, title, timestamps<br/>token counts, estimated cost<br/>context_summary (compaction)<br/>conversation_type: 'standard' | 'background' | 'scheduled'<br/>memory_scope_id: 'default' | '_pkb_workspace' | 'subagent:&lt;id&gt;'"]
         MSG["messages<br/>───────────────<br/>id, conversation_id (FK)<br/>role: user | assistant<br/>content: JSON array<br/>created_at"]
@@ -890,11 +890,11 @@ graph LR
         WORK_ITEMS["work_items<br/>───────────────<br/>Task Queue entries<br/>taskId (FK → tasks)<br/>title, notes, status<br/>priority_tier (0-3), sort_index<br/>last_run_id, last_run_status<br/>source_type, source_id"]
     end
 
-    subgraph "~/.vellum/ (Root Files)"
+    subgraph "~/.max/ (Root Files)"
         TRUST["protected/trust.json<br/>Tool permission rules"]
     end
 
-    subgraph "~/.vellum/workspace/ (Workspace Files)"
+    subgraph "~/.max/workspace/ (Workspace Files)"
         CONFIG["config files<br/>Hot-reloaded by daemon"]
         ONBOARD_PLAYBOOKS["onboarding/playbooks/<br/>[channel]_onboarding.md<br/>assistant-updatable checklists"]
         ONBOARD_REGISTRY["onboarding/playbooks/registry.json<br/>channel-start index for fast-path + reconciliation"]
@@ -926,7 +926,7 @@ graph TB
         LOCAL_CLIENT["RuntimeClient"]
         LOCAL_HTTP["HTTP API<br/>localhost:RUNTIME_HTTP_PORT"]
         LOCAL_DAEMON["Local Daemon<br/>(same machine)"]
-        LOCAL_DB["~/.vellum/workspace/data/db/assistant.db"]
+        LOCAL_DB["~/.max/workspace/data/db/assistant.db"]
     end
 
     subgraph "Cloud Mode"
@@ -980,7 +980,7 @@ The daemon emits two distinct error message types via SSE:
 | -------------------------------- | ----------------------------------------------------------------------- | --------- |
 | `PROVIDER_NETWORK`               | Unable to reach the LLM provider (connection refused, timeout, DNS)     | Yes       |
 | `PROVIDER_RATE_LIMIT`            | LLM provider rate-limited the request (HTTP 429)                        | Yes       |
-| `MANAGED_USAGE_LIMIT`            | Vellum managed inference usage limit or quota was exceeded (HTTP 429)   | Yes       |
+| `MANAGED_USAGE_LIMIT`            | Max managed inference usage limit or quota was exceeded (HTTP 429)   | Yes       |
 | `PROVIDER_API`                   | Provider returned a server error (5xx) or retryable 4xx                 | Yes       |
 | `PROVIDER_BILLING`               | Invalid/expired API key or insufficient credits (HTTP 401, billing 4xx) | No        |
 | `CONTEXT_TOO_LARGE`              | Request exceeds the model's context window (HTTP 413, token limit)      | No        |
@@ -995,7 +995,7 @@ The daemon classifies errors via `classifyConversationError()` in `conversation-
 
 Classification uses a two-tier strategy:
 
-1. **Structured provider errors**: If the error is a `ProviderError` with a `statusCode`, the status code determines the category deterministically — `413` maps to `CONTEXT_TOO_LARGE` (not retryable), `401` maps to `PROVIDER_BILLING` (not retryable, invalid/expired key), `429` maps to `MANAGED_USAGE_LIMIT` when the provider is routed through the managed proxy or the payload matches a Vellum managed quota/limit response, otherwise `PROVIDER_RATE_LIMIT` (retryable), `5xx` to `PROVIDER_API` (retryable), other `4xx` to `PROVIDER_API` (retryable) unless a message pattern matches a more specific non-retryable category (context-too-large, billing/auth).
+1. **Structured provider errors**: If the error is a `ProviderError` with a `statusCode`, the status code determines the category deterministically — `413` maps to `CONTEXT_TOO_LARGE` (not retryable), `401` maps to `PROVIDER_BILLING` (not retryable, invalid/expired key), `429` maps to `MANAGED_USAGE_LIMIT` when the provider is routed through the managed proxy or the payload matches a Max managed quota/limit response, otherwise `PROVIDER_RATE_LIMIT` (retryable), `5xx` to `PROVIDER_API` (retryable), other `4xx` to `PROVIDER_API` (retryable) unless a message pattern matches a more specific non-retryable category (context-too-large, billing/auth).
 2. **Regex fallback**: For non-provider errors or `ProviderError` without a status code, regex pattern matching against the error message detects network failures, rate limits, and API errors. Phase-specific overrides handle regeneration contexts.
 
 Debug details are capped at 4,000 characters to prevent oversized payloads.
@@ -1160,7 +1160,7 @@ graph TB
 
     NATIVE -->|"macOS"| SBPL["sandbox-exec<br/>SBPL profile<br/>deny-default + allow workdir"]
     NATIVE -->|"Linux"| BWRAP["bwrap<br/>bubblewrap<br/>ro-root + rw-workdir<br/>unshare-net + unshare-pid"]
-    SBPL --> SB_FS["Sandbox filesystem root<br/>~/.vellum/workspace"]
+    SBPL --> SB_FS["Sandbox filesystem root<br/>~/.max/workspace"]
     BWRAP --> SB_FS
 
     EXEC -->|"host_file_* / host_bash"| HOST_TOOLS["Host-target tools<br/>(unchanged by backend choice)"]
@@ -1178,7 +1178,7 @@ graph TB
 - **Native backend**: Uses OS-level sandboxing — `sandbox-exec` with SBPL profiles on macOS, `bwrap` (bubblewrap) on Linux. Denies network access and restricts filesystem writes to the sandbox root, `/tmp`, `/private/tmp`, and `/var/folders` (macOS) or the sandbox root and `/tmp` (Linux).
 - **Fail-closed**: The native backend refuses to execute unsandboxed if its prerequisites are unavailable, throwing `ToolError` with actionable messages on failure.
 - **Host tools unchanged**: `host_bash`, `host_file_read`, `host_file_write`, and `host_file_edit` always execute directly on the host regardless of which sandbox backend is active.
-- Sandbox defaults: `file_*` and `bash` execute within `~/.vellum/workspace`.
+- Sandbox defaults: `file_*` and `bash` execute within `~/.max/workspace`.
 - Host access is explicit: `host_file_read`, `host_file_write`, `host_file_edit`, and `host_bash` are separate tools.
 - Prompt defaults: host tools and `computer_use_*` skill-projected actions default to `ask` unless a trust rule allowlists/denylists them.
 - Browser tool defaults: all `browser_*` tools are auto-allowed by default via seeded allow rules at priority 100, preserving the frictionless UX from when browser was a core tool.
@@ -1212,14 +1212,14 @@ Key behaviors:
 
 ## Dynamic Skill Authoring — Tool Flow
 
-The assistant can author, test, and persist new skills at runtime through a three-tool workflow. All operations target `~/.vellum/workspace/skills/` (managed skills directory) and require explicit user confirmation.
+The assistant can author, test, and persist new skills at runtime through a three-tool workflow. All operations target `~/.max/workspace/skills/` (managed skills directory) and require explicit user confirmation.
 
 ```mermaid
 graph TB
     subgraph "1. Evaluate (Sandbox)"
         SNIPPET["Model drafts<br/>TypeScript snippet"]
         EVAL_TOOL["evaluate_typescript_code<br/>───────────────<br/>RiskLevel: High<br/>Always sandboxed"]
-        TEMP["Temp dir:<br/>workingDir/.vellum-eval/&lt;uuid&gt;"]
+        TEMP["Temp dir:<br/>workingDir/.max-eval/&lt;uuid&gt;"]
         WRAPPER["Wrapper runner<br/>imports snippet, calls<br/>default() or run()"]
         SANDBOX["wrapCommand()<br/>forced sandbox=true"]
         RESULT["JSON result:<br/>ok, exitCode, result,<br/>stdout, stderr,<br/>durationMs, timeout"]
@@ -1228,8 +1228,8 @@ graph TB
     subgraph "2. Persist (Filesystem)"
         SCAFFOLD["scaffold_managed_skill<br/>───────────────<br/>RiskLevel: High<br/>Requires user consent"]
         MANAGED_STORE["managed-store.ts<br/>───────────────<br/>validateManagedSkillId()<br/>buildSkillMarkdown()<br/>createManagedSkill()<br/>upsertSkillsIndexEntry()"]
-        SKILL_DIR["~/.vellum/workspace/skills/&lt;id&gt;/<br/>SKILL.md (frontmatter + body)"]
-        INDEX["~/.vellum/workspace/skills/<br/>SKILLS.md (index)"]
+        SKILL_DIR["~/.max/workspace/skills/&lt;id&gt;/<br/>SKILL.md (frontmatter + body)"]
+        INDEX["~/.max/workspace/skills/<br/>SKILLS.md (index)"]
     end
 
     subgraph "3. Load & Use"
@@ -1325,7 +1325,7 @@ Skills can expose custom tools via a `TOOLS.json` manifest alongside their `SKIL
 
 ### Bundled Skill Retrieval Contract (CLI-First)
 
-Config/status retrieval instructions in bundled `SKILL.md` files are CLI-first. Retrieval should flow through canonical `vellum` CLI surfaces (`assistant config get` for generic settings, secure credential surfaces for secrets, and domain reads where available) instead of direct gateway curl snippets or credential store lookups.
+Config/status retrieval instructions in bundled `SKILL.md` files are CLI-first. Retrieval should flow through canonical `max` CLI surfaces (`assistant config get` for generic settings, secure credential surfaces for secrets, and domain reads where available) instead of direct gateway curl snippets or credential store lookups.
 
 ```mermaid
 graph LR
@@ -1340,7 +1340,7 @@ Rules enforced by guard tests:
 - Retrieval reads use `bash` + canonical CLI surfaces (`assistant config get` and domain read commands where available).
 - Direct gateway `curl` + manual bearer headers are for control-plane writes/actions, not retrieval reads.
 - Bundled skill docs must not instruct direct credential store lookups (`security find-generic-password`, `secret-tool`) for retrieval.
-- `host_bash` is not used for Vellum CLI retrieval commands unless intentionally allowlisted.
+- `host_bash` is not used for Max CLI retrieval commands unless intentionally allowlisted.
 - Outbound credentialed API calls use CES tools (`make_authenticated_request`, `run_authenticated_command`) so credential materialization happens in a separate process. Command output (stdout/stderr) is forwarded back to the assistant and may contain credential values if the command echoes them, so the isolation covers injection, not output. `host_bash` is available as a user-approved escape hatch but is outside the strong secrecy guarantee.
 
 ### Skill Directory Structure
@@ -1617,7 +1617,7 @@ When set to `"none"`, every tool invocation requires explicit approval. Explicit
 
 ### Trust Rules (v3 Schema)
 
-Rules are stored in `~/.vellum/protected/trust.json` with version `3`. Each rule can include the following fields:
+Rules are stored in `~/.max/protected/trust.json` with version `3`. Each rule can include the following fields:
 
 | Field             | Type                   | Purpose                                                                  |
 | ----------------- | ---------------------- | ------------------------------------------------------------------------ |
@@ -1987,7 +1987,7 @@ Producer → NotificationSignal → Candidate Generation → Decision Engine (LL
 
 - **`deliveryEnabled`** — whether the channel can receive notification deliveries. The `NotificationChannel` type is derived from this flag: only channels with `deliveryEnabled: true` are valid notification targets.
 - **`conversationStrategy`** — how the notification pipeline materializes conversations for the channel:
-  - `start_new_conversation` — creates a fresh conversation per delivery (e.g. vellum desktop/mobile conversations)
+  - `start_new_conversation` — creates a fresh conversation per delivery (e.g. max desktop/mobile conversations)
   - `continue_existing_conversation` — intended to append to an existing channel-scoped conversation; currently materializes a background audit conversation per delivery (e.g. Telegram)
   - `not_deliverable` — channel cannot receive notifications (e.g. phone)
 
@@ -2012,20 +2012,20 @@ The pairing function (`pairDeliveryWithConversation`) is resilient — errors ar
 
 The notification pipeline uses a single conversation materialization path across producers:
 
-1. **Canonical pipeline** (`emitNotificationSignal` → decision engine → broadcaster → conversation pairing → adapters): The broadcaster pairs each delivery with a conversation, then dispatches a `notification_intent` SSE event via the Vellum adapter. The payload includes `deepLinkMetadata` (e.g. `{ conversationId, messageId }`) so the macOS client can deep-link to the relevant context when the user taps the notification. When `messageId` is present, the client scrolls to that specific message within the conversation (message-level anchoring).
+1. **Canonical pipeline** (`emitNotificationSignal` → decision engine → broadcaster → conversation pairing → adapters): The broadcaster pairs each delivery with a conversation, then dispatches a `notification_intent` SSE event via the Max adapter. The payload includes `deepLinkMetadata` (e.g. `{ conversationId, messageId }`) so the macOS client can deep-link to the relevant context when the user taps the notification. When `messageId` is present, the client scrolls to that specific message within the conversation (message-level anchoring).
 2. **Guardian bookkeeping** (`dispatchGuardianQuestion`): Guardian dispatch creates `guardian_action_request` / `guardian_action_delivery` audit rows derived from pipeline delivery results and the per-dispatch `onConversationCreated` callback — there is no separate conversation-creation path.
 
 ### Conversation Surfacing via `notification_conversation_created` (Creation-Only)
 
 The `notification_conversation_created` SSE event is emitted **only when a brand-new conversation is created** by the broadcaster. Reusing an existing conversation does not trigger this event — the macOS client already knows about the conversation from the original creation. This is enforced in `broadcaster.ts` by gating on `pairing.createdNewConversation === true`.
 
-When a new vellum notification conversation is created (strategy `start_new_conversation`), the broadcaster emits the event **immediately** (before waiting for slower channel deliveries like Telegram). This pushes the conversation to the macOS client so it can display the notification conversation in the sidebar and deep-link to it.
+When a new max notification conversation is created (strategy `start_new_conversation`), the broadcaster emits the event **immediately** (before waiting for slower channel deliveries like Telegram). This pushes the conversation to the macOS client so it can display the notification conversation in the sidebar and deep-link to it.
 
 ### Conversation-Created Events
 
 Two SSE push events surface new conversations in the macOS client sidebar:
 
-- **`notification_conversation_created`** — Emitted by `broadcaster.ts` when a notification delivery **creates** a new vellum conversation (strategy `start_new_conversation`, `createdNewConversation: true`). **Not** emitted when a conversation is reused. Payload: `{ conversationId, title, sourceEventName }`.
+- **`notification_conversation_created`** — Emitted by `broadcaster.ts` when a notification delivery **creates** a new max conversation (strategy `start_new_conversation`, `createdNewConversation: true`). **Not** emitted when a conversation is reused. Payload: `{ conversationId, title, sourceEventName }`.
 - **`task_run_conversation_created`** — Emitted by `work-item-runner.ts` when a task run creates a conversation. Payload: `{ conversationId, workItemId, title }`.
 
 All events follow the same pattern: the daemon creates a server-side conversation, persists an initial message, and broadcasts the SSE event so the macOS `ConversationManager` can create a visible conversation in the sidebar.
@@ -2043,9 +2043,9 @@ The decision engine produces per-channel conversation actions using a candidate-
 
 ### Guardian Call Conversation Affinity
 
-When a guardian question originates from an active phone call (`callSessionId` present on the signal), the decision engine enforces conversation affinity so all questions within the same call land in one vellum conversation:
+When a guardian question originates from an active phone call (`callSessionId` present on the signal), the decision engine enforces conversation affinity so all questions within the same call land in one max conversation:
 
-- **First question in a call** (no `conversationAffinityHint`): `enforceGuardianCallConversationAffinity` forces `start_new` for the vellum channel, creating a dedicated conversation for the call.
+- **First question in a call** (no `conversationAffinityHint`): `enforceGuardianCallConversationAffinity` forces `start_new` for the max channel, creating a dedicated conversation for the call.
 - **Subsequent questions in the same call** (affinity hint already set by `dispatchGuardianQuestion`): The guard is a no-op, and `enforceConversationAffinity` routes to `reuse_existing` using the hint's `conversationId`.
 
 This guard runs **before** `enforceConversationAffinity` in the post-decision chain so the two cooperate: the first dispatch creates the conversation, and subsequent dispatches reuse it via the affinity hint that `dispatchGuardianQuestion` sets after observing the first delivery's `conversationId`.
@@ -2058,7 +2058,7 @@ When the decision engine routes multiple guardian questions to the same conversa
 - **Multiple pending deliveries**: The guardian must prefix their reply with the 6-char hex request code (e.g. `A1B2C3 yes, allow it`). Case-insensitive matching.
 - **No match**: A disambiguation message is sent listing all active request codes.
 
-This invariant is enforced identically on mac/vellum (`conversation-process.ts`) and Telegram (`inbound-message-handler.ts`). All disambiguation messages are generated through the guardian action message composer (LLM with deterministic fallback).
+This invariant is enforced identically on mac/max (`conversation-process.ts`) and Telegram (`inbound-message-handler.ts`). All disambiguation messages are generated through the guardian action message composer (LLM with deterministic fallback).
 
 ### Reminder Routing Metadata
 
@@ -2068,10 +2068,10 @@ Reminders carry optional `routingIntent` (`single_channel` | `multi_channel` | `
 
 Notifications are delivered to three channel types:
 
-- **Vellum (always connected)**: SSE via the daemon's broadcast mechanism. The `VellumAdapter` emits a `notification_intent` message with rendered copy and optional `deepLinkMetadata` (includes `conversationId` for conversation navigation and `messageId` for message-level scroll anchoring).
+- **Max (always connected)**: SSE via the daemon's broadcast mechanism. The `MaxAdapter` emits a `notification_intent` message with rendered copy and optional `deepLinkMetadata` (includes `conversationId` for conversation navigation and `messageId` for message-level scroll anchoring).
 - **Telegram (when guardian binding exists)**: HTTP POST to the gateway's `/deliver/telegram` endpoint. Requires an active guardian binding for the assistant.
 
-Connected channels are resolved at signal emission time: vellum is always included, and binding-based channels (Telegram) are included only when an active guardian binding exists for the assistant.
+Connected channels are resolved at signal emission time: max is always included, and binding-based channels (Telegram) are included only when an active guardian binding exists for the assistant.
 
 **Key modules:**
 
@@ -2084,9 +2084,9 @@ Connected channels are resolved at signal emission time: vellum is always includ
 | `assistant/src/notifications/broadcaster.ts`                               | Dispatches decisions to channel adapters; emits `notification_conversation_created` SSE event (creation-only)                         |
 | `assistant/src/notifications/conversation-pairing.ts`                      | Materializes conversation + message per delivery; executes conversation reuse decisions                                               |
 | `assistant/src/notifications/conversation-candidates.ts`                   | Builds per-channel candidate set of recent conversations for the decision engine                                                      |
-| `assistant/src/notifications/adapters/macos.ts`                            | Vellum adapter — broadcasts `notification_intent` via SSE with deep-link metadata                                                     |
+| `assistant/src/notifications/adapters/macos.ts`                            | Max adapter — broadcasts `notification_intent` via SSE with deep-link metadata                                                     |
 | `assistant/src/notifications/adapters/telegram.ts`                         | Telegram adapter — POSTs to gateway `/deliver/telegram`                                                                               |
-| `assistant/src/notifications/destination-resolver.ts`                      | Resolves per-channel endpoints (vellum SSE, Telegram chat ID from guardian binding)                                                   |
+| `assistant/src/notifications/destination-resolver.ts`                      | Resolves per-channel endpoints (max SSE, Telegram chat ID from guardian binding)                                                   |
 | `assistant/src/notifications/copy-composer.ts`                             | Template-based fallback copy when LLM copy is unavailable                                                                             |
 | `assistant/src/notifications/preference-extractor.ts`                      | Detects preference statements in conversation messages                                                                                |
 | `assistant/src/notifications/preferences-store.ts`                         | CRUD for user notification preferences                                                                                                |
@@ -2105,46 +2105,46 @@ Connected channels are resolved at signal emission time: vellum is always includ
 | ---------------------------------------- | ---------------------------------------------------- | ----------------------------------- | ---------------------------------- | ------------------------------------------------------- |
 | API key                                  | CES / encrypted file store                           | Encrypted binary                    | CES API / `secure-keys.ts`         | Permanent                                               |
 | Credential secrets                       | CES / encrypted file store                           | Encrypted binary                    | `secure-keys.ts` wrapper           | Permanent (until deleted via tool)                      |
-| Credential metadata                      | `~/.vellum/workspace/data/credentials/metadata.json` | JSON                                | Atomic file write                  | Permanent (until deleted via tool)                      |
+| Credential metadata                      | `~/.max/workspace/data/credentials/metadata.json` | JSON                                | Atomic file write                  | Permanent (until deleted via tool)                      |
 | Integration OAuth tokens                 | CES / encrypted file store (via `secure-keys.ts`)    | Encrypted binary                    | `TokenManager` auto-refresh        | Until disconnected or revoked                           |
 | User preferences                         | UserDefaults                                         | plist                               | Foundation                         | Permanent                                               |
 | Session logs                             | `~/Library/.../logs/session-*.json`                  | JSON per session                    | Swift Codable                      | Unbounded                                               |
-| Conversations & messages                 | `~/.vellum/workspace/data/db/assistant.db`           | SQLite + WAL                        | Drizzle ORM (Bun)                  | Permanent                                               |
-| Memory segments                          | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent                                               |
-| Extracted facts                          | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, deduped                                      |
-| Embeddings                               | `~/.vellum/workspace/data/db/assistant.db`           | JSON float arrays                   | Drizzle ORM                        | Permanent                                               |
-| Async job queue                          | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Completed jobs persist                                  |
-| Attachments                              | `~/.vellum/workspace/data/db/assistant.db`           | Base64 in SQLite                    | Drizzle ORM                        | Permanent                                               |
-| Sandbox filesystem                       | `~/.vellum/workspace`                                | Real filesystem tree                | Node FS APIs                       | Persistent across sessions                              |
-| Tool permission rules                    | `~/.vellum/protected/trust.json`                     | JSON                                | File I/O                           | Permanent                                               |
+| Conversations & messages                 | `~/.max/workspace/data/db/assistant.db`           | SQLite + WAL                        | Drizzle ORM (Bun)                  | Permanent                                               |
+| Memory segments                          | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent                                               |
+| Extracted facts                          | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, deduped                                      |
+| Embeddings                               | `~/.max/workspace/data/db/assistant.db`           | JSON float arrays                   | Drizzle ORM                        | Permanent                                               |
+| Async job queue                          | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Completed jobs persist                                  |
+| Attachments                              | `~/.max/workspace/data/db/assistant.db`           | Base64 in SQLite                    | Drizzle ORM                        | Permanent                                               |
+| Sandbox filesystem                       | `~/.max/workspace`                                | Real filesystem tree                | Node FS APIs                       | Persistent across sessions                              |
+| Tool permission rules                    | `~/.max/protected/trust.json`                     | JSON                                | File I/O                           | Permanent                                               |
 | Web users & assistants                   | PostgreSQL                                           | Relational                          | Drizzle ORM (pg)                   | Permanent                                               |
 | Trace events                             | In-memory (TraceStore)                               | Structured events                   | Swift ObservableObject             | Max 5,000 per session, ephemeral                        |
-| Media embed settings                     | `~/.vellum/workspace/config.json` (`ui.mediaEmbeds`) | JSON                                | `WorkspaceConfigIO` (atomic merge) | Permanent                                               |
+| Media embed settings                     | `~/.max/workspace/config.json` (`ui.mediaEmbeds`) | JSON                                | `WorkspaceConfigIO` (atomic merge) | Permanent                                               |
 | Media embed MIME cache                   | In-memory (`ImageMIMEProbe`)                         | `NSCache` (500 entries)             | HTTP HEAD                          | Ephemeral; cleared on app restart                       |
-| Tasks & task runs                        | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent                                               |
-| Work items (Task Queue)                  | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; archived items retained                      |
-| Recurrence schedules & runs              | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; supports cron and RRULE syntax               |
-| Watchers & events                        | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, cascade on watcher delete                    |
+| Tasks & task runs                        | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent                                               |
+| Work items (Task Queue)                  | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; archived items retained                      |
+| Recurrence schedules & runs              | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; supports cron and RRULE syntax               |
+| Watchers & events                        | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, cascade on watcher delete                    |
 | Proxy CA cert + key                      | `{dataDir}/proxy-ca/`                                | PEM files (ca.pem, ca-key.pem)      | openssl CLI                        | Permanent (10-year validity)                            |
 | Proxy leaf certs                         | `{dataDir}/proxy-ca/issued/`                         | PEM files per hostname              | openssl CLI, cached                | 1-year validity, re-issued on CA change                 |
 | Proxy sessions                           | In-memory (SessionManager)                           | Map<ProxySessionId, ManagedSession> | Manual lifecycle                   | Ephemeral; 5min idle timeout, cleared on shutdown       |
-| Call sessions, events, pending questions | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, cascade on session delete                    |
+| Call sessions, events, pending questions | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent, cascade on session delete                    |
 | Active call controllers                  | In-memory (CallState)                                | Map<callSessionId, CallController>  | Manual lifecycle                   | Ephemeral; cleared on call end or destroy               |
-| Guardian bindings                        | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; revoked bindings retained                    |
-| Channel verification sessions            | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; consumed/expired sessions retained           |
-| Guardian approval requests               | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; decision outcome retained                    |
-| Contact invites                          | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; token hash stored, raw token never persisted |
-| Contacts & channels                      | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; revoked/blocked contacts retained            |
-| Notification events                      | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; deduplicated by dedupeKey                    |
-| Notification decisions                   | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; FK to notification_events                    |
-| Notification deliveries                  | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; FK to notification_decisions                 |
-| Notification preferences                 | `~/.vellum/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; per-assistant conversational preferences     |
+| Guardian bindings                        | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; revoked bindings retained                    |
+| Channel verification sessions            | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; consumed/expired sessions retained           |
+| Guardian approval requests               | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; decision outcome retained                    |
+| Contact invites                          | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; token hash stored, raw token never persisted |
+| Contacts & channels                      | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; revoked/blocked contacts retained            |
+| Notification events                      | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; deduplicated by dedupeKey                    |
+| Notification decisions                   | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; FK to notification_events                    |
+| Notification deliveries                  | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; FK to notification_decisions                 |
+| Notification preferences                 | `~/.max/workspace/data/db/assistant.db`           | SQLite                              | Drizzle ORM                        | Permanent; per-assistant conversational preferences     |
 
 ### Sensitive Tool Output Placeholder Substitution
 
 Some tool outputs contain values that must reach the user's final reply but should never be visible to the LLM (e.g., invite tokens). The system handles this with a three-stage pipeline:
 
-1. **Directive extraction** (`src/tools/sensitive-output-placeholders.ts`): Tool output may include `<vellum-sensitive-output kind="invite_code" value="<raw>" />` directives. The executor strips directives, replaces raw values with deterministic placeholders (`VELLUM_ASSISTANT_INVITE_CODE_<shortId>`), and attaches `sensitiveBindings` metadata to the tool result.
+1. **Directive extraction** (`src/tools/sensitive-output-placeholders.ts`): Tool output may include `<max-sensitive-output kind="invite_code" value="<raw>" />` directives. The executor strips directives, replaces raw values with deterministic placeholders (`MAX_ASSISTANT_INVITE_CODE_<shortId>`), and attaches `sensitiveBindings` metadata to the tool result.
 
 2. **Placeholder-only model context**: The agent loop stores placeholder->value bindings in a per-run `substitutionMap`. Tool results sent to the LLM contain only placeholders — the model generates conversational text referencing them without ever seeing the real values.
 
@@ -2267,7 +2267,7 @@ No hardcoded enum edits are required — the `TtsProviderId` union in `types.ts`
 
 Managed cloud assistants use Bun's built-in CPU and heap profiling to capture runtime performance data. The profiler subsystem consists of a persistent on-disk run store, a retention/pruning sweep, and HTTP routes for remote management.
 
-**Bun profiler flags:** Managed containers activate profiling by setting `VELLUM_PROFILER_MODE` (e.g. `cpu`, `heap`, `cpu+heap`) and `VELLUM_PROFILER_RUN_ID` environment variables before boot. Bun writes profiler artifacts (`.cpuprofile`, `.heapsnapshot`, markdown summaries) into the run directory.
+**Bun profiler flags:** Managed containers activate profiling by setting `MAX_PROFILER_MODE` (e.g. `cpu`, `heap`, `cpu+heap`) and `MAX_PROFILER_RUN_ID` environment variables before boot. Bun writes profiler artifacts (`.cpuprofile`, `.heapsnapshot`, markdown summaries) into the run directory.
 
 **Directory contract:**
 
@@ -2281,15 +2281,15 @@ Managed cloud assistants use Bun's built-in CPU and heap profiling to capture ru
       *.heapsnapshot          — Bun heap profile output (when heap mode active)
 ```
 
-Each profiler run lives in its own sub-directory under `<workspace>/data/profiler/runs/<runId>/`. A `manifest.json` in each run directory records metadata: status (`active` or `completed`), creation/update timestamps, and total byte count. The active run (identified by `VELLUM_PROFILER_RUN_ID`) is never pruned.
+Each profiler run lives in its own sub-directory under `<workspace>/data/profiler/runs/<runId>/`. A `manifest.json` in each run directory records metadata: status (`active` or `completed`), creation/update timestamps, and total byte count. The active run (identified by `MAX_PROFILER_RUN_ID`) is never pruned.
 
 **Retention budgets:** On daemon startup and after explicit cleanup operations, the profiler sweep enforces three budgets:
 
 | Budget                                | Env var                       | Default |
 | ------------------------------------- | ----------------------------- | ------- |
-| Max total bytes across all runs       | `VELLUM_PROFILER_MAX_BYTES`   | 500 MB  |
-| Max number of completed runs retained | `VELLUM_PROFILER_MAX_RUNS`    | 10      |
-| Minimum free disk space               | `VELLUM_PROFILER_MIN_FREE_MB` | 200 MB  |
+| Max total bytes across all runs       | `MAX_PROFILER_MAX_BYTES`   | 500 MB  |
+| Max number of completed runs retained | `MAX_PROFILER_MAX_RUNS`    | 10      |
+| Minimum free disk space               | `MAX_PROFILER_MIN_FREE_MB` | 200 MB  |
 
 Completed runs are pruned oldest-first until all budgets are satisfied. The active run is never deleted, even if it alone exceeds the byte budget.
 

@@ -1,15 +1,15 @@
 ---
 name: slack-app-setup
-description: Connect a Slack app to the Vellum Assistant via Socket Mode with one-click app creation and identity verification
-compatibility: "Designed for Vellum personal assistants"
+description: Connect a Slack app to the Max Assistant via Socket Mode with one-click app creation and identity verification
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "💬"
-  vellum:
+  max:
     display-name: "Slack App Setup"
     includes: ["guardian-verify-setup"]
 ---
 
-You are helping your user connect a Slack bot to the Vellum Assistant via Socket Mode.
+You are helping your user connect a Slack bot to the Max Assistant via Socket Mode.
 
 **Before starting, set expectations:** "We're creating a custom Slack app for your assistant — this gives you your own bot identity, avatar, and name in Slack. There are a few steps to get through, but most of it is automated."
 

@@ -280,10 +280,10 @@ describe("platformRequestSignedUrl", () => {
 
     // The first signed-url POST used the stale org ID, the second used
     // the fresh one.
-    expect(signedUrlCalls[0]!.headers["Vellum-Organization-Id"]).toBe(
+    expect(signedUrlCalls[0]!.headers["Max-Organization-Id"]).toBe(
       "org-stale",
     );
-    expect(signedUrlCalls[1]!.headers["Vellum-Organization-Id"]).toBe(
+    expect(signedUrlCalls[1]!.headers["Max-Organization-Id"]).toBe(
       "org-fresh",
     );
 

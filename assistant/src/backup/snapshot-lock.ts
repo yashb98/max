@@ -2,14 +2,14 @@
  * Cross-process snapshot mutex.
  *
  * The backup worker's in-process `snapshotInProgress` flag only protects one
- * process from racing itself. A CLI `vellum backup create` run against a live
+ * process from racing itself. A CLI `max backup create` run against a live
  * daemon has its own independent copy of the flag, so both processes could
  * drive the pipeline concurrently: two WAL checkpoints against the live DB,
  * two renames into the same `backup-YYYYMMDD-HHMMSS.vbundle` path (the second
  * silently clobbering the first), and two retention-pruner passes racing.
  *
  * This module provides a small cross-process lock backed by an atomic
- * `O_CREAT | O_EXCL` file create under `~/.vellum/backups/.snapshot.lock`.
+ * `O_CREAT | O_EXCL` file create under `~/.max/backups/.snapshot.lock`.
  * The in-process flag is kept as a fast path; this lock is the source of
  * truth whenever two processes could collide.
  *
@@ -77,7 +77,7 @@ const EMPTY_FILE_MAX_RETRIES = 3;
 /**
  * Returns the canonical path to the snapshot lock file. The lock lives one
  * level above the local backups directory so it stays in place even when the
- * backup pool is wiped or rotated — e.g. at `~/.vellum/backups/.snapshot.lock`.
+ * backup pool is wiped or rotated — e.g. at `~/.max/backups/.snapshot.lock`.
  *
  * Placing it one level up (rather than inside the `local/` subdir) also
  * guarantees that pruning never touches the lock file and that the lock
@@ -248,7 +248,7 @@ function readLockHolder(lockPath: string): LockReadResult {
  * After the bound is exhausted we surface a conflict so callers retry.
  *
  * The lock directory is created on demand so first-run scenarios (no
- * `~/.vellum/backups` yet) work without a separate bootstrap step.
+ * `~/.max/backups` yet) work without a separate bootstrap step.
  */
 export async function acquireSnapshotLock(
   lockPath: string,

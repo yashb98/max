@@ -249,14 +249,14 @@ describe("guardian-action grant mint -> voice consume integration", () => {
     const resolved = resolveGuardianActionRequest(
       request.id,
       "Tell them to call back",
-      "vellum",
+      "max",
     );
     expect(resolved).not.toBeNull();
 
     await tryMintGuardianActionGrant({
       request: resolved!,
       answerText: "Tell them to call back",
-      decisionChannel: "vellum",
+      decisionChannel: "max",
       approvalConversationGenerator: approveOnceGenerator,
     });
 
@@ -266,7 +266,7 @@ describe("guardian-action grant mint -> voice consume integration", () => {
     expect(grants.length).toBe(0);
   });
 
-  test("grant minted via desktop/vellum channel also consumable by voice", async () => {
+  test("grant minted via desktop/max channel also consumable by voice", async () => {
     const inputDigest = computeToolApprovalDigest(TOOL_NAME, TOOL_INPUT);
 
     const request = createGuardianActionRequest({
@@ -281,19 +281,19 @@ describe("guardian-action grant mint -> voice consume integration", () => {
       inputDigest,
     });
 
-    // Guardian answers via desktop (vellum channel)
+    // Guardian answers via desktop (max channel)
     const resolved = resolveGuardianActionRequest(
       request.id,
       "approve",
-      "vellum",
+      "max",
     );
     expect(resolved).not.toBeNull();
 
-    // Mint with decisionChannel: 'vellum' (desktop path)
+    // Mint with decisionChannel: 'max' (desktop path)
     await tryMintGuardianActionGrant({
       request: resolved!,
       answerText: "approve",
-      decisionChannel: "vellum",
+      decisionChannel: "max",
       approvalConversationGenerator: approveOnceGenerator,
     });
 

@@ -1,10 +1,10 @@
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 final class SharedUserDefaultsTests: XCTestCase {
     private let key = "shared-defaults-regression-test"
-    private let legacySuiteName = "com.vellum.vellum-assistant.swiftpackage"
+    private let legacySuiteName = "com.max.max-assistant.swiftpackage"
     private var legacySuiteSnapshot: [String: Any]?
     private var standardValueSnapshot: Any?
 

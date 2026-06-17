@@ -33,28 +33,28 @@ const LONGEST_SOCKET_FILENAME = "assistant-skill.sock";
  * Warn when an assistant appears to have legacy data in the global workspace.
  *
  * Old local startup paths could launch the daemon without
- * `VELLUM_WORKSPACE_DIR`, causing writes to fall back to `~/.vellum/workspace`.
+ * `MAX_WORKSPACE_DIR`, causing writes to fall back to `~/.max/workspace`.
  * New local instance launches pin the workspace under
- * `<instanceDir>/.vellum/workspace`. If we detect data only in the legacy
+ * `<instanceDir>/.max/workspace`. If we detect data only in the legacy
  * global path, warn with migration instructions so users are not surprised by
  * missing history/settings after the fix.
  */
 function warnIfLegacyWorkspaceFallbackDetected(
   resources: LocalInstanceResources,
 ): void {
-  const instanceWorkspace = join(resources.instanceDir, ".vellum", "workspace");
+  const instanceWorkspace = join(resources.instanceDir, ".max", "workspace");
   const instanceDbPath = join(instanceWorkspace, "data", "db", "assistant.db");
 
-  const legacyWorkspace = join(homedir(), ".vellum", "workspace");
+  const legacyWorkspace = join(homedir(), ".max", "workspace");
   const legacyDbPath = join(legacyWorkspace, "data", "db", "assistant.db");
 
-  // Legacy "first local" entries use ~/.vellum directly; no drift possible.
+  // Legacy "first local" entries use ~/.max directly; no drift possible.
   if (instanceWorkspace === legacyWorkspace) return;
 
   if (existsSync(legacyDbPath) && !existsSync(instanceDbPath)) {
     console.warn("");
     console.warn(
-      "WARNING: Detected legacy workspace data in ~/.vellum/workspace for this local assistant.",
+      "WARNING: Detected legacy workspace data in ~/.max/workspace for this local assistant.",
     );
     console.warn("   What this means:");
     console.warn(
@@ -69,10 +69,10 @@ function warnIfLegacyWorkspaceFallbackDetected(
       "   1. Stop the assistant before migrating files (retire/sleep or quit app).",
     );
     console.warn(
-      "   2. Copy needed data from ~/.vellum/workspace into the instance workspace.",
+      "   2. Copy needed data from ~/.max/workspace into the instance workspace.",
     );
     console.warn(
-      `      Example: cp -a ~/.vellum/workspace/data/db/assistant.db* ${join(instanceWorkspace, "data", "db")}/`,
+      `      Example: cp -a ~/.max/workspace/data/db/assistant.db* ${join(instanceWorkspace, "data", "db")}/`,
     );
     console.warn(
       "   3. Re-launch and confirm history/settings appear as expected.",
@@ -103,7 +103,7 @@ function computeIpcSocketDirOverride(workspaceDir: string): string | undefined {
     .update(workspaceDir)
     .digest("hex")
     .slice(0, 12);
-  return join(tmpdir(), `vellum-ipc-${hash}`);
+  return join(tmpdir(), `max-ipc-${hash}`);
 }
 
 /**
@@ -115,7 +115,7 @@ function applyIpcSocketDirOverride(
   env: Record<string, string | undefined>,
 ): void {
   const workspaceDir =
-    env.VELLUM_WORKSPACE_DIR || join(homedir(), ".vellum", "workspace");
+    env.MAX_WORKSPACE_DIR || join(homedir(), ".max", "workspace");
   const override = computeIpcSocketDirOverride(workspaceDir);
   if (!override) return;
 
@@ -131,7 +131,7 @@ function isAssistantSourceDir(dir: string): boolean {
     return false;
   try {
     const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    return pkg.name === "@vellumai/assistant";
+    return pkg.name === "@maxai/assistant";
   } catch {
     return false;
   }
@@ -161,7 +161,7 @@ function isGatewaySourceDir(dir: string): boolean {
     return false;
   try {
     const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
-    return pkg.name === "@vellumai/vellum-gateway";
+    return pkg.name === "@maxai/max-gateway";
   } catch {
     return false;
   }
@@ -200,14 +200,14 @@ function resolveAssistantIndexPath(): string | undefined {
     return sourceTreeIndex;
   }
 
-  // bunx layout: @vellumai/cli/src/lib/ -> ../../../.. -> node_modules/vellum/src/index.ts
+  // bunx layout: @maxai/cli/src/lib/ -> ../../../.. -> node_modules/max/src/index.ts
   const bunxIndex = join(
     import.meta.dir,
     "..",
     "..",
     "..",
     "..",
-    "vellum",
+    "max",
     "src",
     "index.ts",
   );
@@ -226,8 +226,8 @@ function resolveAssistantIndexPath(): string | undefined {
   }
 
   try {
-    const vellumPkgPath = _require.resolve("vellum/package.json");
-    const resolved = join(dirname(vellumPkgPath), "src", "index.ts");
+    const maxPkgPath = _require.resolve("max/package.json");
+    const resolved = join(dirname(maxPkgPath), "src", "index.ts");
     if (existsSync(resolved)) {
       return resolved;
     }
@@ -306,7 +306,7 @@ function resolveDaemonMainPath(assistantIndex: string): string {
  * tokens minted by one can be verified by the other. The CLI generates
  * an ephemeral key each time and passes it as `ACTOR_TOKEN_SIGNING_KEY`
  * to both processes — the daemon and gateway each persist it on their
- * own terms (the `.vellum/` directory layout is their concern, not the
+ * own terms (the `.max/` directory layout is their concern, not the
  * CLI's).
  */
 export function generateLocalSigningKey(): string {
@@ -328,7 +328,7 @@ async function startDaemonFromSource(
   const daemonMainPath = resolveDaemonMainPath(assistantIndex);
 
   // Ensure the directory containing PID/socket files exists. For named
-  // instances this is instanceDir/.vellum/workspace/ (matching daemon's getWorkspaceDir()).
+  // instances this is instanceDir/.max/workspace/ (matching daemon's getWorkspaceDir()).
   const pidFile = getDaemonPidPath(resources);
   mkdirSync(dirname(pidFile), { recursive: true });
 
@@ -386,27 +386,27 @@ async function startDaemonFromSource(
   const env: Record<string, string | undefined> = {
     ...process.env,
     RUNTIME_HTTP_PORT: process.env.RUNTIME_HTTP_PORT || "7821",
-    VELLUM_CLOUD: "local",
-    VELLUM_DEV: "1",
-    VELLUM_ENVIRONMENT: process.env.VELLUM_ENVIRONMENT || "local",
+    MAX_CLOUD: "local",
+    MAX_DEV: "1",
+    MAX_ENVIRONMENT: process.env.MAX_ENVIRONMENT || "local",
     ...(options?.signingKey
       ? { ACTOR_TOKEN_SIGNING_KEY: options.signingKey }
       : {}),
   };
   if (resources) {
-    env.VELLUM_WORKSPACE_DIR = join(
+    env.MAX_WORKSPACE_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "workspace",
     );
     env.GATEWAY_SECURITY_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "protected",
     );
     env.CREDENTIAL_SECURITY_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "protected",
     );
     env.RUNTIME_HTTP_PORT = String(resources.daemonPort);
@@ -415,7 +415,7 @@ async function startDaemonFromSource(
     delete env.QDRANT_URL;
   }
   if (options?.defaultWorkspaceConfigPath) {
-    env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH =
+    env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH =
       options.defaultWorkspaceConfigPath;
   }
 
@@ -524,26 +524,26 @@ async function startDaemonWatchFromSource(
   const env: Record<string, string | undefined> = {
     ...process.env,
     RUNTIME_HTTP_PORT: process.env.RUNTIME_HTTP_PORT || "7821",
-    VELLUM_DEV: "1",
-    VELLUM_ENVIRONMENT: process.env.VELLUM_ENVIRONMENT || "local",
+    MAX_DEV: "1",
+    MAX_ENVIRONMENT: process.env.MAX_ENVIRONMENT || "local",
     ...(options?.signingKey
       ? { ACTOR_TOKEN_SIGNING_KEY: options.signingKey }
       : {}),
   };
   if (resources) {
-    env.VELLUM_WORKSPACE_DIR = join(
+    env.MAX_WORKSPACE_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "workspace",
     );
     env.GATEWAY_SECURITY_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "protected",
     );
     env.CREDENTIAL_SECURITY_DIR = join(
       resources.instanceDir,
-      ".vellum",
+      ".max",
       "protected",
     );
     env.RUNTIME_HTTP_PORT = String(resources.daemonPort);
@@ -552,7 +552,7 @@ async function startDaemonWatchFromSource(
     delete env.QDRANT_URL;
   }
   if (options?.defaultWorkspaceConfigPath) {
-    env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH =
+    env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH =
       options.defaultWorkspaceConfigPath;
   }
 
@@ -603,11 +603,11 @@ function resolveGatewayDir(): string {
   }
 
   try {
-    const pkgPath = _require.resolve("@vellumai/vellum-gateway/package.json");
+    const pkgPath = _require.resolve("@maxai/max-gateway/package.json");
     return dirname(pkgPath);
   } catch {
     throw new Error(
-      "Gateway not found. Ensure @vellumai/vellum-gateway is installed or run from the source tree.",
+      "Gateway not found. Ensure @maxai/max-gateway is installed or run from the source tree.",
     );
   }
 }
@@ -856,8 +856,8 @@ function writeAssistantWrapper(resources: LocalInstanceResources): void {
   const assistantBinary = join(dirname(process.execPath), "assistant");
   if (!existsSync(assistantBinary)) return;
 
-  const workspaceDir = join(resources.instanceDir, ".vellum", "workspace");
-  const protectedDir = join(resources.instanceDir, ".vellum", "protected");
+  const workspaceDir = join(resources.instanceDir, ".max", "workspace");
+  const protectedDir = join(resources.instanceDir, ".max", "protected");
   const binDir = join(workspaceDir, "bin");
 
   mkdirSync(binDir, { recursive: true });
@@ -866,7 +866,7 @@ function writeAssistantWrapper(resources: LocalInstanceResources): void {
     wrapperPath,
     [
       "#!/bin/sh",
-      `export VELLUM_WORKSPACE_DIR="${workspaceDir}"`,
+      `export MAX_WORKSPACE_DIR="${workspaceDir}"`,
       `export CREDENTIAL_SECURITY_DIR="${protectedDir}"`,
       `export GATEWAY_SECURITY_DIR="${protectedDir}"`,
       `exec "${assistantBinary}" "$@"`,
@@ -890,10 +890,10 @@ export async function startLocalDaemon(
 
   const foreground = options?.foreground ?? false;
   // Check for a compiled daemon binary adjacent to the CLI executable.
-  // This covers both the desktop app (VELLUM_DESKTOP_APP) and the case where
+  // This covers both the desktop app (MAX_DESKTOP_APP) and the case where
   // the user runs the compiled CLI directly from the terminal (e.g. via a
-  // /usr/local/bin/vellum symlink into the app bundle).
-  const daemonBinary = join(dirname(process.execPath), "vellum-daemon");
+  // /usr/local/bin/max symlink into the app bundle).
+  const daemonBinary = join(dirname(process.execPath), "max-daemon");
   if (existsSync(daemonBinary) && !watch) {
     // In watch mode, skip the bundled binary and use source (bun --watch
     // only works with source files, not compiled binaries).
@@ -987,7 +987,7 @@ export async function startLocalDaemon(
         PATH: [...extraDirs, basePath].filter(Boolean).join(":"),
       };
       // Forward optional config env vars the daemon may need.
-      // `VELLUM_ENVIRONMENT` must be forwarded so the daemon resolves
+      // `MAX_ENVIRONMENT` must be forwarded so the daemon resolves
       // env-scoped paths (device ID, platform/guardian tokens, XDG
       // config dir) to the same location as the CLI that spawned it.
       for (const key of [
@@ -995,8 +995,8 @@ export async function startLocalDaemon(
         "APP_VERSION",
         "GATEWAY_SECURITY_DIR",
         "CREDENTIAL_SECURITY_DIR",
-        "VELLUM_ENVIRONMENT",
-        "VELLUM_PLATFORM_URL",
+        "MAX_ENVIRONMENT",
+        "MAX_PLATFORM_URL",
         "QDRANT_HTTP_PORT",
         "QDRANT_URL",
         "RUNTIME_HTTP_PORT",
@@ -1004,35 +1004,35 @@ export async function startLocalDaemon(
         "TMPDIR",
         "USER",
         "LANG",
-        "VELLUM_DEBUG",
-        "VELLUM_DEV",
-        "VELLUM_DESKTOP_APP",
-        "VELLUM_WORKSPACE_DIR",
+        "MAX_DEBUG",
+        "MAX_DEV",
+        "MAX_DESKTOP_APP",
+        "MAX_WORKSPACE_DIR",
       ]) {
         if (process.env[key]) {
           daemonEnv[key] = process.env[key]!;
         }
       }
       if (options?.defaultWorkspaceConfigPath) {
-        daemonEnv.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH =
+        daemonEnv.MAX_DEFAULT_WORKSPACE_CONFIG_PATH =
           options.defaultWorkspaceConfigPath;
       }
       // When running a named instance, override env so the daemon resolves
       // all paths under the instance directory and listens on its own port.
       if (resources) {
-        daemonEnv.VELLUM_WORKSPACE_DIR = join(
+        daemonEnv.MAX_WORKSPACE_DIR = join(
           resources.instanceDir,
-          ".vellum",
+          ".max",
           "workspace",
         );
         daemonEnv.GATEWAY_SECURITY_DIR = join(
           resources.instanceDir,
-          ".vellum",
+          ".max",
           "protected",
         );
         daemonEnv.CREDENTIAL_SECURITY_DIR = join(
           resources.instanceDir,
-          ".vellum",
+          ".max",
           "protected",
         );
         daemonEnv.RUNTIME_HTTP_PORT = String(resources.daemonPort);
@@ -1125,7 +1125,7 @@ export async function startLocalDaemon(
     const assistantIndex = resolveAssistantIndexPath();
     if (!assistantIndex) {
       throw new Error(
-        "vellum-daemon binary not found and assistant source not available.\n" +
+        "max-daemon binary not found and assistant source not available.\n" +
           "  Ensure the daemon binary is bundled alongside the CLI, or run from the source tree.",
       );
     }
@@ -1167,8 +1167,8 @@ export async function startGateway(
   // process holds the port (or lingers after losing it), and every restart
   // attempt spawns yet another process that fails with EADDRINUSE.
   const gwPidDir = resources
-    ? join(resources.instanceDir, ".vellum")
-    : join(homedir(), ".vellum");
+    ? join(resources.instanceDir, ".max")
+    : join(homedir(), ".max");
   const gwPidFile = join(gwPidDir, "gateway.pid");
   await stopProcessByPidFile(gwPidFile, "gateway");
 
@@ -1196,8 +1196,8 @@ export async function startGateway(
       : {}),
     ...(watch
       ? {
-          VELLUM_DEV: "1",
-          VELLUM_ENVIRONMENT: process.env.VELLUM_ENVIRONMENT || "local",
+          MAX_DEV: "1",
+          MAX_ENVIRONMENT: process.env.MAX_ENVIRONMENT || "local",
         }
       : {}),
     // Pin gateway workspace/security paths to the named instance so parent
@@ -1205,19 +1205,19 @@ export async function startGateway(
     // assistant DB directly for guardian bootstrap.
     ...(resources
       ? {
-          VELLUM_WORKSPACE_DIR: join(
+          MAX_WORKSPACE_DIR: join(
             resources.instanceDir,
-            ".vellum",
+            ".max",
             "workspace",
           ),
           GATEWAY_SECURITY_DIR: join(
             resources.instanceDir,
-            ".vellum",
+            ".max",
             "protected",
           ),
           CREDENTIAL_SECURITY_DIR: join(
             resources.instanceDir,
-            ".vellum",
+            ".max",
             "protected",
           ),
         }
@@ -1228,7 +1228,7 @@ export async function startGateway(
 
   let gateway;
 
-  const gatewayBinary = join(dirname(process.execPath), "vellum-gateway");
+  const gatewayBinary = join(dirname(process.execPath), "max-gateway");
   if (existsSync(gatewayBinary) && !watch) {
     // Use the compiled gateway binary when available (desktop app or compiled
     // CLI invoked from the terminal). In watch mode, skip the bundled binary
@@ -1244,8 +1244,8 @@ export async function startGateway(
     // Source tree / bunx: resolve the gateway source directory and run via bun.
     const gatewayDir = resolveGatewayDir();
     const bunArgs = watch
-      ? ["--watch", "run", "src/index.ts", "--vellum-gateway"]
-      : ["run", "src/index.ts", "--vellum-gateway"];
+      ? ["--watch", "run", "src/index.ts", "--max-gateway"]
+      : ["run", "src/index.ts", "--max-gateway"];
     const gwLogFd = openLogFile("hatch.log");
     gateway = spawn("bun", bunArgs, {
       cwd: gatewayDir,
@@ -1263,8 +1263,8 @@ export async function startGateway(
 
   if (gateway.pid) {
     const gwPidDir = resources
-      ? join(resources.instanceDir, ".vellum")
-      : join(homedir(), ".vellum");
+      ? join(resources.instanceDir, ".max")
+      : join(homedir(), ".max");
     writeFileSync(join(gwPidDir, "gateway.pid"), String(gateway.pid), "utf-8");
   }
 
@@ -1310,24 +1310,24 @@ export async function startGateway(
  * so we don't leave orphaned processes with no lock file entry.
  *
  * When `resources` is provided, uses instance-specific paths instead of
- * the default ~/.vellum/ paths.
+ * the default ~/.max/ paths.
  */
 export async function stopLocalProcesses(
   resources?: LocalInstanceResources,
 ): Promise<void> {
-  const vellumDir = resources
-    ? join(resources.instanceDir, ".vellum")
-    : join(homedir(), ".vellum");
+  const maxDir = resources
+    ? join(resources.instanceDir, ".max")
+    : join(homedir(), ".max");
   const daemonPidFile = getDaemonPidPath(resources);
   await stopProcessByPidFile(daemonPidFile, "daemon");
 
-  const gatewayPidFile = join(vellumDir, "gateway.pid");
+  const gatewayPidFile = join(maxDir, "gateway.pid");
   await stopProcessByPidFile(gatewayPidFile, "gateway", undefined, 7000);
 
   // Kill ngrok directly by PID rather than using stopProcessByPidFile, because
-  // isVellumProcess() won't match the ngrok binary — resulting in a no-op that
+  // isMaxProcess() won't match the ngrok binary — resulting in a no-op that
   // leaves ngrok running.
-  const ngrokPidFile = join(vellumDir, "ngrok.pid");
+  const ngrokPidFile = join(maxDir, "ngrok.pid");
   if (existsSync(ngrokPidFile)) {
     try {
       const pid = parseInt(readFileSync(ngrokPidFile, "utf-8").trim(), 10);

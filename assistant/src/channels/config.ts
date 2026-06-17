@@ -28,7 +28,7 @@ export interface ChannelNotificationPolicy {
 }
 
 const CHANNEL_POLICIES = {
-  vellum: {
+  max: {
     notification: {
       deliveryEnabled: true,
       conversationStrategy: "start_new_conversation",
@@ -76,7 +76,7 @@ const CHANNEL_POLICIES = {
   platform: {
     notification: {
       deliveryEnabled: true,
-      // Platform is a push-only relay — conversations are owned by the vellum
+      // Platform is a push-only relay — conversations are owned by the max
       // channel. push_only skips pairDeliveryWithConversation without implying
       // the channel is non-deliverable (which not_deliverable would).
       conversationStrategy: "push_only",

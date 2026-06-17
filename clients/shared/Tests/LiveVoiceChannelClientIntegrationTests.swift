@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 @MainActor
 final class LiveVoiceChannelClientIntegrationTests: XCTestCase {

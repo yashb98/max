@@ -58,7 +58,7 @@ import { computeDigest } from "../toolstore/integrity.js";
 import {
   hashProposal,
   type CommandGrantProposal,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -259,7 +259,7 @@ function addCommandGrant(
  * Add a temporary command grant.
  *
  * Constructs the same CommandGrantProposal shape that the executor builds
- * and hashes it with `hashProposal` from `@vellumai/service-contracts` so the
+ * and hashes it with `hashProposal` from `@maxai/service-contracts` so the
  * hashes align.
  */
 function addTemporaryCommandGrant(

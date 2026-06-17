@@ -13,12 +13,12 @@ import type { DaemonRuntimeMode } from "../../../runtime/runtime-mode.js";
 // ---------------------------------------------------------------------------
 
 let mockWorkspaceDir = "/tmp/workspace";
-let mockVellumRoot = "/tmp/.vellum";
+let mockMaxRoot = "/tmp/.max";
 let mockRuntimeMode: DaemonRuntimeMode = "bare-metal";
 
 mock.module("../../../util/platform.js", () => ({
   getWorkspaceDir: () => mockWorkspaceDir,
-  vellumRoot: () => mockVellumRoot,
+  maxRoot: () => mockMaxRoot,
 }));
 
 mock.module("../../../runtime/runtime-mode.js", () => ({
@@ -27,7 +27,7 @@ mock.module("../../../runtime/runtime-mode.js", () => ({
 
 const {
   hostPlatformWorkspaceDirRoute,
-  hostPlatformVellumRootRoute,
+  hostPlatformMaxRootRoute,
   hostPlatformRuntimeModeRoute,
   platformRoutes,
 } = await import("../platform.js");
@@ -38,13 +38,13 @@ const {
 
 beforeEach(() => {
   mockWorkspaceDir = "/tmp/workspace";
-  mockVellumRoot = "/tmp/.vellum";
+  mockMaxRoot = "/tmp/.max";
   mockRuntimeMode = "bare-metal";
 });
 
 afterEach(() => {
   mockWorkspaceDir = "/tmp/workspace";
-  mockVellumRoot = "/tmp/.vellum";
+  mockMaxRoot = "/tmp/.max";
   mockRuntimeMode = "bare-metal";
 });
 
@@ -56,25 +56,25 @@ describe("host.platform.workspaceDir IPC route", () => {
   });
 
   test("returns the workspace directory from the platform helper", async () => {
-    mockWorkspaceDir = "/Users/alice/.vellum/workspace";
+    mockWorkspaceDir = "/Users/alice/.max/workspace";
 
     const result = await hostPlatformWorkspaceDirRoute.handler();
 
-    expect(result).toBe("/Users/alice/.vellum/workspace");
+    expect(result).toBe("/Users/alice/.max/workspace");
   });
 });
 
-describe("host.platform.vellumRoot IPC route", () => {
-  test("method is host.platform.vellumRoot", () => {
-    expect(hostPlatformVellumRootRoute.method).toBe("host.platform.vellumRoot");
+describe("host.platform.maxRoot IPC route", () => {
+  test("method is host.platform.maxRoot", () => {
+    expect(hostPlatformMaxRootRoute.method).toBe("host.platform.maxRoot");
   });
 
-  test("returns the vellum root from the platform helper", async () => {
-    mockVellumRoot = "/Users/alice/.vellum";
+  test("returns the max root from the platform helper", async () => {
+    mockMaxRoot = "/Users/alice/.max";
 
-    const result = await hostPlatformVellumRootRoute.handler();
+    const result = await hostPlatformMaxRootRoute.handler();
 
-    expect(result).toBe("/Users/alice/.vellum");
+    expect(result).toBe("/Users/alice/.max");
   });
 });
 
@@ -105,7 +105,7 @@ describe("host.platform.runtimeMode IPC route", () => {
 describe("platformRoutes", () => {
   test("exports all three platform routes", () => {
     expect(platformRoutes).toContain(hostPlatformWorkspaceDirRoute);
-    expect(platformRoutes).toContain(hostPlatformVellumRootRoute);
+    expect(platformRoutes).toContain(hostPlatformMaxRootRoute);
     expect(platformRoutes).toContain(hostPlatformRuntimeModeRoute);
   });
 });

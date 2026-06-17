@@ -32,7 +32,7 @@ import type { CredentialInjectionTemplate } from "../tools/credentials/policy-ty
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-credmeta-test-${randomBytes(4).toString("hex")}`,
+  `max-credmeta-test-${randomBytes(4).toString("hex")}`,
 );
 const META_PATH = join(TEST_DIR, "metadata.json");
 

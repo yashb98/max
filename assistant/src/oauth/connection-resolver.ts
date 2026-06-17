@@ -4,7 +4,7 @@ import {
   type Services,
   ServicesSchema,
 } from "../config/schemas/services.js";
-import { VellumPlatformClient } from "../platform/client.js";
+import { MaxPlatformClient } from "../platform/client.js";
 import { getLogger } from "../util/logger.js";
 import { BYOOAuthConnection } from "./byo-connection.js";
 import type { OAuthConnection } from "./connection.js";
@@ -52,14 +52,14 @@ export async function resolveOAuthConnection(
   if (managedKey && managedKey in ServicesSchema.shape) {
     const services: Services = getConfig().services;
     if (getServiceMode(services, managedKey as keyof Services) === "managed") {
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       if (!client || !client.platformAssistantId) {
         const detail = !client
           ? "missing platform prerequisites"
           : "missing assistant ID";
         throw new Error(
           `Platform-managed connection for "${provider}" cannot be created: ${detail}. ` +
-            `Log in to the Vellum platform or switch to using your own OAuth app.`,
+            `Log in to the Max platform or switch to using your own OAuth app.`,
         );
       }
 
@@ -180,7 +180,7 @@ function parseConnectionMetadata(
 // ---------------------------------------------------------------------------
 
 interface ResolvePlatformConnectionIdOptions {
-  client: VellumPlatformClient;
+  client: MaxPlatformClient;
   provider: string;
   account?: string;
 }
@@ -225,7 +225,7 @@ async function resolvePlatformConnectionId(
     throw new Error(
       `No active platform OAuth connection found for provider "${provider}"` +
         (account ? ` with account "${account}"` : "") +
-        ". Connect the service on the Vellum platform first.",
+        ". Connect the service on the Max platform first.",
     );
   }
 

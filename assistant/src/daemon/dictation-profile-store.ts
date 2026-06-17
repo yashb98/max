@@ -1,7 +1,7 @@
 /**
  * Persistent store for dictation profiles.
  *
- * Persisted to ~/.vellum/dictation-profiles.json using the
+ * Persisted to ~/.max/dictation-profiles.json using the
  * atomic-write pattern (write .tmp → rename → chmod).
  */
 

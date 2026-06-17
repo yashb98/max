@@ -117,11 +117,11 @@ describe("openNativePort", () => {
     uninstallFakeChrome();
   });
 
-  test("calls connectNative with the Vellum host name", () => {
+  test("calls connectNative with the Max host name", () => {
     const handle = openNativePort({});
     expect(fake.connectCalls.length).toBe(1);
     expect(fake.connectCalls[0]!.app).toBe(NATIVE_HOST_NAME);
-    expect(NATIVE_HOST_NAME).toBe("com.vellum.meet");
+    expect(NATIVE_HOST_NAME).toBe("com.max.meet");
     handle.close();
   });
 
@@ -134,7 +134,7 @@ describe("openNativePort", () => {
     const joinCommand = {
       type: "join",
       meetingUrl: "https://meet.google.com/abc-defg-hij",
-      displayName: "Vellum Bot",
+      displayName: "Max Bot",
       consentMessage: "Hi, I'm here to take notes.",
     };
     emit(port, joinCommand);

@@ -2,18 +2,18 @@ import { execFileSync } from "child_process";
 import { existsSync, readFileSync, unlinkSync } from "fs";
 
 /**
- * Verify that a PID belongs to a vellum-related process by inspecting its
+ * Verify that a PID belongs to a max-related process by inspecting its
  * command line via `ps`. Prevents killing unrelated processes when a PID file
  * is stale and the OS has reused the PID.
  */
-export function isVellumProcess(pid: number): boolean {
+export function isMaxProcess(pid: number): boolean {
   try {
     const output = execFileSync("ps", ["-p", String(pid), "-o", "command="], {
       encoding: "utf-8",
       timeout: 3000,
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
-    return /vellum-daemon|vellum-cli|vellum-gateway|@vellumai|\/\.?vellum\/|\/daemon\/main|\/\.vellum\/.*qdrant\/bin\/qdrant/.test(
+    return /max-daemon|max-cli|max-gateway|@maxai|\/\.?max\/|\/daemon\/main|\/\.max\/.*qdrant\/bin\/qdrant/.test(
       output,
     );
   } catch {
@@ -113,12 +113,12 @@ export async function stopProcessByPidFile(
     return false;
   }
 
-  // Verify the PID actually belongs to a vellum process before killing.
+  // Verify the PID actually belongs to a max process before killing.
   // If the PID file is stale and the OS reused the PID, skip the kill
   // and clean up the stale files instead.
-  if (!isVellumProcess(pid)) {
+  if (!isMaxProcess(pid)) {
     console.log(
-      `PID ${pid} is not a vellum process — cleaning up stale ${label} PID file.`,
+      `PID ${pid} is not a max process — cleaning up stale ${label} PID file.`,
     );
     try {
       unlinkSync(pidFile);
@@ -150,8 +150,8 @@ export async function stopProcessByPidFile(
 }
 
 /**
- * Find and stop any vellum daemon processes that may not be tracked by a PID
- * file. Scans `ps` output for the `vellum-daemon` binary name.
+ * Find and stop any max daemon processes that may not be tracked by a PID
+ * file. Scans `ps` output for the `max-daemon` binary name.
  *
  * Returns true if at least one process was stopped.
  */
@@ -177,7 +177,7 @@ export async function stopOrphanedDaemonProcesses(): Promise<boolean> {
     if (isNaN(pid) || pid === process.pid) continue;
     const cmd = trimmed.slice(spaceIdx + 1);
 
-    if (cmd.includes("vellum-daemon")) {
+    if (cmd.includes("max-daemon")) {
       const result = await stopProcess(pid, "orphaned daemon");
       if (result) stopped = true;
     }

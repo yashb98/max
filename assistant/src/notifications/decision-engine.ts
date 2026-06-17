@@ -127,7 +127,7 @@ function buildSystemPrompt(
     `When a routing intent is present, respect it in your channel selection. A post-decision guard will enforce the intent.`,
     ``,
     `Copy guidelines (three distinct outputs):`,
-    `- \`title\` and \`body\` are for native notification popups (e.g. vellum desktop/mobile) — keep them short and glanceable (title ≤ 8 words, body ≤ 2 sentences).`,
+    `- \`title\` and \`body\` are for native notification popups (e.g. max desktop/mobile) — keep them short and glanceable (title ≤ 8 words, body ≤ 2 sentences).`,
     `  - Write popup copy as final copy for the guardian or recipient. Do not write instructions for the assistant or another intermediary.`,
     `- \`deliveryText\` is the channel-native message for chat channels (e.g. telegram). It must read naturally as a standalone message.`,
     `  - Do not prepend mechanical labels like "Conversation:".`,
@@ -137,7 +137,7 @@ function buildSystemPrompt(
     `  - Avoid intermediary-instruction phrasing like "consider telling the guardian", "ask the recipient to", or "the assistant should remind them". Rewrite it as final copy the recipient can act on directly.`,
     `  - For telegram: 1-2 concise sentences.`,
     `- \`conversationSeedMessage\` is the opening message in the internal notification conversation — it can be richer and more contextual.`,
-    `  - For vellum (desktop): 2-4 short sentences with useful context and clear next step if action is required.`,
+    `  - For max (desktop): 2-4 short sentences with useful context and clear next step if action is required.`,
     `  - Never dump raw JSON. Include only human-readable context.`,
     ``,
     `Conversation reuse guidelines:`,
@@ -258,7 +258,7 @@ function buildDecisionTool(availableChannels: NotificationChannel[]) {
                   conversationSeedMessage: {
                     type: "string",
                     description:
-                      "Richer opening message for the notification conversation. More contextual than title/body. For vellum: 2-4 sentences. For telegram: 1-2 sentences. Never raw JSON.",
+                      "Richer opening message for the notification conversation. More contextual than title/body. For max: 2-4 sentences. For telegram: 1-2 sentences. Never raw JSON.",
                   },
                 },
                 required: ["title", "body"],
@@ -330,19 +330,19 @@ function buildFallbackDecision(
     signal.attentionHints.urgency === "high" &&
     signal.attentionHints.requiresAction;
 
-  // Always include the vellum channel in the fallback — it's a local
+  // Always include the max channel in the fallback — it's a local
   // broadcast with no cost, so desktop notifications should never be lost
   // when the LLM is unavailable. External channels (e.g. Telegram) are
   // only included for high-urgency actionable signals.
   const selectedChannels: NotificationChannel[] = isHighUrgencyAction
     ? [...availableChannels]
-    : availableChannels.filter((ch) => ch === "vellum");
+    : availableChannels.filter((ch) => ch === "max");
 
   if (selectedChannels.length === 0) {
     return {
       shouldNotify: false,
       selectedChannels: [],
-      reasoningSummary: "Fallback: suppressed (vellum channel not available)",
+      reasoningSummary: "Fallback: suppressed (max channel not available)",
       renderedCopy: {},
       dedupeKey: `fallback:${signal.sourceEventName}:${signal.sourceContextId}:${signal.createdAt}`,
       confidence: 0.3,
@@ -357,7 +357,7 @@ function buildFallbackDecision(
     selectedChannels,
     reasoningSummary: isHighUrgencyAction
       ? "Fallback: high urgency + requires action — all channels"
-      : "Fallback: vellum-only (local, always delivered)",
+      : "Fallback: max-only (local, always delivered)",
     renderedCopy: copy,
     dedupeKey: `fallback:${signal.sourceEventName}:${signal.sourceContextId}:${signal.createdAt}`,
     confidence: 0.3,
@@ -862,7 +862,7 @@ async function classifyWithLLM(
 
   // Resolve guardian contact notes for recipient context. Use the channel-
   // agnostic guardian lookup so notes are available even when the only
-  // deliverable channel is "vellum" (which has no contact channel type).
+  // deliverable channel is "max" (which has no contact channel type).
   let recipientNotes: string | undefined;
   try {
     const guardianResult = listGuardianChannels();
@@ -1063,7 +1063,7 @@ export function enforceRoutingIntent(
 // ── Guardian call conversation affinity ──────────────────────────────────
 
 /**
- * Force a new vellum conversation for the first guardian question in a phone call.
+ * Force a new max conversation for the first guardian question in a phone call.
  *
  * When a guardian.question signal carries a callSessionId but has no
  * conversationAffinityHint, this is the first dispatch in a new call and
@@ -1082,9 +1082,9 @@ export function enforceGuardianCallConversationAffinity(
   if (typeof callSessionId !== "string" || callSessionId.trim().length === 0)
     return decision;
 
-  // If an affinity hint already exists for vellum, the second+ dispatch
+  // If an affinity hint already exists for max, the second+ dispatch
   // will be handled by enforceConversationAffinity — nothing to do here.
-  if (signal.conversationAffinityHint?.vellum) return decision;
+  if (signal.conversationAffinityHint?.max) return decision;
 
   const enforced = { ...decision };
   const conversationActions: Partial<
@@ -1092,12 +1092,12 @@ export function enforceGuardianCallConversationAffinity(
   > = {
     ...(decision.conversationActions ?? {}),
   };
-  conversationActions.vellum = { action: "start_new" };
+  conversationActions.max = { action: "start_new" };
   enforced.conversationActions = conversationActions;
 
   log.info(
     { callSessionId },
-    "Guardian call conversation affinity: first question in call — forcing start_new for vellum",
+    "Guardian call conversation affinity: first question in call — forcing start_new for max",
   );
 
   return enforced;

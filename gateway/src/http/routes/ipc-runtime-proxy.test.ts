@@ -137,7 +137,7 @@ function makeRequest(
   return new Request(`http://localhost:8080${path}`, {
     method,
     headers: {
-      "x-vellum-proxy-server": "ipc",
+      "x-max-proxy-server": "ipc",
       ...headers,
     },
     body,
@@ -204,7 +204,7 @@ describe("tryIpcProxy", () => {
     }));
   });
 
-  test("returns null when X-Vellum-Proxy-Server header is missing", async () => {
+  test("returns null when X-Max-Proxy-Server header is missing", async () => {
     const req = new Request("http://localhost:8080/v1/health");
     const result = await tryIpcProxy(req, makeConfig());
     expect(result).toBeNull();
@@ -229,7 +229,7 @@ describe("tryIpcProxy", () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-vellum-conversation-id": "conv-123",
+        "x-max-conversation-id": "conv-123",
       },
       body: JSON.stringify({ message: "hello" }),
     });
@@ -248,13 +248,13 @@ describe("tryIpcProxy", () => {
     expect(params.body).toEqual({ message: "hello" });
   });
 
-  test("only forwards X-Vellum-* headers", async () => {
+  test("only forwards X-Max-* headers", async () => {
     const req = makeRequest("/v1/health", {
       headers: {
         authorization: "Bearer secret",
         cookie: "session=abc",
-        "x-vellum-conversation-id": "conv-123",
-        "x-vellum-client-id": "client-456",
+        "x-max-conversation-id": "conv-123",
+        "x-max-client-id": "client-456",
       },
     });
 
@@ -265,9 +265,9 @@ describe("tryIpcProxy", () => {
       Record<string, unknown>,
     ];
     const headers = params.headers as Record<string, string>;
-    expect(headers["x-vellum-conversation-id"]).toBe("conv-123");
-    expect(headers["x-vellum-client-id"]).toBe("client-456");
-    expect(headers["x-vellum-proxy-server"]).toBe("ipc");
+    expect(headers["x-max-conversation-id"]).toBe("conv-123");
+    expect(headers["x-max-client-id"]).toBe("client-456");
+    expect(headers["x-max-proxy-server"]).toBe("ipc");
     expect(headers["authorization"]).toBeUndefined();
     expect(headers["cookie"]).toBeUndefined();
   });
@@ -353,8 +353,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "actor:asst_1:user_1",
         scope_profile: "actor_client_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -375,8 +375,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "actor:asst_1:user_1",
         scope_profile: "ui_page_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -407,8 +407,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "svc:daemon:asst_1",
         scope_profile: "actor_client_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -445,8 +445,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "svc:gateway:asst_1",
         scope_profile: "gateway_service_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -467,8 +467,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "actor:asst_1:user_1",
         scope_profile: "ui_page_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -489,8 +489,8 @@ describe("policy enforcement", () => {
     validateEdgeTokenMock.mockImplementation(() => ({
       ok: true,
       claims: {
-        iss: "vellum-auth",
-        aud: "vellum-gateway",
+        iss: "max-auth",
+        aud: "max-gateway",
         sub: "garbage",
         scope_profile: "actor_client_v1",
         exp: Math.floor(Date.now() / 1000) + 3600,

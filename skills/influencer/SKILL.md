@@ -1,12 +1,12 @@
 ---
 name: influencer
 description: Research influencers on Instagram, TikTok, and X/Twitter through your browser
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔍"
-  vellum:
+  max:
     display-name: "Influencer Research"
-    includes: ["vellum-browser-use"]
+    includes: ["max-browser-use"]
 ---
 
 Use browser automation for collection and `host_bash` helper scripts for deterministic parsing, scoring, and comparison. All browser operations are executed through the `assistant browser` CLI, invoked via `host_bash`.

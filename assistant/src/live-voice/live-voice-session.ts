@@ -418,8 +418,8 @@ export class LiveVoiceSession implements LiveVoiceSessionContract {
       const handle = await this.startVoiceTurn({
         conversationId: this.conversationId,
         voiceSessionId: this.context.sessionId,
-        userMessageChannel: "vellum",
-        assistantMessageChannel: "vellum",
+        userMessageChannel: "max",
+        assistantMessageChannel: "max",
         userMessageInterface: "macos",
         assistantMessageInterface: "macos",
         voiceControlPrompt:

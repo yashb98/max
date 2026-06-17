@@ -37,7 +37,7 @@ export interface LifecycleTelemetryEvent extends TelemetryEventBase {
 }
 
 /**
- * Bridged tool call event — one per Vellum tool that ran through an
+ * Bridged tool call event — one per Max tool that ran through an
  * agentic provider's bridge (currently only `claude-subscription`).
  * Phase 3.1 in `docs/architecture/claude-subscription-bridge.md`.
  *

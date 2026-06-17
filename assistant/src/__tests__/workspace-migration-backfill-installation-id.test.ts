@@ -48,9 +48,9 @@ import { backfillInstallationIdMigration } from "../workspace/migrations/011-bac
 // ---------------------------------------------------------------------------
 
 const BASE = "/mock-home";
-const LOCK_PATH = `${BASE}/.vellum.lock.json`;
-const LEGACY_LOCK_PATH = `${BASE}/.vellum.lockfile.json`;
-const WORKSPACE_DIR = `${BASE}/.vellum/workspace`;
+const LOCK_PATH = `${BASE}/.max.lock.json`;
+const LEGACY_LOCK_PATH = `${BASE}/.max.lockfile.json`;
+const WORKSPACE_DIR = `${BASE}/.max/workspace`;
 
 function makeLockfile(assistants: Array<Record<string, unknown>>): string {
   return JSON.stringify({ assistants });
@@ -238,7 +238,7 @@ describe("011-backfill-installation-id migration", () => {
     expect(writeFileSyncFn).toHaveBeenCalledTimes(1);
   });
 
-  test("reads from legacy .vellum.lockfile.json when primary is absent", () => {
+  test("reads from legacy .max.lockfile.json when primary is absent", () => {
     getMemoryCheckpointFn.mockReturnValue("sqlite-id");
     setupFs({
       [LEGACY_LOCK_PATH]: makeLockfile([{ assistantId: "my-assistant" }]),

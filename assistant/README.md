@@ -1,4 +1,4 @@
-# Vellum Assistant Runtime
+# Max Assistant Runtime
 
 Bun + TypeScript assistant runtime that owns conversation history, attachment storage, and channel delivery state in a local SQLite database. Exposes an HTTP+SSE API for native clients (macOS, iOS) and the gateway.
 
@@ -55,15 +55,15 @@ Release notes are surfaced via a background conversation dispatched at daemon st
 
 ### Lifecycle management (recommended)
 
-Use the `vellum` CLI to manage assistant and gateway processes:
+Use the `max` CLI to manage assistant and gateway processes:
 
 ```bash
-vellum wake    # start assistant + gateway from current checkout
-vellum ps      # list assistants and per-assistant process status
-vellum sleep   # stop assistant + gateway (directory-agnostic)
+max wake    # start assistant + gateway from current checkout
+max ps      # list assistants and per-assistant process status
+max sleep   # stop assistant + gateway (directory-agnostic)
 ```
 
-> **Note:** `vellum wake` requires a hatched assistant. Run `vellum hatch` first, or launch the macOS app which handles hatching automatically.
+> **Note:** `max wake` requires a hatched assistant. Run `max hatch` first, or launch the macOS app which handles hatching automatically.
 
 ### Development: raw bun commands
 
@@ -78,9 +78,9 @@ bun run src/index.ts                # interactive CLI session
 
 | Command                                            | Description                                      |
 | -------------------------------------------------- | ------------------------------------------------ |
-| `vellum wake`                                      | Start assistant + gateway from current checkout  |
-| `vellum sleep`                                     | Stop assistant + gateway processes               |
-| `vellum ps`                                        | List assistants and per-assistant process status |
+| `max wake`                                      | Start assistant + gateway from current checkout  |
+| `max sleep`                                     | Stop assistant + gateway processes               |
+| `max ps`                                        | List assistants and per-assistant process status |
 | `assistant`                                        | Launch interactive CLI session                   |
 | `assistant conversations list\|new\|export\|clear` | Manage conversations                             |
 | `assistant config set\|get\|list`                  | Manage configuration                             |
@@ -253,14 +253,14 @@ The channel guardian service generates verification challenge instructions with 
 - **Rebind requirement:** Creating a new guardian challenge when a binding already exists requires `rebind: true` in the HTTP request. Without it, the assistant returns `already_bound`. This prevents accidental guardian replacement.
 - **Takeover prevention:** Verification is rejected when an active binding exists for a different external user. Same-user re-verification is allowed.
 
-### Vellum Guardian Identity (Actor Tokens)
+### Max Guardian Identity (Actor Tokens)
 
-The vellum channel (macOS) uses JWTs to bind guardian identity to HTTP requests. This enables identity-based authentication for the local desktop channel, paralleling how external channels (Telegram) use `actorExternalId` for guardian identity. The CLI authenticates using its bearer token obtained during `hatch`.
+The max channel (macOS) uses JWTs to bind guardian identity to HTTP requests. This enables identity-based authentication for the local desktop channel, paralleling how external channels (Telegram) use `actorExternalId` for guardian identity. The CLI authenticates using its bearer token obtained during `hatch`.
 
 - **Bootstrap**: After hatch, the macOS client calls `POST /v1/guardian/init` with `{ platform, deviceId }`. Returns `{ guardianPrincipalId, accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, refreshAfter, isNew }`. The endpoint is idempotent -- repeated calls with the same device return the same principal but mint fresh credentials. The CLI does not bootstrap separately; it uses the bearer token minted during `hatch`.
 - **Local identity**: Local connections resolve identity server-side via `resolveLocalGuardianContext()` without requiring a JWT.
-- **HTTP enforcement**: All vellum HTTP routes require a valid JWT via the `Authorization: Bearer <jwt>` header. The JWT carries identity claims (`sub` with principal type and ID) and scope permissions. Route-level enforcement in `route-policy.ts` checks scopes and principal types.
-- **Startup migration**: On gateway start, `ensureVellumGuardianBinding()` in `gateway/src/auth/guardian-bootstrap.ts` backfills a vellum guardian binding for existing installations so the identity system works without requiring a manual bootstrap step.
+- **HTTP enforcement**: All max HTTP routes require a valid JWT via the `Authorization: Bearer <jwt>` header. The JWT carries identity claims (`sub` with principal type and ID) and scope permissions. Route-level enforcement in `route-policy.ts` checks scopes and principal types.
+- **Startup migration**: On gateway start, `ensureMaxGuardianBinding()` in `gateway/src/auth/guardian-bootstrap.ts` backfills a max guardian binding for existing installations so the identity system works without requiring a manual bootstrap step.
 
 ## Guardian Verification and Ingress ACL
 
@@ -441,7 +441,7 @@ If no guardian binding exists, escalation fails closed — the message is denied
 
 ## Database
 
-SQLite via Drizzle ORM, stored at `~/.vellum/workspace/data/db/assistant.db`. Key tables include conversations, messages, tool invocations, attachments, memory segments, memory items, reminders, and recurrence schedules (cron + RRULE).
+SQLite via Drizzle ORM, stored at `~/.max/workspace/data/db/assistant.db`. Key tables include conversations, messages, tool invocations, attachments, memory segments, memory items, reminders, and recurrence schedules (cron + RRULE).
 
 > **Note:** The recurrence schedule system supports both cron expressions and iCalendar RRULE syntax. Use the `expression` field with an explicit `syntax` discriminator. See [`docs/architecture/scheduling.md`](docs/architecture/scheduling.md) for details.
 
@@ -456,12 +456,12 @@ bun run db:push       # Apply migrations
 
 ```bash
 # Build production image
-docker build -f assistant/Dockerfile -t vellum-assistant:local .
+docker build -f assistant/Dockerfile -t max-assistant:local .
 
 # Run
 docker run --rm -p 3001:3001 \
   -e ANTHROPIC_API_KEY=... \
-  vellum-assistant:local
+  max-assistant:local
 ```
 
 The image exposes port `3001` and bundles the `assistant` CLI binary.

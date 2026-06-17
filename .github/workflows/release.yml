@@ -36,8 +36,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -294,7 +294,7 @@ jobs:
         working-directory: clients/chrome-extension
         env:
           VERSION: ${{ needs.extract-version.outputs.version }}
-          VELLUM_ENVIRONMENT: ${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}
+          MAX_ENVIRONMENT: ${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}
         run: bash build.sh
 
       - name: Verify manifest version
@@ -315,18 +315,18 @@ jobs:
         run: rm -f clients/chrome-extension/privatekey.pem
 
       - name: Upload extension CRX
-        if: hashFiles('clients/chrome-extension/vellum-browser-relay.crx') != ''
+        if: hashFiles('clients/chrome-extension/max-browser-relay.crx') != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chrome-extension-crx
-          path: clients/chrome-extension/vellum-browser-relay.crx
+          path: clients/chrome-extension/max-browser-relay.crx
           retention-days: 90
 
       - name: Upload extension zip
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chrome-extension-zip
-          path: clients/chrome-extension/vellum-browser-relay.zip
+          path: clients/chrome-extension/max-browser-relay.zip
           retention-days: 90
 
   publish-chrome-extension:
@@ -418,8 +418,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -496,8 +496,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Fail if image build failed
         if: needs.push-assistant-image.result != 'success'
@@ -618,8 +618,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -701,8 +701,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -776,8 +776,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Fail if image build failed
         if: needs.push-gateway-image.result != 'success'
@@ -893,8 +893,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Fail if image build failed
         if: needs.push-credential-executor-image.result != 'success'
@@ -1010,19 +1010,19 @@ jobs:
         include:
           - service: assistant
             runs_on: ubuntu-latest-8-cores
-            dockerhub_image_name: vellum-assistant
+            dockerhub_image_name: max-assistant
             context: .
             dockerfile: assistant/Dockerfile
             feature_flag_path: assistant/src/config/feature-flag-registry.json
           - service: gateway
             runs_on: ubuntu-latest
-            dockerhub_image_name: vellum-gateway
+            dockerhub_image_name: max-gateway
             context: .
             dockerfile: gateway/Dockerfile
             feature_flag_path: gateway/src/feature-flag-registry.json
           - service: credential-executor
             runs_on: ubuntu-latest
-            dockerhub_image_name: vellum-credential-executor
+            dockerhub_image_name: max-credential-executor
             context: .
             dockerfile: credential-executor/Dockerfile
             feature_flag_path: ""
@@ -1031,8 +1031,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -1060,7 +1060,7 @@ jobs:
         id: tags
         run: |
           IMAGE_NAME="${{ matrix.dockerhub_image_name }}"
-          IMAGE="vellumai/${IMAGE_NAME}"
+          IMAGE="maxai/${IMAGE_NAME}"
           VERSION="${{ needs.extract-version.outputs.version }}"
           TAGS="${IMAGE}:v${VERSION}"
           TAGS=$(printf "%s\n%s" "$TAGS" "${IMAGE}:latest")
@@ -1108,8 +1108,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -1324,7 +1324,7 @@ jobs:
         run: |
           cd cli
           npm pack
-          TARBALL=$(ls vellumai-cli-*.tgz)
+          TARBALL=$(ls maxai-cli-*.tgz)
           echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
           echo "Packed: $TARBALL"
         id: pack
@@ -1346,17 +1346,17 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant-platform
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant-platform
 
       - name: Trigger platform QA
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh workflow run qa-cli-staging.yaml \
-            --repo vellum-ai/vellum-assistant-platform \
+            --repo max-ai/max-assistant-platform \
             --field version="${{ needs.extract-version.outputs.version }}" \
             --field run_id="${{ github.run_id }}"
 
@@ -1411,7 +1411,7 @@ jobs:
       run:
         working-directory: clients/macos
     env:
-      DMG_PATH: build/vellum-assistant.dmg
+      DMG_PATH: build/max-assistant.dmg
       KEYCHAIN_NAME: build.keychain
       KEYCHAIN_PASSWORD: temporary-ci-password
     steps:
@@ -1482,7 +1482,7 @@ jobs:
 
       - name: Build binaries
         run: |
-          VELLUM_ENVIRONMENT="${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}" \
+          MAX_ENVIRONMENT="${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}" \
           DISPLAY_VERSION="${{ steps.version.outputs.display_version }}" \
           COMMIT_SHA="${{ github.sha }}" \
           ./build.sh binaries
@@ -1491,10 +1491,10 @@ jobs:
         run: |
           IS_STAGING="${{ needs.extract-version.outputs.is_staging }}"
           if [ "$IS_STAGING" = "true" ]; then
-            export BUNDLE_DISPLAY_NAME="Vellum Staging"
-            export SU_FEED_URL="https://storage.googleapis.com/vellum-staging-sparkle/staging/appcast.xml"
+            export BUNDLE_DISPLAY_NAME="Max Staging"
+            export SU_FEED_URL="https://storage.googleapis.com/max-staging-sparkle/staging/appcast.xml"
           fi
-          BUNDLE_DISPLAY_NAME="${BUNDLE_DISPLAY_NAME:-Vellum}"
+          BUNDLE_DISPLAY_NAME="${BUNDLE_DISPLAY_NAME:-Max}"
           DISPLAY_VERSION="${{ steps.version.outputs.display_version }}" \
           BUILD_VERSION="${{ steps.version.outputs.build_version }}" \
           COMMIT_SHA="${{ github.sha }}" \
@@ -1518,9 +1518,9 @@ jobs:
         continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'vellum' }}
-          SENTRY_PROJECT_MACOS: ${{ vars.SENTRY_PROJECT_MACOS || 'vellum-assistant-macos' }}
-          SENTRY_PROJECT_ASSISTANT: ${{ vars.SENTRY_PROJECT_ASSISTANT || 'vellum-assistant-brain' }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'max' }}
+          SENTRY_PROJECT_MACOS: ${{ vars.SENTRY_PROJECT_MACOS || 'max-assistant-macos' }}
+          SENTRY_PROJECT_ASSISTANT: ${{ vars.SENTRY_PROJECT_ASSISTANT || 'max-assistant-brain' }}
         run: |
           npm install -g @sentry/cli@2.42.2
           sentry-cli debug-files upload --org "$SENTRY_ORG" --project "$SENTRY_PROJECT_MACOS" dist/*.dSYM
@@ -1556,9 +1556,9 @@ jobs:
         run: |
           IS_STAGING="${{ needs.extract-version.outputs.is_staging }}"
           if [ "$IS_STAGING" = "true" ]; then
-            BUNDLE_DISPLAY_NAME="Vellum Staging"
+            BUNDLE_DISPLAY_NAME="Max Staging"
           else
-            BUNDLE_DISPLAY_NAME="Vellum"
+            BUNDLE_DISPLAY_NAME="Max"
           fi
           APP_PATH="dist/$BUNDLE_DISPLAY_NAME.app"
 
@@ -1672,14 +1672,14 @@ jobs:
         run: |
           IS_STAGING="${{ needs.extract-version.outputs.is_staging }}"
           if [ "$IS_STAGING" = "true" ]; then
-            BUNDLE_DISPLAY_NAME="Vellum Staging"
+            BUNDLE_DISPLAY_NAME="Max Staging"
           else
-            BUNDLE_DISPLAY_NAME="Vellum"
+            BUNDLE_DISPLAY_NAME="Max"
           fi
           cd dist
-          ditto -c -k --keepParent "$BUNDLE_DISPLAY_NAME.app" vellum-assistant.zip
+          ditto -c -k --keepParent "$BUNDLE_DISPLAY_NAME.app" max-assistant.zip
           echo "Sparkle ZIP created:"
-          ls -lh vellum-assistant.zip
+          ls -lh max-assistant.zip
 
       - name: Cache Homebrew Sparkle
         id: cache-sparkle
@@ -1712,7 +1712,7 @@ jobs:
 
           ED_KEY_FILE=$(mktemp)
           echo "$SPARKLE_ED_PRIVATE_KEY" > "$ED_KEY_FILE"
-          SIGN_OUTPUT=$(sign_update dist/vellum-assistant.zip --ed-key-file "$ED_KEY_FILE") || {
+          SIGN_OUTPUT=$(sign_update dist/max-assistant.zip --ed-key-file "$ED_KEY_FILE") || {
             echo "sign_update failed with exit code $?"
             rm -f "$ED_KEY_FILE"
             exit 1
@@ -1726,16 +1726,16 @@ jobs:
             exit 1
           fi
           if [ -z "$SIZE" ]; then
-            SIZE=$(stat -f%z dist/vellum-assistant.zip)
+            SIZE=$(stat -f%z dist/max-assistant.zip)
           fi
 
           REPO="${{ github.repository }}"
           if [ "$IS_STAGING" = "true" ]; then
-            DOWNLOAD_URL="https://storage.googleapis.com/vellum-staging-sparkle/staging/vellum-assistant.zip"
-            TITLE="Vellum Staging"
+            DOWNLOAD_URL="https://storage.googleapis.com/max-staging-sparkle/staging/max-assistant.zip"
+            TITLE="Max Staging"
           else
-            DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/vellum-assistant.zip"
-            TITLE="Vellum"
+            DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/max-assistant.zip"
+            TITLE="Max"
           fi
 
           FILENAME="appcast.xml"
@@ -1764,8 +1764,8 @@ jobs:
         with:
           name: macos-build
           path: |
-            clients/macos/build/vellum-assistant.dmg
-            clients/macos/dist/vellum-assistant.zip
+            clients/macos/build/max-assistant.dmg
+            clients/macos/dist/max-assistant.zip
             clients/macos/dist/appcast.xml
           if-no-files-found: error
           retention-days: 7
@@ -1789,7 +1789,7 @@ jobs:
       run:
         working-directory: clients/macos
     env:
-      DMG_PATH: build/vellum-assistant-x64.dmg
+      DMG_PATH: build/max-assistant-x64.dmg
       KEYCHAIN_NAME: build-x64.keychain
       KEYCHAIN_PASSWORD: temporary-ci-password
     steps:
@@ -1873,10 +1873,10 @@ jobs:
           fi
           DAEMON_FLAGS+=(--define "process.env.COMMIT_SHA='${{ github.sha }}'")
 
-          # Embed VELLUM_ENVIRONMENT at compile time so all binaries know their
+          # Embed MAX_ENVIRONMENT at compile time so all binaries know their
           # runtime context without any filesystem lookup.
-          VELLUM_ENVIRONMENT_VALUE="${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}"
-          ENV_DEFINE=(--define "process.env.VELLUM_ENVIRONMENT='$VELLUM_ENVIRONMENT_VALUE'")
+          MAX_ENVIRONMENT_VALUE="${{ needs.extract-version.outputs.is_staging == 'true' && 'staging' || 'production' }}"
+          ENV_DEFINE=(--define "process.env.MAX_ENVIRONMENT='$MAX_ENVIRONMENT_VALUE'")
           DAEMON_FLAGS+=("${ENV_DEFINE[@]}")
           DAEMON_EXTERNAL_FLAGS+=("${ENV_DEFINE[@]}")
 
@@ -1884,8 +1884,8 @@ jobs:
           (cd "$ASSISTANT_SRC_DIR" && bun install --frozen-lockfile 2>/dev/null || bun install)
           mkdir -p daemon-bin
           bun build --compile "${DAEMON_FLAGS[@]}" --target=bun-darwin-x64 \
-            "$ASSISTANT_SRC_DIR/src/daemon/main.ts" --outfile daemon-bin/vellum-daemon
-          chmod +x daemon-bin/vellum-daemon
+            "$ASSISTANT_SRC_DIR/src/daemon/main.ts" --outfile daemon-bin/max-daemon
+          chmod +x daemon-bin/max-daemon
           rm -rf daemon-bin/node_modules
           rm -rf daemon-bin/bundled-skills
           cp -R "$ASSISTANT_SRC_DIR/src/config/bundled-skills" daemon-bin/bundled-skills
@@ -1898,22 +1898,22 @@ jobs:
           # Assistant CLI
           mkdir -p assistant-bin
           bun build --compile "${DAEMON_EXTERNAL_FLAGS[@]}" --target=bun-darwin-x64 \
-            "$ASSISTANT_SRC_DIR/src/index.ts" --outfile assistant-bin/vellum-assistant
-          chmod +x assistant-bin/vellum-assistant
+            "$ASSISTANT_SRC_DIR/src/index.ts" --outfile assistant-bin/max-assistant
+          chmod +x assistant-bin/max-assistant
 
           # CLI
           (cd "$CLI_SRC_DIR" && bun install --frozen-lockfile 2>/dev/null || bun install)
           mkdir -p cli-bin
           bun build --compile "${ENV_DEFINE[@]}" --target=bun-darwin-x64 \
-            "$CLI_SRC_DIR/src/index.ts" --outfile cli-bin/vellum-cli
-          chmod +x cli-bin/vellum-cli
+            "$CLI_SRC_DIR/src/index.ts" --outfile cli-bin/max-cli
+          chmod +x cli-bin/max-cli
 
           # Gateway
           (cd "$GATEWAY_SRC_DIR" && bun install --frozen-lockfile 2>/dev/null || bun install)
           mkdir -p gateway-bin
           bun build --compile "${ENV_DEFINE[@]}" --target=bun-darwin-x64 \
-            "$GATEWAY_SRC_DIR/src/index.ts" --outfile gateway-bin/vellum-gateway
-          chmod +x gateway-bin/vellum-gateway
+            "$GATEWAY_SRC_DIR/src/index.ts" --outfile gateway-bin/max-gateway
+          chmod +x gateway-bin/max-gateway
           cp "$GATEWAY_SRC_DIR/node_modules/web-tree-sitter/web-tree-sitter.wasm" gateway-bin/
           cp "$GATEWAY_SRC_DIR/node_modules/tree-sitter-bash/tree-sitter-bash.wasm" gateway-bin/
 
@@ -1928,10 +1928,10 @@ jobs:
         run: |
           IS_STAGING="${{ needs.extract-version.outputs.is_staging }}"
           if [ "$IS_STAGING" = "true" ]; then
-            export BUNDLE_DISPLAY_NAME="Vellum Staging"
-            export SU_FEED_URL="https://storage.googleapis.com/vellum-staging-sparkle/staging/appcast.xml"
+            export BUNDLE_DISPLAY_NAME="Max Staging"
+            export SU_FEED_URL="https://storage.googleapis.com/max-staging-sparkle/staging/appcast.xml"
           fi
-          BUNDLE_DISPLAY_NAME="${BUNDLE_DISPLAY_NAME:-Vellum}"
+          BUNDLE_DISPLAY_NAME="${BUNDLE_DISPLAY_NAME:-Max}"
           DISPLAY_VERSION="${{ steps.version.outputs.display_version }}" \
           BUILD_VERSION="${{ steps.version.outputs.build_version }}" \
           COMMIT_SHA="${{ github.sha }}" \
@@ -1952,15 +1952,15 @@ jobs:
           file "$APP_PATH/Contents/MacOS/$BUNDLE_DISPLAY_NAME"
 
           echo "Daemon binary architecture:"
-          file "$APP_PATH/Contents/MacOS/vellum-daemon"
+          file "$APP_PATH/Contents/MacOS/max-daemon"
 
       - name: Upload dSYMs to Sentry
         continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'vellum' }}
-          SENTRY_PROJECT_MACOS: ${{ vars.SENTRY_PROJECT_MACOS || 'vellum-assistant-macos' }}
-          SENTRY_PROJECT_ASSISTANT: ${{ vars.SENTRY_PROJECT_ASSISTANT || 'vellum-assistant-brain' }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'max' }}
+          SENTRY_PROJECT_MACOS: ${{ vars.SENTRY_PROJECT_MACOS || 'max-assistant-macos' }}
+          SENTRY_PROJECT_ASSISTANT: ${{ vars.SENTRY_PROJECT_ASSISTANT || 'max-assistant-brain' }}
         run: |
           npm install -g @sentry/cli@2.42.2
           sentry-cli debug-files upload --org "$SENTRY_ORG" --project "$SENTRY_PROJECT_MACOS" dist/*.dSYM
@@ -1994,9 +1994,9 @@ jobs:
         run: |
           IS_STAGING="${{ needs.extract-version.outputs.is_staging }}"
           if [ "$IS_STAGING" = "true" ]; then
-            BUNDLE_DISPLAY_NAME="Vellum Staging"
+            BUNDLE_DISPLAY_NAME="Max Staging"
           else
-            BUNDLE_DISPLAY_NAME="Vellum"
+            BUNDLE_DISPLAY_NAME="Max"
           fi
           APP_PATH="dist/$BUNDLE_DISPLAY_NAME.app"
 
@@ -2110,7 +2110,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: macos-build-x64
-          path: clients/macos/build/vellum-assistant-x64.dmg
+          path: clients/macos/build/max-assistant-x64.dmg
           if-no-files-found: error
           retention-days: 7
 
@@ -2131,10 +2131,10 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant,velly
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant,velly
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -2191,18 +2191,18 @@ jobs:
 
           ASSETS=()
           if [ -d "macos-artifacts" ]; then
-            DMG=$(find macos-artifacts -name "vellum-assistant.dmg" -type f | head -1)
-            ZIP=$(find macos-artifacts -name "vellum-assistant.zip" -type f | head -1)
+            DMG=$(find macos-artifacts -name "max-assistant.dmg" -type f | head -1)
+            ZIP=$(find macos-artifacts -name "max-assistant.zip" -type f | head -1)
             APPCAST=$(find macos-artifacts -name "appcast.xml" -type f | head -1)
-            [ -n "$DMG" ] && ASSETS+=("$DMG#vellum-assistant.dmg")
-            [ -n "$ZIP" ] && ASSETS+=("$ZIP#vellum-assistant.zip")
+            [ -n "$DMG" ] && ASSETS+=("$DMG#max-assistant.dmg")
+            [ -n "$ZIP" ] && ASSETS+=("$ZIP#max-assistant.zip")
             [ -n "$APPCAST" ] && ASSETS+=("$APPCAST#appcast.xml")
           fi
 
           # Add x64 DMG if available (non-blocking — may not exist if x64 build failed)
           if [ -d "macos-artifacts-x64" ]; then
-            X64_DMG=$(find macos-artifacts-x64 -name "vellum-assistant-x64.dmg" -type f | head -1)
-            [ -n "$X64_DMG" ] && ASSETS+=("$X64_DMG#vellum-assistant-x64.dmg")
+            X64_DMG=$(find macos-artifacts-x64 -name "max-assistant-x64.dmg" -type f | head -1)
+            [ -n "$X64_DMG" ] && ASSETS+=("$X64_DMG#max-assistant-x64.dmg")
           fi
 
           INSTALL_SH="cli/src/adapters/install.sh"
@@ -2210,18 +2210,18 @@ jobs:
 
           # Add Chrome extension zip if available
           if [ -d "chrome-extension-artifacts" ]; then
-            CRX_ZIP=$(find chrome-extension-artifacts -name "vellum-browser-relay-*.zip" -type f | sort | head -1)
-            [ -n "$CRX_ZIP" ] && ASSETS+=("$CRX_ZIP#vellum-browser-relay-${VERSION}.zip")
+            CRX_ZIP=$(find chrome-extension-artifacts -name "max-browser-relay-*.zip" -type f | sort | head -1)
+            [ -n "$CRX_ZIP" ] && ASSETS+=("$CRX_ZIP#max-browser-relay-${VERSION}.zip")
           fi
 
           echo "Release assets: ${ASSETS[*]}"
 
-          # Create release on vellum-assistant (this repo)
+          # Create release on max-assistant (this repo)
           if ! gh release view "$VERSION_TAG" --repo "${{ github.repository }}" &>/dev/null; then
             gh release create "$VERSION_TAG" \
               "${ASSETS[@]}" \
               --repo "${{ github.repository }}" \
-              --title "Vellum $VERSION" \
+              --title "Max $VERSION" \
               --notes-file "$NOTES_FILE" \
               --latest
             echo "Release created at https://github.com/${{ github.repository }}/releases/tag/$VERSION_TAG"
@@ -2230,14 +2230,14 @@ jobs:
           fi
 
           # TODO(v1.0.0): Delete this block. It mirrors releases to the legacy
-          # vellum-ai/velly repo so that older Sparkle clients still pointing
+          # max-ai/velly repo so that older Sparkle clients still pointing
           # at velly can pick up new versions.
-          LEGACY_REPO="vellum-ai/velly"
+          LEGACY_REPO="max-ai/velly"
           if ! gh release view "$VERSION_TAG" --repo "$LEGACY_REPO" &>/dev/null; then
             gh release create "$VERSION_TAG" \
               "${ASSETS[@]}" \
               --repo "$LEGACY_REPO" \
-              --title "Vellum $VERSION" \
+              --title "Max $VERSION" \
               --notes-file "$NOTES_FILE" \
               --latest
             echo "Release mirrored to https://github.com/$LEGACY_REPO/releases/tag/$VERSION_TAG"
@@ -2259,8 +2259,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -2290,8 +2290,8 @@ jobs:
           if ! gh pr merge "$PR_URL" --squash --admin --delete-branch; then
             echo "Merge failed — rebasing with -X theirs to resolve cherry-pick conflicts"
 
-            git config user.name "vellum-automation[bot]"
-            git config user.email "192048195+vellum-automation[bot]@users.noreply.github.com"
+            git config user.name "max-automation[bot]"
+            git config user.email "192048195+max-automation[bot]@users.noreply.github.com"
 
             git fetch origin main
             git rebase -X theirs origin/main
@@ -2317,15 +2317,15 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant-platform
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant-platform
 
       - name: Checkout platform repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: vellum-ai/vellum-assistant-platform
+          repository: max-ai/max-assistant-platform
           token: ${{ steps.app-token.outputs.token }}
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -2337,7 +2337,7 @@ jobs:
           NEW_VERSION: ${{ needs.extract-version.outputs.version }}
         run: |
           cd vel
-          jq --arg v "$NEW_VERSION" '.dependencies["@vellumai/cli"] = $v' package.json > package.json.tmp && mv package.json.tmp package.json
+          jq --arg v "$NEW_VERSION" '.dependencies["@maxai/cli"] = $v' package.json > package.json.tmp && mv package.json.tmp package.json
           bun install
 
       - name: Create Pull Request
@@ -2350,12 +2350,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
           git add vel/package.json vel/bun.lock
-          git commit -m "Bump @vellumai/cli to ${NEW_VERSION} in vel"
+          git commit -m "Bump @maxai/cli to ${NEW_VERSION} in vel"
           git push origin "$BRANCH"
           PR_URL=$(gh pr create \
-            --repo vellum-ai/vellum-assistant-platform \
-            --title "Bump @vellumai/cli to ${NEW_VERSION} in vel" \
-            --body "Auto-generated PR to update @vellumai/cli to ${NEW_VERSION}." \
+            --repo max-ai/max-assistant-platform \
+            --title "Bump @maxai/cli to ${NEW_VERSION} in vel" \
+            --body "Auto-generated PR to update @maxai/cli to ${NEW_VERSION}." \
             --base main \
             --head "$BRANCH")
           sleep 10
@@ -2386,10 +2386,10 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant-platform
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant-platform
 
       - name: Dispatch iOS release
         env:
@@ -2406,9 +2406,9 @@ jobs:
             -X POST \
             -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/vellum-ai/vellum-assistant-platform/dispatches" \
+            "https://api.github.com/repos/max-ai/max-assistant-platform/dispatches" \
             -d "{\"event_type\":\"ios-release\",\"client_payload\":{\"environment\":\"$ENVIRONMENT\",\"version\":\"$VERSION\"}}"
-          echo "Dispatched ios-release to vellum-assistant-platform (environment=$ENVIRONMENT, version=$VERSION)"
+          echo "Dispatched ios-release to max-assistant-platform (environment=$ENVIRONMENT, version=$VERSION)"
 
   # ci-assistant runs lint/typecheck/test for the assistant service. It also
   # transitively gates the release pipeline because push-assistant-image and
@@ -2534,7 +2534,7 @@ jobs:
 
       - name: Install linked package dependencies
         run: |
-          for pkg in $(jq -r '.bundledDependencies[]' credential-executor/package.json | sed 's|@vellumai/||'); do
+          for pkg in $(jq -r '.bundledDependencies[]' credential-executor/package.json | sed 's|@maxai/||'); do
             cd packages/$pkg && bun install --frozen-lockfile && cd ../..;
           done
 
@@ -2559,10 +2559,10 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant-platform
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant-platform
 
       - name: Trigger Playwright workflow in platform repo
         id: trigger
@@ -2578,7 +2578,7 @@ jobs:
             -X POST \
             -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/vellum-ai/vellum-assistant-platform/actions/workflows/playwright.yaml/dispatches" \
+            "https://api.github.com/repos/max-ai/max-assistant-platform/actions/workflows/playwright.yaml/dispatches" \
             -d "{\"ref\":\"main\",\"inputs\":{\"source\":\"$SOURCE\",\"environment\":\"$PLAYWRIGHT_ENVIRONMENT\",\"shards\":\"4\",\"test_filter\":\"critical\"}}"
 
           echo "Triggered playwright workflow with source $SOURCE and environment $PLAYWRIGHT_ENVIRONMENT"
@@ -2594,13 +2594,13 @@ jobs:
             RUN_ID=$(curl -fsSL \
               -H "Authorization: token $GH_TOKEN" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/vellum-ai/vellum-assistant-platform/actions/workflows/playwright.yaml/runs?created=>=${{ steps.trigger.outputs.before }}&event=workflow_dispatch&per_page=1" \
+              "https://api.github.com/repos/max-ai/max-assistant-platform/actions/workflows/playwright.yaml/runs?created=>=${{ steps.trigger.outputs.before }}&event=workflow_dispatch&per_page=1" \
               | python3 -c "import sys,json; runs=json.load(sys.stdin).get('workflow_runs',[]); print(runs[0]['id'] if runs else '')")
 
             if [ -n "$RUN_ID" ]; then
               echo "Found workflow run: $RUN_ID"
               echo "playwright-run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
-              RUN_URL="https://github.com/vellum-ai/vellum-assistant-platform/actions/runs/$RUN_ID"
+              RUN_URL="https://github.com/max-ai/max-assistant-platform/actions/runs/$RUN_ID"
               echo "Run URL: $RUN_URL"
               break
             fi
@@ -2617,7 +2617,7 @@ jobs:
             RESPONSE=$(curl -fsSL \
               -H "Authorization: token $GH_TOKEN" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/vellum-ai/vellum-assistant-platform/actions/runs/$RUN_ID")
+              "https://api.github.com/repos/max-ai/max-assistant-platform/actions/runs/$RUN_ID")
 
             RUN_STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
             CONCLUSION=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('conclusion') or '')")
@@ -2625,7 +2625,7 @@ jobs:
             echo "$(date -u +%H:%M:%S) Run $RUN_ID: status=$RUN_STATUS conclusion=$CONCLUSION"
 
             if [ "$RUN_STATUS" = "completed" ]; then
-              RUN_URL="https://github.com/vellum-ai/vellum-assistant-platform/actions/runs/$RUN_ID"
+              RUN_URL="https://github.com/max-ai/max-assistant-platform/actions/runs/$RUN_ID"
               if [ "$CONCLUSION" = "success" ]; then
                 echo "Playwright tests passed! $RUN_URL"
                 exit 0
@@ -2640,7 +2640,7 @@ jobs:
 
   # ── Sparkle Rolling Release (Staging) ──────────────────────────────────
   # ── Upload Sparkle artifacts to GCS (staging) ─────────────────────────
-  # Push appcast.xml + ZIP to the public vellum-staging-sparkle GCS bucket.
+  # Push appcast.xml + ZIP to the public max-staging-sparkle GCS bucket.
   # Staging macOS builds have SUFeedURL pointing here, keeping GitHub
   # releases clean (no staging pre-releases on the public releases page).
 
@@ -2669,20 +2669,20 @@ jobs:
       - name: Upload Sparkle artifacts to GCS
         run: |
           VERSION="${{ needs.extract-version.outputs.version }}"
-          BUCKET="vellum-staging-sparkle"
+          BUCKET="max-staging-sparkle"
 
-          ZIP=$(find macos-artifacts -name "vellum-assistant.zip" -type f | head -1)
+          ZIP=$(find macos-artifacts -name "max-assistant.zip" -type f | head -1)
           APPCAST=$(find macos-artifacts -name "appcast.xml" -type f | head -1)
-          DMG=$(find macos-artifacts -name "vellum-assistant.dmg" -type f | head -1)
+          DMG=$(find macos-artifacts -name "max-assistant.dmg" -type f | head -1)
 
           if [ -z "$ZIP" ] || [ -z "$APPCAST" ]; then
             echo "::warning::Sparkle artifacts not found, skipping GCS upload"
             exit 0
           fi
 
-          gcloud storage cp "$ZIP" "gs://${BUCKET}/staging/vellum-assistant.zip"
+          gcloud storage cp "$ZIP" "gs://${BUCKET}/staging/max-assistant.zip"
           gcloud storage cp "$APPCAST" "gs://${BUCKET}/staging/appcast.xml"
-          [ -n "$DMG" ] && gcloud storage cp "$DMG" "gs://${BUCKET}/staging/vellum-assistant.dmg"
+          [ -n "$DMG" ] && gcloud storage cp "$DMG" "gs://${BUCKET}/staging/max-assistant.dmg"
 
           echo "Uploaded staging Sparkle artifacts to gs://${BUCKET}/staging/ (version=${VERSION})"
 
@@ -2779,8 +2779,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Build Slack payload
         env:
@@ -2862,7 +2862,7 @@ jobs:
           if [ "${{ needs.ci-playwright.result }}" != "success" ]; then
             PLAYWRIGHT_RUN_ID="${{ needs.ci-playwright.outputs.playwright-run-id }}"
             if [ -n "$PLAYWRIGHT_RUN_ID" ]; then
-              PLAYWRIGHT_LINE=" (<https://qa.vellum.ai/runs/${PLAYWRIGHT_RUN_ID}|view report>)"
+              PLAYWRIGHT_LINE=" (<https://qa.max.ai/runs/${PLAYWRIGHT_RUN_ID}|view report>)"
             else
               PLAYWRIGHT_LINE=" (<${RUN_URL}#artifacts|view report>)"
             fi
@@ -2948,7 +2948,7 @@ jobs:
             RELEASE_BRANCH="release/v${{ needs.extract-version.outputs.base_version }}"
             GO_LIVE_TS=$(date +%s)
             GO_LIVE_SIG=$(echo -n "${RELEASE_BRANCH}:${GO_LIVE_TS}" | openssl dgst -sha256 -hmac "$RELEASE_TRIGGER_SECRET" -hex | awk '{print $NF}')
-            GO_LIVE_URL="https://qa.vellum.ai/api/slack/go-live?branch=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${RELEASE_BRANCH}', safe=''))")&ts=${GO_LIVE_TS}&sig=${GO_LIVE_SIG}"
+            GO_LIVE_URL="https://qa.max.ai/api/slack/go-live?branch=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${RELEASE_BRANCH}', safe=''))")&ts=${GO_LIVE_TS}&sig=${GO_LIVE_SIG}"
             GO_LIVE=$(jq -n --arg url "$GO_LIVE_URL" '{
               type: "button",
               text: { type: "plain_text", text: "Go live!" },

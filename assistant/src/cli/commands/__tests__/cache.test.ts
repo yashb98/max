@@ -417,7 +417,7 @@ describe("cache set --file", () => {
       "cache",
       "set",
       "--file",
-      "/tmp/does-not-exist-vellum-cache-test.json",
+      "/tmp/does-not-exist-max-cache-test.json",
     ]);
 
     expect(exitCode).toBe(1);

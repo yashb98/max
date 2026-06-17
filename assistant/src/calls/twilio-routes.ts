@@ -25,7 +25,7 @@ import {
   buildTwilioMediaStreamUrl,
   buildTwilioRelayUrl,
   TWILIO_PUBLIC_BASE_URL_PLACEHOLDER,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 
 import { loadConfig } from "../config/loader.js";
 import { getProviderEntry } from "../providers/speech-to-text/provider-catalog.js";
@@ -67,7 +67,7 @@ const log = getLogger("twilio-routes");
  * The gateway replaces this with a real JWT before returning TwiML to Twilio.
  * This keeps the signing key out of the daemon for voice webhook responses.
  */
-const TWILIO_RELAY_TOKEN_PLACEHOLDER = "__VELLUM_RELAY_TOKEN__";
+const TWILIO_RELAY_TOKEN_PLACEHOLDER = "__MAX_RELAY_TOKEN__";
 
 // ── Speech config type ───────────────────────────────────────────────
 

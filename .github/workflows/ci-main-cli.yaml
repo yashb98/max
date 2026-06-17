@@ -71,7 +71,7 @@ jobs:
       - name: Pack CLI tarball
         run: |
           npm pack
-          TARBALL=$(ls vellumai-cli-*.tgz)
+          TARBALL=$(ls maxai-cli-*.tgz)
           echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
           echo "Packed: $TARBALL"
         id: pack

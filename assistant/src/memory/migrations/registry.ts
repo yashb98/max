@@ -48,6 +48,7 @@ import { downMemoryV2ActivationLogs } from "./234-memory-v2-activation-logs.js";
 import { downSlackCompactionWatermark } from "./235-slack-compaction-watermark.js";
 import { downToolInvocationsMatchedRuleId } from "./236-tool-invocations-matched-rule-id.js";
 import { downHeartbeatRuns } from "./237-heartbeat-runs.js";
+import { downRenameVellumChannelToMax } from "./249-rename-vellum-channel-to-max.js";
 
 export interface MigrationRegistryEntry {
   /** The checkpoint key written to memory_checkpoints on completion. */
@@ -411,6 +412,13 @@ export const MIGRATION_REGISTRY: MigrationRegistryEntry[] = [
     description:
       "Create heartbeat_runs table for tracking heartbeat execution lifecycle with CAS state transitions",
     down: downHeartbeatRuns,
+  },
+  {
+    key: "migration_rename_vellum_channel_to_max_v1",
+    version: 48,
+    description:
+      'Rename the desktop channel id stored as "vellum" to "max" across all tables with channel text columns, after the CHANNEL_IDS rebrand',
+    down: downRenameVellumChannelToMax,
   },
 ];
 

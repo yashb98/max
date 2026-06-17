@@ -101,7 +101,7 @@ const savedAuthEnv = {
 
 function mintGatewayToken(): string {
   return mintToken({
-    aud: "vellum-daemon",
+    aud: "max-daemon",
     sub: "svc:gateway:self",
     scope_profile: "gateway_ingress_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -111,7 +111,7 @@ function mintGatewayToken(): string {
 
 function mintActorToken(): string {
   return mintToken({
-    aud: "vellum-daemon",
+    aud: "max-daemon",
     sub: "actor:self:user-123",
     scope_profile: "actor_client_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,

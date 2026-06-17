@@ -2,7 +2,7 @@
  * IPC runtime proxy — serves HTTP requests by calling the assistant daemon
  * over IPC instead of forwarding them as HTTP.
  *
- * Activated when the client sends the `X-Vellum-Proxy-Server: ipc` header
+ * Activated when the client sends the `X-Max-Proxy-Server: ipc` header
  * AND the request path matches a route in the schema cache. This is the
  * testing gate for the IPC cutover; once proven, the header check is removed
  * and IPC becomes the default transport.
@@ -32,13 +32,13 @@ import { getLogger } from "../../logger.js";
 const log = getLogger("ipc-runtime-proxy");
 
 const V1_PREFIX = "/v1/";
-const VELLUM_HEADER_PREFIX = "x-vellum-";
+const MAX_HEADER_PREFIX = "x-max-";
 
 /**
  * Attempt to serve a request via IPC.
  *
  * Returns `null` when the request doesn't have the
- * `X-Vellum-Proxy-Server: ipc` header — the caller should fall through
+ * `X-Max-Proxy-Server: ipc` header — the caller should fall through
  * to the HTTP proxy.
  *
  * Once the header is present, the proxy commits to serving the request
@@ -49,7 +49,7 @@ export async function tryIpcProxy(
   req: Request,
   config: GatewayConfig,
 ): Promise<Response | null> {
-  if (req.headers.get("x-vellum-proxy-server") !== "ipc") {
+  if (req.headers.get("x-max-proxy-server") !== "ipc") {
     return null;
   }
 
@@ -110,28 +110,28 @@ export async function tryIpcProxy(
     queryParams[key] = value;
   }
 
-  // Only forward X-Vellum-* headers to the daemon.
+  // Only forward X-Max-* headers to the daemon.
   const headers: Record<string, string> = {};
   req.headers.forEach((value, key) => {
-    if (key.startsWith(VELLUM_HEADER_PREFIX)) {
+    if (key.startsWith(MAX_HEADER_PREFIX)) {
       headers[key] = value;
     }
   });
 
   // Override caller-supplied identity headers with values derived from the
   // verified JWT claims. The daemon's IPC adapter (`injectLocalActorHeader`)
-  // preserves any inbound `x-vellum-actor-principal-id`, so without this
+  // preserves any inbound `x-max-actor-principal-id`, so without this
   // step a malicious client could spoof another user's principal id by
   // setting the header explicitly. Mirrors the HTTP adapter's behavior in
   // `assistant/src/runtime/routes/http-adapter.ts`.
-  delete headers["x-vellum-actor-principal-id"];
-  delete headers["x-vellum-principal-type"];
+  delete headers["x-max-actor-principal-id"];
+  delete headers["x-max-principal-type"];
   if (claims) {
     const sub = parseSub(claims.sub);
     if (sub.ok) {
-      headers["x-vellum-principal-type"] = sub.principalType;
+      headers["x-max-principal-type"] = sub.principalType;
       if (sub.actorPrincipalId) {
-        headers["x-vellum-actor-principal-id"] = sub.actorPrincipalId;
+        headers["x-max-actor-principal-id"] = sub.actorPrincipalId;
       }
     }
   }

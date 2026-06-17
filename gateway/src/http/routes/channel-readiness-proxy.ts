@@ -5,7 +5,7 @@
  * auth handling rather than falling through to the catch-all proxy.
  */
 
-import { proxyForwardToResponse } from "@vellumai/assistant-client";
+import { proxyForwardToResponse } from "@maxai/assistant-client";
 
 import { mintServiceToken } from "../../auth/token-exchange.js";
 import type { GatewayConfig } from "../../config.js";

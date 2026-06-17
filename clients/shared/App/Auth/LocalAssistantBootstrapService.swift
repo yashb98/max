@@ -51,7 +51,7 @@ public enum LocalBootstrapError: LocalizedError, Sendable {
 ///    and get a fresh one.
 ///
 /// Does NOT reuse ManagedAssistantBootstrapService.
-/// Does NOT write cloud = "vellum" into the lockfile.
+/// Does NOT write cloud = "max" into the lockfile.
 @MainActor
 public final class LocalAssistantBootstrapService {
 
@@ -60,7 +60,7 @@ public final class LocalAssistantBootstrapService {
 
     /// Returns the credential account name for the provisioned credential, scoped to the assistant.
     public static func credentialAccount(for runtimeAssistantId: String) -> String {
-        "vellum_assistant_credential_\(runtimeAssistantId)"
+        "max_assistant_credential_\(runtimeAssistantId)"
     }
 
     /// Deletes the locally cached bootstrap credential for a runtime assistant.
@@ -216,7 +216,7 @@ public final class LocalAssistantBootstrapService {
         try await injectKeyIntoAssistant(key: apiKey)
         try? await injectPlatformAssistantIdIntoAssistant(id: platformAssistantId)
         do {
-            try await injectPlatformBaseUrlIntoAssistant(url: VellumEnvironment.resolvedPlatformURL)
+            try await injectPlatformBaseUrlIntoAssistant(url: MaxEnvironment.resolvedPlatformURL)
         } catch {
             log.error("Failed to inject platform base URL into assistant: \(error.localizedDescription)")
             throw LocalBootstrapError.assistantInjectionFailed
@@ -253,7 +253,7 @@ public final class LocalAssistantBootstrapService {
     private func injectKeyIntoAssistant(key: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:assistant_api_key", "value": key],
+            json: ["type": "credential", "name": "max:assistant_api_key", "value": key],
             timeout: 10,
             unprefixed: true
         )
@@ -267,7 +267,7 @@ public final class LocalAssistantBootstrapService {
     private func injectPlatformBaseUrlIntoAssistant(url: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:platform_base_url", "value": url],
+            json: ["type": "credential", "name": "max:platform_base_url", "value": url],
             timeout: 10,
             unprefixed: true
         )
@@ -280,7 +280,7 @@ public final class LocalAssistantBootstrapService {
     private func injectPlatformAssistantIdIntoAssistant(id: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:platform_assistant_id", "value": id],
+            json: ["type": "credential", "name": "max:platform_assistant_id", "value": id],
             timeout: 10,
             unprefixed: true
         )
@@ -293,7 +293,7 @@ public final class LocalAssistantBootstrapService {
     private func injectPlatformOrganizationIdIntoAssistant(id: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:platform_organization_id", "value": id],
+            json: ["type": "credential", "name": "max:platform_organization_id", "value": id],
             timeout: 10,
             unprefixed: true
         )
@@ -306,7 +306,7 @@ public final class LocalAssistantBootstrapService {
     private func injectPlatformUserIdIntoAssistant(id: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:platform_user_id", "value": id],
+            json: ["type": "credential", "name": "max:platform_user_id", "value": id],
             timeout: 10,
             unprefixed: true
         )
@@ -319,7 +319,7 @@ public final class LocalAssistantBootstrapService {
     private func injectWebhookSecretIntoAssistant(secret: String) async throws {
         let response = try await GatewayHTTPClient.post(
             path: "secrets",
-            json: ["type": "credential", "name": "vellum:webhook_secret", "value": secret],
+            json: ["type": "credential", "name": "max:webhook_secret", "value": secret],
             timeout: 10,
             unprefixed: true
         )
@@ -330,18 +330,18 @@ public final class LocalAssistantBootstrapService {
 
     /// Clears platform identity credentials and the assistant API key from
     /// the assistant's secret store by issuing `DELETE /v1/secrets` for each
-    /// vellum-namespaced credential.
+    /// max-namespaced credential.
     ///
     /// Returns `true` if all credentials were successfully cleared (or didn't exist).
     @discardableResult
     public static func clearAssistantCredentials() async -> Bool {
         let credentialNames = [
-            "vellum:assistant_api_key",
-            "vellum:platform_assistant_id",
-            "vellum:platform_base_url",
-            "vellum:platform_organization_id",
-            "vellum:platform_user_id",
-            "vellum:webhook_secret",
+            "max:assistant_api_key",
+            "max:platform_assistant_id",
+            "max:platform_base_url",
+            "max:platform_organization_id",
+            "max:platform_user_id",
+            "max:webhook_secret",
         ]
         var allCleared = true
         for name in credentialNames {

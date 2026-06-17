@@ -54,9 +54,9 @@ public final class AuthService {
 
     // MARK: - Platform Organizations API
 
-    /// Fetch the current user's organizations. Does not require Vellum-Organization-Id header.
+    /// Fetch the current user's organizations. Does not require Max-Organization-Id header.
     public func getOrganizations() async throws -> [PlatformOrganization] {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -191,7 +191,7 @@ public final class AuthService {
         body: Data? = nil,
         timeoutInterval: TimeInterval? = nil
     ) async throws -> PlatformResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/\(path)"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/\(path)"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -204,7 +204,7 @@ public final class AuthService {
             urlRequest.httpBody = body
         }
         if let organizationId {
-            urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+            urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
         }
         if let timeoutInterval {
             urlRequest.timeoutInterval = timeoutInterval
@@ -481,7 +481,7 @@ public final class AuthService {
         assistantId: String,
         organizationId: String
     ) async throws {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/\(path)/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/\(path)/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -491,7 +491,7 @@ public final class AuthService {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = Data("{}".utf8)
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         if let token = await SessionTokenManager.getTokenAsync() {
             urlRequest.setValue(token, forHTTPHeaderField: "X-Session-Token")
@@ -553,7 +553,7 @@ public final class AuthService {
         clientPlatform: String,
         assistantVersion: String? = nil
     ) async throws -> EnsureSelfHostedLocalRegistrationResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/self-hosted-local/ensure-registration/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/self-hosted-local/ensure-registration/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -562,7 +562,7 @@ public final class AuthService {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         if let token = await SessionTokenManager.getTokenAsync() {
             urlRequest.setValue(token, forHTTPHeaderField: "X-Session-Token")
@@ -616,7 +616,7 @@ public final class AuthService {
         clientPlatform: String,
         assistantVersion: String? = nil
     ) async throws -> ReprovisionSelfHostedLocalApiKeyResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/self-hosted-local/reprovision-api-key/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/self-hosted-local/reprovision-api-key/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -625,7 +625,7 @@ public final class AuthService {
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         if let token = await SessionTokenManager.getTokenAsync() {
             urlRequest.setValue(token, forHTTPHeaderField: "X-Session-Token")
@@ -679,7 +679,7 @@ public final class AuthService {
         platformAssistantId: String,
         organizationId: String
     ) async throws {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/\(platformAssistantId)/retire/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/\(platformAssistantId)/retire/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -688,7 +688,7 @@ public final class AuthService {
         urlRequest.httpMethod = "DELETE"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
         urlRequest.timeoutInterval = 15
 
         if let token = await SessionTokenManager.getTokenAsync() {
@@ -739,12 +739,12 @@ public final class AuthService {
         case unavailable
     }
 
-    /// Request deletion of the signed-in Vellum account.
+    /// Request deletion of the signed-in Max account.
     ///
     /// Posts to platform's user-scoped `deletion-request` endpoint, bypassing
     /// the local gateway since deletion is not assistant-scoped. The endpoint
     /// is organization-agnostic — the deleted entity is the user, not an org
-    /// membership — so no `Vellum-Organization-Id` header is sent. Returns
+    /// membership — so no `Max-Organization-Id` header is sent. Returns
     /// `.requested` on 201 and `.unavailable` on 404 (server-side flag off).
     /// All other non-2xx responses throw ``PlatformAPIError``.
     public func requestAccountDeletion() async throws -> AccountDeletionStatus {
@@ -810,7 +810,7 @@ public final class AuthService {
     private func executeRequestAttempt(
         requestConfig: AuthRequestConfig
     ) async throws -> AuthAttemptResult {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/_allauth/app/v1/\(requestConfig.path)"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/_allauth/app/v1/\(requestConfig.path)"
         guard let url = URL(string: urlString) else {
             throw AuthServiceError.invalidURL
         }

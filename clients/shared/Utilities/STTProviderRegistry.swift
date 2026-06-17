@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-private let log = Logger(subsystem: "com.vellum.vellum-assistant", category: "STTProviderRegistry")
+private let log = Logger(subsystem: "com.max.max-assistant", category: "STTProviderRegistry")
 
 // MARK: - Types
 

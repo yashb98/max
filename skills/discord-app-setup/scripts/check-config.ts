@@ -21,7 +21,7 @@ type CredentialEnvelope = {
   managedCredentials?: CredentialEntry[];
 };
 
-async function checkVellum(): Promise<void> {
+async function checkMax(): Promise<void> {
   const proc = Bun.spawn(["assistant", "credentials", "list", "--json"], {
     stdout: "pipe",
     stderr: "pipe",
@@ -78,12 +78,12 @@ async function checkVellum(): Promise<void> {
 
 async function main(): Promise<void> {
   switch (species) {
-    case "vellum":
-      await checkVellum();
+    case "max":
+      await checkMax();
       break;
     default:
       console.error(
-        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=vellum.`,
+        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=max.`,
       );
       process.exitCode = 1;
   }

@@ -93,13 +93,13 @@ The gateway exposes a REST API for reading and mutating assistant feature flags.
 | Method | Path                     | Description                                                                                                                                                                                                                                         |
 | ------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GET    | `/v1/feature-flags`      | List all declared assistant feature flags from the defaults registry, merged with persisted values from the feature flag store. Returns `{ flags: FeatureFlagEntry[] }` where each entry has `key`, `enabled`, `defaultEnabled`, and `description`. |
-| PATCH  | `/v1/feature-flags/:key` | Set a single assistant feature flag. Body: `{ "enabled": true\|false }`. Key must be a simple kebab-case flag key declared in the defaults registry. Writes to `~/.vellum/protected/feature-flags.json`.                                            |
+| PATCH  | `/v1/feature-flags/:key` | Set a single assistant feature flag. Body: `{ "enabled": true\|false }`. Key must be a simple kebab-case flag key declared in the defaults registry. Writes to `~/.max/protected/feature-flags.json`.                                            |
 
 **Unified registry:** All declared feature flags and their default values are defined in the unified registry at `meta/feature-flags/feature-flag-registry.json` (bundled copy at `gateway/src/feature-flag-registry.json`). The gateway loads this registry on startup via `gateway/src/feature-flag-defaults.ts`, filtering to `scope: "assistant"` flags. Labels come from the registry. The GET endpoint merges persisted overrides with registry defaults to produce the full flag list. The PATCH endpoint validates that the target flag key exists in the registry before accepting a write. Only declared keys are exposed by this API.
 
-**Flag key format:** The canonical key format is simple kebab-case (e.g., `browser`, `ces-tools`). Only keys matching this pattern and declared in the registry are accepted by the PATCH endpoint; other patterns are rejected with 400. All writes use the canonical format and are stored in the protected feature flag store (`~/.vellum/protected/feature-flags.json`).
+**Flag key format:** The canonical key format is simple kebab-case (e.g., `browser`, `ces-tools`). Only keys matching this pattern and declared in the registry are accepted by the PATCH endpoint; other patterns are rejected with 400. All writes use the canonical format and are stored in the protected feature flag store (`~/.max/protected/feature-flags.json`).
 
-**Storage:** Flag overrides are persisted in `~/.vellum/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker). The store uses a versioned JSON format (`{ version: 1, values: Record<string, boolean> }`). The GET endpoint reads from the feature flag store and merges with registry defaults. The gateway writes atomically (temp file + rename, 0o600 permissions). The daemon's config watcher monitors the protected directory and hot-reloads changes, so flag mutations take effect on the next session or tool resolution without a restart.
+**Storage:** Flag overrides are persisted in `~/.max/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker). The store uses a versioned JSON format (`{ version: 1, values: Record<string, boolean> }`). The GET endpoint reads from the feature flag store and merges with registry defaults. The gateway writes atomically (temp file + rename, 0o600 permissions). The daemon's config watcher monitors the protected directory and hot-reloads changes, so flag mutations take effect on the next session or tool resolution without a restart.
 
 **Token separation (authentication boundary):**
 
@@ -112,7 +112,7 @@ The assistant feature flags API uses scope-based JWT auth. The gateway issues JW
 
 The assistant daemon does not read or distribute a feature-flag token. All feature-flag auth flows go through the gateway's scoped JWT mechanism.
 
-**Protected feature flag store:** The canonical storage for assistant feature flag overrides is `~/.vellum/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker). The store is managed by `gateway/src/feature-flag-store.ts` and uses a versioned JSON format with `Record<string, boolean>` values keyed by canonical flag keys (simple kebab-case, e.g., `browser`). The gateway's PATCH handler writes exclusively to this store. The daemon's resolver reads it with highest priority, falling back to the defaults registry. Undeclared keys are ignored by the resolver.
+**Protected feature flag store:** The canonical storage for assistant feature flag overrides is `~/.max/protected/feature-flags.json` (local) or `GATEWAY_SECURITY_DIR/feature-flags.json` (Docker). The store is managed by `gateway/src/feature-flag-store.ts` and uses a versioned JSON format with `Record<string, boolean>` values keyed by canonical flag keys (simple kebab-case, e.g., `browser`). The gateway's PATCH handler writes exclusively to this store. The daemon's resolver reads it with highest priority, falling back to the defaults registry. Undeclared keys are ignored by the resolver.
 
 **Key source files:**
 
@@ -298,7 +298,7 @@ The assistant runtime reads this URL via the centralized `public-ingress-urls.ts
 
 Velay is a platform-managed tunnel for assistant-hosted HTTP and WebSocket traffic. When it is active, Velay publishes the registered public assistant URL to `ingress.publicBaseUrl` and marks it with `ingress.publicBaseUrlManagedBy: "velay"`.
 
-When `VELAY_BASE_URL` is present in the gateway environment, the gateway creates `VelayTunnelClient` but starts it only after Twilio setup has been started in the workspace. On boot, existing Twilio credentials or existing `twilio.accountSid` / `twilio.phoneNumber` config count as prior setup, and successful credential setup persists `twilio.setupStarted: true` for future boots. Before credential-backed startup side effects run, the gateway clears any stale Velay-managed `ingress.publicBaseUrl`; if setup has not started, it does this without opening a tunnel. The client registers with Velay over `GET /v1/register` using the assistant API key, then receives a `registered` frame containing a public assistant URL such as `https://velay.vellum.ai/<assistant-id>`. The gateway writes that URL to `ingress.publicBaseUrl`. When the tunnel disconnects, it clears that value only if the Velay ownership marker is still present and the URL still matches what the tunnel published, leaving manual URLs intact.
+When `VELAY_BASE_URL` is present in the gateway environment, the gateway creates `VelayTunnelClient` but starts it only after Twilio setup has been started in the workspace. On boot, existing Twilio credentials or existing `twilio.accountSid` / `twilio.phoneNumber` config count as prior setup, and successful credential setup persists `twilio.setupStarted: true` for future boots. Before credential-backed startup side effects run, the gateway clears any stale Velay-managed `ingress.publicBaseUrl`; if setup has not started, it does this without opening a tunnel. The client registers with Velay over `GET /v1/register` using the assistant API key, then receives a `registered` frame containing a public assistant URL such as `https://velay.max.ai/<assistant-id>`. The gateway writes that URL to `ingress.publicBaseUrl`. When the tunnel disconnects, it clears that value only if the Velay ownership marker is still present and the URL still matches what the tunnel published, leaving manual URLs intact.
 
 Velay forwards both HTTP request frames and WebSocket frames into the local gateway loopback listener:
 
@@ -314,7 +314,7 @@ The HTTP bridge can carry normal JSON requests and health checks, so it is usefu
 
 Local platform smoke-test flow:
 
-1. In `vellum-assistant-platform`, run `vel up velay`.
+1. In `max-assistant-platform`, run `vel up velay`.
 2. Ensure vembda passes the environment-appropriate `VELAY_BASE_URL` into assistant gateway containers.
 3. Start or complete Twilio setup in the workspace so the gateway is allowed to connect the tunnel.
 4. Re-hatch or restart the assistant so the gateway receives the new environment.
@@ -400,7 +400,7 @@ Runtime detects needs_confirmation
 
 **Proactive expiry sweep:** The runtime runs a periodic sweep every 60 seconds (`sweepExpiredGuardianApprovals`) that finds guardian approval requests past the 30-minute TTL, auto-denies the underlying runs, and notifies both the requester and guardian via the gateway's per-channel `/deliver/<channel>` endpoint. This ensures expired approvals are closed without waiting for follow-up traffic from either party. The sweep is started automatically whenever a run orchestrator is available.
 
-**Gateway-origin ingress contract:** The JWT token exchanged during gateway-to-runtime authentication proves gateway origin (via the `aud=vellum-daemon` claim). No separate header is required.
+**Gateway-origin ingress contract:** The JWT token exchanged during gateway-to-runtime authentication proves gateway origin (via the `aud=max-daemon` claim). No separate header is required.
 
 **Key modules:**
 
@@ -661,7 +661,7 @@ The gateway declares `contacts` and `contact_channels` tables and exposes them v
 
 ### Telegram Credential Flow
 
-In desktop deployments, Telegram bot tokens are stored in secure storage (CES HTTP API when available, or the encrypted file store at `~/.vellum/protected/keys.enc`) and never in plaintext config files. When deploying the gateway standalone, operators may also supply credentials via environment variables (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`).
+In desktop deployments, Telegram bot tokens are stored in secure storage (CES HTTP API when available, or the encrypted file store at `~/.max/protected/keys.enc`) and never in plaintext config files. When deploying the gateway standalone, operators may also supply credentials via environment variables (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`).
 
 ```
 Entry points:
@@ -695,7 +695,7 @@ The `telegram_config` HTTP endpoint supports three actions:
 - **`set`** — validates the bot token against the Telegram API, stores it in secure storage, auto-generates a webhook secret if none exists (with rollback on failure), and self-heals webhook_secret metadata if it already exists. The gateway's credential watcher detects the storage change and triggers webhook reconciliation automatically
 - **`clear`** — deregisters the webhook by calling Telegram's `deleteWebhook` API directly (while the token is still available), then deletes the bot token and webhook secret from both secure storage and credential metadata. The gateway's credential watcher detects the storage change and updates its readiness state automatically
 
-The gateway reads Telegram credentials via its `credential-reader` module (`gateway/src/credential-reader.ts`), which uses a CES-first fallback strategy: it tries the CES HTTP API first (when `CES_CREDENTIAL_URL` is configured), then falls back to the encrypted file store (`~/.vellum/protected/keys.enc`).
+The gateway reads Telegram credentials via its `credential-reader` module (`gateway/src/credential-reader.ts`), which uses a CES-first fallback strategy: it tries the CES HTTP API first (when `CES_CREDENTIAL_URL` is configured), then falls back to the encrypted file store (`~/.max/protected/keys.enc`).
 
 ### Webhook Reconciliation
 
@@ -1028,9 +1028,9 @@ When the LLM emits `[ASK_GUARDIAN: question]` during a voice call, the controlle
 1. **Request creation**: A `guardian_action_request` row is created with a unique 6-character hex request code, the question text, a `pending` status, and an expiry timestamp.
 
 2. **Delivery fan-out via notification pipeline**: The guardian dispatch calls `emitNotificationSignal()` and uses the same notification decision + broadcaster path as every other producer.
-   - **Vellum**: Conversation pairing happens in the notification broadcaster. The resulting `notification_conversation_created` event surfaces the conversation in the desktop UI.
+   - **Max**: Conversation pairing happens in the notification broadcaster. The resulting `notification_conversation_created` event surfaces the conversation in the desktop UI.
    - **Telegram**: Delivery is handled by channel adapters selected by the notification decision and guarded by configured bindings.
-   - Guardian dispatch records `guardian_action_deliveries` from pipeline delivery results. It also uses the per-dispatch `onConversationCreated` callback so vellum delivery rows are created as soon as conversation pairing occurs (without waiting for slower channels).
+   - Guardian dispatch records `guardian_action_deliveries` from pipeline delivery results. It also uses the per-dispatch `onConversationCreated` callback so max delivery rows are created as soon as conversation pairing occurs (without waiting for slower channels).
 
 3. **Answer resolution**: The first channel to respond wins. Answer resolution uses an atomic `WHERE status = 'pending'` check on the `guardian_action_requests` table -- only the first writer succeeds in transitioning the request to `answered` status. The winning answer text and responding channel are recorded on the request row.
 
@@ -1048,7 +1048,7 @@ When a guardian question is dispatched while the macOS app is backgrounded, the 
 
 ### SQLite Tables
 
-All five tables live in `~/.vellum/workspace/data/db/assistant.db` alongside existing tables:
+All five tables live in `~/.max/workspace/data/db/assistant.db` alongside existing tables:
 
 - **`call_sessions`** — One row per call (inbound or outbound). Tracks conversation association, provider info (Twilio CallSid), phone numbers, task description (null for inbound calls), status lifecycle (`initiated` -> `ringing` -> `in_progress` -> `waiting_on_user` -> `completed`/`failed`), and timestamps. For inbound calls, the session is keyed by CallSid via `createInboundVoiceSession()` with idempotent replay protection. Foreign key to `conversations(id)` with cascade delete.
 

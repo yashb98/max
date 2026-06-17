@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type {
   SecureKeyBackend,
   SecureKeyDeleteResult,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import { createLocalTokenRefreshFn } from "../materializers/local-token-refresh.js";
 

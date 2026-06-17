@@ -1,5 +1,5 @@
 /**
- * Shared types for the Vellum web client.
+ * Shared types for the Max web client.
  *
  * Lives in its own file so both the server (`server.ts`) and the browser
  * bundle (`bundle.tsx`) can reference it without a circular import.

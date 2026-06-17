@@ -14,7 +14,7 @@
  *   - deletePage / pageExists: nested-slug round-trip, idempotent on missing.
  *
  * Tests use temp workspaces under `os.tmpdir()` per the cross-cutting safety
- * rule in the v2 plan; they never touch `~/.vellum/`.
+ * rule in the v2 plan; they never touch `~/.max/`.
  */
 
 import {
@@ -48,7 +48,7 @@ import type { ConceptPage } from "../types.js";
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-page-store-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-page-store-test-"));
   // Mirror the workspace migration so readPage / writePage have a target dir.
   mkdirSync(join(workspaceDir, "memory", "concepts"), { recursive: true });
 });

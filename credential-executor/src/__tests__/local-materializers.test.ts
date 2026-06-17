@@ -19,7 +19,7 @@ import {
   localStaticHandle,
   localOAuthHandle,
   platformOAuthHandle,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 import {
   type OAuthConnectionRecord,
   type SecureKeyBackend,
@@ -29,7 +29,7 @@ import {
   oauthConnectionAccessTokenPath,
   oauthConnectionRefreshTokenPath,
   REFRESH_FAILURE_THRESHOLD,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import {
   resolveLocalSubject,

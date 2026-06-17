@@ -37,7 +37,7 @@ const log = getLogger("token-service");
 let _authSigningKey: Buffer | undefined;
 
 /**
- * Hardcoded legacy path to the signing key under ~/.vellum/protected/.
+ * Hardcoded legacy path to the signing key under ~/.max/protected/.
  * Used as a read-only fallback so existing assistants keep working after
  * the code update — avoids generating a new key that would break auth
  * with an already-running daemon.
@@ -46,7 +46,7 @@ let _authSigningKey: Buffer | undefined;
  */
 const LEGACY_SIGNING_KEY_PATH = join(
   homedir(),
-  ".vellum",
+  ".max",
   "protected",
   "actor-token-signing-key",
 );
@@ -281,7 +281,7 @@ export function mintToken(params: {
 }): string {
   const now = Math.floor(Date.now() / 1000);
   const claims: TokenClaims = {
-    iss: "vellum-auth",
+    iss: "max-auth",
     aud: params.aud,
     sub: params.sub,
     scope_profile: params.scope_profile,

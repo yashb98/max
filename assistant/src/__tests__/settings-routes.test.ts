@@ -26,7 +26,7 @@ import { createGuardianBinding } from "./helpers/create-guardian-binding.js";
 
 initializeDb();
 
-const testWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testWorkspaceDir = process.env.MAX_WORKSPACE_DIR!;
 
 function resetContactTables(): void {
   const sqlite = getSqlite();

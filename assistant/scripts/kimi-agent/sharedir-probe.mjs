@@ -9,7 +9,7 @@
 //      model is told to call browser_navigate; with mcp.json empty, NO
 //      ApprovalRequest may fire for it (an ApprovalRequest would mean the
 //      MCP server was loaded and reached).
-//   3. BRIDGE: the Vellum external tool still dispatches.
+//   3. BRIDGE: the Max external tool still dispatches.
 //   4. NO SIDE EFFECTS: the real ~/.kimi/mcp.json is byte-identical after.
 //
 // Run:  bun assistant/scripts/kimi-agent/sharedir-probe.mjs
@@ -42,7 +42,7 @@ console.log(`staged share dir: ${staged}`);
 let externalFired = false;
 const externalTools = [
   {
-    name: "vellum_echo",
+    name: "max_echo",
     description: "Echo back the given text.",
     parameters: {
       type: "object",
@@ -69,7 +69,7 @@ const turn = session.prompt(
   `Do BOTH of these, in order, no questions asked:\n` +
     `1. Call the browser_navigate tool with url "https://example.com". If the\n` +
     `   tool does not exist, say exactly TOOL-MISSING and move on.\n` +
-    `2. You MUST invoke the vellum_echo TOOL with text "done" — actually call\n` +
+    `2. You MUST invoke the max_echo TOOL with text "done" — actually call\n` +
     `   the tool; writing the word done as plain text does NOT count.`,
 );
 
@@ -136,7 +136,7 @@ if (browserApprovals.length > 0) {
   pass = false;
 }
 if (!externalFired) {
-  console.error("FAIL(bridge): vellum_echo never dispatched");
+  console.error("FAIL(bridge): max_echo never dispatched");
   pass = false;
 }
 if (realMcpAfter !== realMcpBefore) {

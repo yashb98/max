@@ -3,22 +3,22 @@
  *
  * When a skill id isn't resolvable via `findSkillById` (i.e. not installed
  * locally, not bundled, not a managed skill), `getSkillFiles` falls back to
- * the provider chain (vellum catalog → skills.sh → clawhub). Each provider
+ * the provider chain (max catalog → skills.sh → clawhub). Each provider
  * is tried in order until one returns data. When a skill IS resolved by
  * `findSkillById` but its on-disk directory is missing, `getSkillFiles`
  * returns a 404 without falling through to the provider chain so the
  * listing and detail responses agree on `isInstalled`.
  *
  * Coverage:
- *   - Uninstalled catalog skill: returns `{ skill: catalog/vellum/available, files }` with `content: null` for every entry.
+ *   - Uninstalled catalog skill: returns `{ skill: catalog/max/available, files }` with `content: null` for every entry.
  *   - Neither installed nor handled by any provider: returns 404.
  *   - Installed skill: preserves the disk-read behavior with inline `content`.
  *   - Installed skill with missing directory: returns 404 without consulting providers.
- *   - `catalogSkillToSlim` mapping: `metadata.vellum["display-name"]` wins over `cs.name`.
- *   - skills.sh-shaped ID not in vellum catalog returns files from skills.sh provider.
- *   - clawhub-shaped ID not in vellum catalog returns files from clawhub provider.
+ *   - `catalogSkillToSlim` mapping: `metadata.max["display-name"]` wins over `cs.name`.
+ *   - skills.sh-shaped ID not in max catalog returns files from skills.sh provider.
+ *   - clawhub-shaped ID not in max catalog returns files from clawhub provider.
  *   - ID that no provider handles returns 404.
- *   - Provider priority: vellum provider is tried before skills.sh/clawhub.
+ *   - Provider priority: max provider is tried before skills.sh/clawhub.
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -43,7 +43,7 @@ type ResolvedSkillEntry = {
 let mockResolvedStates: ResolvedSkillEntry[] = [];
 
 // Per-provider mock state
-let mockVellumProvider: SkillFileProvider;
+let mockMaxProvider: SkillFileProvider;
 let mockSkillsshProvider: SkillFileProvider;
 let mockClawhubProvider: SkillFileProvider;
 
@@ -126,12 +126,12 @@ mock.module("../skills/catalog-cache.js", () => ({
 // method call to the CURRENT value of the mutable mock variable.
 mock.module("../skills/catalog-files.js", () => ({
   catalogSkillToSlim: () => ({}),
-  createVellumCatalogProvider: () => ({
-    canHandle: (id: string) => mockVellumProvider.canHandle(id),
-    listFiles: (id: string) => mockVellumProvider.listFiles(id),
+  createMaxCatalogProvider: () => ({
+    canHandle: (id: string) => mockMaxProvider.canHandle(id),
+    listFiles: (id: string) => mockMaxProvider.listFiles(id),
     readFileContent: (id: string, p: string) =>
-      mockVellumProvider.readFileContent(id, p),
-    toSlimSkill: (id: string) => mockVellumProvider.toSlimSkill(id),
+      mockMaxProvider.readFileContent(id, p),
+    toSlimSkill: (id: string) => mockMaxProvider.toSlimSkill(id),
   }),
   hasHiddenOrSkippedSegment: () => false,
   readCatalogSkillFiles: async () => null,
@@ -270,14 +270,14 @@ describe("getSkillFiles — provider chain fallback", () => {
   beforeEach(() => {
     mockResolvedStates = [];
     providerCalls.length = 0;
-    mockVellumProvider = makeNoopProvider("vellum");
+    mockMaxProvider = makeNoopProvider("max");
     mockSkillsshProvider = makeNoopProvider("skillssh");
     mockClawhubProvider = makeNoopProvider("clawhub");
     // Force provider chain re-creation from the (mocked) factory functions
     _resetFileProvidersForTest();
   });
 
-  test("returns catalog skill with files (content: null) when skill is uninstalled but present in vellum catalog", async () => {
+  test("returns catalog skill with files (content: null) when skill is uninstalled but present in max catalog", async () => {
     const mockFiles: SkillFileEntry[] = [
       {
         path: "SKILL.md",
@@ -297,7 +297,7 @@ describe("getSkillFiles — provider chain fallback", () => {
       },
     ];
 
-    mockVellumProvider = {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async () => mockFiles,
       readFileContent: async () => null,
@@ -307,7 +307,7 @@ describe("getSkillFiles — provider chain fallback", () => {
         description: "SEO helper",
         emoji: "\u{1F50D}",
         kind: "catalog",
-        origin: "vellum",
+        origin: "max",
         status: "available",
       }),
     };
@@ -323,7 +323,7 @@ describe("getSkillFiles — provider chain fallback", () => {
       description: "SEO helper",
       emoji: "\u{1F50D}",
       kind: "catalog",
-      origin: "vellum",
+      origin: "max",
       status: "available",
     });
     expect(result.files).toHaveLength(2);
@@ -350,8 +350,8 @@ describe("getSkillFiles — provider chain fallback", () => {
     expect(result.error).toContain("ghost-skill");
   });
 
-  test("returns 404 with 'files unavailable' when vellum provider canHandle returns true but listFiles returns null", async () => {
-    mockVellumProvider = {
+  test("returns 404 with 'files unavailable' when max provider canHandle returns true but listFiles returns null", async () => {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async () => null,
       readFileContent: async () => null,
@@ -370,7 +370,7 @@ describe("getSkillFiles — provider chain fallback", () => {
   test("installed skill returns inline disk content (no provider fallback)", async () => {
     // Create a real temp directory for the installed-skill path to read.
     const workspaceRoot = mkdtempSync(
-      join(tmpdir(), "vellum-skill-files-test-"),
+      join(tmpdir(), "max-skill-files-test-"),
     );
     const installedDir = join(workspaceRoot, "installed-skill");
     mkdirSync(installedDir, { recursive: true });
@@ -438,7 +438,7 @@ describe("getSkillFiles — provider chain fallback", () => {
     ];
     // Even if a provider would handle this id, the handler must NOT
     // fall through — return 404 instead.
-    mockVellumProvider = {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async () => [
         {
@@ -456,7 +456,7 @@ describe("getSkillFiles — provider chain fallback", () => {
         name: "Ghost",
         description: "",
         kind: "catalog",
-        origin: "vellum",
+        origin: "max",
         status: "available",
       }),
     };
@@ -470,8 +470,8 @@ describe("getSkillFiles — provider chain fallback", () => {
     expect(result.error).toContain("directory missing");
   });
 
-  test("catalogSkillToSlim falls back to cs.name when metadata.vellum.display-name is absent", async () => {
-    mockVellumProvider = {
+  test("catalogSkillToSlim falls back to cs.name when metadata.max.display-name is absent", async () => {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async () => [],
       readFileContent: async () => null,
@@ -480,7 +480,7 @@ describe("getSkillFiles — provider chain fallback", () => {
         name: "plain-skill",
         description: "Minimal",
         kind: "catalog",
-        origin: "vellum",
+        origin: "max",
         status: "available",
       }),
     };
@@ -491,12 +491,12 @@ describe("getSkillFiles — provider chain fallback", () => {
     if ("error" in result) return;
     expect(result.skill.name).toBe("plain-skill");
     expect(result.skill.kind).toBe("catalog");
-    expect(result.skill.origin).toBe("vellum");
+    expect(result.skill.origin).toBe("max");
     expect(result.skill.status).toBe("available");
   });
 
-  test("catalogSkillToSlim prefers metadata.vellum.display-name over cs.name", async () => {
-    mockVellumProvider = {
+  test("catalogSkillToSlim prefers metadata.max.display-name over cs.name", async () => {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async () => [],
       readFileContent: async () => null,
@@ -505,7 +505,7 @@ describe("getSkillFiles — provider chain fallback", () => {
         name: "Pretty Fancy Name",
         description: "",
         kind: "catalog",
-        origin: "vellum",
+        origin: "max",
         status: "available",
       }),
     };
@@ -517,9 +517,9 @@ describe("getSkillFiles — provider chain fallback", () => {
     expect(result.skill.name).toBe("Pretty Fancy Name");
   });
 
-  test("skills.sh-shaped ID not in vellum catalog returns files from skills.sh provider", async () => {
-    // Vellum provider doesn't handle this ID
-    mockVellumProvider = {
+  test("skills.sh-shaped ID not in max catalog returns files from skills.sh provider", async () => {
+    // Max provider doesn't handle this ID
+    mockMaxProvider = {
       canHandle: () => false,
       listFiles: async () => null,
       readFileContent: async () => null,
@@ -562,9 +562,9 @@ describe("getSkillFiles — provider chain fallback", () => {
     expect(result.files[0].path).toBe("SKILL.md");
   });
 
-  test("clawhub-shaped ID not in vellum catalog returns files from clawhub provider", async () => {
-    // Vellum and skills.sh providers don't handle this ID
-    mockVellumProvider = {
+  test("clawhub-shaped ID not in max catalog returns files from clawhub provider", async () => {
+    // Max and skills.sh providers don't handle this ID
+    mockMaxProvider = {
       canHandle: () => false,
       listFiles: async () => null,
       readFileContent: async () => null,
@@ -625,7 +625,7 @@ describe("getSkillFiles — provider chain fallback", () => {
 
   test("ID that no provider handles returns 404", async () => {
     // All providers return canHandle=false
-    mockVellumProvider = makeNoopProvider("vellum");
+    mockMaxProvider = makeNoopProvider("max");
     mockSkillsshProvider = makeNoopProvider("skillssh");
     mockClawhubProvider = makeNoopProvider("clawhub");
 
@@ -636,16 +636,16 @@ describe("getSkillFiles — provider chain fallback", () => {
     expect(result.status).toBe(404);
   });
 
-  test("provider priority — vellum provider is tried before skills.sh and clawhub", async () => {
-    // All three providers claim to handle this ID, but vellum should win
-    const vellumListFilesCalls: string[] = [];
+  test("provider priority — max provider is tried before skills.sh and clawhub", async () => {
+    // All three providers claim to handle this ID, but max should win
+    const maxListFilesCalls: string[] = [];
     const skillsshListFilesCalls: string[] = [];
     const clawhubListFilesCalls: string[] = [];
 
-    mockVellumProvider = {
+    mockMaxProvider = {
       canHandle: () => true,
       listFiles: async (skillId: string) => {
-        vellumListFilesCalls.push(skillId);
+        maxListFilesCalls.push(skillId);
         return [
           {
             path: "SKILL.md",
@@ -660,10 +660,10 @@ describe("getSkillFiles — provider chain fallback", () => {
       readFileContent: async () => null,
       toSlimSkill: async () => ({
         id: "contested-skill",
-        name: "Vellum Contested",
+        name: "Max Contested",
         description: "",
         kind: "catalog",
-        origin: "vellum",
+        origin: "max",
         status: "available",
       }),
     };
@@ -713,11 +713,11 @@ describe("getSkillFiles — provider chain fallback", () => {
 
     expect("error" in result).toBe(false);
     if ("error" in result) return;
-    // Vellum provider should have been used
-    expect(result.skill.origin).toBe("vellum");
-    expect(result.skill.name).toBe("Vellum Contested");
-    // Vellum was called, but skills.sh and clawhub were NOT called
-    expect(vellumListFilesCalls).toEqual(["contested-skill"]);
+    // Max provider should have been used
+    expect(result.skill.origin).toBe("max");
+    expect(result.skill.name).toBe("Max Contested");
+    // Max was called, but skills.sh and clawhub were NOT called
+    expect(maxListFilesCalls).toEqual(["contested-skill"]);
     expect(skillsshListFilesCalls).toEqual([]);
     expect(clawhubListFilesCalls).toEqual([]);
   });

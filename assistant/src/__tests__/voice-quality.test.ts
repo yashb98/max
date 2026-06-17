@@ -340,7 +340,7 @@ describe("resolveVoiceQualityProfile", () => {
         voice: {
           language: "en-US",
           transcriptionProvider: "Deepgram",
-          hints: ["Vellum", "Nova", "AI assistant"],
+          hints: ["Max", "Nova", "AI assistant"],
         },
       },
       services: {
@@ -354,7 +354,7 @@ describe("resolveVoiceQualityProfile", () => {
       },
     };
     const profile = resolveVoiceQualityProfile();
-    expect(profile.hints).toEqual(["Vellum", "Nova", "AI assistant"]);
+    expect(profile.hints).toEqual(["Max", "Nova", "AI assistant"]);
   });
 
   // -- Explicit strategy: synthesized-play (Fish Audio) -------------------

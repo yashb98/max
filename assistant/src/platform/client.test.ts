@@ -37,13 +37,13 @@ mock.module("../security/credential-key.js", () => ({
 // Import under test (after mocks)
 // ---------------------------------------------------------------------------
 
-import { VellumPlatformClient } from "./client.js";
+import { MaxPlatformClient } from "./client.js";
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("VellumPlatformClient", () => {
+describe("MaxPlatformClient", () => {
   let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
@@ -62,7 +62,7 @@ describe("VellumPlatformClient", () => {
 
   describe("create()", () => {
     test("returns a client when all prerequisites are met", async () => {
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       expect(client).not.toBeNull();
       expect(client!.baseUrl).toBe("https://platform.example.com");
       expect(client!.assistantApiKey).toBe("sk-test-key");
@@ -76,14 +76,14 @@ describe("VellumPlatformClient", () => {
         assistantApiKey: "",
       };
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       expect(client).toBeNull();
     });
 
     test("returns client with empty assistantId when assistant ID is missing", async () => {
       mockAssistantId = "";
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       expect(client).not.toBeNull();
       expect(client!.platformAssistantId).toBe("");
     });
@@ -91,7 +91,7 @@ describe("VellumPlatformClient", () => {
     test("strips trailing slash from platform base URL", async () => {
       mockManagedProxyCtx.platformBaseUrl = "https://platform.example.com///";
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       expect(client!.baseUrl).toBe("https://platform.example.com");
     });
   });
@@ -105,7 +105,7 @@ describe("VellumPlatformClient", () => {
         return new Response("ok", { status: 200 });
       }) as unknown as typeof globalThis.fetch;
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       await client!.fetch("/v1/some/endpoint/");
     });
 
@@ -118,7 +118,7 @@ describe("VellumPlatformClient", () => {
         },
       ) as unknown as typeof globalThis.fetch;
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       await client!.fetch("/v1/test/");
     });
 
@@ -132,7 +132,7 @@ describe("VellumPlatformClient", () => {
         },
       ) as unknown as typeof globalThis.fetch;
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       await client!.fetch("/v1/test/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -148,7 +148,7 @@ describe("VellumPlatformClient", () => {
         },
       ) as unknown as typeof globalThis.fetch;
 
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       await client!.fetch("/v1/test/", {
         method: "POST",
         body: '{"key":"value"}',

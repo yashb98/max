@@ -97,8 +97,8 @@ mock.module("@anthropic-ai/claude-agent-sdk", () => ({
 import {
   _resetClaudeSubscriptionSemaphoreForTests,
   ClaudeSubscriptionProvider,
-  clearVellumToolBridge,
-  setVellumToolBridge,
+  clearMaxToolBridge,
+  setMaxToolBridge,
 } from "../providers/claude-subscription/client.js";
 
 // ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ beforeEach(() => {
   lastQueryPrompt = null;
   queryCallCount = 0;
   scriptedAttempts = [happyStream()];
-  clearVellumToolBridge();
+  clearMaxToolBridge();
   _resetClaudeSubscriptionSemaphoreForTests();
 });
 
@@ -177,8 +177,8 @@ describe("SDK isolation options (security)", () => {
 
   test("uses `systemPrompt` (not the bogus `customSystemPrompt`)", async () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
-    await p.sendMessage([userText("hi")], [], "vellum persona");
-    expect(lastQueryOptions!.systemPrompt).toBe("vellum persona");
+    await p.sendMessage([userText("hi")], [], "max persona");
+    expect(lastQueryOptions!.systemPrompt).toBe("max persona");
     expect("customSystemPrompt" in lastQueryOptions!).toBe(false);
   });
 
@@ -219,7 +219,7 @@ describe("SDK isolation options (security)", () => {
     expect("systemPrompt" in lastQueryOptions!).toBe(false);
   });
 
-  test("builds allowedTools = [mcp__vellum-skills__<name>...] + 'Task'", async () => {
+  test("builds allowedTools = [mcp__max-skills__<name>...] + 'Task'", async () => {
     const tools: ToolDefinition[] = [
       { name: "alpha", description: "a", input_schema: { type: "object" } },
       { name: "beta", description: "b", input_schema: { type: "object" } },
@@ -227,13 +227,13 @@ describe("SDK isolation options (security)", () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], tools, "sys");
     expect(lastQueryOptions!.allowedTools).toEqual([
-      "mcp__vellum-skills__alpha",
-      "mcp__vellum-skills__beta",
+      "mcp__max-skills__alpha",
+      "mcp__max-skills__beta",
       "Task",
     ]);
   });
 
-  test("canUseTool ALLOWS allowlisted Vellum tool names and 'Task'", async () => {
+  test("canUseTool ALLOWS allowlisted Max tool names and 'Task'", async () => {
     const tools: ToolDefinition[] = [
       { name: "foo", description: "f", input_schema: { type: "object" } },
     ];
@@ -242,7 +242,7 @@ describe("SDK isolation options (security)", () => {
     const canUseTool = lastQueryOptions!.canUseTool as (
       name: string,
     ) => Promise<{ behavior: string }>;
-    expect((await canUseTool("mcp__vellum-skills__foo")).behavior).toBe(
+    expect((await canUseTool("mcp__max-skills__foo")).behavior).toBe(
       "allow",
     );
     expect((await canUseTool("Task")).behavior).toBe("allow");
@@ -300,15 +300,15 @@ describe("SDK isolation options (security)", () => {
     expect((await canUseTool("../escape")).behavior).toBe("deny");
     expect((await canUseTool("")).behavior).toBe("deny");
     expect(
-      (await canUseTool("mcp__vellum-skills__not_registered")).behavior,
+      (await canUseTool("mcp__max-skills__not_registered")).behavior,
     ).toBe("deny");
   });
 
-  test("registers exactly one MCP server named 'vellum-skills'", async () => {
+  test("registers exactly one MCP server named 'max-skills'", async () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], [], "sys");
     const servers = lastQueryOptions!.mcpServers as Record<string, unknown>;
-    expect(Object.keys(servers)).toEqual(["vellum-skills"]);
+    expect(Object.keys(servers)).toEqual(["max-skills"]);
   });
 
   test("attaches an AbortController", async () => {
@@ -453,7 +453,7 @@ describe("Bridge resolution precedence", () => {
    * update.
    */
   /**
-   * MCP content items the SDK forwards to the model. The bridge maps Vellum
+   * MCP content items the SDK forwards to the model. The bridge maps Max
    * `ContentBlock`s onto these. We loosen the type so tests can assert on
    * image / resource items in addition to text.
    */
@@ -478,7 +478,7 @@ describe("Bridge resolution precedence", () => {
       string,
       { instance: { server: { _requestHandlers: Map<string, unknown> } } }
     >;
-    const server = mcpServers["vellum-skills"].instance.server;
+    const server = mcpServers["max-skills"].instance.server;
     const handlerEntry = [...server._requestHandlers.entries()].find(([k]) =>
       String(k).includes("tools/call"),
     );
@@ -495,7 +495,7 @@ describe("Bridge resolution precedence", () => {
 
   test("options.toolBridge wins over the registry bridge", async () => {
     const calls: string[] = [];
-    setVellumToolBridge(async () => {
+    setMaxToolBridge(async () => {
       calls.push("registry");
       return { content: "from registry" };
     });
@@ -516,7 +516,7 @@ describe("Bridge resolution precedence", () => {
 
   test("falls back to registry bridge when options.toolBridge unset", async () => {
     const calls: string[] = [];
-    setVellumToolBridge(async () => {
+    setMaxToolBridge(async () => {
       calls.push("registry");
       return { content: "ok" };
     });
@@ -540,7 +540,7 @@ describe("Bridge resolution precedence", () => {
     expect(result.isError).toBe(false);
   });
 
-  test("Vellum tool schemas pass through to MCP ListTools verbatim (JSON Schema)", async () => {
+  test("Max tool schemas pass through to MCP ListTools verbatim (JSON Schema)", async () => {
     const tools: ToolDefinition[] = [
       {
         name: "search",
@@ -561,7 +561,7 @@ describe("Bridge resolution precedence", () => {
       string,
       { instance: { server: { _requestHandlers: Map<string, unknown> } } }
     >;
-    const server = mcpServers["vellum-skills"].instance.server;
+    const server = mcpServers["max-skills"].instance.server;
     const listEntry = [...server._requestHandlers.entries()].find(([k]) =>
       String(k).includes("tools/list"),
     );
@@ -821,11 +821,11 @@ describe("Bridge resolution precedence", () => {
     const p = new ClaudeSubscriptionProvider("claude-sonnet-4-5");
     await p.sendMessage([userText("hi")], tools, "sys", {
       toolBridge: async () => ({
-        content: "Generated invite code VELLUM_ASSISTANT_INVITE_CODE_ABCD1234",
+        content: "Generated invite code MAX_ASSISTANT_INVITE_CODE_ABCD1234",
         sensitiveBindings: [
           {
             kind: "invite_code",
-            placeholder: "VELLUM_ASSISTANT_INVITE_CODE_ABCD1234",
+            placeholder: "MAX_ASSISTANT_INVITE_CODE_ABCD1234",
             value: "REAL-SECRET-VALUE-12345",
           },
         ],
@@ -836,7 +836,7 @@ describe("Bridge resolution precedence", () => {
     // back on the outer-loop side). The real value MUST NOT appear in any
     // MCP content item the SDK forwards to the model.
     const flattened = JSON.stringify(result);
-    expect(flattened).toContain("VELLUM_ASSISTANT_INVITE_CODE_ABCD1234");
+    expect(flattened).toContain("MAX_ASSISTANT_INVITE_CODE_ABCD1234");
     expect(flattened).not.toContain("REAL-SECRET-VALUE-12345");
   });
 
@@ -1054,7 +1054,7 @@ describe("I-4 / I-5 inheritance: bridge propagates slow async tool execution", (
       string,
       { instance: { server: { _requestHandlers: Map<string, unknown> } } }
     >;
-    const server = mcpServers["vellum-skills"].instance.server;
+    const server = mcpServers["max-skills"].instance.server;
     const handler = [...server._requestHandlers.entries()].find(([k]) =>
       String(k).includes("tools/call"),
     )![1] as (req: {
@@ -1166,7 +1166,7 @@ describe("D-2 yieldToUser triggers SDK abort", () => {
       string,
       { instance: { server: { _requestHandlers: Map<string, unknown> } } }
     >;
-    const server = mcpServers["vellum-skills"].instance.server;
+    const server = mcpServers["max-skills"].instance.server;
     const handlerEntry = [...server._requestHandlers.entries()].find(([k]) =>
       String(k).includes("tools/call"),
     );
@@ -1232,8 +1232,8 @@ describe("I-19 code-level: canUseTool is race-free under concurrent load", () =>
     ) => Promise<{ behavior: string }>;
 
     const allowed = [
-      "mcp__vellum-skills__alpha",
-      "mcp__vellum-skills__beta",
+      "mcp__max-skills__alpha",
+      "mcp__max-skills__beta",
       "Task",
     ];
     const denied = [
@@ -1270,7 +1270,7 @@ describe("I-19 code-level: canUseTool is race-free under concurrent load", () =>
     // Many calls — same name — same verdict every time.
     const verdicts = await Promise.all(
       Array.from({ length: 100 }, () =>
-        canUseTool("mcp__vellum-skills__stable"),
+        canUseTool("mcp__max-skills__stable"),
       ),
     );
     expect(verdicts.every((v) => v.behavior === "allow")).toBe(true);
@@ -1333,7 +1333,7 @@ describe("Phase 2.5 — onChunk plumbed as tool_output_chunk events", () => {
       string,
       { instance: { server: { _requestHandlers: Map<string, unknown> } } }
     >;
-    const server = mcpServers["vellum-skills"].instance.server;
+    const server = mcpServers["max-skills"].instance.server;
     const handlerEntry = [...server._requestHandlers.entries()].find(([k]) =>
       String(k).includes("tools/call"),
     );

@@ -13,7 +13,7 @@
  *
  * - **OAuth tokens** — Retrieved from the secure-key backend using the
  *   connection's access token path. Automatically refreshes expired tokens
- *   using the shared `@vellumai/credential-storage` refresh primitives.
+ *   using the shared `@maxai/credential-storage` refresh primitives.
  *   Fails if no access token exists (disconnected connection) or if
  *   refresh fails.
  *
@@ -31,8 +31,8 @@ import {
   RefreshCircuitBreaker,
   RefreshDeduplicator,
   persistRefreshedTokens,
-} from "@vellumai/credential-storage";
-import { HandleType } from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/credential-storage";
+import { HandleType } from "@maxai/service-contracts/credential-rpc";
 
 import type {
   ResolvedLocalSubject,

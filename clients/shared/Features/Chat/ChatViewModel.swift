@@ -204,8 +204,8 @@ public final class ChatViewModel: MessageSendCoordinatorDelegate {
         // so TextField bindings update immediately when inputText changes.
     }
 
-    private static let stallLog = OSLog(subsystem: "com.vellum.assistant", category: "LayoutStall")
-    private static let poiLog = OSLog(subsystem: "com.vellum.assistant", category: .pointsOfInterest)
+    private static let stallLog = OSLog(subsystem: "com.max.assistant", category: "LayoutStall")
+    private static let poiLog = OSLog(subsystem: "com.max.assistant", category: .pointsOfInterest)
 
     // MARK: - Forwarding properties — ChatMessageManager
 
@@ -839,7 +839,7 @@ public final class ChatViewModel: MessageSendCoordinatorDelegate {
     /// Set by `createConversationIfNeeded(conversationType:)` and included in the
     /// message so the daemon can persist the correct conversation kind.
     public var conversationType: String?
-    /// Whether this conversation belongs to a non-Vellum channel (e.g. Slack,
+    /// Whether this conversation belongs to a non-Max channel (e.g. Slack,
     /// Telegram). Set by the platform layer alongside `conversationId` when the
     /// underlying `ConversationModel.isChannelConversation` is true. Used by
     /// `ChatActionHandler` to suppress echo duplication when a channel user

@@ -33,7 +33,7 @@ import { _resetBackend } from "../security/secure-keys.js";
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-credvault-test-${randomBytes(4).toString("hex")}`,
+  `max-credvault-test-${randomBytes(4).toString("hex")}`,
 );
 const STORE_PATH = join(TEST_DIR, "keys.enc");
 

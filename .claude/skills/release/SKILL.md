@@ -36,7 +36,7 @@ echo "About to trigger a $BUMP_TYPE release bump"
 
 ```bash
 gh workflow run release.yml \
-  --repo vellum-ai/vellum-assistant \
+  --repo max-ai/max-assistant \
   --ref main \
   --field bump=<patch|minor|major>
 ```
@@ -47,13 +47,13 @@ This triggers the unified Release workflow which automatically handles:
 - Tagging the release
 - Publishing npm packages
 - Building, signing, notarizing, and publishing the macOS DMG
-- Creating GitHub Releases on `vellum-ai/vellum-assistant`
-- Updating the `vellum-assistant-platform` dependency
+- Creating GitHub Releases on `max-ai/max-assistant`
+- Updating the `max-assistant-platform` dependency
 
 ### 4. Verify the workflow started
 
 ```bash
-gh run list --repo vellum-ai/vellum-assistant --workflow="Release" --limit 1
+gh run list --repo max-ai/max-assistant --workflow="Release" --limit 1
 ```
 
 Confirm the workflow was triggered.

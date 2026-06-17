@@ -93,7 +93,7 @@ The recipe is the only Ollama-specific thing. Layers 1–3 are general computer-
 
 A single Swift module in the macOS app (NOT in the daemon — keyboard/mouse control and screenshots are macOS APIs that require running in the user's UI session):
 
-`clients/macos/vellum-assistant/Features/ComputerUse/ActionExecutor.swift`
+`clients/macos/max-assistant/Features/ComputerUse/ActionExecutor.swift`
 
 ```swift
 public enum ComputerAction {
@@ -325,7 +325,7 @@ Driving keyboard and mouse from an LLM is a real foot-gun. Mitigations:
 
 6. **Screenshots are scoped.** v1 captures the FULL screen. v2 should consider capturing only the active window — but that adds complexity. Document that the LLM will see whatever's on screen during the session, so users should close their banking tab.
 
-7. **Audit log.** Every action proposed (whether executed or denied) is written to `~/.local/share/vellum-dev/.../workspace/data/logs/computer-use-<sessionId>.jsonl` with a thumbnail of the screenshot at decision time. A user (or a security review) can replay the session post-hoc.
+7. **Audit log.** Every action proposed (whether executed or denied) is written to `~/.local/share/max-dev/.../workspace/data/logs/computer-use-<sessionId>.jsonl` with a thumbnail of the screenshot at decision time. A user (or a security review) can replay the session post-hoc.
 
 8. **No persistent state.** Sessions are stateless across runs. The LLM never sees past sessions' screenshots. Each recipe execution is a fresh agent.
 
@@ -339,7 +339,7 @@ Driving keyboard and mouse from an LLM is a real foot-gun. Mitigations:
 | New: `OllamaSetupSheet.swift` | Two cards: "Install Ollama locally" / "Connect to remote via SSH". On click, advances to form (SSH) or starts session immediately (install). |
 | New: `ComputerUseSessionView.swift` | Live progress: current action, latest screenshot thumbnail, turns / elapsed, Cancel button, scrollable event log. |
 | Settings → Providers | New "Computer-use" section explaining what it does, which providers support it, with a permissions status (Screen Recording / Accessibility granted or not). |
-| `~/.vellum/preferences` | New keys: `computerUse.enabled` (default `false`, opt-in), `computerUse.maxTurns`, `computerUse.maxWallClockMs`. |
+| `~/.max/preferences` | New keys: `computerUse.enabled` (default `false`, opt-in), `computerUse.maxTurns`, `computerUse.maxWallClockMs`. |
 
 ## Why opt-in default
 

@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 const noopLogger = {
   info: () => {},
@@ -91,7 +91,7 @@ describe("skills catalog loading", () => {
     expect(catalog.map((skill) => skill.id)).toEqual(["lint", "test"]);
   });
 
-  test("rejects SKILLS.md entries that resolve outside ~/.vellum/workspace/skills", () => {
+  test("rejects SKILLS.md entries that resolve outside ~/.max/workspace/skills", () => {
     writeSkill("safe", "Safe Skill", "Safe skill");
     writeFileSync(
       join(TEST_DIR, "skills", "SKILLS.md"),
@@ -102,7 +102,7 @@ describe("skills catalog loading", () => {
     expect(catalog.map((skill) => skill.id)).toEqual(["safe"]);
   });
 
-  test("rejects symlinked SKILLS.md entries that point outside ~/.vellum/workspace/skills", () => {
+  test("rejects symlinked SKILLS.md entries that point outside ~/.max/workspace/skills", () => {
     const externalSkillDir = join(TEST_DIR, "outside", "external-skill");
     mkdirSync(externalSkillDir, { recursive: true });
     writeFileSync(
@@ -117,7 +117,7 @@ describe("skills catalog loading", () => {
     expect(catalog).toHaveLength(0);
   });
 
-  test("rejects symlinked SKILL.md files that point outside ~/.vellum/workspace/skills", () => {
+  test("rejects symlinked SKILL.md files that point outside ~/.max/workspace/skills", () => {
     const linkedSkillDir = join(TEST_DIR, "skills", "linked-file-skill");
     mkdirSync(linkedSkillDir, { recursive: true });
 
@@ -168,9 +168,9 @@ describe("skills catalog loading", () => {
 describe("workspace skills", () => {
   const WORKSPACE_DIR = join(
     tmpdir(),
-    `vellum-workspace-test-${crypto.randomUUID()}`,
+    `max-workspace-test-${crypto.randomUUID()}`,
   );
-  const workspaceSkillsDir = join(WORKSPACE_DIR, ".vellum", "skills");
+  const workspaceSkillsDir = join(WORKSPACE_DIR, ".max", "skills");
 
   function writeWorkspaceSkill(
     skillId: string,
@@ -437,10 +437,10 @@ describe("includes frontmatter parsing", () => {
   function writeSkillWithIncludes(skillId: string, includes: string): void {
     const skillDir = join(TEST_DIR, "skills", skillId);
     mkdirSync(skillDir, { recursive: true });
-    // includes lives inside metadata.vellum, matching buildSkillMarkdown output.
+    // includes lives inside metadata.max, matching buildSkillMarkdown output.
     // The raw includes string is interpolated directly so tests can pass both
     // valid and intentionally malformed values.
-    const metadata = `{"vellum":{"includes":${includes}}}`;
+    const metadata = `{"max":{"includes":${includes}}}`;
     writeFileSync(
       join(skillDir, "SKILL.md"),
       `---\nname: "${skillId}"\ndescription: "test"\nmetadata: ${metadata}\n---\n\nBody.\n`,
@@ -523,12 +523,12 @@ describe("includes frontmatter parsing", () => {
 
 describe("managed browser skill", () => {
   const BROWSER_SKILL_MD = readFileSync(
-    join(import.meta.dirname, "../../../skills/vellum-browser-use/SKILL.md"),
+    join(import.meta.dirname, "../../../skills/max-browser-use/SKILL.md"),
     "utf-8",
   );
 
   beforeEach(() => {
-    const skillDir = join(TEST_DIR, "skills", "vellum-browser-use");
+    const skillDir = join(TEST_DIR, "skills", "max-browser-use");
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, "SKILL.md"), BROWSER_SKILL_MD);
   });
@@ -541,15 +541,15 @@ describe("managed browser skill", () => {
 
   test("browser skill appears in full catalog", () => {
     const catalog = loadSkillCatalog();
-    const browserSkill = catalog.find((s) => s.id === "vellum-browser-use");
+    const browserSkill = catalog.find((s) => s.id === "max-browser-use");
     expect(browserSkill).toBeDefined();
-    expect(browserSkill!.name).toBe("vellum-browser-use");
+    expect(browserSkill!.name).toBe("max-browser-use");
     expect(browserSkill!.displayName).toBe("Browser");
   });
 
   test("browser skill has correct metadata", () => {
     const catalog = loadSkillCatalog();
-    const browserSkill = catalog.find((s) => s.id === "vellum-browser-use");
+    const browserSkill = catalog.find((s) => s.id === "max-browser-use");
     expect(browserSkill).toBeDefined();
     expect(browserSkill!.description).toBe(
       "Browse the web using `assistant browser` CLI commands",
@@ -558,7 +558,7 @@ describe("managed browser skill", () => {
 
   test("browser skill has no tool manifest", () => {
     const catalog = loadSkillCatalog();
-    const browserSkill = catalog.find((s) => s.id === "vellum-browser-use");
+    const browserSkill = catalog.find((s) => s.id === "max-browser-use");
     expect(browserSkill).toBeDefined();
     // Browser tools are dispatched via skill_execute and do not use
     // a skill-tool manifest.
@@ -597,12 +597,12 @@ describe("ingress-dependent setup skills declare public-ingress intentionally", 
           /* ignore */
         }
       }
-      // Check metadata.vellum.includes (spec-compliant format)
+      // Check metadata.max.includes (spec-compliant format)
       if (key === "metadata") {
         const val = line.slice(sep + 1).trim();
         try {
           const parsed = JSON.parse(val);
-          const includes = parsed?.vellum?.includes;
+          const includes = parsed?.max?.includes;
           if (Array.isArray(includes)) return includes as string[];
         } catch {
           /* ignore */

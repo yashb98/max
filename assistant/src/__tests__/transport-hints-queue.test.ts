@@ -13,7 +13,7 @@ import { buildTransportHints } from "../daemon/transport-hints.js";
 describe("buildTransportHints", () => {
   test("returns empty array for host-proxy transport without client hints", () => {
     const transport: HostProxyTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -26,7 +26,7 @@ describe("buildTransportHints", () => {
 
   test("returns empty array for non-host-proxy transport without client hints", () => {
     const transport: NonHostProxyTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "ios",
     };
 
@@ -37,7 +37,7 @@ describe("buildTransportHints", () => {
 
   test("forwards client-provided hints", () => {
     const transport: HostProxyTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/bob",
       hostUsername: "bob",
@@ -51,7 +51,7 @@ describe("buildTransportHints", () => {
 
   test("returns empty array when no hints field present", () => {
     const transport: HostProxyTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
     };
 

@@ -70,7 +70,7 @@ Backups capture a snapshot of the assistant workspace (config, conversations,
 trust rules, hooks, the SQLite database) as a .vbundle file. Credentials are
 NOT included — they live in the OS keychain / CES and users re-authenticate
 integrations after a restore (via the gateway). The automated worker runs on a configurable
-interval and writes to a local pool under ~/.vellum/backups/local/, optionally
+interval and writes to a local pool under ~/.max/backups/local/, optionally
 mirroring each snapshot to one or more offsite destinations (iCloud Drive by
 default).
 
@@ -80,7 +80,7 @@ the medium (e.g. an external SSD).
 
 Examples:
   $ assistant backup enable --interval 6 --retention 3
-  $ assistant backup destinations add /Volumes/BackupSSD/vellum --plaintext
+  $ assistant backup destinations add /Volumes/BackupSSD/max --plaintext
   $ assistant backup status
   $ assistant backup list`,
       );
@@ -180,7 +180,7 @@ Examples:
         `
 Offsite destinations are absolute paths the backup worker writes a copy of
 each snapshot to after the local write succeeds. The default destination is
-the iCloud Drive VellumAssistant folder, and it is used implicitly until an
+the iCloud Drive MaxAssistant folder, and it is used implicitly until an
 explicit destinations array is configured. The first 'destinations add' or
 'destinations remove' materializes the iCloud default before applying the
 change, so the default is never lost on an accidental "clear all".
@@ -191,9 +191,9 @@ as plaintext .vbundle — only use this for media you control physically.
 
 Examples:
   $ assistant backup destinations list
-  $ assistant backup destinations add /Volumes/BackupSSD/vellum --plaintext
-  $ assistant backup destinations remove /Volumes/BackupSSD/vellum
-  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/vellum false`,
+  $ assistant backup destinations add /Volumes/BackupSSD/max --plaintext
+  $ assistant backup destinations remove /Volumes/BackupSSD/max
+  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/max false`,
       );
 
       destinations
@@ -251,8 +251,8 @@ the iCloud default is materialized first so the new entry appends to a
 2-element array rather than replacing the default.
 
 Examples:
-  $ assistant backup destinations add /Volumes/BackupSSD/vellum --plaintext
-  $ assistant backup destinations add ~/Dropbox/VellumAssistant/backups`,
+  $ assistant backup destinations add /Volumes/BackupSSD/max --plaintext
+  $ assistant backup destinations add ~/Dropbox/MaxAssistant/backups`,
         )
         .action(
           async (path: string, opts: { plaintext?: boolean }, cmd: Command) => {
@@ -286,7 +286,7 @@ Arguments:
 Errors if no destination with the given path exists.
 
 Examples:
-  $ assistant backup destinations remove /Volumes/BackupSSD/vellum`,
+  $ assistant backup destinations remove /Volumes/BackupSSD/max`,
         )
         .action(async (path: string, _opts: unknown, cmd: Command) => {
           const r = await cliIpcCall("backup_destinations_remove", { body: { path } });
@@ -313,8 +313,8 @@ Errors if no destination with the given path exists. Existing snapshot files
 are not modified; only future writes honour the new setting.
 
 Examples:
-  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/vellum false
-  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/vellum true`,
+  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/max false
+  $ assistant backup destinations set-encrypt /Volumes/BackupSSD/max true`,
         )
         .action(
           async (path: string, value: string, _opts: unknown, cmd: Command) => {

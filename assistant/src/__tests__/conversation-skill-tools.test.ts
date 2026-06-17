@@ -1761,14 +1761,14 @@ describe("bundled skill: browser — CLI-only projection", () => {
 
   test("browser skill loads without projecting any skill tools", () => {
     mockCatalog = [
-      makeSkill("vellum-browser-use", "/path/to/skills/vellum-browser-use"),
+      makeSkill("max-browser-use", "/path/to/skills/max-browser-use"),
     ];
     // Browser skill has no TOOLS.json manifest — operations are
     // dispatched via `assistant browser` CLI commands.
     mockManifests = {};
 
     const history: Message[] = [
-      ...buildSkillLoadHistory("vellum-browser-use", "v1:testhash"),
+      ...buildSkillLoadHistory("max-browser-use", "v1:testhash"),
     ];
 
     const result = projectSkillTools(history, {

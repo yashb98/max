@@ -9,7 +9,7 @@ import { Command } from "commander";
 let mockCalls: Array<[string, Record<string, unknown>]> = [];
 let mockResponse: unknown = {
   ok: true,
-  result: { disconnected: true, previousBaseUrl: "https://platform.vellum.ai" },
+  result: { disconnected: true, previousBaseUrl: "https://platform.max.ai" },
 };
 
 // ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ describe("assistant platform disconnect", () => {
       ok: true,
       result: {
         disconnected: true,
-        previousBaseUrl: "https://platform.vellum.ai",
+        previousBaseUrl: "https://platform.max.ai",
       },
     };
     process.exitCode = 0;
@@ -76,7 +76,7 @@ describe("assistant platform disconnect", () => {
     const parsed = JSON.parse(stdoutChunks.join(""));
     expect(parsed.ok).toBe(true);
     expect(parsed.disconnected).toBe(true);
-    expect(parsed.previousBaseUrl).toBe("https://platform.vellum.ai");
+    expect(parsed.previousBaseUrl).toBe("https://platform.max.ai");
   });
 
   test("rejects with error when running on a platform-hosted assistant", async () => {

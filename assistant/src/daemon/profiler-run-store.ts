@@ -9,7 +9,7 @@
  * The startup sweep enumerates all run directories, recomputes sizes,
  * updates manifests, and prunes completed runs oldest-first until the
  * configured byte-count, run-count, and free-space budgets are satisfied.
- * The active run (identified by VELLUM_PROFILER_RUN_ID) is never deleted.
+ * The active run (identified by MAX_PROFILER_RUN_ID) is never deleted.
  */
 
 import {

@@ -522,17 +522,17 @@ describe("handleUpsertContact (gateway-native)", () => {
     expect(contactStoreUpsertMock).not.toHaveBeenCalled();
   });
 
-  test("rejects vellum metadata missing assistantId", async () => {
+  test("rejects max metadata missing assistantId", async () => {
     const handler = createContactsControlPlaneProxyHandler(makeConfig());
     const res = await handler.handleUpsertContact(
       new Request("http://localhost:7830/v1/contacts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          displayName: "Vellum Bot",
+          displayName: "Max Bot",
           contactType: "assistant",
           assistantMetadata: {
-            species: "vellum",
+            species: "max",
             metadata: { gatewayUrl: "https://x.example" },
           },
         }),
@@ -545,17 +545,17 @@ describe("handleUpsertContact (gateway-native)", () => {
     expect(contactStoreUpsertMock).not.toHaveBeenCalled();
   });
 
-  test("rejects vellum metadata missing gatewayUrl", async () => {
+  test("rejects max metadata missing gatewayUrl", async () => {
     const handler = createContactsControlPlaneProxyHandler(makeConfig());
     const res = await handler.handleUpsertContact(
       new Request("http://localhost:7830/v1/contacts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          displayName: "Vellum Bot",
+          displayName: "Max Bot",
           contactType: "assistant",
           assistantMetadata: {
-            species: "vellum",
+            species: "max",
             metadata: { assistantId: "asst_123" },
           },
         }),
@@ -568,17 +568,17 @@ describe("handleUpsertContact (gateway-native)", () => {
     expect(contactStoreUpsertMock).not.toHaveBeenCalled();
   });
 
-  test("accepts vellum assistant with full metadata", async () => {
+  test("accepts max assistant with full metadata", async () => {
     const handler = createContactsControlPlaneProxyHandler(makeConfig());
     const res = await handler.handleUpsertContact(
       new Request("http://localhost:7830/v1/contacts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          displayName: "Vellum Bot",
+          displayName: "Max Bot",
           contactType: "assistant",
           assistantMetadata: {
-            species: "vellum",
+            species: "max",
             metadata: {
               assistantId: "asst_123",
               gatewayUrl: "https://gw.example.com",
@@ -593,7 +593,7 @@ describe("handleUpsertContact (gateway-native)", () => {
     const [params] = contactStoreUpsertMock.mock.calls[0] as [
       { assistantMetadata?: { species: string; metadata?: Record<string, unknown> } },
     ];
-    expect(params.assistantMetadata?.species).toBe("vellum");
+    expect(params.assistantMetadata?.species).toBe("max");
     expect(params.assistantMetadata?.metadata?.assistantId).toBe("asst_123");
   });
 });

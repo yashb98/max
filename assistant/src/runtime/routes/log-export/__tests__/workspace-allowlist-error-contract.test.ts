@@ -47,7 +47,7 @@ beforeEach(() => {
   mkdirSync(conversationsDir, { recursive: true });
 
   staging = join(
-    process.env.VELLUM_WORKSPACE_DIR ?? "/tmp",
+    process.env.MAX_WORKSPACE_DIR ?? "/tmp",
     "ws-allowlist-error-staging",
   );
   rmSync(staging, { recursive: true, force: true });

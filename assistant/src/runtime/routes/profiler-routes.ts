@@ -133,7 +133,7 @@ function handleExportRun({
     throw new NotFoundError(`Profiler run '${runId}' not found`);
   }
 
-  const staging = mkdtempSync(join(tmpdir(), "vellum-profiler-export-"));
+  const staging = mkdtempSync(join(tmpdir(), "max-profiler-export-"));
 
   try {
     copyDirContents(runDir, staging);

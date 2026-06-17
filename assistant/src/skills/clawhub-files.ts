@@ -155,7 +155,7 @@ export function createClawhubProvider(): SkillFileProvider {
       const content = await clawhubInspectFile(skillId, sanitizedPath);
 
       // Binary files: return metadata with content: null (matching the
-      // contract followed by vellum and skills.sh providers). clawhubInspectFile
+      // contract followed by max and skills.sh providers). clawhubInspectFile
       // returns null for binary files, which is expected.
       if (isBinary) {
         // Look up file metadata from cached inspect result if available.

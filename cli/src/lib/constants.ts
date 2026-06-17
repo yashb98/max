@@ -5,7 +5,7 @@
  */
 export const DAEMON_INTERNAL_ASSISTANT_ID = "self" as const;
 
-export const FIREWALL_TAG = "vellum-assistant";
+export const FIREWALL_TAG = "max-assistant";
 export const GATEWAY_PORT = process.env.GATEWAY_PORT
   ? Number(process.env.GATEWAY_PORT)
   : 7830;
@@ -22,10 +22,10 @@ export const VALID_REMOTE_HOSTS = [
   "aws",
   "docker",
   "custom",
-  "vellum",
+  "max",
 ] as const;
 export type RemoteHost = (typeof VALID_REMOTE_HOSTS)[number];
-export const VALID_SPECIES = ["openclaw", "vellum"] as const;
+export const VALID_SPECIES = ["openclaw", "max"] as const;
 export type Species = (typeof VALID_SPECIES)[number];
 
 const ANSI = {
@@ -71,7 +71,7 @@ export const SPECIES_CONFIG: Record<Species, SpeciesConfig> = {
       "Almost ready to peek out...",
     ],
   },
-  vellum: {
+  max: {
     color: ANSI.magenta,
     art: [
       `${ANSI.magenta}   .-.-.-.${ANSI.reset}`,

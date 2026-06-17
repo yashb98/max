@@ -2,7 +2,7 @@
  * Behavioral parity tests for the email CLI commands.
  *
  * Exercises the full IPC round-trip using a real AssistantIpcServer with a
- * mocked VellumPlatformClient. Validates that each email subcommand:
+ * mocked MaxPlatformClient. Validates that each email subcommand:
  *   - sends the correct HTTP request to the platform API
  *   - surfaces success responses to the CLI caller
  *   - surfaces platform errors to the CLI caller
@@ -26,7 +26,7 @@ mock.module("../../email/feature-gate.js", () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock state — set up a controllable VellumPlatformClient at module boundary
+// Mock state — set up a controllable MaxPlatformClient at module boundary
 // ---------------------------------------------------------------------------
 
 let mockFetchFn: (
@@ -38,7 +38,7 @@ let mockFetchFn: (
 const mockAssistantId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
 mock.module("../../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => ({
       platformAssistantId: mockAssistantId,
       fetch: (path: string, init?: RequestInit) => mockFetchFn(path, init),

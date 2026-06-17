@@ -7,8 +7,8 @@ import {
 } from "./allowed-paths.js";
 
 describe("VELAY_ALLOWED_PATHS", () => {
-  it("matches the platform-side header name (must stay in sync with vellum-assistant-platform RegistrationAllowedPathsHeader)", () => {
-    expect(VELAY_ALLOWED_PATHS_HEADER).toBe("X-Vellum-Velay-Allowed-Paths");
+  it("matches the platform-side header name (must stay in sync with max-assistant-platform RegistrationAllowedPathsHeader)", () => {
+    expect(VELAY_ALLOWED_PATHS_HEADER).toBe("X-Max-Velay-Allowed-Paths");
   });
 
   it("encodes the regex list as a JSON array string for direct use as the header value", () => {

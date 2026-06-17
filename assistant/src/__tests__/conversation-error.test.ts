@@ -128,7 +128,7 @@ describe("classifyConversationError", () => {
 
       expect(result.code).toBe("MANAGED_USAGE_LIMIT");
       expect(result.retryable).toBe(true);
-      expect(result.userMessage).toContain("Vellum managed inference");
+      expect(result.userMessage).toContain("Max managed inference");
       expect(result.userMessage).toContain("not an AI provider outage");
       expect(result.errorCategory).toBe("managed_usage_limit");
     });
@@ -144,7 +144,7 @@ describe("classifyConversationError", () => {
       const result = classifyConversationError(err, baseCtx);
 
       expect(result.code).toBe("MANAGED_USAGE_LIMIT");
-      expect(result.userMessage).toContain("Vellum managed inference");
+      expect(result.userMessage).toContain("Max managed inference");
       expect(result.errorCategory).toBe("managed_usage_limit");
     });
 

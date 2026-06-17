@@ -15,9 +15,9 @@ import { initGatewayDb, resetGatewayDb } from "../db/connection.js";
 
 const originalSecurityDir = process.env.GATEWAY_SECURITY_DIR;
 const originalAllowRealSecurity =
-  process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+  process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 const originalTestRealSecurity =
-  process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR;
+  process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR;
 const originalHome = process.env.HOME;
 
 afterEach(() => {
@@ -29,16 +29,16 @@ afterEach(() => {
   }
 
   if (originalAllowRealSecurity === undefined) {
-    delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+    delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
   } else {
-    process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS =
+    process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS =
       originalAllowRealSecurity;
   }
 
   if (originalTestRealSecurity === undefined) {
-    delete process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR;
+    delete process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR;
   } else {
-    process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR =
+    process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR =
       originalTestRealSecurity;
   }
 
@@ -52,7 +52,7 @@ afterEach(() => {
 test("initGatewayDb refuses test runs without an isolated security dir", async () => {
   resetGatewayDb();
   delete process.env.GATEWAY_SECURITY_DIR;
-  delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+  delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 
   await expect(initGatewayDb()).rejects.toThrow(
     "Refusing to open the gateway DB during tests without GATEWAY_SECURITY_DIR",
@@ -61,8 +61,8 @@ test("initGatewayDb refuses test runs without an isolated security dir", async (
 
 test("initGatewayDb refuses the real security dir during tests even when explicitly set", async () => {
   resetGatewayDb();
-  process.env.GATEWAY_SECURITY_DIR = join(homedir(), ".vellum", "protected");
-  delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+  process.env.GATEWAY_SECURITY_DIR = join(homedir(), ".max", "protected");
+  delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 
   await expect(initGatewayDb()).rejects.toThrow(
     "Refusing to open the real gateway security DB during tests",
@@ -72,12 +72,12 @@ test("initGatewayDb refuses the real security dir during tests even when explici
 test("initGatewayDb refuses symlink aliases to the real security dir during tests", async () => {
   resetGatewayDb();
   const testRoot = realpathSync(
-    mkdtempSync(join(tmpdir(), "vellum-gateway-db-isolation-")),
+    mkdtempSync(join(tmpdir(), "max-gateway-db-isolation-")),
   );
 
   try {
     const fakeHome = join(testRoot, "home");
-    const realSecurityDir = join(fakeHome, ".vellum", "protected");
+    const realSecurityDir = join(fakeHome, ".max", "protected");
     const aliasParent = join(testRoot, "aliases");
     const securityAlias = join(aliasParent, "gateway-security-link");
 
@@ -87,8 +87,8 @@ test("initGatewayDb refuses symlink aliases to the real security dir during test
 
     process.env.HOME = fakeHome;
     process.env.GATEWAY_SECURITY_DIR = securityAlias;
-    process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR = realSecurityDir;
-    delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+    process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR = realSecurityDir;
+    delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 
     await expect(initGatewayDb()).rejects.toThrow(
       "Refusing to open the real gateway security DB during tests",
@@ -101,12 +101,12 @@ test("initGatewayDb refuses symlink aliases to the real security dir during test
 test("initGatewayDb refuses missing children under symlink aliases to the real security dir", async () => {
   resetGatewayDb();
   const testRoot = realpathSync(
-    mkdtempSync(join(tmpdir(), "vellum-gateway-db-isolation-")),
+    mkdtempSync(join(tmpdir(), "max-gateway-db-isolation-")),
   );
 
   try {
     const fakeHome = join(testRoot, "home");
-    const realSecurityDir = join(fakeHome, ".vellum", "protected");
+    const realSecurityDir = join(fakeHome, ".max", "protected");
     const aliasParent = join(testRoot, "aliases");
     const securityLink = join(aliasParent, "gateway-security-link");
     const missingChild = join(securityLink, "new-security-dir");
@@ -117,8 +117,8 @@ test("initGatewayDb refuses missing children under symlink aliases to the real s
 
     process.env.HOME = fakeHome;
     process.env.GATEWAY_SECURITY_DIR = missingChild;
-    process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR = realSecurityDir;
-    delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+    process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR = realSecurityDir;
+    delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 
     await expect(initGatewayDb()).rejects.toThrow(
       "Refusing to open the real gateway security DB during tests",
@@ -131,12 +131,12 @@ test("initGatewayDb refuses missing children under symlink aliases to the real s
 test("initGatewayDb does not migrate legacy gateway DBs during tests", async () => {
   resetGatewayDb();
   const testRoot = realpathSync(
-    mkdtempSync(join(tmpdir(), "vellum-gateway-db-isolation-")),
+    mkdtempSync(join(tmpdir(), "max-gateway-db-isolation-")),
   );
 
   try {
     const fakeHome = join(testRoot, "home");
-    const legacyDir = join(fakeHome, ".vellum", "data");
+    const legacyDir = join(fakeHome, ".max", "data");
     const legacyDb = join(legacyDir, "gateway.sqlite");
     const securityDir = join(testRoot, "gateway-security");
 
@@ -145,7 +145,7 @@ test("initGatewayDb does not migrate legacy gateway DBs during tests", async () 
 
     process.env.HOME = fakeHome;
     process.env.GATEWAY_SECURITY_DIR = securityDir;
-    delete process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
+    delete process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS;
 
     await initGatewayDb();
 

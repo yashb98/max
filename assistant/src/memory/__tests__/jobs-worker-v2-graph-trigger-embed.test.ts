@@ -64,8 +64,8 @@ mock.module("../db-maintenance.js", () => ({
 const tmpWorkspace = mkdtempSync(
   join(tmpdir(), "jobs-worker-v2-graph-trigger-embed-"),
 );
-const previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+const previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 
 import { getDb } from "../db-connection.js";
 import { initializeDb } from "../db-init.js";
@@ -81,9 +81,9 @@ describe("graph_trigger_embed under memory v2", () => {
 
   afterAll(() => {
     if (previousWorkspaceEnv === undefined) {
-      delete process.env.VELLUM_WORKSPACE_DIR;
+      delete process.env.MAX_WORKSPACE_DIR;
     } else {
-      process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+      process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
     }
     rmSync(tmpWorkspace, { recursive: true, force: true });
   });

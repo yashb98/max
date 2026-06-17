@@ -66,7 +66,7 @@ function buildMockContext(
     trustContext:
       trustGuardianPrincipalId != null
         ? {
-            sourceChannel: "vellum",
+            sourceChannel: "max",
             trustClass: "guardian",
             guardianPrincipalId: trustGuardianPrincipalId,
           }

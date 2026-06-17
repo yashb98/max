@@ -292,34 +292,34 @@ export interface WatchHatchingResult {
   errorContent: string;
 }
 
-const INSTALL_SCRIPT_REMOTE_PATH = "/tmp/vellum-install.sh";
+const INSTALL_SCRIPT_REMOTE_PATH = "/tmp/max-install.sh";
 const MACHINE_TYPE = "e2-standard-4"; // 4 vCPUs, 16 GB memory
 
 const DESIRED_FIREWALL_RULES: FirewallRuleSpec[] = [
   {
-    name: "allow-vellum-assistant-gateway",
+    name: "allow-max-assistant-gateway",
     direction: "INGRESS",
     action: "ALLOW",
     rules: `tcp:${GATEWAY_PORT}`,
     sourceRanges: "0.0.0.0/0",
     targetTags: FIREWALL_TAG,
-    description: `Allow gateway ingress on port ${GATEWAY_PORT} for vellum-assistant instances`,
+    description: `Allow gateway ingress on port ${GATEWAY_PORT} for max-assistant instances`,
   },
   {
-    name: "allow-vellum-assistant-egress",
+    name: "allow-max-assistant-egress",
     direction: "EGRESS",
     action: "ALLOW",
     rules: "all",
     destinationRanges: "0.0.0.0/0",
     targetTags: FIREWALL_TAG,
-    description: "Allow all egress traffic for vellum-assistant instances",
+    description: "Allow all egress traffic for max-assistant instances",
   },
 ];
 
 import INSTALL_SCRIPT_CONTENT from "../adapters/install.sh" with { type: "text" };
 
 function resolveInstallScriptPath(): string {
-  const tmpPath = join(tmpdir(), `vellum-install-${process.pid}.sh`);
+  const tmpPath = join(tmpdir(), `max-install-${process.pid}.sh`);
   writeFileSync(tmpPath, INSTALL_SCRIPT_CONTENT, { mode: 0o755 });
   return tmpPath;
 }
@@ -515,7 +515,7 @@ export async function hatchGcp(
       );
       process.exit(1);
     }
-    const hatchedBy = process.env.VELLUM_HATCHED_BY;
+    const hatchedBy = process.env.MAX_HATCHED_BY;
     const providerApiKeys: Record<string, string> = {};
     for (const [, envVar] of Object.entries(PROVIDER_ENV_VAR_NAMES)) {
       const value = process.env[envVar];
@@ -560,8 +560,8 @@ export async function hatchGcp(
         "--boot-disk-size=50GB",
         "--boot-disk-type=pd-standard",
         `--metadata-from-file=startup-script=${startupScriptPath}`,
-        `--labels=species=${species},vellum-assistant=true${hatchedBy ? `,hatched-by=${hatchedBy.toLowerCase().replace(/[^a-z0-9_-]/g, "_")}` : ""}`,
-        "--tags=vellum-assistant",
+        `--labels=species=${species},max-assistant=true${hatchedBy ? `,hatched-by=${hatchedBy.toLowerCase().replace(/[^a-z0-9_-]/g, "_")}` : ""}`,
+        "--tags=max-assistant",
         "--no-service-account",
         "--no-scopes",
       ];
@@ -655,7 +655,7 @@ export async function hatchGcp(
         await fetchAndDisplayStartupLogs(instanceName, project, zone, account);
 
         if (
-          species === "vellum" &&
+          species === "max" &&
           (await checkCurlFailure(instanceName, project, zone, account))
         ) {
           const installScriptUrl = `${getPlatformUrl()}/install.sh`;

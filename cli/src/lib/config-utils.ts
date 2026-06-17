@@ -35,7 +35,7 @@ export function buildNestedConfig(
 /**
  * Write arbitrary key-value pairs to a temporary JSON file and return its
  * path. The caller passes this path to the daemon via the
- * VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH env var so the daemon can merge the
+ * MAX_DEFAULT_WORKSPACE_CONFIG_PATH env var so the daemon can merge the
  * values into its workspace config on first boot.
  *
  * Keys use dot-notation to address nested fields. For example:
@@ -52,7 +52,7 @@ export function writeInitialConfig(
   const config = buildNestedConfig(configValues);
   const tempPath = join(
     tmpdir(),
-    `vellum-default-workspace-config-${process.pid}-${Date.now()}.json`,
+    `max-default-workspace-config-${process.pid}-${Date.now()}.json`,
   );
   writeFileSync(tempPath, JSON.stringify(config, null, 2) + "\n");
   return tempPath;

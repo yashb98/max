@@ -22,6 +22,7 @@ import { AnthropicProvider } from "../anthropic/client.js";
 import { ClaudeSubscriptionProvider } from "../claude-subscription/client.js";
 import { FireworksProvider } from "../fireworks/client.js";
 import { GeminiProvider } from "../gemini/client.js";
+import { KimiAgentProvider } from "../kimi-agent/client.js";
 import { PROVIDER_CATALOG } from "../model-catalog.js";
 import { OllamaProvider } from "../ollama/client.js";
 import { OpenAIChatCompletionsProvider } from "../openai/chat-completions-provider.js";
@@ -112,6 +113,12 @@ const ADAPTER_FACTORIES: Record<string, AdapterFactory> = {
         frequency_penalty: 0.0,
       },
     }),
+  // Kimi via the Agent SDK — drives the kimi CLI as an in-process agentic
+  // runtime. Tool calls bridge to Max's ToolExecutor via external tools.
+  // Auth: MOONSHOT_API_KEY forwarded to the SDK env; falls back to the
+  // user's ~/.kimi/config.toml login session when no key is provided.
+  "kimi-agent": ({ apiKey, model, streamTimeoutMs }) =>
+    new KimiAgentProvider(model, { streamTimeoutMs, apiKey }),
 };
 
 /**

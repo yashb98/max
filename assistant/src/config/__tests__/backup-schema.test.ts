@@ -52,7 +52,7 @@ describe("BackupConfigSchema", () => {
         enabled: false,
         destinations: [{ path: "/mnt/backups", encrypt: true }],
       },
-      localDirectory: "/var/backups/vellum",
+      localDirectory: "/var/backups/max",
     };
     const parsed = BackupConfigSchema.parse(input);
     expect(parsed).toEqual(input);

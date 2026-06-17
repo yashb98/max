@@ -72,7 +72,7 @@ export const ONBOARDING_SIDECAR_FILENAME = "onboarding-context.json";
 const VOICE_WRITING_UNLOCK_CONVERSATIONS = 10;
 
 /** Default assistant name when IDENTITY.md cannot be parsed. */
-const DEFAULT_ASSISTANT_NAME = "Vellum";
+const DEFAULT_ASSISTANT_NAME = "Max";
 
 /** Default assistant identifier (multi-assistant reserved for future). */
 const DEFAULT_ASSISTANT_ID = "default";

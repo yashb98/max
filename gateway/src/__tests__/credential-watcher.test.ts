@@ -93,7 +93,7 @@ function encrypt(
  * derivation the gateway's credential-reader will use to decrypt.
  */
 function writeEncryptedStore(botToken: string, webhookSecret: string): void {
-  const storePath = join(testDir, ".vellum", "protected", "keys.enc");
+  const storePath = join(testDir, ".max", "protected", "keys.enc");
   mkdirSync(dirname(storePath), { recursive: true });
 
   const salt = cryptoRandomBytes(16);
@@ -122,7 +122,7 @@ function writeEncryptedStore(botToken: string, webhookSecret: string): void {
  * store.key file (no PBKDF2 derivation).
  */
 function writeEncryptedStoreV2(botToken: string, webhookSecret: string): void {
-  const protectedDir = join(testDir, ".vellum", "protected");
+  const protectedDir = join(testDir, ".max", "protected");
   mkdirSync(protectedDir, { recursive: true });
 
   const storeKey = cryptoRandomBytes(KEY_LENGTH);
@@ -165,7 +165,7 @@ function writeCredentialMetadata(
     metadataRecord("test-ws", "telegram", "webhook_secret"),
   ],
 ): void {
-  const dir = join(testDir, ".vellum", "workspace", "data", "credentials");
+  const dir = join(testDir, ".max", "workspace", "data", "credentials");
   mkdirSync(dir, { recursive: true });
   const metadataPath = join(dir, "metadata.json");
   const tmpPath = join(
@@ -215,14 +215,14 @@ function getFreePort(): Promise<number> {
 async function startGateway(): Promise<void> {
   port = await getFreePort();
 
-  const workspaceDir = join(testDir, ".vellum", "workspace");
+  const workspaceDir = join(testDir, ".max", "workspace");
   fakeAssistantIpc = startFakeAssistantIpc(workspaceDir);
 
   gatewayProc = spawn("bun", ["run", gatewayEntry], {
     env: {
       ...process.env,
-      GATEWAY_SECURITY_DIR: join(testDir, ".vellum", "protected"),
-      VELLUM_WORKSPACE_DIR: workspaceDir,
+      GATEWAY_SECURITY_DIR: join(testDir, ".max", "protected"),
+      MAX_WORKSPACE_DIR: workspaceDir,
       GATEWAY_PORT: String(port),
       // Ensure Telegram is NOT configured via env vars
       TELEGRAM_BOT_TOKEN: "",

@@ -23,7 +23,7 @@ public enum MultipartPart {
 public enum GatewayHTTPClient {
     private static let sseAcceptHeader = "text/event-stream, application/json"
 
-    /// Platform-specific interface identifier sent as `X-Vellum-Interface-Id`
+    /// Platform-specific interface identifier sent as `X-Max-Interface-Id`
     /// on streaming connections so the assistant can register the client.
     private static var clientInterfaceId: String {
         return "macos"
@@ -493,9 +493,9 @@ public enum GatewayHTTPClient {
         let connection = try resolveConnection()
         var request = try buildRequest(path: path, params: nil, method: "GET", timeout: timeout, connection: connection)
         request.setValue(sseAcceptHeader, forHTTPHeaderField: "Accept")
-        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Vellum-Client-Id")
-        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Vellum-Interface-Id")
-        request.setValue(ProcessInfo.processInfo.hostName, forHTTPHeaderField: "X-Vellum-Machine-Name")
+        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Max-Client-Id")
+        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Max-Interface-Id")
+        request.setValue(ProcessInfo.processInfo.hostName, forHTTPHeaderField: "X-Max-Machine-Name")
         logOutgoing(request, quiet: false)
         let (bytes, response) = try await session.bytes(for: request)
         if let http = response as? HTTPURLResponse {
@@ -523,8 +523,8 @@ public enum GatewayHTTPClient {
         let connection = try resolveConnection()
         var request = try buildRequest(path: path, params: nil, method: "POST", timeout: timeout, connection: connection)
         request.setValue(sseAcceptHeader, forHTTPHeaderField: "Accept")
-        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Vellum-Client-Id")
-        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Vellum-Interface-Id")
+        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Max-Client-Id")
+        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Max-Interface-Id")
         request.httpBody = body
         logOutgoing(request, quiet: false)
         let (bytes, response) = try await session.bytes(for: request)
@@ -557,8 +557,8 @@ public enum GatewayHTTPClient {
         let connection = try resolveConnection()
         var request = try buildRequest(path: path, params: nil, method: "POST", timeout: timeout, connection: connection)
         request.setValue(sseAcceptHeader, forHTTPHeaderField: "Accept")
-        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Vellum-Client-Id")
-        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Vellum-Interface-Id")
+        request.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Max-Client-Id")
+        request.setValue(clientInterfaceId, forHTTPHeaderField: "X-Max-Interface-Id")
         request.httpBody = body
         logOutgoing(request, quiet: false)
 
@@ -586,8 +586,8 @@ public enum GatewayHTTPClient {
         let freshConnection = try resolveConnection()
         var retryRequest = try buildRequest(path: path, params: nil, method: "POST", timeout: timeout, connection: freshConnection)
         retryRequest.setValue(sseAcceptHeader, forHTTPHeaderField: "Accept")
-        retryRequest.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Vellum-Client-Id")
-        retryRequest.setValue(clientInterfaceId, forHTTPHeaderField: "X-Vellum-Interface-Id")
+        retryRequest.setValue(DeviceIdStore.getOrCreate(), forHTTPHeaderField: "X-Max-Client-Id")
+        retryRequest.setValue(clientInterfaceId, forHTTPHeaderField: "X-Max-Interface-Id")
         retryRequest.httpBody = body
         logOutgoing(retryRequest, quiet: false)
         let (retryBytes, retryResponse) = try await session.bytes(for: retryRequest)
@@ -678,7 +678,7 @@ public enum GatewayHTTPClient {
             if let runtimeUrl = assistant.runtimeUrl {
                 baseURL = runtimeUrl
             } else {
-                baseURL = VellumEnvironment.resolvedPlatformURL
+                baseURL = MaxEnvironment.resolvedPlatformURL
             }
             return ConnectionInfo(baseURL: baseURL, authHeader: ("X-Session-Token", token), assistantId: assistant.assistantId, isManaged: true)
         } else {
@@ -757,12 +757,12 @@ public enum GatewayHTTPClient {
         }
     }
 
-    /// Credentials needed by the WebView JS fetch bridge (`window.vellum.fetch`).
+    /// Credentials needed by the WebView JS fetch bridge (`window.max.fetch`).
     public struct WebViewCredentials {
         /// Gateway base URL including scheme and port (e.g. `http://127.0.0.1:7830`).
         public let baseURL: String
         /// Auth header entries to inject into every fetch request.
-        /// Platform (managed): `["X-Session-Token": token, "Vellum-Organization-Id": orgId]`
+        /// Platform (managed): `["X-Session-Token": token, "Max-Organization-Id": orgId]`
         /// Local/remote (bearer): `["Authorization": "Bearer <jwt>"]`
         public let headers: [String: String]
         /// Path prefix inserted between `/v1/` and the user-supplied path
@@ -772,7 +772,7 @@ public enum GatewayHTTPClient {
 
     /// Resolves the gateway base URL and auth headers for injection into a WKWebView.
     ///
-    /// Use this to populate `window.vellum.fetch` so that app frontends can call
+    /// Use this to populate `window.max.fetch` so that app frontends can call
     /// custom routes (`/v1/x/...`) with proper authentication.
     ///
     /// - Returns: A ``WebViewCredentials`` with the base URL and auth headers,
@@ -786,7 +786,7 @@ public enum GatewayHTTPClient {
         }
         if connection.isManaged {
             if let orgId = UserDefaults.standard.string(forKey: "connectedOrganizationId"), !orgId.isEmpty {
-                headers["Vellum-Organization-Id"] = orgId
+                headers["Max-Organization-Id"] = orgId
             }
         }
         let pathPrefix: String
@@ -870,7 +870,7 @@ public enum GatewayHTTPClient {
         // Include org ID header — URLSession forwards custom headers on the
         // initial HTTP upgrade request even for WebSocket tasks.
         if let orgId = UserDefaults.standard.string(forKey: "connectedOrganizationId"), !orgId.isEmpty {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
         return request
     }
@@ -946,7 +946,7 @@ public enum GatewayHTTPClient {
         }
 
         if let orgId = UserDefaults.standard.string(forKey: "connectedOrganizationId"), !orgId.isEmpty {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
 
         return request

@@ -94,7 +94,7 @@ const MODE_TRADEOFFS: Record<StatusCheckMode, string[]> = {
     "More secure than relying on Chrome's native remote debugging functionality.",
   ],
   [BROWSER_STATUS_MODE.CDP_INSPECT]: [
-    "This is the second-best approach for all things browser-use, after the native Vellum Assistant Chrome Extension.",
+    "This is the second-best approach for all things browser-use, after the native Max Assistant Chrome Extension.",
     "It requires Chrome version 146 or greater",
     "It requires toggling on remote debugging in Chrome Settings",
     "It's prone to phishing attacks from other local processes that may try to do their own remote debugging.",
@@ -191,7 +191,7 @@ export function parseBrowserMode(
 const REMEDIATION_HINTS: Record<string, string[]> = {
   // Extension backend
   "extension:transport_error": [
-    "Ensure the Vellum browser extension is installed and enabled, or that the macOS desktop client is running for host browser proxy mode.",
+    "Ensure the Max browser extension is installed and enabled, or that the macOS desktop client is running for host browser proxy mode.",
     "For extension mode: check that the extension WebSocket connection is active (extension popup → status).",
     "For macOS host browser proxy: verify the desktop client is running and has an active SSE connection to the assistant.",
     "Try reconnecting the extension or restarting the desktop client.",
@@ -1139,10 +1139,10 @@ export async function executeBrowserAttach(
   try {
     if (cdp.kind === "extension") {
       // Extension path: explicitly attach the debugger via a synthetic
-      // Vellum.attach command so the debugging session is established
+      // Max.attach command so the debugging session is established
       // before any navigation or interaction.
       const result = await cdp.send<{ attached?: boolean; target?: unknown }>(
-        "Vellum.attach",
+        "Max.attach",
         {},
         context.signal,
       );
@@ -1192,9 +1192,9 @@ export async function executeBrowserDetach(
   try {
     if (cdp.kind === "extension") {
       // Extension path: explicitly detach the debugger via a synthetic
-      // Vellum.detach command so the Chrome debugging banner clears.
+      // Max.detach command so the Chrome debugging banner clears.
       const result = await cdp.send<{ detached?: boolean; target?: unknown }>(
-        "Vellum.detach",
+        "Max.detach",
         {},
         context.signal,
       );
@@ -1221,7 +1221,7 @@ export async function executeBrowserDetach(
     return { content: `Error: Detach failed: ${msg}`, isError: true };
   } finally {
     // Always reset conversation-scoped browser state, even if the
-    // Vellum.detach round-trip failed (target gone, transport dropped).
+    // Max.detach round-trip failed (target gone, transport dropped).
     // browser_detach is the user's recovery path — leaving a stale
     // sticky backend or snapshot map behind would defeat its purpose.
     browserManager.clearSnapshotBackendNodeMap(context.conversationId);
@@ -1268,7 +1268,7 @@ export async function executeBrowserClose(
     // clears promptly) and drop the cached snapshot state so stale
     // eids from prior snapshots cannot be resolved by later tool calls.
     try {
-      await cdp.send("Vellum.detach", {}, context.signal);
+      await cdp.send("Max.detach", {}, context.signal);
     } catch {
       // Tolerate detach failures (already detached, tab closed, etc.)
     }
@@ -2108,7 +2108,7 @@ function modeTradeoffs(mode: StatusCheckMode): string[] {
 
 function extensionSetupActions(): string[] {
   return [
-    "Install the Vellum Assistant Chrome extension from the Chrome Web Store: https://chromewebstore.google.com/detail/vellum-assistant-browser/hphbdmpffeigpcdjkckleobjmhhokpne",
+    "Install the Max Assistant Chrome extension from the Chrome Web Store: https://chromewebstore.google.com/detail/max-assistant-browser/hphbdmpffeigpcdjkckleobjmhhokpne",
     "Open the extension and pair with your assistant.",
   ];
 }

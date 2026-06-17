@@ -48,9 +48,9 @@ async function createMessage(role: "user" | "assistant" = "user") {
     role,
     role === "user" ? "Example user utterance" : "Example assistant response",
     role === "user"
-      ? { userMessageChannel: "vellum", userMessageInterface: "macos" }
+      ? { userMessageChannel: "max", userMessageInterface: "macos" }
       : {
-          assistantMessageChannel: "vellum",
+          assistantMessageChannel: "max",
           assistantMessageInterface: "macos",
         },
     { skipIndexing: true },
@@ -371,14 +371,14 @@ describe("live voice audio archive", () => {
       conversation.id,
       "user",
       "Example source utterance",
-      { userMessageChannel: "vellum", userMessageInterface: "macos" },
+      { userMessageChannel: "max", userMessageInterface: "macos" },
       { skipIndexing: true },
     );
     const targetMessage = await addMessage(
       conversation.id,
       "user",
       "Example target utterance",
-      { userMessageChannel: "vellum", userMessageInterface: "macos" },
+      { userMessageChannel: "max", userMessageInterface: "macos" },
       { skipIndexing: true },
     );
 

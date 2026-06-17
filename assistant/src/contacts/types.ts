@@ -2,9 +2,9 @@ export type ContactRole = "guardian" | "contact";
 
 export type ContactType = "human" | "assistant";
 
-export type AssistantSpecies = "vellum" | "openclaw";
+export type AssistantSpecies = "max" | "openclaw";
 
-export interface VellumAssistantMetadata {
+export interface MaxAssistantMetadata {
   assistantId: string;
   gatewayUrl: string;
 }
@@ -16,8 +16,8 @@ export interface OpenClawAssistantMetadata {
 export type AssistantContactMetadata =
   | {
       contactId: string;
-      species: "vellum";
-      metadata: VellumAssistantMetadata | null;
+      species: "max";
+      metadata: MaxAssistantMetadata | null;
     }
   | {
       contactId: string;
@@ -37,7 +37,7 @@ export interface Contact {
   role: ContactRole;
   contactType: ContactType;
   /**
-   * Internal auth identity (e.g. "vellum-principal-<uuid>"). Only meaningful
+   * Internal auth identity (e.g. "max-principal-<uuid>"). Only meaningful
    * for guardian contacts — it ties the contact record to the auth layer so
    * the system can verify "this API caller IS this guardian" via JWT
    * actorPrincipalId. Always null for non-guardian contacts, which are

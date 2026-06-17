@@ -66,7 +66,7 @@ mock.module("../config/env.js", () => ({
 
 import {
   catalogSkillToSlim,
-  createVellumCatalogProvider,
+  createMaxCatalogProvider,
   readCatalogSkillFileContent,
   readCatalogSkillFiles,
   sanitizeRelativePath,
@@ -843,7 +843,7 @@ describe("readCatalogSkillFileContent (platform mode)", () => {
 // ---------------------------------------------------------------------------
 
 describe("catalogSkillToSlim", () => {
-  test("maps CatalogSkill to SlimSkillResponse with vellum origin", () => {
+  test("maps CatalogSkill to SlimSkillResponse with max origin", () => {
     const cs: CatalogSkill = {
       id: "test-skill",
       name: "test-skill",
@@ -856,7 +856,7 @@ describe("catalogSkillToSlim", () => {
     expect(slim.description).toBe("A test skill");
     expect(slim.emoji).toBe("🧪");
     expect(slim.kind).toBe("catalog");
-    expect(slim.origin).toBe("vellum");
+    expect(slim.origin).toBe("max");
     expect(slim.status).toBe("available");
   });
 
@@ -865,7 +865,7 @@ describe("catalogSkillToSlim", () => {
       id: "test-skill",
       name: "test-skill",
       description: "A test skill",
-      metadata: { vellum: { "display-name": "Pretty Name" } },
+      metadata: { max: { "display-name": "Pretty Name" } },
     };
     const slim = catalogSkillToSlim(cs);
     expect(slim.name).toBe("Pretty Name");
@@ -873,26 +873,26 @@ describe("catalogSkillToSlim", () => {
 });
 
 // ---------------------------------------------------------------------------
-// createVellumCatalogProvider
+// createMaxCatalogProvider
 // ---------------------------------------------------------------------------
 
-describe("createVellumCatalogProvider", () => {
+describe("createMaxCatalogProvider", () => {
   test("canHandle returns true when skill is in the cached catalog", () => {
     mockCatalog = [skill("my-skill"), skill("other-skill")];
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(provider.canHandle("my-skill")).toBe(true);
     expect(provider.canHandle("other-skill")).toBe(true);
   });
 
   test("canHandle returns false when skill is NOT in the cached catalog", () => {
     mockCatalog = [skill("my-skill")];
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(provider.canHandle("unknown-skill")).toBe(false);
   });
 
   test("canHandle returns false when catalog cache is empty", () => {
     mockCatalog = [];
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(provider.canHandle("any-skill")).toBe(false);
   });
 
@@ -906,7 +906,7 @@ describe("createVellumCatalogProvider", () => {
     mockCatalog = [skill("my-skill")];
     installFetchForbidden();
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     const entries = await provider.listFiles("my-skill");
     expect(entries).not.toBeNull();
     const paths = entries!.map((e) => e.path).sort();
@@ -917,7 +917,7 @@ describe("createVellumCatalogProvider", () => {
     mockCatalog = [];
     installFetchForbidden();
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(await provider.listFiles("unknown")).toBeNull();
   });
 
@@ -928,7 +928,7 @@ describe("createVellumCatalogProvider", () => {
     mockCatalog = [skill("my-skill")];
     installFetchForbidden();
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     const entry = await provider.readFileContent("my-skill", "SKILL.md");
     expect(entry).not.toBeNull();
     expect(entry!.content).toBe("# hello world\n");
@@ -939,7 +939,7 @@ describe("createVellumCatalogProvider", () => {
     mockCatalog = [];
     installFetchForbidden();
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(await provider.readFileContent("unknown", "SKILL.md")).toBeNull();
   });
 
@@ -950,25 +950,25 @@ describe("createVellumCatalogProvider", () => {
         name: "my-skill",
         description: "A skill",
         emoji: "🔧",
-        metadata: { vellum: { "display-name": "My Skill" } },
+        metadata: { max: { "display-name": "My Skill" } },
       },
     ];
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     const slim = await provider.toSlimSkill("my-skill");
     expect(slim).not.toBeNull();
     expect(slim!.id).toBe("my-skill");
     expect(slim!.name).toBe("My Skill");
     expect(slim!.description).toBe("A skill");
     expect(slim!.kind).toBe("catalog");
-    expect(slim!.origin).toBe("vellum");
+    expect(slim!.origin).toBe("max");
     expect(slim!.status).toBe("available");
   });
 
   test("toSlimSkill returns null for unknown skill", async () => {
     mockCatalog = [];
 
-    const provider = createVellumCatalogProvider();
+    const provider = createMaxCatalogProvider();
     expect(await provider.toSlimSkill("unknown")).toBeNull();
   });
 });

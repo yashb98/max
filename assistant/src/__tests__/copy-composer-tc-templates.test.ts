@@ -15,7 +15,7 @@ import type { NotificationSignal } from "../notifications/signal.js";
 
 function buildGuardianDecisionSignal(
   payloadOverrides: Record<string, unknown> = {},
-  sourceChannel: "slack" | "telegram" | "vellum" = "slack",
+  sourceChannel: "slack" | "telegram" | "max" = "slack",
 ): NotificationSignal {
   return {
     signalId: "test-signal-gd",
@@ -44,7 +44,7 @@ function buildGuardianDecisionSignal(
 
 function buildDeniedSignal(
   payloadOverrides: Record<string, unknown> = {},
-  sourceChannel: "slack" | "telegram" | "vellum" = "slack",
+  sourceChannel: "slack" | "telegram" | "max" = "slack",
 ): NotificationSignal {
   return {
     signalId: "test-signal-denied",
@@ -80,8 +80,8 @@ describe("guardian_decision fallback copy", () => {
       decidedByDisplayName: "Bob",
       decision: "denied",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.title).toBe("Trusted Contact Decision");
     expect(copy.body).toBe("Alice's access request has been denied by Bob.");
@@ -96,8 +96,8 @@ describe("guardian_decision fallback copy", () => {
       sourceChannel: "slack",
       decision: "denied",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "<@U07CLDQ4TB3>'s access request has been denied by <@U099H19C0KA>.",
@@ -116,8 +116,8 @@ describe("guardian_decision fallback copy", () => {
       },
       "telegram",
     );
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "U07CLDQ4TB3's access request has been denied by U099H19C0KA.",
@@ -137,10 +137,10 @@ describe("guardian_decision fallback copy", () => {
       decision: "approved",
     });
 
-    const deniedCopy = composeFallbackCopy(deniedSignal, ["vellum"]).vellum!;
+    const deniedCopy = composeFallbackCopy(deniedSignal, ["max"]).max!;
     const approvedCopy = composeFallbackCopy(approvedSignal, [
-      "vellum",
-    ]).vellum!;
+      "max",
+    ]).max!;
 
     expect(deniedCopy.body).toContain("denied");
     expect(deniedCopy.body).not.toContain("approved");
@@ -156,8 +156,8 @@ describe("guardian_decision fallback copy", () => {
       requesterExternalUserId: "U07CLDQ4TB3",
       decidedByExternalUserId: "U099H19C0KA",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toContain("D0AQ9C5PPPF");
   });
@@ -169,8 +169,8 @@ describe("guardian_decision fallback copy", () => {
       decidedByDisplayName: "Bob",
       decision: "denied",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe("Someone's access request has been denied by Bob.");
   });
@@ -182,8 +182,8 @@ describe("guardian_decision fallback copy", () => {
       decidedByExternalUserId: null,
       decision: "approved",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "Alice's access request has been approved by a guardian.",
@@ -199,8 +199,8 @@ describe("guardian_decision fallback copy", () => {
       sourceChannel: "slack",
       decision: "denied",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe("Alice's access request has been denied by Bob.");
     expect(copy.body).not.toContain("<@");
@@ -212,8 +212,8 @@ describe("guardian_decision fallback copy", () => {
       decidedByDisplayName: "Bob\r\nMalicious",
       decision: "approved",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toMatch(/[\x00-\x1f\x7f-\x9f]/);
     expect(copy.body).toContain("Alice");
@@ -227,8 +227,8 @@ describe("guardian_decision fallback copy", () => {
       decidedByDisplayName: "Bob",
       decision: "denied",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     // sanitizeIdentityField clamps to 120 chars + ellipsis
     expect(copy.body.length).toBeLessThan(longName.length);
@@ -243,8 +243,8 @@ describe("trusted_contact.denied fallback copy", () => {
     const signal = buildDeniedSignal({
       requesterDisplayName: "Alice",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.title).toBe("Trusted Contact Denied");
     expect(copy.body).toBe(
@@ -258,8 +258,8 @@ describe("trusted_contact.denied fallback copy", () => {
       requesterExternalUserId: "U07CLDQ4TB3",
       sourceChannel: "slack",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "A trusted contact request from <@U07CLDQ4TB3> has been denied.",
@@ -275,8 +275,8 @@ describe("trusted_contact.denied fallback copy", () => {
       },
       "telegram",
     );
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "A trusted contact request from U07CLDQ4TB3 has been denied.",
@@ -289,8 +289,8 @@ describe("trusted_contact.denied fallback copy", () => {
       requesterDisplayName: null,
       requesterExternalUserId: null,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toBe(
       "A trusted contact request from Someone has been denied.",
@@ -303,8 +303,8 @@ describe("trusted_contact.denied fallback copy", () => {
       requesterExternalUserId: "U07CLDQ4TB3",
       requesterChatId: "D0AQ9C5PPPF",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toContain("D0AQ9C5PPPF");
   });
@@ -313,8 +313,8 @@ describe("trusted_contact.denied fallback copy", () => {
     const signal = buildDeniedSignal({
       requesterDisplayName: "Alice\x00\x07\nEvil",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toMatch(/[\x00-\x1f\x7f-\x9f]/);
     expect(copy.body).toContain("Alice");
@@ -325,8 +325,8 @@ describe("trusted_contact.denied fallback copy", () => {
     const signal = buildDeniedSignal({
       requesterDisplayName: longName,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     // sanitizeIdentityField clamps to 120 chars + ellipsis
     expect(copy.body.length).toBeLessThan(longName.length);

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { resolveCallSiteConfig } from "../config/llm-resolver.js";
 import { LLMSchema } from "../config/schemas/llm.js";
 
-const testWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testWorkspaceDir = process.env.MAX_WORKSPACE_DIR!;
 
 // Default the warm-pool gate to OPEN for existing tests — they predate
 // the gate and expect filing's runOnce() to fire on every tick.
@@ -112,8 +112,8 @@ mock.module("../daemon/process-message.js", () => ({
     return { messageId: `mock-msg-${Date.now()}` };
   },
   processMessageInBackground: async () => ({ messageId: "mock-bg" }),
-  resolveTurnChannel: () => "vellum",
-  resolveTurnInterface: () => "vellum",
+  resolveTurnChannel: () => "max",
+  resolveTurnInterface: () => "max",
   prepareConversationForMessage: async () => ({}),
 }));
 

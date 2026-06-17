@@ -37,7 +37,7 @@ This is a developer debugging tool for inspecting how the assistant invokes and
 observes shell commands. The command runs with the assistant's environment, working
 directory, and process context — not the caller's shell.
 
-Requires the assistant to be running with VELLUM_DEBUG=1. When debug mode is off
+Requires the assistant to be running with MAX_DEBUG=1. When debug mode is off
 (the default), the assistant returns an error immediately.
 
 Arguments:

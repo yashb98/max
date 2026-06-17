@@ -7,8 +7,8 @@ import type { AssistantEntry } from "./assistant-config.js";
  * - For local/docker assistants, `runtimeUrl` is the loopback gateway and
  *   the runtime serves `/v1/migrations/<subpath>` directly. The CLI hits
  *   that path with guardian-token bearer auth.
- * - For platform-managed (cloud="vellum") assistants, `runtimeUrl` is the
- *   platform host (e.g. `https://platform.vellum.ai`). The platform's
+ * - For platform-managed (cloud="max") assistants, `runtimeUrl` is the
+ *   platform host (e.g. `https://platform.max.ai`). The platform's
  *   `MigrationViewSet` does NOT expose `export-to-gcs` or arbitrary runtime
  *   migration paths under `/v1/migrations/...`. The wildcard runtime proxy
  *   at `/v1/assistants/<id>/<path:rest>` is what forwards arbitrary runtime
@@ -23,7 +23,7 @@ export function resolveRuntimeMigrationUrl(
   entry: Pick<AssistantEntry, "cloud" | "runtimeUrl" | "assistantId">,
   subpath: string,
 ): string {
-  if (entry.cloud === "vellum") {
+  if (entry.cloud === "max") {
     return `${entry.runtimeUrl}/v1/assistants/${entry.assistantId}/migrations/${subpath}`;
   }
   return `${entry.runtimeUrl}/v1/migrations/${subpath}`;
@@ -35,7 +35,7 @@ export function resolveRuntimeMigrationUrl(
  *
  * - For local/docker assistants, `runtimeUrl` is the loopback gateway and
  *   the runtime serves `/v1/<subpath>` directly.
- * - For platform-managed (cloud="vellum") assistants the path is rewritten
+ * - For platform-managed (cloud="max") assistants the path is rewritten
  *   to the wildcard runtime proxy:
  *   `{platformUrl}/v1/assistants/<assistantId>/<subpath>`.
  *
@@ -45,7 +45,7 @@ export function resolveRuntimeUrl(
   entry: Pick<AssistantEntry, "cloud" | "runtimeUrl" | "assistantId">,
   subpath: string,
 ): string {
-  if (entry.cloud === "vellum") {
+  if (entry.cloud === "max") {
     return `${entry.runtimeUrl}/v1/assistants/${entry.assistantId}/${subpath}`;
   }
   return `${entry.runtimeUrl}/v1/${subpath}`;

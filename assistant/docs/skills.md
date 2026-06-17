@@ -1,6 +1,6 @@
 # Skills — Security Model
 
-This document describes the security model for the Vellum Assistant skill system, including how skills are authorized, how trust rules interact with skill versions, and how the system protects against privilege escalation through skill source mutations.
+This document describes the security model for the Max Assistant skill system, including how skills are authorized, how trust rules interact with skill versions, and how the system protects against privilege escalation through skill source mutations.
 
 ## Overview
 
@@ -21,7 +21,7 @@ Skill-origin tools follow a stricter default permission policy than core tools:
 | Allow rule matches, high risk, containerized bash | Auto-allowed (runtime check)  | Auto-allowed        |
 | Allow rule matches, high risk, other              | Prompted                      | Prompted            |
 
-Even if a skill's `TOOLS.json` declares `"risk": "low"` for one of its tools, the permission checker will prompt the user unless an explicit trust rule in `~/.vellum/protected/trust.json` allows it. This prevents third-party skill tools from silently auto-executing.
+Even if a skill's `TOOLS.json` declares `"risk": "low"` for one of its tools, the permission checker will prompt the user unless an explicit trust rule in `~/.max/protected/trust.json` allows it. This prevents third-party skill tools from silently auto-executing.
 
 ## Skill Load Approval
 
@@ -43,7 +43,7 @@ Trust rules for `skill_load` can use version-specific patterns (e.g., `skill_loa
 
 The `computeSkillVersionHash(directoryPath)` function computes a deterministic SHA-256 hash of a skill directory:
 
-1. All files under the skill directory are collected recursively, excluding transient entries (`node_modules`, `.git`, `__pycache__`, `.DS_Store`, `.vellum-skill-run`).
+1. All files under the skill directory are collected recursively, excluding transient entries (`node_modules`, `.git`, `__pycache__`, `.DS_Store`, `.max-skill-run`).
 2. Files are sorted by relative path to ensure deterministic ordering regardless of filesystem traversal order.
 3. For each file: the normalized relative path, a null byte, the file content length, a null byte, the full file content, and a newline are fed into the hash.
 4. The result is a canonical string: `v1:<hex-sha256>`.
@@ -68,7 +68,7 @@ Version-specific rules are more secure but require re-approval after every skill
 
 Writing to skill source files is treated as a **high-risk** operation by the risk classifier. The `isSkillSourcePath()` function detects whether a file path falls under any known skill directory:
 
-- **Managed skills**: `~/.vellum/workspace/skills/`
+- **Managed skills**: `~/.max/workspace/skills/`
 - **Bundled skills**: The application's built-in `bundled-skills/` directory
 - **Workspace skills**: Project-local skill directories
 - **Extra skills**: Additional roots configured by the user
@@ -116,7 +116,7 @@ Tools can execute in two contexts:
 
 | Target    | Description                                                                            |
 | --------- | -------------------------------------------------------------------------------------- |
-| `sandbox` | Isolated execution within `~/.vellum/workspace` (Docker container or OS-level sandbox) |
+| `sandbox` | Isolated execution within `~/.max/workspace` (Docker container or OS-level sandbox) |
 | `host`    | Direct execution on the host machine                                                   |
 
 Trust rules can include an `executionTarget` field to bind the rule to a specific context. A rule without `executionTarget` matches both sandbox and host invocations.
@@ -151,7 +151,7 @@ At the default threshold (`"low"`), `skill_load` may be auto-allowed by system d
 
 ### "How do I see what trust rules are currently active?"
 
-Trust rules are stored in `~/.vellum/protected/trust.json`. You can inspect this file directly. Rules with `default:` prefixed IDs are system defaults; rules with UUID IDs are user-created.
+Trust rules are stored in `~/.max/protected/trust.json`. You can inspect this file directly. Rules with `default:` prefixed IDs are system defaults; rules with UUID IDs are user-created.
 
 ### "A skill tool keeps prompting even though I approved it."
 
@@ -161,7 +161,7 @@ Check whether the rule has the correct `executionTarget` — a rule scoped to `s
 
 Skills can embed dynamic content by using the **inline command expansion** syntax. When a skill containing these tokens is loaded, each token is executed and replaced with its output before the skill body is delivered to the model. The syntax is shown in the fenced block below.
 
-This syntax is intentionally compatible with the convention established by [inline skill commands](https://x.com) for portable cross-agent skill authoring. Vellum adopts the exact same token format so that externally authored skills load without rewriting — but applies stricter execution constraints.
+This syntax is intentionally compatible with the convention established by [inline skill commands](https://x.com) for portable cross-agent skill authoring. Max adopts the exact same token format so that externally authored skills load without rewriting — but applies stricter execution constraints.
 
 ### Syntax
 

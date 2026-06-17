@@ -1,11 +1,11 @@
 /**
- * Smoke tests for the workspace-level `@vellumai/plugin-api` shim.
+ * Smoke tests for the workspace-level `@maxai/plugin-api` shim.
  *
- *   - shim files are materialized at `<workspaceDir>/node_modules/@vellumai/plugin-api/`
+ *   - shim files are materialized at `<workspaceDir>/node_modules/@maxai/plugin-api/`
  *   - the shim's index.js re-binds each runtime export from globalThis
  *   - the shim is idempotent across re-runs
  *   - a fake plugin in `<workspaceDir>/plugins/<name>/` can resolve the
- *     bare `@vellumai/plugin-api` specifier via Node-style walk-up,
+ *     bare `@maxai/plugin-api` specifier via Node-style walk-up,
  *     proving the end-to-end import path works for real user plugins
  *
  * As plugin-api's runtime surface grows in follow-up PRs, the shim's
@@ -28,16 +28,16 @@ import {
   ensurePluginApiShim,
 } from "../plugins/ensure-plugin-api-shim.js";
 
-const SHIM_REL_PATH = "node_modules/@vellumai/plugin-api";
+const SHIM_REL_PATH = "node_modules/@maxai/plugin-api";
 
 describe("buildShimSource", () => {
   test("emits a globalThis trampoline + one binding per export", () => {
     const source = buildShimSource(
       ["foo", "bar"],
-      Symbol.for("vellum.plugin-api.v1"),
+      Symbol.for("max.plugin-api.v1"),
     );
     expect(source).toBe(
-      `const api = globalThis[Symbol.for("vellum.plugin-api.v1")];\n` +
+      `const api = globalThis[Symbol.for("max.plugin-api.v1")];\n` +
         `export const foo = api.foo;\n` +
         `export const bar = api.bar;\n`,
     );
@@ -46,16 +46,16 @@ describe("buildShimSource", () => {
   test("handles an empty export list (today's types-only surface)", () => {
     const source = buildShimSource(
       [],
-      Symbol.for("vellum.plugin-api.v1"),
+      Symbol.for("max.plugin-api.v1"),
     );
     expect(source).toBe(
-      `const api = globalThis[Symbol.for("vellum.plugin-api.v1")];\n`,
+      `const api = globalThis[Symbol.for("max.plugin-api.v1")];\n`,
     );
   });
 });
 
 describe("ensurePluginApiShim", () => {
-  test("creates a resolvable @vellumai/plugin-api package under workspaceDir", async () => {
+  test("creates a resolvable @maxai/plugin-api package under workspaceDir", async () => {
     const workspaceDir = await mkdtemp(join(tmpdir(), "plugin-api-shim-"));
     await ensurePluginApiShim({ workspaceDir });
 
@@ -66,7 +66,7 @@ describe("ensurePluginApiShim", () => {
     const pkg = JSON.parse(
       await readFile(join(shimDir, "package.json"), "utf8"),
     );
-    expect(pkg.name).toBe("@vellumai/plugin-api");
+    expect(pkg.name).toBe("@maxai/plugin-api");
     expect(pkg.type).toBe("module");
     expect(pkg.main).toBe("./index.js");
     expect(typeof pkg.version).toBe("string");
@@ -102,7 +102,7 @@ describe("ensurePluginApiShim", () => {
     expect(Array.isArray(PLUGIN_API_EXPORTS)).toBe(true);
   });
 
-  test("a fake user plugin can resolve @vellumai/plugin-api via Node-style walk-up", async () => {
+  test("a fake user plugin can resolve @maxai/plugin-api via Node-style walk-up", async () => {
     const workspaceDir = await mkdtemp(join(tmpdir(), "plugin-api-shim-"));
     await ensurePluginApiShim({ workspaceDir });
 
@@ -110,11 +110,11 @@ describe("ensurePluginApiShim", () => {
     await mkdir(pluginDir, { recursive: true });
     await writeFile(
       join(pluginDir, "register.js"),
-      `import * as api from "@vellumai/plugin-api";\nexport { api };\n`,
+      `import * as api from "@maxai/plugin-api";\nexport { api };\n`,
     );
 
     // Resolution walks up: plugins/fake-plugin → plugins → workspaceDir
-    // → workspaceDir/node_modules/@vellumai/plugin-api → shim → globalThis
+    // → workspaceDir/node_modules/@maxai/plugin-api → shim → globalThis
     // → plugin-api namespace. If any link in that chain is broken, this
     // import throws.
     const mod: { api: Record<string, unknown> } = await import(

@@ -31,7 +31,7 @@ const isRepoRoot = existsSync(join(process.cwd(), "test-preload.ts"));
 
 if (isRepoRoot) {
   const testRoot = realpathSync(
-    mkdtempSync(join(tmpdir(), "vellum-root-test-")),
+    mkdtempSync(join(tmpdir(), "max-root-test-")),
   );
   const workspaceDir = join(testRoot, "workspace");
   const gatewaySecurityDir = join(testRoot, "gateway-security");
@@ -39,7 +39,7 @@ if (isRepoRoot) {
   mkdirSync(workspaceDir, { recursive: true });
   mkdirSync(gatewaySecurityDir, { recursive: true });
 
-  process.env.VELLUM_WORKSPACE_DIR = workspaceDir;
+  process.env.MAX_WORKSPACE_DIR = workspaceDir;
   process.env.GATEWAY_SECURITY_DIR = gatewaySecurityDir;
   delete process.env.CES_CREDENTIAL_URL;
   delete process.env.CES_SERVICE_TOKEN;

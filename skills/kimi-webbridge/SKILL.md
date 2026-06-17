@@ -1,10 +1,10 @@
 ---
 name: kimi-webbridge
 description: Control the user's REAL browser (their logged-in sessions) — navigate, read via accessibility snapshot, click, fill, screenshot, evaluate JS, save PDF. Use whenever a task needs a real browser or the user's existing logins. Precise: targets elements by stable @e refs from snapshot, not pixels.
-compatibility: "Designed for Vellum personal assistants; requires the kimi-webbridge daemon + browser extension"
+compatibility: "Designed for Max personal assistants; requires the kimi-webbridge daemon + browser extension"
 metadata:
   emoji: "🧭"
-  vellum:
+  max:
     display-name: "Web Bridge (real browser)"
     user-invocable: true
 ---

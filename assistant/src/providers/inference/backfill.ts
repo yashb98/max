@@ -193,7 +193,7 @@ function ensureProviderConnection(
         {
           connectionName,
           provider,
-          credential: isKeyless ? null : credName,
+          credential: isVaultless ? null : credName,
         },
         "Created personal connection during backfill",
       );

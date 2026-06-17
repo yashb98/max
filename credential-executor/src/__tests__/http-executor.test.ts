@@ -24,7 +24,7 @@ import {
   localStaticHandle,
   localOAuthHandle,
   platformOAuthHandle,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 import {
   type OAuthConnectionRecord,
   type SecureKeyBackend,
@@ -33,7 +33,7 @@ import {
   StaticCredentialMetadataStore,
   oauthConnectionAccessTokenPath,
   credentialKey,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import {
   executeAuthenticatedHttpRequest,
@@ -610,13 +610,13 @@ describe("HTTP executor: platform_oauth handles", () => {
     const deps = buildDeps(fixture, [], {
       fetch: platformCatalogFetch,
       managedSubjectOptions: {
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantApiKey: "test-api-key",
         assistantId: "test-assistant-id",
         fetch: platformCatalogFetch,
       },
       managedMaterializerOptions: {
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantApiKey: "test-api-key",
         assistantId: "test-assistant-id",
         fetch: platformCatalogFetch,

@@ -16,7 +16,7 @@ export interface NotificationIntent {
   targetGuardianPrincipalId?: string;
 }
 
-/** Server push — broadcast when a notification creates a new vellum conversation. */
+/** Server push — broadcast when a notification creates a new max conversation. */
 export interface NotificationConversationCreated {
   type: "notification_conversation_created";
   conversationId: string;

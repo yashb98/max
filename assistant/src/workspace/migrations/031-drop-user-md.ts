@@ -145,17 +145,17 @@ export const dropUserMdMigration: WorkspaceMigration = {
   run(workspaceDir: string): void {
     const userMdPath = join(workspaceDir, "USER.md");
 
-    // Resolve the guardian contact. Prefer the vellum-channel binding
+    // Resolve the guardian contact. Prefer the max-channel binding
     // (the canonical local/native guardian); fall back to whichever
     // guardian has the most recently verified active channel.
     let guardian: { id: string; displayName: string; userFile: string | null };
     try {
-      const vellumGuardian = findGuardianForChannel("vellum");
-      if (vellumGuardian) {
+      const maxGuardian = findGuardianForChannel("max");
+      if (maxGuardian) {
         guardian = {
-          id: vellumGuardian.contact.id,
-          displayName: vellumGuardian.contact.displayName,
-          userFile: vellumGuardian.contact.userFile ?? null,
+          id: maxGuardian.contact.id,
+          displayName: maxGuardian.contact.displayName,
+          userFile: maxGuardian.contact.userFile ?? null,
         };
       } else {
         const anyGuardian = listGuardianChannels();

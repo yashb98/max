@@ -256,7 +256,7 @@ console.log("");
 
 console.log("==> Setting up Docker Buildx");
 
-const BUILDER_NAME = "vellum-staging-multiarch";
+const BUILDER_NAME = "max-staging-multiarch";
 try {
   run(`docker buildx inspect ${BUILDER_NAME}`);
   console.log(`  Using existing buildx builder: ${BUILDER_NAME}`);

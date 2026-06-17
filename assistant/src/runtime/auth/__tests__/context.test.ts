@@ -6,8 +6,8 @@ import type { TokenClaims } from "../types.js";
 
 function validClaims(overrides?: Partial<TokenClaims>): TokenClaims {
   return {
-    iss: "vellum-auth",
-    aud: "vellum-daemon",
+    iss: "max-auth",
+    aud: "max-daemon",
     sub: "actor:self:principal-abc",
     scope_profile: "actor_client_v1",
     exp: Math.floor(Date.now() / 1000) + 300,
@@ -70,7 +70,7 @@ describe("buildAuthContext", () => {
     // Token sub contains an external assistant ID, but audience is daemon
     const result = buildAuthContext(
       validClaims({
-        aud: "vellum-daemon",
+        aud: "max-daemon",
         sub: "actor:external-assistant-xyz:principal-abc",
       }),
     );
@@ -87,7 +87,7 @@ describe("buildAuthContext", () => {
   test("gateway-audience token preserves assistantId from sub", () => {
     const result = buildAuthContext(
       validClaims({
-        aud: "vellum-gateway",
+        aud: "max-gateway",
         sub: "actor:external-assistant-xyz:principal-abc",
       }),
     );
@@ -102,7 +102,7 @@ describe("buildAuthContext", () => {
   test("daemon-audience svc:gateway sub also forces assistantId to self", () => {
     const result = buildAuthContext(
       validClaims({
-        aud: "vellum-daemon",
+        aud: "max-daemon",
         sub: "svc:gateway:external-id",
         scope_profile: "gateway_ingress_v1",
       }),

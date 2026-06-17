@@ -134,7 +134,7 @@ export function seedSkillGraphNodes(): void {
       }
     } else {
       for (const entry of cachedCatalog) {
-        const flagKey = entry.metadata?.vellum?.["feature-flag"];
+        const flagKey = entry.metadata?.max?.["feature-flag"];
         if (flagKey && !isAssistantFeatureFlagEnabled(flagKey, config))
           continue;
         seenKeys.add(`${SKILL_SOURCE_PREFIX}${entry.id}`);
@@ -190,7 +190,7 @@ export async function seedUninstalledCatalogSkillMemories(): Promise<void> {
     for (const entry of fullCatalog) {
       if (installedIds.has(entry.id)) continue;
 
-      const flagKey = entry.metadata?.vellum?.["feature-flag"];
+      const flagKey = entry.metadata?.max?.["feature-flag"];
       if (flagKey && !isAssistantFeatureFlagEnabled(flagKey, config)) continue;
 
       upsertSkillCapabilityNode(entry.id, fromCatalogSkill(entry));

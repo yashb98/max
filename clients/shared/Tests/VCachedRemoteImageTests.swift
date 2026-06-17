@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 final class VCachedRemoteImageTests: XCTestCase {
 
@@ -27,7 +27,7 @@ final class VCachedRemoteImageTests: XCTestCase {
     }
 
     /// `VRemoteImageCache` is expected to place its on-disk cache under
-    /// `Caches/VellumRemoteImages`. `URLCache` does not publicly expose
+    /// `Caches/MaxRemoteImages`. `URLCache` does not publicly expose
     /// its backing directory, so we can only verify the expected path
     /// resolves inside the user's Caches folder.
     func testExpectedCacheDirectoryIsUnderUserCaches() {
@@ -36,11 +36,11 @@ final class VCachedRemoteImageTests: XCTestCase {
             .first
         XCTAssertNotNil(cachesDir, "User should have a Caches directory")
 
-        let expected = cachesDir?.appendingPathComponent("VellumRemoteImages", isDirectory: true)
-        XCTAssertNotNil(expected, "Expected VellumRemoteImages subdirectory path to resolve")
+        let expected = cachesDir?.appendingPathComponent("MaxRemoteImages", isDirectory: true)
+        XCTAssertNotNil(expected, "Expected MaxRemoteImages subdirectory path to resolve")
         XCTAssertTrue(
-            expected?.path.contains("/Caches/VellumRemoteImages") == true,
-            "Expected cache directory path to live under Caches/VellumRemoteImages, got: \(expected?.path ?? "<nil>")"
+            expected?.path.contains("/Caches/MaxRemoteImages") == true,
+            "Expected cache directory path to live under Caches/MaxRemoteImages, got: \(expected?.path ?? "<nil>")"
         )
     }
 

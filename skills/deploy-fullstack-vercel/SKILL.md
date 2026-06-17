@@ -1,82 +1,82 @@
 ---
 name: deploy-fullstack-vercel
-description: Build and deploy a full-stack app (React frontend + Python/FastAPI backend) or a Vellum app to Vercel as a serverless demo with seeded data
-compatibility: "Designed for Vellum personal assistants"
+description: Build and deploy a full-stack app (React frontend + Python/FastAPI backend) or a Max app to Vercel as a serverless demo with seeded data
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🚀"
-  vellum:
+  max:
     display-name: "Deploy Fullstack to Vercel"
 ---
 
 # Deploy Fullstack to Vercel
 
-Deploy a full-stack app with a React/Vite frontend and Python/FastAPI backend to Vercel as a serverless demo, OR deploy a Vellum-built app from the library. No auth required - meant for demos, portfolio pieces, and quick showcases.
+Deploy a full-stack app with a React/Vite frontend and Python/FastAPI backend to Vercel as a serverless demo, OR deploy a Max-built app from the library. No auth required - meant for demos, portfolio pieces, and quick showcases.
 
 ## When to Use
 
 - User says "deploy this to Vercel", "host this", "publish this"
 - User has a project with a frontend + backend they want live
-- User wants to deploy a Vellum app that uses backend features (data store, custom routes)
+- User wants to deploy a Max app that uses backend features (data store, custom routes)
 - User wants a quick demo deployment (no persistent database needed)
 
 ## Authentication
 
-### Vellum App Publishing
+### Max App Publishing
 
-For publishing Vellum apps from the library, use the built-in `publish_page` tool. This is the preferred path — it uses the stored Vercel API token (`vercel/api_token`) via the brokered publish flow without exposing the token to shell commands.
+For publishing Max apps from the library, use the built-in `publish_page` tool. This is the preferred path — it uses the stored Vercel API token (`vercel/api_token`) via the brokered publish flow without exposing the token to shell commands.
 
 **The stored Vercel API token is reserved for brokered `publish_page` and `unpublish_page` actions only.** Do not pass it to `bash`, `curl`, Vercel CLI commands, or proxy credential injection. Do not use `network_mode: "proxied"` with `credential_ids` for Vercel deployments.
 
 ### Custom Full-Stack Deployments
 
-For custom projects that need Vercel deployment (not Vellum app publishing):
+For custom projects that need Vercel deployment (not Max app publishing):
 
 1. Install the Vercel CLI with `bun install -g vercel` (not npm — npm is not available in the sandbox).
 2. Use `vercel login` to authenticate interactively (opens browser for the user).
 3. If the user does not want to use CLI auth, stop and ask them for an approved deployment path. Do not extract, inject, or shell with the stored API token.
 
-## Deploying a Vellum App
+## Deploying a Max App
 
-When the user asks to deploy a Vellum app from their library (from `/workspace/data/apps/<app-name>/`):
+When the user asks to deploy a Max app from their library (from `/workspace/data/apps/<app-name>/`):
 
-### 1. Detect Vellum Bridge Usage
+### 1. Detect Max Bridge Usage
 
-Check the compiled app for Vellum bridge API usage:
+Check the compiled app for Max bridge API usage:
 
 ```bash
-grep -l "window\.vellum\.\|vellum\.fetch\|vellum\.data\|vellum\.sendAction" /workspace/data/apps/<app-name>/dist/*.js /workspace/data/apps/<app-name>/dist/*.html 2>/dev/null
+grep -l "window\.max\.\|max\.fetch\|max\.data\|max\.sendAction" /workspace/data/apps/<app-name>/dist/*.js /workspace/data/apps/<app-name>/dist/*.html 2>/dev/null
 ```
 
-If found, the app depends on the Vellum bridge and needs a shim to work standalone.
+If found, the app depends on the Max bridge and needs a shim to work standalone.
 
-### 2. Create Vellum Bridge Shim
+### 2. Create Max Bridge Shim
 
-The app uses `window.vellum.*` APIs that are normally injected by the Vellum viewer. For standalone deployment, create a `vellum-shim.js` file in the app's `dist/` directory that provides browser-native replacements.
+The app uses `window.max.*` APIs that are normally injected by the Max viewer. For standalone deployment, create a `max-shim.js` file in the app's `dist/` directory that provides browser-native replacements.
 
-**Before writing the shim, read the app's compiled JavaScript** (`dist/main.js` or equivalent) to understand exactly which `window.vellum.*` APIs the app calls and what data shapes it expects. The shim must match the app's actual usage — don't guess at signatures.
+**Before writing the shim, read the app's compiled JavaScript** (`dist/main.js` or equivalent) to understand exactly which `window.max.*` APIs the app calls and what data shapes it expects. The shim must match the app's actual usage — don't guess at signatures.
 
 **Common APIs to shim (implement only what the app actually uses):**
 
 | Bridge API                    | Standalone replacement                                | Notes                                                                                                                    |
 | ----------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `vellum.data.query()`         | localStorage-backed store                             | Read the app code to determine the record shape — some apps expect `{id, data: {...}}` wrappers, others use flat records |
-| `vellum.data.create(...)`     | localStorage insert with `crypto.randomUUID()`        | Match the argument signature the app passes (some pass a payload, others pass `{id, ...fields}`)                         |
-| `vellum.data.update(...)`     | localStorage update                                   | Match the argument signature (typically `(id, payload)`)                                                                 |
-| `vellum.data.delete(...)`     | localStorage delete                                   | Typically `(id)`                                                                                                         |
-| `vellum.fetch(path, opts)`    | `console.warn` + return empty success Response        | Custom routes aren't available standalone                                                                                |
-| `vellum.sendAction(id, data)` | No-op with `console.warn`                             | Surface actions aren't available standalone                                                                              |
-| `vellum.openLink(url)`        | `window.open(url, '_blank')`                          |                                                                                                                          |
-| `vellum.widgets.toast(msg)`   | Create a temporary styled `<div>` that auto-dismisses |                                                                                                                          |
-| `vellum.route`                | `null`                                                | Deep-link routes aren't available standalone                                                                             |
+| `max.data.query()`         | localStorage-backed store                             | Read the app code to determine the record shape — some apps expect `{id, data: {...}}` wrappers, others use flat records |
+| `max.data.create(...)`     | localStorage insert with `crypto.randomUUID()`        | Match the argument signature the app passes (some pass a payload, others pass `{id, ...fields}`)                         |
+| `max.data.update(...)`     | localStorage update                                   | Match the argument signature (typically `(id, payload)`)                                                                 |
+| `max.data.delete(...)`     | localStorage delete                                   | Typically `(id)`                                                                                                         |
+| `max.fetch(path, opts)`    | `console.warn` + return empty success Response        | Custom routes aren't available standalone                                                                                |
+| `max.sendAction(id, data)` | No-op with `console.warn`                             | Surface actions aren't available standalone                                                                              |
+| `max.openLink(url)`        | `window.open(url, '_blank')`                          |                                                                                                                          |
+| `max.widgets.toast(msg)`   | Create a temporary styled `<div>` that auto-dismisses |                                                                                                                          |
+| `max.route`                | `null`                                                | Deep-link routes aren't available standalone                                                                             |
 
-**Structure:** Wrap everything in an IIFE that guards against the real bridge: `(function() { if (window.vellum) return; ... })();`
+**Structure:** Wrap everything in an IIFE that guards against the real bridge: `(function() { if (window.max) return; ... })();`
 
 ### 3. Inject the Shim into index.html
 
-Add a `<script src="vellum-shim.js"></script>` tag in `dist/index.html` BEFORE any `<script type="module">` tags:
+Add a `<script src="max-shim.js"></script>` tag in `dist/index.html` BEFORE any `<script type="module">` tags:
 
 ```bash
-sed -i 's|<script type="module"|<script src="vellum-shim.js"></script>\n<script type="module"|' dist/index.html
+sed -i 's|<script type="module"|<script src="max-shim.js"></script>\n<script type="module"|' dist/index.html
 ```
 
 ### 4. Deploy the App
@@ -91,14 +91,14 @@ Create a `vercel.json` in the dist directory:
 {
   "rewrites": [
     {
-      "source": "/((?!main\\.js|main\\.css|vellum-shim\\.js|assets/).*)",
+      "source": "/((?!main\\.js|main\\.css|max-shim\\.js|assets/).*)",
       "destination": "/index.html"
     }
   ]
 }
 ```
 
-Then deploy using the `publish_page` tool (preferred). For Vellum apps, use the built-in app publish flow rather than raw Vercel API calls from shell.
+Then deploy using the `publish_page` tool (preferred). For Max apps, use the built-in app publish flow rather than raw Vercel API calls from shell.
 
 ## Deploying a Custom Full-Stack Project
 
@@ -250,7 +250,7 @@ curl -s <deployed-url>/api/health
 | Module imports in routers   | Use `sys.path.insert(0, os.path.dirname(__file__))` in index.py          |
 | CORS                        | Set `allow_origins=["*"]` for demo deployments                           |
 | `--name` flag deprecated    | Don't use `--name` with Vercel CLI, just deploy from the directory       |
-| Vellum bridge APIs          | Use the vellum-shim.js to provide localStorage-backed data + no-op stubs |
+| Max bridge APIs          | Use the max-shim.js to provide localStorage-backed data + no-op stubs |
 | npm not available           | Use `bun install -g vercel` to install Vercel CLI in sandbox             |
 
 ## Vercel CLI Quick Reference

@@ -168,7 +168,7 @@ export function createOrReuseToolGrantRequest(
     onConversationCreated: (info) => {
       createCanonicalGuardianDelivery({
         requestId: canonicalRequest.id,
-        destinationChannel: "vellum",
+        destinationChannel: "max",
         destinationConversationId: info.conversationId,
       });
     },
@@ -177,7 +177,7 @@ export function createOrReuseToolGrantRequest(
   // Record deliveries from the notification pipeline results (fire-and-forget).
   void signalPromise.then((signalResult) => {
     for (const result of signalResult.deliveryResults) {
-      if (result.channel === "vellum") continue; // handled in onConversationCreated
+      if (result.channel === "max") continue; // handled in onConversationCreated
       createCanonicalGuardianDelivery({
         requestId: canonicalRequest.id,
         destinationChannel: result.channel,

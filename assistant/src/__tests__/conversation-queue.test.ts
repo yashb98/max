@@ -1951,7 +1951,7 @@ describe("Conversation checkpoint handoff", () => {
       "req-D",
       undefined,
       undefined,
-      meta("vellum"),
+      meta("max"),
     );
     expect(conversation.getQueueDepth()).toBe(3);
 
@@ -2188,7 +2188,7 @@ describe("Conversation host attachment directives", () => {
   });
 
   test("host attachment prompts and resolves when user allows", async () => {
-    const hostPath = "/tmp/vellum-host-attachment-allow.txt";
+    const hostPath = "/tmp/max-host-attachment-allow.txt";
     writeFileSync(hostPath, "host attachment content");
 
     try {
@@ -2211,7 +2211,7 @@ describe("Conversation host attachment directives", () => {
         content: [
           {
             type: "text",
-            text: `Here is your file.\n<vellum-attachment source="host" path="${hostPath}" />`,
+            text: `Here is your file.\n<max-attachment source="host" path="${hostPath}" />`,
           },
         ],
       };
@@ -2257,7 +2257,7 @@ describe("Conversation host attachment directives", () => {
   });
 
   test("host attachment denial is non-fatal and emits warning text", async () => {
-    const hostPath = "/tmp/vellum-host-attachment-deny.txt";
+    const hostPath = "/tmp/max-host-attachment-deny.txt";
     writeFileSync(hostPath, "host attachment content");
 
     try {
@@ -2280,7 +2280,7 @@ describe("Conversation host attachment directives", () => {
         content: [
           {
             type: "text",
-            text: `Here is your file.\n<vellum-attachment source="host" path="${hostPath}" />`,
+            text: `Here is your file.\n<max-attachment source="host" path="${hostPath}" />`,
           },
         ],
       };

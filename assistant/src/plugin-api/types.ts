@@ -2,7 +2,7 @@
  * Public plugin-API types.
  *
  * This module is the entry point plugin authors land on when they import
- * from `@vellumai/plugin-api`. The shapes here are the canonical public
+ * from `@maxai/plugin-api`. The shapes here are the canonical public
  * contract — anything exported is part of the surface that semver gates.
  *
  * ## Tool-execution types
@@ -27,7 +27,7 @@
  *
  * Adding fields to any public shape is non-breaking. Renaming or
  * removing fields is breaking and gated on a major bump of
- * `@vellumai/plugin-api`.
+ * `@maxai/plugin-api`.
  */
 
 // ─── Tool-execution types (re-exported from daemon source-of-truth) ──────────
@@ -77,7 +77,7 @@ export interface PluginInitContext {
   /**
    * Assistant semver. Plugins can compare against this for defensive
    * runtime checks — but the canonical compat contract is the host
-   * version against the plugin's `peerDependencies["@vellumai/plugin-api"]`
+   * version against the plugin's `peerDependencies["@maxai/plugin-api"]`
    * semver range, enforced at load time by the external-plugin loader.
    */
   assistantVersion: string;

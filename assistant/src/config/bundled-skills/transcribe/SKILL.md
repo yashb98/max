@@ -1,10 +1,10 @@
 ---
 name: transcribe
 description: Transcribe audio and video files using the configured speech-to-text provider
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎙️"
-  vellum:
+  max:
     display-name: "Transcribe"
     activation-hints:
       - "User has an audio or video file on disk they want converted to text"

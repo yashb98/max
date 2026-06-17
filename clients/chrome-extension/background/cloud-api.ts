@@ -1,9 +1,9 @@
 /**
- * Centralized HTTP client for vellum-cloud platform API calls.
+ * Centralized HTTP client for max-cloud platform API calls.
  *
  * All authenticated requests to the platform (Django) go through
  * `cloudApiFetch()`, which automatically includes:
- *   - `Vellum-Organization-Id` header (from the stored CloudSession)
+ *   - `Max-Organization-Id` header (from the stored CloudSession)
  *   - `X-Session-Token` header (allauth headless session token)
  *   - `Accept: application/json`
  *
@@ -40,7 +40,7 @@ export async function cloudApiFetch(
   // Inject org header from the stored session unless explicitly skipped.
   // The /v1/organizations/ endpoint must skip this (bootstrap call).
   if (!init?.skipOrgHeader && storedSession?.organizationId) {
-    headers["Vellum-Organization-Id"] = storedSession.organizationId;
+    headers["Max-Organization-Id"] = storedSession.organizationId;
   }
 
   // XSessionTokenAuthentication (BaseAuthentication) doesn't enforce CSRF,

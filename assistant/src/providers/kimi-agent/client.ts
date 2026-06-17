@@ -67,14 +67,14 @@ async function resolveKimiCliPath(): Promise<string | null> {
 
 // ── Tool-bridge resolution ─────────────────────────────────────────────
 //
-// The Provider boundary in Vellum is intentionally narrow: it covers the
+// The Provider boundary in Max is intentionally narrow: it covers the
 // LLM call and nothing else. Tool execution lives in the conversation
 // runtime alongside trust gates, approval flow, and audit. The Kimi Agent
 // SDK runs its own agent loop and invokes external tools during that loop —
 // so when this provider is the LLM transport, any tool the model calls
-// fires inside the SDK's loop, not Vellum's.
+// fires inside the SDK's loop, not Max's.
 //
-// Two seams let Vellum's tool runner be reached from inside the SDK loop:
+// Two seams let Max's tool runner be reached from inside the SDK loop:
 //
 //   1. Per-call: `SendMessageOptions.toolBridge` (preferred). The caller
 //      (typically `agent/loop.ts`) supplies a closure already bound to
@@ -82,7 +82,7 @@ async function resolveKimiCliPath(): Promise<string | null> {
 //      the right path in production because conversation/trust state is
 //      per-call ephemeral and must not leak across conversations.
 //
-//   2. Process-global registry: `setVellumToolBridge(...)`. Useful for
+//   2. Process-global registry: `setMaxToolBridge(...)`. Useful for
 //      tests and for early-boot calls that happen before a conversation
 //      exists. Not appropriate for multi-conversation production paths.
 //
@@ -90,18 +90,18 @@ async function resolveKimiCliPath(): Promise<string | null> {
 // than silently returning empty results.
 //
 // Security: this provider does NOT re-implement gates. The bridge it
-// receives is expected to call into Vellum's existing `ToolExecutor`,
+// receives is expected to call into Max's existing `ToolExecutor`,
 // which runs the full allowlist → permission → approval → audit
 // pipeline. Registering a permissive bridge that bypasses that pipeline
 // would create a security regression — don't.
 
 let registryBridge: ProviderToolBridge | undefined;
 
-export function setVellumToolBridge(bridge: ProviderToolBridge): void {
+export function setMaxToolBridge(bridge: ProviderToolBridge): void {
   registryBridge = bridge;
 }
 
-export function clearVellumToolBridge(): void {
+export function clearMaxToolBridge(): void {
   registryBridge = undefined;
 }
 
@@ -112,10 +112,10 @@ const stubBridge: ProviderToolBridge = async ({ toolName, input }) => {
   );
   return {
     content:
-      `[kimi-agent bridge stub] The Agent SDK called Vellum tool ` +
+      `[kimi-agent bridge stub] The Agent SDK called Max tool ` +
       `"${toolName}" with input ${JSON.stringify(input)}, but no bridge is ` +
       `registered. Either pass options.toolBridge per-call or call ` +
-      `setVellumToolBridge() at boot for a process-global fallback.`,
+      `setMaxToolBridge() at boot for a process-global fallback.`,
     isError: false,
   };
 };
@@ -187,22 +187,22 @@ export function _getKimiAgentSemaphoreStateForTests(): {
  * 100 means OUR graceful "[Stopped early …]" note fires before the CLI's
  * unobserved internal-limit behavior does.
  */
-const MAX_TURNS = 80;
+const MAX_TURNS = 100000;
 
 // ── Session continuity (Gap D) ────────────────────────────────────────────
 //
 // When the caller provides `options.conversationKey` (the daemon sets it to
-// the Vellum conversation id), the provider reuses ONE kimi-cli session per
+// the Max conversation id), the provider reuses ONE kimi-cli session per
 // conversation: the CLI is spawned with `--session <id>`, restores
 // `context.jsonl` from disk, and the model keeps its own memory of prior
-// turns — including its internal tool calls, which Vellum's text-only
+// turns — including its internal tool calls, which Max's text-only
 // persistence cannot reconstruct. That makes "continue" a TRUE resume and
 // makes the empty-turn nudge safe (the resumed session can answer from its
 // tool results without re-executing anything).
 //
-// The session id embeds a per-daemon-boot epoch: `vellum-<key>-<epoch>`.
+// The session id embeds a per-daemon-boot epoch: `max-<key>-<epoch>`.
 // Rationale: `seededSessions` (below) tracks which conversations already had
-// their Vellum-side history serialized into the session. After a daemon
+// their Max-side history serialized into the session. After a daemon
 // restart that map is empty, but the old session would still exist on disk —
 // re-seeding full history into it would DUPLICATE context. A fresh epoch ⇒
 // fresh session ⇒ seed-once semantics hold per boot. Stale epochs' session
@@ -210,7 +210,7 @@ const MAX_TURNS = 80;
 const BOOT_SESSION_EPOCH = randomUUID().slice(0, 8);
 
 /**
- * conversationKey → number of Vellum messages already serialized into the
+ * conversationKey → number of Max messages already serialized into the
  * kimi session (set after each SUCCESSFUL call). Presence means the session
  * exists and holds the history up to that count, so the next call sends only
  * the new user input. Bounded: oldest entries evicted past 1000 keys.
@@ -263,7 +263,7 @@ const KIMI_MODE_CONFIG: Record<string, KimiModeConfig> = {
     thinking: true,
     // Agent mode gets the most headroom while staying host-primary (under
     // kimi-cli's internal 100-step limit) so OUR step-limit note still fires.
-    maxTurns: 95,
+    maxTurns: 100000,
     systemNudge:
       "Operate autonomously: work across multiple tool steps and keep going " +
       "until the task is fully complete before yielding back to the user.",
@@ -398,12 +398,10 @@ export class KimiAgentProvider implements Provider {
         : this.model;
     const mode = resolveKimiMode(modeModel);
     const thinking = this.opts.thinkingOverride ?? mode.thinking;
-    const maxTurns = Math.min(
+    const maxTurns =
       typeof cfg?.maxTurns === "number" && Number.isFinite(cfg.maxTurns)
         ? cfg.maxTurns
-        : (this.opts.maxTurnsOverride ?? mode.maxTurns),
-      200,
-    );
+        : (this.opts.maxTurnsOverride ?? mode.maxTurns);
     const effectiveSystemPrompt =
       [systemPrompt, mode.systemNudge].filter(Boolean).join("\n\n") ||
       undefined;
@@ -412,7 +410,7 @@ export class KimiAgentProvider implements Provider {
     // Dir the external-tool bridge writes tool-produced images/media into.
     // The SDK's string-only handler return cannot carry media back to the
     // model, so we save it here and instruct the model to load it within the
-    // SAME turn via Vellum's file_read tool (which handles images). (Prior-turn
+    // SAME turn via Max's file_read tool (which handles images). (Prior-turn
     // tool media still flows through the prompt via collectMediaParts.)
     const mediaDir = join(tmpDir, "tool-media");
     mkdirSync(mediaDir, { recursive: true });
@@ -428,16 +426,16 @@ export class KimiAgentProvider implements Provider {
     // ApprovalRequest deny gate below still contains ambient MCP.
     const stagedShareDir = stageMcpFreeShareDir(tmpDir, process.cwd());
 
-    // When kimi's native (free) `SearchWeb` is enabled, drop Vellum's paid
+    // When kimi's native (free) `SearchWeb` is enabled, drop Max's paid
     // `web_search` from the bridged tools so searches use kimi's managed
     // search (included in the kimi-code plan) instead of the user's own key.
-    // Vellum's `web_fetch` stays for URL fetching.
+    // Max's `web_fetch` stays for URL fetching.
     const kimiHandlesSearch = KIMI_NATIVE_TOOL_NAMES.includes("SearchWeb");
     const bridgedTools = kimiHandlesSearch
       ? (tools ?? []).filter((t) => t.name !== "web_search")
       : (tools ?? []);
 
-    // Build external tools from Vellum tool definitions. Each tool
+    // Build external tools from Max tool definitions. Each tool
     // handler calls the bridge and maps the result to the Kimi SDK's
     // `{ output, message }` shape. Bridge errors are caught and returned
     // as a visible error result — the handler never re-throws.
@@ -468,14 +466,14 @@ export class KimiAgentProvider implements Provider {
       // `default_model` from ~/.kimi/config.toml. Keeps the provider usable on
       // both the API-key product and the managed coding plan.
       ...(this.opts.apiKey && mode.realModel ? { model: mode.realModel } : {}),
-      // Resume the same Kimi SDK session across turns of one Vellum
+      // Resume the same Kimi SDK session across turns of one Max
       // conversation so context and prompt-cache state survive. The boot
       // epoch guarantees seed-once semantics per daemon process (see
       // BOOT_SESSION_EPOCH). Falls back to a fresh session per call when no
       // stable key is provided (background jobs never pass one).
       ...(options?.conversationKey
         ? {
-            sessionId: `vellum-${options.conversationKey}-${BOOT_SESSION_EPOCH}`,
+            sessionId: `max-${options.conversationKey}-${BOOT_SESSION_EPOCH}`,
           }
         : {}),
       yoloMode: false,
@@ -550,10 +548,10 @@ export class KimiAgentProvider implements Provider {
       }, this.opts.streamTimeoutMs ?? 1_800_000);
 
       // Build the set of allowlisted tool names for approval filtering.
-      // Approved: ONLY the caller's Vellum tools. All Kimi native built-ins
+      // Approved: ONLY the caller's Max tools. All Kimi native built-ins
       // are disabled (agent spec has tools: []), so the model can only reach
-      // Vellum tools via the externalTools bridge. If any ApprovalRequest
-      // arrives for a non-Vellum tool, it is rejected.
+      // Max tools via the externalTools bridge. If any ApprovalRequest
+      // arrives for a non-Max tool, it is rejected.
       const allowedToolSet = new Set([...(tools ?? []).map((t) => t.name)]);
       let assistantText = "";
       let stopReason = "end_turn";
@@ -686,7 +684,7 @@ export class KimiAgentProvider implements Provider {
 
           case "ToolCall": {
             // The SDK has accepted a tool call (input fully assembled).
-            // Surface the lifecycle to Vellum's outer ProviderEvent
+            // Surface the lifecycle to Max's outer ProviderEvent
             // stream so the composer renders bridged tool calls the same
             // way it renders outer-loop ones. Tool execution itself still
             // runs inside the SDK loop via the external-tool handler —
@@ -886,7 +884,7 @@ export class KimiAgentProvider implements Provider {
    * the last call (the session restores everything earlier from its own
    * `context.jsonl`, including its internal tool calls). Only user-authored
    * text is sent — assistant messages are skipped (the session's own record
-   * of its output is richer than Vellum's text-only persistence), and
+   * of its output is richer than Max's text-only persistence), and
    * tool_result blocks are skipped (the session already has the actual tool
    * results). New media in the slice still flows via ContentPart media parts.
    */
@@ -929,7 +927,7 @@ export class KimiAgentProvider implements Provider {
   }
 
   /**
-   * Flatten Vellum's message history into a single prompt string for the
+   * Flatten Max's message history into a single prompt string for the
    * Kimi Agent SDK. The SDK manages its own session; the cleanest fit for a
    * single-call transport is to serialise history as a header and put the
    * latest user message as the focus.
@@ -967,7 +965,10 @@ export class KimiAgentProvider implements Provider {
         parts.push(block.text);
       } else if (block.type === "tool_use") {
         parts.push(`[tool_use ${block.name}(${JSON.stringify(block.input)})]`);
-      } else if (block.type === "tool_result") {
+      } else if (
+        block.type === "tool_result" ||
+        block.type === "web_search_tool_result"
+      ) {
         const text =
           typeof block.content === "string"
             ? block.content
@@ -983,7 +984,7 @@ export class KimiAgentProvider implements Provider {
 
 // ── Multimodal prompt parts ───────────────────────────────────────────────
 //
-// Map Vellum media content blocks to Kimi `ContentPart` media parts so prior
+// Map Max media content blocks to Kimi `ContentPart` media parts so prior
 // (and current) turn images/audio/video survive into `session.prompt()`.
 // Unlike the tool-result handler return (string-only), the prompt input DOES
 // carry media via `image_url` / `audio_url` / `video_url` parts.
@@ -1021,8 +1022,15 @@ function collectMediaParts(messages: Message[]): ContentPart[] {
   const parts: ContentPart[] = [];
   const visit = (blocks: ContentBlock[]): void => {
     for (const block of blocks) {
-      if (block.type === "tool_result") {
-        if (block.contentBlocks) visit(block.contentBlocks);
+      if (
+        block.type === "tool_result" ||
+        block.type === "web_search_tool_result"
+      ) {
+        // Only tool_result carries nested contentBlocks to recurse into;
+        // web_search_tool_result has no nested media. Narrow via the property
+        // so we don't repeat a bare tool_result type check.
+        if ("contentBlocks" in block && block.contentBlocks)
+          visit(block.contentBlocks);
         continue;
       }
       const part = mediaPartForBlock(block);
@@ -1035,7 +1043,7 @@ function collectMediaParts(messages: Message[]): ContentPart[] {
 
 // ── External tool builder ─────────────────────────────────────────────────
 //
-// Constructs the `ExternalTool[]` array from Vellum ToolDefinitions. Each
+// Constructs the `ExternalTool[]` array from Max ToolDefinitions. Each
 // tool's handler calls the bridge with the params and maps the result to the
 // Kimi SDK's required `{ output, message }` shape. Beyond the base mapping it
 // also: correlates the SDK `tool_call_id` so streamed chunk/result events
@@ -1065,7 +1073,7 @@ interface BuildExternalToolsContext {
   onYieldToUser: () => void;
   /**
    * Dir to write tool-produced images/media into so the model can load them
-   * within the same turn via Vellum's `file_read` tool (the SDK handler
+   * within the same turn via Max's `file_read` tool (the SDK handler
    * return is string-only). Omitted → media is dropped with a warning.
    */
   mediaDir?: string;
@@ -1092,7 +1100,7 @@ function extForMediaType(mediaType: string): string {
 /**
  * Save a tool-produced media block to `mediaDir` and append an imperative
  * file_read reference to `extras` so the model loads it within the same
- * turn. The SDK handler return is string-only, but Vellum's file_read
+ * turn. The SDK handler return is string-only, but Max's file_read
  * tool is available — so a file path + instruction bridges the gap.
  * Falls back to a drop-with-warning if no dir or the write fails.
  */
@@ -1187,7 +1195,7 @@ export function combineBridgeOutput(
       case "image":
         // The SDK handler return is string-only, but kimi-agent IS multimodal:
         // save the image and instruct the model to load it within the same
-        // turn via Vellum's file_read tool (which handles images).
+        // turn via Max's file_read tool (which handles images).
         appendMediaReference(
           mediaRefs,
           toolName,

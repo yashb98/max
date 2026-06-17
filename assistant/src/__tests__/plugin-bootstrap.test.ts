@@ -56,12 +56,12 @@ import {
 } from "../plugins/types.js";
 
 // Redirect plugin storage directory creation into a per-process temp tree so
-// the test doesn't touch the developer's real ~/.vellum.
+// the test doesn't touch the developer's real ~/.max.
 const TEST_WORKSPACE_DIR = join(
   tmpdir(),
-  `vellum-plugin-bootstrap-test-${process.pid}`,
+  `max-plugin-bootstrap-test-${process.pid}`,
 );
-process.env.VELLUM_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
+process.env.MAX_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
 
 const fakeConfig = {} as unknown as AssistantConfig;
 const fakeCtx: DaemonContext = {
@@ -210,7 +210,7 @@ describe("plugin bootstrap", () => {
 
   test("version mismatch: external plugin loader rejects when peerDependency unsatisfied", async () => {
     // Host-compat negotiation lives in the external-plugin loader against
-    // `peerDependencies["@vellumai/plugin-api"]`. The registry no longer
+    // `peerDependencies["@maxai/plugin-api"]`. The registry no longer
     // re-validates a manifest-level `requires` block — the loader is the
     // single authoritative point. End-to-end coverage of the loader path
     // lives in `external-plugin-loader.test.ts`; this test asserts the

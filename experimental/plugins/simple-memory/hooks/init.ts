@@ -1,7 +1,7 @@
 /**
  * init hook — hydrates the in-process store from `<pluginStorageDir>/entries.jsonl`.
  *
- * The harness hands us a `PluginInitContext` (from `@vellumai/plugin-api`)
+ * The harness hands us a `PluginInitContext` (from `@maxai/plugin-api`)
  * carrying the per-plugin storage directory and a pino-compatible child
  * logger. We stash the logger in module state so the no-arg `onShutdown`
  * hook can still emit structured logs with full plugin attribution.
@@ -12,7 +12,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import type { PluginInitContext } from "@vellumai/plugin-api";
+import type { PluginInitContext } from "@maxai/plugin-api";
 
 import { type MemoryEntry, setState } from "../src/state.js";
 

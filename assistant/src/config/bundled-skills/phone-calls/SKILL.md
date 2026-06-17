@@ -1,10 +1,10 @@
 ---
 name: phone-calls
 description: "Make outgoing phone calls, receive incoming calls, and pull up past call transcripts"
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📞"
-  vellum:
+  max:
     display-name: "Phone Calls"
     includes:
       - "twilio-setup"

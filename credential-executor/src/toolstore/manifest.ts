@@ -140,8 +140,8 @@ export function validateSourceUrl(sourceUrl: string): string | null {
  * directly from the workspace directory.
  */
 const WORKSPACE_PATH_PATTERNS = [
-  /^~?\/?\.vellum\//,
-  /\/\.vellum\//,
+  /^~?\/?\.max\//,
+  /\/\.max\//,
   /\/workspace\//i,
 ] as const;
 

@@ -946,7 +946,7 @@ export class AnthropicProvider implements Provider {
         // by newer Anthropic models (e.g. Opus 4.7). The SDK's OutputConfig
         // type doesn't yet include it, so we widen to the internal effort
         // union and cast when building mergedOutputConfig. "none" is a
-        // Vellum-wide value meaning "omit the effort param entirely" — we
+        // Max-wide value meaning "omit the effort param entirely" — we
         // skip the output_config.effort field in that case.
         effort?: "none" | "low" | "medium" | "high" | "xhigh" | "max";
         speed?: "standard" | "fast";

@@ -11,7 +11,7 @@ import { describe, it, expect } from "bun:test";
 
 import { handleCredentialRoute } from "../credential-routes.js";
 import type { CredentialRouteDeps } from "../credential-routes.js";
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Helpers

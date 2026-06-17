@@ -59,9 +59,9 @@ describe("events SSE registration — dev-bypass actor translation", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "devbypass-client-001",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-actor-principal-id": "dev-bypass",
+          "x-max-client-id": "devbypass-client-001",
+          "x-max-interface-id": "macos",
+          "x-max-actor-principal-id": "dev-bypass",
         },
         abortSignal: ac.signal,
       },
@@ -87,9 +87,9 @@ describe("events SSE registration — dev-bypass actor translation", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "devbypass-client-002",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-actor-principal-id": "dev-bypass",
+          "x-max-client-id": "devbypass-client-002",
+          "x-max-interface-id": "macos",
+          "x-max-actor-principal-id": "dev-bypass",
         },
         abortSignal: ac.signal,
       },
@@ -117,9 +117,9 @@ describe("events SSE registration — dev-bypass actor translation", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "prod-client-003",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-actor-principal-id": "dev-bypass",
+          "x-max-client-id": "prod-client-003",
+          "x-max-interface-id": "macos",
+          "x-max-actor-principal-id": "dev-bypass",
         },
         abortSignal: ac.signal,
       },
@@ -145,9 +145,9 @@ describe("events SSE registration — dev-bypass actor translation", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "service-client-004",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-actor-principal-id": "service-account-A",
+          "x-max-client-id": "service-client-004",
+          "x-max-interface-id": "macos",
+          "x-max-actor-principal-id": "service-account-A",
         },
         abortSignal: ac.signal,
       },

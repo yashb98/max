@@ -1,7 +1,7 @@
 /**
  * Git-backed version control for user-defined apps.
  *
- * Initializes a git repository in the apps directory (~/.vellum/apps/) and
+ * Initializes a git repository in the apps directory (~/.max/apps/) and
  * commits after every app mutation (create, update, delete, file write/edit).
  * Commits are fire-and-forget -- they never block the caller.
  *

@@ -1,4 +1,4 @@
-import type { ApprovalRequired } from "@vellumai/service-contracts/credential-rpc";
+import type { ApprovalRequired } from "@maxai/service-contracts/credential-rpc";
 import type {
   DiffInfo,
   ExecutionTarget,
@@ -10,7 +10,7 @@ import type {
   ToolExecutionStartEvent,
   ToolPermissionDeniedEvent,
   ToolPermissionPromptEvent,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 import type { InterfaceId } from "../channels/types.js";
 import type { CesClient } from "../credential-execution/client.js";
@@ -34,7 +34,7 @@ export function isDiskPressureCleanupToolName(name: string): boolean {
 
 // ---------------------------------------------------------------------------
 // Re-exports + concrete overlays for types that live in
-// @vellumai/skill-host-contracts.
+// @maxai/skill-host-contracts.
 //
 // The canonical declarations moved into the neutral contracts package as
 // part of the skill-isolation work. This file preserves existing import
@@ -68,8 +68,8 @@ export type {
   ToolExecutionStartEvent,
   ToolPermissionDeniedEvent,
   ToolPermissionPromptEvent,
-} from "@vellumai/skill-host-contracts";
-export { RiskLevel } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+export { RiskLevel } from "@maxai/skill-host-contracts";
 
 // ---------------------------------------------------------------------------
 // Assistant-side concrete overlays
@@ -78,14 +78,14 @@ export { RiskLevel } from "@vellumai/skill-host-contracts";
 /**
  * Public, narrow subset of {@link ToolExecutionResult} that plugin-authored
  * tools are responsible for producing. Re-exported from
- * `@vellumai/plugin-api` as `ToolExecutionResult` — the type name plugin
+ * `@maxai/plugin-api` as `ToolExecutionResult` — the type name plugin
  * authors actually import. The daemon-internal version below extends
  * this and adds runtime-only fields (risk metadata, approval
  * bookkeeping, sensitive-output bindings, etc.) that the executor
  * populates around the call — plugins MUST NOT set those.
  *
  * Adding fields here is a non-breaking change; renaming or removing
- * fields is breaking and gated on a major bump of `@vellumai/plugin-api`.
+ * fields is breaking and gated on a major bump of `@maxai/plugin-api`.
  */
 export interface PluginToolExecutionResult {
   /** Textual result shown to the model in the tool-result block. Empty string is valid. */
@@ -113,7 +113,7 @@ export interface ToolExecutionResult extends PluginToolExecutionResult {
   /**
    * Runtime-internal sensitive output bindings (placeholder -> real value).
    * Populated by the executor when tool output contains
-   * `<vellum-sensitive-output>` directives. The agent loop merges these
+   * `<max-sensitive-output>` directives. The agent loop merges these
    * into a per-run substitution map for deterministic post-generation
    * replacement. MUST NOT be emitted in client-facing events or logs.
    */
@@ -209,7 +209,7 @@ export type ToolLifecycleEventHandler = (
 
 /**
  * Public, narrow subset of {@link ToolContext} handed to plugin-authored
- * tools. Re-exported from `@vellumai/plugin-api` as `ToolContext` — the
+ * tools. Re-exported from `@maxai/plugin-api` as `ToolContext` — the
  * type name plugin authors actually import. The daemon-internal version
  * below extends this and adds host-only fields (CES client, trust class,
  * lifecycle handlers, requester metadata, host-bash proxy, etc.). Plugin
@@ -218,7 +218,7 @@ export type ToolLifecycleEventHandler = (
  * the assignment without a manual cast.
  *
  * Adding fields here is a non-breaking change; renaming or removing
- * fields is breaking and gated on a major bump of `@vellumai/plugin-api`.
+ * fields is breaking and gated on a major bump of `@maxai/plugin-api`.
  */
 export interface PluginToolContext {
   /** Identifier of the conversation this tool invocation belongs to. */

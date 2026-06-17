@@ -101,7 +101,7 @@ function isActorTokenSigningKeyPath(
 ): boolean {
   const signingKeyPaths = Array.from(
     new Set([
-      join(homedir(), ".vellum", "protected", "actor-token-signing-key"),
+      join(homedir(), ".max", "protected", "actor-token-signing-key"),
       join(context.protectedDir, "actor-token-signing-key"),
       join(context.deprecatedDir, "actor-token-signing-key"),
       resolve(workingDir, "deprecated", "actor-token-signing-key"),

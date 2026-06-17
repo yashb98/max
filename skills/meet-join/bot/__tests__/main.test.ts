@@ -155,7 +155,7 @@ function makeDeps(opts: MakeDepsOpts = {}): {
   const defaultEnv = {
     meetUrl: "https://meet.google.com/abc-defg-hij",
     meetingId: "m-1",
-    joinName: "Vellum Bot",
+    joinName: "Max Bot",
     consentMessage: "Hi, I'm an AI assistant listening in.",
     daemonUrl: "http://daemon.local:7000",
     botApiToken: "secret",
@@ -496,7 +496,7 @@ describe("runBot — boot sequence", () => {
     expect(join).toBeDefined();
     if (join && join.type === "join") {
       expect(join.meetingUrl).toBe("https://meet.google.com/abc-defg-hij");
-      expect(join.displayName).toBe("Vellum Bot");
+      expect(join.displayName).toBe("Max Bot");
       expect(join.consentMessage).toBe("Hi, I'm an AI assistant listening in.");
     }
   });

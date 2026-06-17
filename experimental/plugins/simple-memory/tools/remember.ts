@@ -4,7 +4,7 @@
  * Convention: default export is the tool object the harness registers.
  */
 
-import type { ToolContext, ToolExecutionResult } from "@vellumai/plugin-api";
+import type { ToolContext, ToolExecutionResult } from "@maxai/plugin-api";
 
 import { appendEntry, type MemoryEntry, newEntryId } from "../src/state.js";
 

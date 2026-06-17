@@ -47,12 +47,12 @@ const server = http.createServer(async (req, res) => {
         ...process.env,
         PATH: `${process.env.HOME || "/root"}/.npm-global/bin:${process.env.HOME || "/root"}/.local/bin:/usr/local/bin:${process.env.PATH}`,
       };
-      execSync("npm install -g @vellum/openclaw-adapter@latest", {
+      execSync("npm install -g @maxai/openclaw-adapter@latest", {
         encoding: "utf-8",
         timeout: 120000,
         env: npmEnv,
       });
-      const child = spawn("vellum-openclaw-adapter", [], {
+      const child = spawn("max-openclaw-adapter", [], {
         detached: true,
         stdio: "ignore",
         env: npmEnv,

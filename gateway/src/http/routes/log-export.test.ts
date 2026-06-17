@@ -81,7 +81,7 @@ const fetchCesLogExportMock = mock(
   > => ({ ok: false, error: "mock: not configured" }),
 );
 
-mock.module("@vellumai/ces-client/http-log-export", () => ({
+mock.module("@maxai/ces-client/http-log-export", () => ({
   fetchCesLogExport: fetchCesLogExportMock,
 }));
 

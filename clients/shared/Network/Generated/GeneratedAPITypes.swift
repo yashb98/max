@@ -2972,7 +2972,7 @@ public struct ServiceGroupUpdateComplete: Codable, Sendable {
     }
 }
 
-/// Server push — broadcast when a notification creates a new vellum conversation.
+/// Server push — broadcast when a notification creates a new max conversation.
 public struct NotificationConversationCreated: Codable, Sendable {
     public let type: String
     public let conversationId: String
@@ -5296,7 +5296,7 @@ public struct UserMessage: Codable, Sendable {
     public let currentPage: String?
     /// When true, skip the secret-ingress check. Set by the client when the user clicks "Send Anyway".
     public let bypassSecretCheck: Bool?
-    /// Originating channel identifier (e.g. 'vellum'). Defaults to 'vellum' when absent.
+    /// Originating channel identifier (e.g. 'max'). Defaults to 'max' when absent.
     public let channel: String?
     /// Originating interface identifier (e.g. 'macos').
     public let interface: String
@@ -5984,7 +5984,7 @@ public struct ProviderConnection: Codable, Sendable {
     public let label: String?
     public let createdAt: Int
     public let updatedAt: Int
-    /// True for Vellum-managed canonical connections (`anthropic-managed`,
+    /// True for Max-managed canonical connections (`anthropic-managed`,
     /// `openai-managed`, `gemini-managed`). The daemon derives this at
     /// serialize time from its `MANAGED_CONNECTION_NAMES` set; clients use
     /// it to render the read-only badge + view-only editor and to disable

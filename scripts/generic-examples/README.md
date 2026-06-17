@@ -26,9 +26,9 @@ while still enforcing them on your machine.
 
 **Location (macOS/Linux, checked in this order):**
 
-1. `$VELLUM_CONTENT_CHECK_PATTERNS` if set
-2. `$XDG_CONFIG_HOME/vellum-content-check/patterns.json` if `$XDG_CONFIG_HOME` is set
-3. `~/.config/vellum-content-check/patterns.json`
+1. `$MAX_CONTENT_CHECK_PATTERNS` if set
+2. `$XDG_CONFIG_HOME/max-content-check/patterns.json` if `$XDG_CONFIG_HOME` is set
+3. `~/.config/max-content-check/patterns.json`
 
 **Format** — an array of objects:
 

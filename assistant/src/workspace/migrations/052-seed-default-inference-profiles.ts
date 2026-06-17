@@ -32,7 +32,7 @@ import type { WorkspaceMigration } from "./types.js";
  *     continue to win over profiles; `mainAgent` profiles now win over static
  *     call-site defaults because they are the user's chat-model selection.
  *
- * **Skip when `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH` is set.** Like
+ * **Skip when `MAX_DEFAULT_WORKSPACE_CONFIG_PATH` is set.** Like
  * migration 040, a platform-provided default-config overlay (applied
  * after migrations) is the authoritative source for both provider and
  * profile seeds. Skipping here avoids mismatched provider/model pairs.
@@ -42,7 +42,7 @@ export const seedDefaultInferenceProfiles052: WorkspaceMigration = {
   description:
     "Seed default inference profiles (quality-optimized, balanced, cost-optimized) and activeProfile",
   run(workspaceDir: string): void {
-    if (process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH) return;
+    if (process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH) return;
 
     const configPath = join(workspaceDir, "config.json");
 

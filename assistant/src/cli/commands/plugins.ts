@@ -48,7 +48,7 @@ Examples:
       plugins
         .command("install <name>")
         .description(
-          "Install a plugin from vellum-ai/vellum-assistant/experimental/plugins/<name>",
+          "Install a plugin from max-ai/max-assistant/experimental/plugins/<name>",
         )
         .option("--force", "Overwrite an existing install")
         .option(

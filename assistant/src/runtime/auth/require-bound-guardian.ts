@@ -4,7 +4,7 @@ import { httpError } from "../http-errors.js";
 import type { AuthContext } from "./types.js";
 
 /**
- * Verify the actor from AuthContext is the bound guardian for the vellum channel.
+ * Verify the actor from AuthContext is the bound guardian for the max channel.
  * Returns an error Response if not, or null if allowed.
  */
 export function requireBoundGuardian(
@@ -22,7 +22,7 @@ export function requireBoundGuardian(
       403,
     );
   }
-  const guardianResult = findGuardianForChannel("vellum");
+  const guardianResult = findGuardianForChannel("max");
   if (!guardianResult) {
     // No guardian yet — in pre-bootstrap state, allow through
     return null;

@@ -1,5 +1,5 @@
 /**
- * CLI command group: `vellum doordash`
+ * CLI command group: `max doordash`
  *
  * Order food from DoorDash via the command line.
  * All commands output JSON to stdout. Use --json for machine-readable output.

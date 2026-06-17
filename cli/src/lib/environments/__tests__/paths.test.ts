@@ -31,14 +31,14 @@ type EnvironmentDefinition = import("../types.js").EnvironmentDefinition;
 
 const prod: EnvironmentDefinition = {
   name: "production",
-  platformUrl: "https://platform.vellum.ai",
-  webUrl: "https://www.vellum.ai",
+  platformUrl: "https://platform.max.ai",
+  webUrl: "https://www.max.ai",
 };
 
 const dev: EnvironmentDefinition = {
   name: "dev",
-  platformUrl: "https://dev-platform.vellum.ai",
-  webUrl: "https://dev-assistant.vellum.ai",
+  platformUrl: "https://dev-platform.max.ai",
+  webUrl: "https://dev-assistant.max.ai",
 };
 
 const XDG_ENV_VARS = ["XDG_DATA_HOME", "XDG_CONFIG_HOME"] as const;
@@ -65,24 +65,24 @@ describe("path helpers", () => {
   });
 
   describe("getConfigDir", () => {
-    test("production returns ~/.config/vellum/", () => {
-      expect(getConfigDir(prod)).toBe(join(TEST_HOME, ".config", "vellum"));
+    test("production returns ~/.config/max/", () => {
+      expect(getConfigDir(prod)).toBe(join(TEST_HOME, ".config", "max"));
     });
 
-    test("dev returns ~/.config/vellum-dev/", () => {
-      expect(getConfigDir(dev)).toBe(join(TEST_HOME, ".config", "vellum-dev"));
+    test("dev returns ~/.config/max-dev/", () => {
+      expect(getConfigDir(dev)).toBe(join(TEST_HOME, ".config", "max-dev"));
     });
 
     test("respects XDG_CONFIG_HOME for non-prod envs", () => {
       process.env.XDG_CONFIG_HOME = "/custom/config";
-      expect(getConfigDir(dev)).toBe("/custom/config/vellum-dev");
+      expect(getConfigDir(dev)).toBe("/custom/config/max-dev");
     });
 
     test("respects XDG_CONFIG_HOME for production too", () => {
       // Production's XDG config dir already follows XDG conventions, so the
       // standard XDG override applies.
       process.env.XDG_CONFIG_HOME = "/custom/config";
-      expect(getConfigDir(prod)).toBe("/custom/config/vellum");
+      expect(getConfigDir(prod)).toBe("/custom/config/max");
     });
 
     test("respects env.configDirOverride", () => {
@@ -95,13 +95,13 @@ describe("path helpers", () => {
   });
 
   describe("getLockfilePath", () => {
-    test("production returns ~/.vellum.lock.json", () => {
-      expect(getLockfilePath(prod)).toBe(join(TEST_HOME, ".vellum.lock.json"));
+    test("production returns ~/.max.lock.json", () => {
+      expect(getLockfilePath(prod)).toBe(join(TEST_HOME, ".max.lock.json"));
     });
 
-    test("dev returns ~/.config/vellum-dev/lockfile.json", () => {
+    test("dev returns ~/.config/max-dev/lockfile.json", () => {
       expect(getLockfilePath(dev)).toBe(
-        join(TEST_HOME, ".config", "vellum-dev", "lockfile.json"),
+        join(TEST_HOME, ".config", "max-dev", "lockfile.json"),
       );
     });
 
@@ -118,7 +118,7 @@ describe("path helpers", () => {
         ...prod,
         lockfileDirOverride: "/tmp/lock",
       };
-      expect(getLockfilePath(env)).toBe("/tmp/lock/.vellum.lock.json");
+      expect(getLockfilePath(env)).toBe("/tmp/lock/.max.lock.json");
     });
 
     test("non-prod respects lockfileDirOverride (overrides configDir)", () => {
@@ -134,14 +134,14 @@ describe("path helpers", () => {
   describe("getLockfilePaths", () => {
     test("production returns both current and legacy filenames in priority order", () => {
       expect(getLockfilePaths(prod)).toEqual([
-        join(TEST_HOME, ".vellum.lock.json"),
-        join(TEST_HOME, ".vellum.lockfile.json"),
+        join(TEST_HOME, ".max.lock.json"),
+        join(TEST_HOME, ".max.lockfile.json"),
       ]);
     });
 
     test("non-prod returns a single canonical path", () => {
       expect(getLockfilePaths(dev)).toEqual([
-        join(TEST_HOME, ".config", "vellum-dev", "lockfile.json"),
+        join(TEST_HOME, ".config", "max-dev", "lockfile.json"),
       ]);
     });
 
@@ -151,8 +151,8 @@ describe("path helpers", () => {
         lockfileDirOverride: "/tmp/lock",
       };
       expect(getLockfilePaths(env)).toEqual([
-        "/tmp/lock/.vellum.lock.json",
-        "/tmp/lock/.vellum.lockfile.json",
+        "/tmp/lock/.max.lock.json",
+        "/tmp/lock/.max.lockfile.json",
       ]);
     });
 
@@ -171,22 +171,22 @@ describe("path helpers", () => {
   });
 
   describe("getMultiInstanceDir", () => {
-    test("production returns ~/.local/share/vellum/assistants", () => {
+    test("production returns ~/.local/share/max/assistants", () => {
       expect(getMultiInstanceDir(prod)).toBe(
-        join(TEST_HOME, ".local", "share", "vellum", "assistants"),
+        join(TEST_HOME, ".local", "share", "max", "assistants"),
       );
     });
 
-    test("dev returns ~/.local/share/vellum-dev/assistants", () => {
+    test("dev returns ~/.local/share/max-dev/assistants", () => {
       expect(getMultiInstanceDir(dev)).toBe(
-        join(TEST_HOME, ".local", "share", "vellum-dev", "assistants"),
+        join(TEST_HOME, ".local", "share", "max-dev", "assistants"),
       );
     });
 
     test("respects XDG_DATA_HOME", () => {
       process.env.XDG_DATA_HOME = "/custom/data";
       expect(getMultiInstanceDir(dev)).toBe(
-        "/custom/data/vellum-dev/assistants",
+        "/custom/data/max-dev/assistants",
       );
     });
   });

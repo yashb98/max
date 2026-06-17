@@ -70,7 +70,7 @@ function readDaemonTimeouts(): typeof DAEMON_TIMEOUT_DEFAULTS {
 /**
  * Kill the stale daemon recorded in this workspace's PID file, if any.
  * Only targets the exact PID from our PID file — never scans globally —
- * so isolated daemons (e.g., dev instances with a different VELLUM_WORKSPACE_DIR)
+ * so isolated daemons (e.g., dev instances with a different MAX_WORKSPACE_DIR)
  * are never affected.
  */
 function killStaleDaemon(): void {
@@ -83,16 +83,16 @@ function killStaleDaemon(): void {
 
   // Guard against stale PID reuse: if the PID has been recycled by the OS
   // and now belongs to an unrelated process, we must not signal it.
-  if (!isVellumDaemonProcess(pid)) {
+  if (!isMaxDaemonProcess(pid)) {
     log.info(
       { pid },
-      "PID file references a non-vellum process (stale PID reuse) — cleaning up PID file only",
+      "PID file references a non-max process (stale PID reuse) — cleaning up PID file only",
     );
     cleanupPidFile();
     return;
   }
 
-  // The PID file references a live vellum daemon process, but getDaemonStatus()
+  // The PID file references a live max daemon process, but getDaemonStatus()
   // (called earlier in startDaemon) already returns early when the daemon is
   // healthy. If we reach here, the recorded process is alive but non-responsive.
   try {
@@ -114,11 +114,11 @@ function isProcessRunning(pid: number): boolean {
 }
 
 /**
- * Check whether a PID belongs to a vellum daemon process (a bun process
+ * Check whether a PID belongs to a max daemon process (a bun process
  * running the daemon's main.ts). Prevents signaling an unrelated process
  * that reused a stale PID.
  */
-function isVellumDaemonProcess(pid: number): boolean {
+function isMaxDaemonProcess(pid: number): boolean {
   try {
     const cmd = execSync(`ps -ww -p ${pid} -o command=`, {
       encoding: "utf-8",
@@ -220,10 +220,10 @@ async function getDaemonStatus(): Promise<{
   }
   // Guard against stale PID reuse: if the OS recycled the PID and it now
   // belongs to an unrelated process, discard the stale PID file.
-  if (!isVellumDaemonProcess(pid)) {
+  if (!isMaxDaemonProcess(pid)) {
     log.info(
       { pid },
-      "PID file references a non-vellum process (stale PID reuse) — cleaning up",
+      "PID file references a non-max process (stale PID reuse) — cleaning up",
     );
     cleanupPidFile();
     return { running: false };

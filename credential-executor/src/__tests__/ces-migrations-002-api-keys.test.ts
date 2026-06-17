@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { apiKeyToCredentialsMigration } from "../migrations/002-api-keys-to-credentials.js";
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Helpers

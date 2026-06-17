@@ -27,8 +27,8 @@ import type {
   ToolContext,
   ToolDefinition,
   ToolExecutionResult,
-} from "@vellumai/skill-host-contracts";
-import { RiskLevel } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+import { RiskLevel } from "@maxai/skill-host-contracts";
 import { z } from "zod";
 
 import { getMeetConfig } from "../meet-config.js";
@@ -38,7 +38,7 @@ import { MeetSessionManager } from "../daemon/session-manager.js";
 export const MEET_FLAG_KEY = "meet" as const;
 
 /** Fallback assistant name when `IDENTITY.md` has not been written yet. */
-export const DEFAULT_ASSISTANT_NAME = "Vellum";
+export const DEFAULT_ASSISTANT_NAME = "Max";
 
 /**
  * URL shape check for `https://meet.google.com/<xxx-yyyy-zzz>` style links.

@@ -149,7 +149,7 @@ export function buildUpgradeCommitMessage(options: {
 export const CONTAINER_ENV_EXCLUDE_KEYS: ReadonlySet<string> = new Set([
   "CES_SERVICE_TOKEN",
   "GUARDIAN_BOOTSTRAP_SECRET",
-  "VELLUM_ASSISTANT_NAME",
+  "MAX_ASSISTANT_NAME",
   "RUNTIME_HTTP_HOST",
   "PATH",
   "ACTOR_TOKEN_SIGNING_KEY",
@@ -517,7 +517,7 @@ export async function performDockerRollback(
     if (cmp !== null) {
       if (cmp > 0) {
         const msg =
-          "Cannot roll back to a newer version. Use `vellum upgrade` instead.";
+          "Cannot roll back to a newer version. Use `max upgrade` instead.";
         console.error(msg);
         emitCliError("VERSION_DIRECTION", msg);
         process.exit(1);
@@ -601,7 +601,7 @@ export async function performDockerRollback(
 
   // Build extra env vars, excluding keys managed by buildServiceRunArgs
   const envKeysSetByRunArgs = new Set(CONTAINER_ENV_EXCLUDE_KEYS);
-  for (const envVar of ["ANTHROPIC_API_KEY", "VELLUM_PLATFORM_URL"]) {
+  for (const envVar of ["ANTHROPIC_API_KEY", "MAX_PLATFORM_URL"]) {
     if (process.env[envVar]) {
       envKeysSetByRunArgs.add(envVar);
     }

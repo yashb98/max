@@ -16,7 +16,7 @@ mock.module("../util/logger.js", () => ({
 }));
 
 mock.module("../channels/config.js", () => ({
-  getDeliverableChannels: () => ["vellum", "telegram"],
+  getDeliverableChannels: () => ["max", "telegram"],
 }));
 
 mock.module("../contacts/contact-store.js", () => ({
@@ -28,7 +28,7 @@ mock.module("../contacts/contact-store.js", () => ({
 // the barrel.
 
 mock.module("../notifications/adapters/macos.js", () => ({
-  VellumAdapter: class {
+  MaxAdapter: class {
     constructor(_broadcastFn: unknown) {}
   },
 }));
@@ -93,10 +93,10 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
   test("re-persists selectedChannels/reasoningSummary when enforcement changes the decision", async () => {
     const preDecision = {
       shouldNotify: true,
-      selectedChannels: ["vellum"],
-      reasoningSummary: "LLM selected vellum only",
+      selectedChannels: ["max"],
+      reasoningSummary: "LLM selected max only",
       renderedCopy: {
-        vellum: { title: "Reminder", body: "Take out trash" },
+        max: { title: "Reminder", body: "Take out trash" },
       },
       dedupeKey: "dedupe-rem-1",
       confidence: 0.9,
@@ -106,8 +106,8 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
 
     const enforcedDecision = {
       ...preDecision,
-      selectedChannels: ["vellum", "telegram"],
-      reasoningSummary: `${preDecision.reasoningSummary} [routing_intent=all_channels enforced: vellum, telegram]`,
+      selectedChannels: ["max", "telegram"],
+      reasoningSummary: `${preDecision.reasoningSummary} [routing_intent=all_channels enforced: max, telegram]`,
     };
 
     evaluateSignalMock.mockResolvedValue(preDecision);
@@ -130,8 +130,8 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
     expect(result.dispatched).toBe(true);
     expect(updateDecisionMock).toHaveBeenCalledTimes(1);
     expect(updateDecisionMock).toHaveBeenCalledWith("dec-1", {
-      selectedChannels: ["vellum", "telegram"],
-      reasoningSummary: `${preDecision.reasoningSummary} [routing_intent=all_channels enforced: vellum, telegram]`,
+      selectedChannels: ["max", "telegram"],
+      reasoningSummary: `${preDecision.reasoningSummary} [routing_intent=all_channels enforced: max, telegram]`,
       validationResults: {
         dedupeKey: "dedupe-rem-1",
         channelCount: 2,
@@ -143,10 +143,10 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
   test("does not re-persist when enforcement leaves the decision unchanged", async () => {
     const decision = {
       shouldNotify: true,
-      selectedChannels: ["vellum"],
+      selectedChannels: ["max"],
       reasoningSummary: "No routing override needed",
       renderedCopy: {
-        vellum: { title: "Reminder", body: "Drink water" },
+        max: { title: "Reminder", body: "Drink water" },
       },
       dedupeKey: "dedupe-rem-2",
       confidence: 0.8,
@@ -179,10 +179,10 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
   test("excludes unverified binding channels from connected channel candidates", async () => {
     const decision = {
       shouldNotify: true,
-      selectedChannels: ["vellum"],
+      selectedChannels: ["max"],
       reasoningSummary: "Local only",
       renderedCopy: {
-        vellum: { title: "Reminder", body: "Check this" },
+        max: { title: "Reminder", body: "Check this" },
       },
       dedupeKey: "dedupe-rem-3",
       confidence: 0.8,
@@ -212,6 +212,6 @@ describe("emitNotificationSignal routing intent re-persistence", () => {
     expect(evaluateSignalMock).toHaveBeenCalled();
     const callArgs = evaluateSignalMock.mock.calls[0];
     expect(callArgs).toBeDefined();
-    expect(callArgs?.[1]).toEqual(["vellum"]);
+    expect(callArgs?.[1]).toEqual(["max"]);
   });
 });

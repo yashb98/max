@@ -1,9 +1,9 @@
 /**
  * Workspace migration 022: Move hooks directory from root to workspace.
  *
- * Previously, `~/.vellum/hooks/` lived directly under the Vellum root. This
+ * Previously, `~/.max/hooks/` lived directly under the Max root. This
  * migration moves existing hook directories and files into
- * `~/.vellum/workspace/hooks/` so that getWorkspaceHooksDir() resolves
+ * `~/.max/workspace/hooks/` so that getWorkspaceHooksDir() resolves
  * correctly under the workspace.
  *
  * Hooks are persistent user-installed scripts (manifests, config, executables),
@@ -22,14 +22,14 @@ import {
 import { join } from "node:path";
 
 import type { WorkspaceMigration } from "./types.js";
-import { getVellumRoot } from "./utils.js";
+import { getMaxRoot } from "./utils.js";
 
 export const moveHooksToWorkspaceMigration: WorkspaceMigration = {
   id: "022-move-hooks-to-workspace",
   description: "Move hooks directory from root to workspace",
 
   run(workspaceDir: string): void {
-    const oldHooksDir = join(getVellumRoot(), "hooks");
+    const oldHooksDir = join(getMaxRoot(), "hooks");
     const newHooksDir = join(workspaceDir, "hooks");
 
     mkdirSync(newHooksDir, { recursive: true });
@@ -59,7 +59,7 @@ export const moveHooksToWorkspaceMigration: WorkspaceMigration = {
   },
 
   down(workspaceDir: string): void {
-    const oldHooksDir = join(getVellumRoot(), "hooks");
+    const oldHooksDir = join(getMaxRoot(), "hooks");
     const newHooksDir = join(workspaceDir, "hooks");
 
     mkdirSync(oldHooksDir, { recursive: true });

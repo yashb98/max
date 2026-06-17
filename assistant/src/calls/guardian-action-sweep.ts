@@ -31,7 +31,7 @@ let sweepInProgress = false;
 
 /**
  * Send expiry notices to all delivery destinations for a guardian action
- * request. Handles both vellum/mac conversation messages and external channel
+ * request. Handles both max/mac conversation messages and external channel
  * replies (telegram, slack).
  *
  * Deliveries must be captured *before* their status is changed to 'expired'
@@ -65,17 +65,17 @@ export async function sendGuardianExpiryNotices(
       );
 
       if (
-        delivery.destinationChannel === "vellum" &&
+        delivery.destinationChannel === "max" &&
         delivery.destinationConversationId
       ) {
-        // Add expiry message to vellum guardian conversation.
+        // Add expiry message to max guardian conversation.
         await addMessage(
           delivery.destinationConversationId,
           "assistant",
           JSON.stringify([{ type: "text", text: expiryText }]),
           {
             userMessageChannel: "phone",
-            assistantMessageChannel: "vellum",
+            assistantMessageChannel: "max",
             userMessageInterface: "phone",
             assistantMessageInterface: "web",
           },

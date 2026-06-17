@@ -18,7 +18,7 @@ import type { Species } from "./constants";
 import { getDefaultPorts } from "./environments/paths.js";
 import { getCurrentEnvironment } from "./environments/resolve.js";
 import { leaseGuardianToken } from "./guardian-token";
-import { isVellumProcess, stopProcess } from "./process";
+import { isMaxProcess, stopProcess } from "./process";
 import { generateInstanceName } from "./random-name";
 import { resolveImageRefs } from "./platform-releases.js";
 import { exec, execOutput } from "./step-runner";
@@ -32,11 +32,11 @@ import { emitProgress } from "./desktop-progress.js";
 
 export type ServiceName = "assistant" | "credential-executor" | "gateway";
 
-const DOCKERHUB_ORG = "vellumai";
+const DOCKERHUB_ORG = "maxai";
 export const DOCKERHUB_IMAGES: Record<ServiceName, string> = {
-  assistant: `${DOCKERHUB_ORG}/vellum-assistant`,
-  "credential-executor": `${DOCKERHUB_ORG}/vellum-credential-executor`,
-  gateway: `${DOCKERHUB_ORG}/vellum-gateway`,
+  assistant: `${DOCKERHUB_ORG}/max-assistant`,
+  "credential-executor": `${DOCKERHUB_ORG}/max-credential-executor`,
+  gateway: `${DOCKERHUB_ORG}/max-gateway`,
 };
 
 /** Internal ports exposed by each service's Dockerfile. Re-exported from environments/paths.ts. */
@@ -45,11 +45,11 @@ export { ASSISTANT_INTERNAL_PORT, GATEWAY_INTERNAL_PORT } from "./environments/p
 /** Max time to wait for the assistant container to emit the readiness sentinel. */
 export const DOCKER_READY_TIMEOUT_MS = 3 * 60 * 1000;
 
-/** Default virtual-camera device path. Overridable via `VELLUM_AVATAR_DEVICE`. */
+/** Default virtual-camera device path. Overridable via `MAX_AVATAR_DEVICE`. */
 const DEFAULT_AVATAR_DEVICE_PATH = "/dev/video10";
 
 /** Env var the assistant reads to discover its virtual-camera device path. */
-export const AVATAR_DEVICE_ENV_VAR = "VELLUM_AVATAR_DEVICE";
+export const AVATAR_DEVICE_ENV_VAR = "MAX_AVATAR_DEVICE";
 
 /**
  * Resolve the avatar device path from the environment. Always returns a
@@ -393,11 +393,11 @@ export async function retireDocker(name: string): Promise<void> {
   const watcherPid =
     typeof entry?.watcherPid === "number" ? entry.watcherPid : null;
   if (watcherPid !== null) {
-    if (isVellumProcess(watcherPid)) {
+    if (isMaxProcess(watcherPid)) {
       await stopProcess(watcherPid, "file-watcher");
     } else {
       console.log(
-        `PID ${watcherPid} is not a vellum process — skipping stale file-watcher PID.`,
+        `PID ${watcherPid} is not a max process — skipping stale file-watcher PID.`,
       );
     }
   }
@@ -473,7 +473,7 @@ function findRepoRoot(): string {
   }
 
   // Walk up from the compiled binary's location. When the CLI is bundled
-  // inside the macOS app (e.g. .../dist/Vellum.app/Contents/MacOS/vellum-cli),
+  // inside the macOS app (e.g. .../dist/Max.app/Contents/MacOS/max-cli),
   // the binary still lives inside the repo tree, so walking up will
   // eventually reach the repo root.
   const execRoot = walkUpForRepoRoot(dirname(process.execPath));
@@ -483,7 +483,7 @@ function findRepoRoot(): string {
 
   // Check the app bundle's Resources directory. Debug DMG builds bundle
   // Dockerfiles at Contents/Resources/dockerfiles/{assistant,gateway,...}/Dockerfile.
-  // The CLI binary lives at Contents/MacOS/vellum-cli, so Resources is at
+  // The CLI binary lives at Contents/MacOS/max-cli, so Resources is at
   // ../Resources relative to the binary.
   const bundledRoot = join(
     dirname(process.execPath),
@@ -503,7 +503,7 @@ function findRepoRoot(): string {
 
   throw new Error(
     "Could not find repository root containing assistant/Dockerfile. " +
-      "Run this command from within the vellum-assistant repository.",
+      "Run this command from within the max-assistant repository.",
   );
 }
 
@@ -919,10 +919,10 @@ export async function hatchDocker(
     if (watch && repoRoot) {
       emitProgress(2, 6, "Building images...");
       const localTag = `local-${instanceName}`;
-      imageTags.assistant = `vellum-assistant:${localTag}`;
-      imageTags.gateway = `vellum-gateway:${localTag}`;
+      imageTags.assistant = `max-assistant:${localTag}`;
+      imageTags.gateway = `max-gateway:${localTag}`;
       imageTags["credential-executor"] =
-        `vellum-credential-executor:${localTag}`;
+        `max-credential-executor:${localTag}`;
 
       log(`🥚 Hatching Docker assistant: ${instanceName}`);
       log(`   Species: ${species}`);
@@ -943,10 +943,10 @@ export async function hatchDocker(
 
       // Allow explicit image overrides via environment variables.
       // When all three are set, skip version-based resolution entirely.
-      const envAssistant = process.env.VELLUM_ASSISTANT_IMAGE;
-      const envGateway = process.env.VELLUM_GATEWAY_IMAGE;
+      const envAssistant = process.env.MAX_ASSISTANT_IMAGE;
+      const envGateway = process.env.MAX_GATEWAY_IMAGE;
       const envCredentialExecutor =
-        process.env.VELLUM_CREDENTIAL_EXECUTOR_IMAGE;
+        process.env.MAX_CREDENTIAL_EXECUTOR_IMAGE;
 
       let imageSource: string;
 
@@ -1012,7 +1012,7 @@ export async function hatchDocker(
     ]);
 
     // Write --config key=value pairs to a temp file that gets bind-mounted
-    // into the assistant container and read via VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH.
+    // into the assistant container and read via MAX_DEFAULT_WORKSPACE_CONFIG_PATH.
     const defaultWorkspaceConfigPath = writeInitialConfig(configValues);
 
     const cesServiceToken = randomBytes(32).toString("hex");
@@ -1108,7 +1108,7 @@ export async function hatchDocker(
         // SIGINT (Ctrl+C): full cleanup including stopping containers.
         process.on("SIGINT", () => void cleanup());
 
-        // SIGTERM (from `vellum retire`): exit quickly — the caller
+        // SIGTERM (from `max retire`): exit quickly — the caller
         // handles container teardown, so we only need to close the
         // file watchers and let the process terminate.
         process.on("SIGTERM", () => {
@@ -1158,7 +1158,7 @@ async function waitForGatewayAndLease(opts: {
     log(`  Runtime: ${runtimeUrl}`);
     log(`  Container: ${containerName}`);
     log("");
-    log(`Stop with: vellum retire ${instanceName}`);
+    log(`Stop with: max retire ${instanceName}`);
     return { ready: true };
   }
 

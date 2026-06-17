@@ -47,14 +47,14 @@ export type PrincipalType = "actor" | "svc_gateway" | "svc_daemon" | "local";
 // Token audience — which service the JWT is intended for
 // ---------------------------------------------------------------------------
 
-export type TokenAudience = "vellum-gateway" | "vellum-daemon";
+export type TokenAudience = "max-gateway" | "max-daemon";
 
 // ---------------------------------------------------------------------------
 // JWT claims — the payload inside the token
 // ---------------------------------------------------------------------------
 
 export interface TokenClaims {
-  iss: "vellum-auth";
+  iss: "max-auth";
   aud: TokenAudience;
   sub: string;
   scope_profile: ScopeProfile;

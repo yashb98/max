@@ -101,7 +101,7 @@ export interface FeedItem {
 }
 
 /**
- * On-disk file format for `~/.vellum/workspace/data/home-feed.json`.
+ * On-disk file format for `~/.max/workspace/data/home-feed.json`.
  *
  * Written by the PR 5 writer, read by the PR 6 HTTP route and
  * `parseFeedFile` below. `version` is pinned to `2` (collapsed schema);

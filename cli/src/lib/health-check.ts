@@ -21,7 +21,7 @@ export async function checkManagedHealth(
   if (!token) {
     return {
       status: "error (auth)",
-      detail: "not logged in — run `vellum login`",
+      detail: "not logged in — run `max login`",
     };
   }
 

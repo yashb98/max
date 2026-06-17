@@ -1,10 +1,10 @@
 ---
 name: subagent
 description: Spawn and manage autonomous background agents for parallel work
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🤖"
-  vellum:
+  max:
     display-name: "Subagent"
     activation-hints:
       - "Spawn a background worker that runs in parallel with the main turn"

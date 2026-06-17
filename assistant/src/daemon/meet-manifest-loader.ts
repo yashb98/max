@@ -236,7 +236,7 @@ function buildProxyRoute(
 /**
  * Locate the shipped manifest path. Visible for testing so callers can
  * redirect to a fixture without stubbing `getRepoSkillsDir()` (which
- * reads `import.meta.dir` and `process.env.VELLUM_DEV`).
+ * reads `import.meta.dir` and `process.env.MAX_DEV`).
  */
 export function resolveMeetManifestPath(): string | undefined {
   const skillsRoot = getRepoSkillsDir();

@@ -56,7 +56,7 @@ interface AcpAgentEntry {
  * the same string instead of duplicating near-identical copy.
  */
 export const ACP_DISABLED_HINT =
-  "Set 'acp.enabled': true in ~/.vellum/workspace/config.json (or via the runtime config endpoint).";
+  "Set 'acp.enabled': true in ~/.max/workspace/config.json (or via the runtime config endpoint).";
 
 function installHintFor(command: string): string {
   const pkg = DEFAULT_AGENT_NPM_PACKAGES[command];

@@ -23,7 +23,7 @@ function writeError(cmd: Command, message: string): void {
 // ---------------------------------------------------------------------------
 
 function isUntrustedShell(): boolean {
-  return process.env.VELLUM_UNTRUSTED_SHELL === "1";
+  return process.env.MAX_UNTRUSTED_SHELL === "1";
 }
 
 const UNTRUSTED_SHELL_ERROR =
@@ -240,7 +240,7 @@ Backend types:
   ces-http          Delegates to CES sidecar over HTTP (containerized/Docker mode)
 
 Also shows the CREDENTIAL_SECURITY_DIR, GATEWAY_SECURITY_DIR, and
-VELLUM_WORKSPACE_DIR env vars so you can confirm which instance directory this
+MAX_WORKSPACE_DIR env vars so you can confirm which instance directory this
 process is scoped to.
 
 Examples:

@@ -21,7 +21,7 @@ import {
   CES_PROTOCOL_VERSION,
   type HandshakeAck,
   type RpcEnvelope,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import { getCesDataRoot, getBootstrapSocketPath, getHealthPort } from "../paths.js";
 import { CesRpcServer, type RpcHandlerRegistry } from "../server.js";
@@ -375,10 +375,10 @@ describe("CES data paths", () => {
     }
   });
 
-  test("local data root is under the Vellum root, not the workspace", () => {
+  test("local data root is under the Max root, not the workspace", () => {
     const root = getCesDataRoot("local");
-    // Must be under .vellum/protected/, NOT .vellum/workspace/
-    expect(root).toMatch(/\.vellum[/\\]protected[/\\]/);
+    // Must be under .max/protected/, NOT .max/workspace/
+    expect(root).toMatch(/\.max[/\\]protected[/\\]/);
     expect(root).not.toMatch(/workspace/);
   });
 

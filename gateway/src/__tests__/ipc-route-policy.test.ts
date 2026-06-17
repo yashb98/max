@@ -7,7 +7,7 @@ describe("ipc-route-policy: gateway-only daemon routes", () => {
   // Routes that the daemon's HTTP route policy marks as gateway-only
   // (internal.write + svc_gateway) MUST also have a matching IPC policy
   // entry — otherwise an authenticated edge JWT can reach them by setting
-  // X-Vellum-Proxy-Server: ipc, bypassing the daemon HTTP router entirely.
+  // X-Max-Proxy-Server: ipc, bypassing the daemon HTTP router entirely.
   test.each([
     "admin_rollbackmigrations_post",
     "emit_event",
@@ -71,7 +71,7 @@ describe("ipc-route-policy: ATL-315 Batch 18 — new operationIds", () => {
   // initial ATL-315 cutover. Without these entries, an authenticated edge
   // JWT with only `chat.read` could reach sensitive routes (config writes,
   // platform connect, schedule creation, credential mutations, sequence
-  // mutations, debug bash, etc.) by setting `X-Vellum-Proxy-Server: ipc`.
+  // mutations, debug bash, etc.) by setting `X-Max-Proxy-Server: ipc`.
   //
   // These tests pin the scope mapping so a future refactor can't silently
   // weaken it.

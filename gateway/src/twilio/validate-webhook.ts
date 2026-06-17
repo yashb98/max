@@ -3,7 +3,7 @@ import {
   TWILIO_CONNECT_ACTION_WEBHOOK_PATH,
   TWILIO_STATUS_WEBHOOK_PATH,
   TWILIO_VOICE_WEBHOOK_PATH,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 
 import type { CredentialCache } from "../credential-cache.js";
 import type { ConfigFileCache } from "../config-file-cache.js";
@@ -98,7 +98,7 @@ function buildSignatureUrlCandidateDetails(
   // platform path includes the /v1/gateway/callbacks/{id}/ prefix that
   // the gateway never sees.
   addCandidate(
-    req.headers.get("x-vellum-ingress-url") ?? undefined,
+    req.headers.get("x-max-ingress-url") ?? undefined,
     "platform_proxy",
   );
 

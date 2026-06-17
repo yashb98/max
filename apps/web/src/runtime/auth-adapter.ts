@@ -2,7 +2,7 @@ export type RuntimeAuthMode = 'hosted' | 'local' | 'self-hosted' | 'none';
 
 /**
  * Adapter that lets apps/web run under different auth/runtime configurations
- * without baking hosted Vellum login into the app shell.
+ * without baking hosted Max login into the app shell.
  *
  * No implementation is provided at this scaffold stage. Hosted auth lands
  * with the assistant code port; local/self-hosted/no-login runtimes plug in

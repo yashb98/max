@@ -19,12 +19,12 @@ mock.module("../../runtime/assistant-event-hub.js", () => ({
 // Stub workspace prompt reads so the heartbeat service doesn't try to
 // read real workspace files. Use a fallback for early module-load calls
 // (e.g. AuthSessionCache constructor) before beforeEach sets workspaceDir.
-const fallbackDir = join(tmpdir(), "vellum-hb-svc-fallback");
+const fallbackDir = join(tmpdir(), "max-hb-svc-fallback");
 mock.module("../../util/platform.js", () => ({
   getWorkspaceDir: () => workspaceDir ?? fallbackDir,
   getWorkspacePromptPath: (name: string) =>
     join(workspaceDir ?? fallbackDir, name),
-  vellumRoot: () => workspaceDir ?? fallbackDir,
+  maxRoot: () => workspaceDir ?? fallbackDir,
   getDataDir: () => join(workspaceDir ?? fallbackDir, "data"),
   getConversationsDir: () => join(workspaceDir ?? fallbackDir, "conversations"),
   isMacOS: () => false,
@@ -42,7 +42,7 @@ mock.module("../../util/platform.js", () => ({
   getAvatarImagePath: () =>
     join(workspaceDir ?? fallbackDir, "avatar/avatar-image.png"),
 
-  getXdgVellumConfigDirName: () => ".vellum",
+  getXdgMaxConfigDirName: () => ".max",
 }));
 
 // Stub config so heartbeat is enabled. Must export every symbol from
@@ -170,9 +170,9 @@ const { HeartbeatService } = await import("../heartbeat-service.js");
 let origWorkspaceDir: string | undefined;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-hb-svc-"));
-  origWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = workspaceDir;
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-hb-svc-"));
+  origWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = workspaceDir;
   publishSpy.mockClear();
   runBackgroundJobCalls.length = 0;
   skipHeartbeatRunCalls.length = 0;
@@ -185,9 +185,9 @@ beforeEach(() => {
 
 afterEach(() => {
   if (origWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = origWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = origWorkspaceDir;
   }
   try {
     rmSync(workspaceDir, { recursive: true, force: true });
@@ -215,7 +215,7 @@ describe("HeartbeatService", () => {
     expect(call.groupId).toBeUndefined();
     expect(call.timeoutMs).toBeGreaterThan(0);
     expect(call.trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     expect(call.prompt).toContain("<heartbeat-checklist>");

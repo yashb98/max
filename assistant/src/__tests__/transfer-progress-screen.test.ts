@@ -89,7 +89,7 @@ function runtimeConfig(overrides?: Partial<TransportConfig>): TransportConfig {
 
 function managedConfig(overrides?: Partial<TransportConfig>): TransportConfig {
   return {
-    baseURL: "https://platform.vellum.ai",
+    baseURL: "https://platform.max.ai",
     target: "managed",
     authHeader: "session-token-abc",
     fetchFn: mockFetch(200, {}),

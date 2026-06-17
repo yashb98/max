@@ -19,24 +19,24 @@ import {
   getWorkspacePluginsDir,
   getWorkspacePromptPath,
   getWorkspaceSkillsDir,
-  getXdgVellumConfigDirName,
-  vellumRoot,
+  getXdgMaxConfigDirName,
+  maxRoot,
 } from "../util/platform.js";
 
-const originalWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-const originalVellumEnvironment = process.env.VELLUM_ENVIRONMENT;
+const originalWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+const originalMaxEnvironment = process.env.MAX_ENVIRONMENT;
 const originalXdgConfigHome = process.env.XDG_CONFIG_HOME;
 
 afterEach(() => {
   if (originalWorkspaceDir == null) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = originalWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = originalWorkspaceDir;
   }
-  if (originalVellumEnvironment == null) {
-    delete process.env.VELLUM_ENVIRONMENT;
+  if (originalMaxEnvironment == null) {
+    delete process.env.MAX_ENVIRONMENT;
   } else {
-    process.env.VELLUM_ENVIRONMENT = originalVellumEnvironment;
+    process.env.MAX_ENVIRONMENT = originalMaxEnvironment;
   }
   if (originalXdgConfigHome == null) {
     delete process.env.XDG_CONFIG_HOME;
@@ -46,14 +46,14 @@ afterEach(() => {
 });
 
 // Path characterization: documents the current path layout.
-// Root-level helpers always resolve under ~/.vellum (from homedir()).
-// Workspace helpers resolve under VELLUM_WORKSPACE_DIR when set,
-// otherwise under ~/.vellum/workspace.
+// Root-level helpers always resolve under ~/.max (from homedir()).
+// Workspace helpers resolve under MAX_WORKSPACE_DIR when set,
+// otherwise under ~/.max/workspace.
 describe("path characterization", () => {
   test("all path helpers resolve to expected locations", () => {
-    // Without VELLUM_WORKSPACE_DIR override, workspace is under ~/.vellum
-    delete process.env.VELLUM_WORKSPACE_DIR;
-    const root = join(homedir(), ".vellum");
+    // Without MAX_WORKSPACE_DIR override, workspace is under ~/.max
+    delete process.env.MAX_WORKSPACE_DIR;
+    const root = join(homedir(), ".max");
     const ws = getWorkspaceDir();
     const data = getDataDir();
 
@@ -65,7 +65,7 @@ describe("path characterization", () => {
 
     // Sub-paths under workspace/data
     expect(getDbPath()).toBe(join(data, "db", "assistant.db"));
-    expect(getLogPath()).toBe(join(data, "logs", "vellum.log"));
+    expect(getLogPath()).toBe(join(data, "logs", "max.log"));
     expect(getHistoryPath()).toBe(join(data, "history"));
     expect(getInterfacesDir()).toBe(join(data, "interfaces"));
     expect(getSandboxRootDir()).toBe(join(data, "sandbox"));
@@ -75,33 +75,33 @@ describe("path characterization", () => {
     expect(getWorkspaceHooksDir()).toBe(join(ws, "hooks"));
 
     // PID file lives in the workspace directory
-    expect(getPidPath()).toBe(join(ws, "vellum.pid"));
+    expect(getPidPath()).toBe(join(ws, "max.pid"));
   });
 
-  test("VELLUM_WORKSPACE_DIR overrides workspace location", () => {
-    process.env.VELLUM_WORKSPACE_DIR = "/tmp/custom-workspace";
+  test("MAX_WORKSPACE_DIR overrides workspace location", () => {
+    process.env.MAX_WORKSPACE_DIR = "/tmp/custom-workspace";
     expect(getWorkspaceDir()).toBe("/tmp/custom-workspace");
     expect(getDataDir()).toBe("/tmp/custom-workspace/data");
     // PID path follows workspace override
-    expect(getPidPath()).toBe("/tmp/custom-workspace/vellum.pid");
+    expect(getPidPath()).toBe("/tmp/custom-workspace/max.pid");
   });
 
   test("hooks directory is inside the workspace boundary", () => {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
     expect(getWorkspaceHooksDir().startsWith(getWorkspaceDir())).toBe(true);
   });
 
   test("ensureDataDir creates all expected directories", () => {
-    // Use a temp VELLUM_WORKSPACE_DIR so ensureDataDir writes to a temp dir
-    // rather than the real ~/.vellum. Root-level dirs still go to ~/.vellum
+    // Use a temp MAX_WORKSPACE_DIR so ensureDataDir writes to a temp dir
+    // rather than the real ~/.max. Root-level dirs still go to ~/.max
     // but we only verify workspace dirs here to avoid side effects.
     const wsDir = join(tmpdir(), `platform-test-ws-${Date.now()}`);
-    process.env.VELLUM_WORKSPACE_DIR = wsDir;
+    process.env.MAX_WORKSPACE_DIR = wsDir;
 
     ensureDataDir();
 
     // Root-level dirs (ensureDataDir always creates these)
-    const root = vellumRoot();
+    const root = maxRoot();
     expect(existsSync(root)).toBe(true);
 
     // Workspace dirs (in our temp location)
@@ -124,39 +124,39 @@ describe("path characterization", () => {
 });
 
 describe("XDG config dir name env-awareness", () => {
-  test("production returns vellum", () => {
-    delete process.env.VELLUM_ENVIRONMENT;
+  test("production returns max", () => {
+    delete process.env.MAX_ENVIRONMENT;
     delete process.env.XDG_CONFIG_HOME;
-    expect(getXdgVellumConfigDirName()).toBe("vellum");
+    expect(getXdgMaxConfigDirName()).toBe("max");
   });
 
-  test("production (explicit) returns vellum", () => {
-    process.env.VELLUM_ENVIRONMENT = "production";
-    expect(getXdgVellumConfigDirName()).toBe("vellum");
+  test("production (explicit) returns max", () => {
+    process.env.MAX_ENVIRONMENT = "production";
+    expect(getXdgMaxConfigDirName()).toBe("max");
   });
 
-  test("dev environment returns vellum-dev", () => {
-    process.env.VELLUM_ENVIRONMENT = "dev";
-    expect(getXdgVellumConfigDirName()).toBe("vellum-dev");
+  test("dev environment returns max-dev", () => {
+    process.env.MAX_ENVIRONMENT = "dev";
+    expect(getXdgMaxConfigDirName()).toBe("max-dev");
   });
 
   test.each(["staging", "test", "local"])(
-    "%s environment returns vellum-%s",
+    "%s environment returns max-%s",
     (env) => {
-      process.env.VELLUM_ENVIRONMENT = env;
-      expect(getXdgVellumConfigDirName()).toBe(`vellum-${env}`);
+      process.env.MAX_ENVIRONMENT = env;
+      expect(getXdgMaxConfigDirName()).toBe(`max-${env}`);
     },
   );
 
   test("unknown environment falls back to production", () => {
-    process.env.VELLUM_ENVIRONMENT = "no-such-env";
-    expect(getXdgVellumConfigDirName()).toBe("vellum");
+    process.env.MAX_ENVIRONMENT = "no-such-env";
+    expect(getXdgMaxConfigDirName()).toBe("max");
   });
 });
 
 describe("workspace path primitives", () => {
   test("workspace helpers resolve under workspace dir", () => {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
     const ws = getWorkspaceDir();
 
     expect(getWorkspaceConfigPath()).toBe(join(ws, "config.json"));

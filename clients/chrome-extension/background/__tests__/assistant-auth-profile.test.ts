@@ -21,14 +21,14 @@ describe('resolveAuthProfile', () => {
     expect(result).toBe('self-hosted' satisfies AssistantAuthProfile);
   });
 
-  test('maps "vellum" to vellum-cloud', () => {
-    const result = resolveAuthProfile({ cloud: 'vellum' });
-    expect(result).toBe('vellum-cloud' satisfies AssistantAuthProfile);
+  test('maps "max" to max-cloud', () => {
+    const result = resolveAuthProfile({ cloud: 'max' });
+    expect(result).toBe('max-cloud' satisfies AssistantAuthProfile);
   });
 
-  test('maps legacy "platform" to vellum-cloud', () => {
+  test('maps legacy "platform" to max-cloud', () => {
     const result = resolveAuthProfile({ cloud: 'platform' });
-    expect(result).toBe('vellum-cloud' satisfies AssistantAuthProfile);
+    expect(result).toBe('max-cloud' satisfies AssistantAuthProfile);
   });
 
   test('unknown cloud value yields unsupported', () => {
@@ -48,20 +48,20 @@ describe('resolveAuthProfile', () => {
     expect(resolveAuthProfile(withoutUrl)).toBe('self-hosted');
 
     const cloudWithUrl: LockfileTopology = {
-      cloud: 'vellum',
-      runtimeUrl: 'https://rt.vellum.cloud',
+      cloud: 'max',
+      runtimeUrl: 'https://rt.max.cloud',
     };
-    const cloudWithoutUrl: LockfileTopology = { cloud: 'vellum' };
-    expect(resolveAuthProfile(cloudWithUrl)).toBe('vellum-cloud');
-    expect(resolveAuthProfile(cloudWithoutUrl)).toBe('vellum-cloud');
+    const cloudWithoutUrl: LockfileTopology = { cloud: 'max' };
+    expect(resolveAuthProfile(cloudWithUrl)).toBe('max-cloud');
+    expect(resolveAuthProfile(cloudWithoutUrl)).toBe('max-cloud');
   });
 
   test('is stable across all known cloud values', () => {
     const expected: Array<[string, AssistantAuthProfile]> = [
       ['local', 'self-hosted'],
       ['apple-container', 'self-hosted'],
-      ['vellum', 'vellum-cloud'],
-      ['platform', 'vellum-cloud'],
+      ['max', 'max-cloud'],
+      ['platform', 'max-cloud'],
     ];
     for (const [cloud, profile] of expected) {
       expect(resolveAuthProfile({ cloud })).toBe(profile);

@@ -45,20 +45,20 @@ describe("createLocalSecureKeyBackend — filesystem", () => {
     savedSecurityDir = undefined;
   });
 
-  function setup(): { securityDir: string; vellumRoot: string } {
+  function setup(): { securityDir: string; maxRoot: string } {
     tmpDir = makeTmpDir();
     const securityDir = join(tmpDir, "security");
     mkdirSync(securityDir, { recursive: true });
     savedSecurityDir = process.env.CREDENTIAL_SECURITY_DIR;
     process.env.CREDENTIAL_SECURITY_DIR = securityDir;
-    // vellumRoot is unused when CREDENTIAL_SECURITY_DIR is set,
+    // maxRoot is unused when CREDENTIAL_SECURITY_DIR is set,
     // but we pass tmpDir for consistency
-    return { securityDir, vellumRoot: tmpDir };
+    return { securityDir, maxRoot: tmpDir };
   }
 
   test("set() on a fresh security directory creates store.key and keys.enc", async () => {
-    const { securityDir, vellumRoot } = setup();
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const { securityDir, maxRoot } = setup();
+    const backend = createLocalSecureKeyBackend(maxRoot);
 
     const result = await backend.set("test/key", "secret-value");
     expect(result).toBe(true);
@@ -84,8 +84,8 @@ describe("createLocalSecureKeyBackend — filesystem", () => {
   });
 
   test("subsequent set() calls append to the existing store without recreating files", async () => {
-    const { securityDir, vellumRoot } = setup();
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const { securityDir, maxRoot } = setup();
+    const backend = createLocalSecureKeyBackend(maxRoot);
 
     await backend.set("key1", "val1");
     const keyAfterFirst = readFileSync(join(securityDir, "store.key"));
@@ -106,7 +106,7 @@ describe("createLocalSecureKeyBackend — filesystem", () => {
   });
 
   test("set() against a pre-existing v1 store preserves format and round-trips", async () => {
-    const { securityDir, vellumRoot } = setup();
+    const { securityDir, maxRoot } = setup();
 
     // Manually write a v1 store
     const salt = randomBytes(32).toString("hex");
@@ -115,7 +115,7 @@ describe("createLocalSecureKeyBackend — filesystem", () => {
       mode: 0o600,
     });
 
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const backend = createLocalSecureKeyBackend(maxRoot);
     const result = await backend.set("v1-key", "v1-value");
     expect(result).toBe(true);
 
@@ -134,22 +134,22 @@ describe("createLocalSecureKeyBackend — filesystem", () => {
   });
 
   test("get() returns undefined when no store exists", async () => {
-    const { vellumRoot } = setup();
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const { maxRoot } = setup();
+    const backend = createLocalSecureKeyBackend(maxRoot);
     const value = await backend.get("anything");
     expect(value).toBeUndefined();
   });
 
   test("list() returns empty array when no store exists", async () => {
-    const { vellumRoot } = setup();
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const { maxRoot } = setup();
+    const backend = createLocalSecureKeyBackend(maxRoot);
     const keys = await backend.list();
     expect(keys).toEqual([]);
   });
 
   test("delete() returns error when no store exists", async () => {
-    const { vellumRoot } = setup();
-    const backend = createLocalSecureKeyBackend(vellumRoot);
+    const { maxRoot } = setup();
+    const backend = createLocalSecureKeyBackend(maxRoot);
     const result = await backend.delete("anything");
     expect(result).toBe("error");
   });

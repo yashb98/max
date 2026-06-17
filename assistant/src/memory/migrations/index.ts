@@ -211,6 +211,10 @@ export { migrateBackfillProviderConnectionLabel } from "./246-backfill-provider-
 export { migrateProviderConnectionReachability } from "./247-provider-connection-reachability.js";
 export { migrateBridgedToolCallEvents } from "./248-bridged-tool-call-events.js";
 export {
+  downRenameVellumChannelToMax,
+  migrateRenameVellumChannelToMax,
+} from "./249-rename-vellum-channel-to-max.js";
+export {
   MIGRATION_REGISTRY,
   type MigrationRegistryEntry,
   type MigrationValidationResult,

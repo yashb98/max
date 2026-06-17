@@ -58,7 +58,7 @@ export function listConversations(
   //
   // group_id is checked alongside conversationType so that conversations
   // routed to system:background (e.g. heartbeat) via conversationMetadata
-  // but created with conversationType "standard" (vellum channel strategy)
+  // but created with conversationType "standard" (max channel strategy)
   // appear in the correct bucket.
   const typeCond = backgroundOnly
     ? sql`(${conversations.conversationType} IN ('background', 'scheduled') OR group_id IN ('system:background', 'system:scheduled')) AND (${conversations.source} IS NULL OR ${conversations.source} != 'subagent')`

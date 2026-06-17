@@ -1,12 +1,12 @@
 ---
 name: vercel-token-setup
 description: Set up a Vercel API token for publishing apps using browser automation
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "▲"
-  vellum:
+  max:
     display-name: "Vercel Token Setup"
-    includes: ["vellum-browser-use"]
+    includes: ["max-browser-use"]
 ---
 
 You are helping your user set up a Vercel API token so they can publish apps to the web.
@@ -49,7 +49,7 @@ Tell the user:
 > https://vercel.com/account/tokens
 >
 > 1. Click **"Create"** (or **"Create Token"**)
-> 2. Set the token name to **"Vellum Assistant"**
+> 2. Set the token name to **"Max Assistant"**
 > 3. Select scope: **"Full Account"**
 > 4. Set expiration to the longest option available (or **"No Expiration"** if offered)
 > 5. Click **"Create Token"**
@@ -166,7 +166,7 @@ Take a screenshot and snapshot to check the page state:
 
 ## Step 3: Create Token
 
-**Goal:** A new API token named "Vellum Assistant" is created.
+**Goal:** A new API token named "Max Assistant" is created.
 
 Take a screenshot and snapshot. Find and click the button to create a new token (typically labeled "Create" or "Create Token"):
 
@@ -177,7 +177,7 @@ assistant browser --session vercel --json snapshot
 
 On the creation form:
 
-- Token name: **"Vellum Assistant"**
+- Token name: **"Max Assistant"**
 - Scope: Select **"Full Account"** (or the broadest scope available)
 - Expiration: Select the longest option available, or **"No Expiration"** if offered
 - Click create/submit

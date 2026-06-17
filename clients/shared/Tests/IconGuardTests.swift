@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 final class IconGuardTests: XCTestCase {
 

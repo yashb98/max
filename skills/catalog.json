@@ -1,5 +1,5 @@
 {
-  "description": "Manifest of first-party Vellum skills. Fetched from GitHub at runtime so the assistant can discover and install new skills maintained by Vellum.",
+  "description": "Manifest of first-party Max skills. Fetched from GitHub at runtime so the assistant can discover and install new skills maintained by Max.",
   "version": 1,
   "skills": [
     {
@@ -8,14 +8,14 @@
       "description": "Shop on Amazon and Amazon Fresh through your browser",
       "metadata": {
         "emoji": "🛒",
-        "vellum": {
+        "max": {
           "display-name": "Amazon",
           "includes": [
-            "vellum-browser-use"
+            "max-browser-use"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "api-mapping",
@@ -23,23 +23,23 @@
       "description": "Record and analyze API surfaces of web services",
       "metadata": {
         "emoji": "🗺️",
-        "vellum": {
+        "max": {
           "display-name": "API Mapping"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "chatgpt-import",
       "name": "chatgpt-import",
-      "description": "Import conversation history from ChatGPT into Vellum",
+      "description": "Import conversation history from ChatGPT into Max",
       "metadata": {
         "emoji": "📥",
-        "vellum": {
+        "max": {
           "display-name": "ChatGPT Import"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "cli-discover",
@@ -47,11 +47,11 @@
       "description": "Discover which CLI tools are installed, their versions, and authentication status",
       "metadata": {
         "emoji": "🔍",
-        "vellum": {
+        "max": {
           "display-name": "CLI Discovery"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "conversation-launcher",
@@ -59,23 +59,23 @@
       "description": "Offer the user several spin-off conversations as clickable buttons on a single persistent card. Each click spawns a fresh seeded conversation in the sidebar; the user keeps their place in the current conversation. Use when you want to branch into N focused threads (research directions, draft choices, pending replies, triage of N items) without losing the current context. Not for single-destination pivots — just reply inline.",
       "metadata": {
         "emoji": "🧭",
-        "vellum": {
+        "max": {
           "display-name": "Conversation Launcher"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "deploy-fullstack-vercel",
       "name": "deploy-fullstack-vercel",
-      "description": "Build and deploy a full-stack app (React frontend + Python/FastAPI backend) or a Vellum app to Vercel as a serverless demo with seeded data",
+      "description": "Build and deploy a full-stack app (React frontend + Python/FastAPI backend) or a Max app to Vercel as a serverless demo with seeded data",
       "metadata": {
         "emoji": "🚀",
-        "vellum": {
+        "max": {
           "display-name": "Deploy Fullstack to Vercel"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "discord-app-setup",
@@ -83,11 +83,11 @@
       "description": "Connect a Discord bot to the assistant via the Discord Gateway with guided application creation and intent configuration",
       "metadata": {
         "emoji": "🎮",
-        "vellum": {
+        "max": {
           "display-name": "Discord App Setup"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "document-writer",
@@ -95,14 +95,14 @@
       "description": "Create and edit long-form documents like blog posts, articles, essays, and reports using the built-in rich text editor",
       "metadata": {
         "emoji": "📝",
-        "vellum": {
+        "max": {
           "display-name": "Document Writer",
           "includes": [
             "document"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "doordash",
@@ -110,11 +110,11 @@
       "description": "Order food, groceries, and convenience items from DoorDash using the built-in CLI integration",
       "metadata": {
         "emoji": "🍕",
-        "vellum": {
+        "max": {
           "display-name": "DoorDash"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "elevenlabs-voice",
@@ -122,24 +122,24 @@
       "description": "Select and tune an ElevenLabs TTS voice - curated voice list, custom/cloned voices via API key, and tuning parameters",
       "metadata": {
         "emoji": "🗣️",
-        "vellum": {
+        "max": {
           "display-name": "ElevenLabs Voice"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "email-setup",
       "name": "email-setup",
-      "description": "Set up this assistant's own `[name].vellum.me` domain and email address (one-time setup)",
+      "description": "Set up this assistant's own `[name].max.me` domain and email address (one-time setup)",
       "metadata": {
         "emoji": "📧",
-        "vellum": {
+        "max": {
           "display-name": "Email Setup",
           "feature-flag": "email-channel"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "fish-audio",
@@ -147,11 +147,11 @@
       "description": "Generate expressive audio clips using Fish Audio S2 TTS with bracket emotion tags. Record voice memos, narration, audio messages, or any spoken content.",
       "metadata": {
         "emoji": "🎙️",
-        "vellum": {
+        "max": {
           "display-name": "Fish Audio TTS"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "frontend-design",
@@ -160,7 +160,7 @@
       "metadata": {
         "emoji": "🎨"
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "gmail",
@@ -168,12 +168,12 @@
       "description": "Manage Gmail email — drafting, sending, organizing, filters, vacation replies, and inbox analysis",
       "metadata": {
         "emoji": "📨",
-        "vellum": {
+        "max": {
           "display-name": "Gmail",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "google-calendar",
@@ -181,12 +181,12 @@
       "description": "View, create, and manage Google Calendar events and check availability",
       "metadata": {
         "emoji": "📅",
-        "vellum": {
+        "max": {
           "display-name": "Google Calendar",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "guardian-verify-setup",
@@ -194,7 +194,7 @@
       "description": "Set up channel verification for phone, Telegram, or Slack channels via outbound verification flow",
       "metadata": {
         "emoji": "🔐",
-        "vellum": {
+        "max": {
           "display-name": "Guardian Verify Setup",
           "activation-hints": [
             "Any guardian verification intent -> load this skill exclusively",
@@ -206,7 +206,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "headless-claude-code",
@@ -214,7 +214,7 @@
       "description": "Reference guide for running Claude Code in headless, container, and CI environments — covers auth strategies, interactive mode pitfalls, tmux orchestration, root user workarounds, and git auth without SSH agents or keychains",
       "metadata": {
         "emoji": "🖥️",
-        "vellum": {
+        "max": {
           "display-name": "Headless Claude Code"
         }
       },
@@ -226,7 +226,7 @@
       "description": "Run a high-recall, multi-pass email inbox cleanup. Pattern-based subject queries catch 25x more archivable email than sender scans alone. Includes urgency triage, classification signals, and post-cleanup filter setup.",
       "metadata": {
         "emoji": "📭",
-        "vellum": {
+        "max": {
           "display-name": "Inbox Cleanup",
           "activation-hints": [
             "When the user asks to clean up, organize, or triage their email inbox",
@@ -239,7 +239,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "inbox-management",
@@ -247,7 +247,7 @@
       "description": "Ongoing Gmail inbox management via scheduled runs. Archives known noise, flags urgent items, drafts replies in-thread (never auto-sends), and catches stale follow-ups. Starts in flag-only mode — earns autonomy through a three-stage trust ladder.",
       "metadata": {
         "emoji": "📬",
-        "vellum": {
+        "max": {
           "display-name": "Inbox Management",
           "includes": [
             "gmail"
@@ -265,7 +265,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "influencer",
@@ -273,27 +273,27 @@
       "description": "Research influencers on Instagram, TikTok, and X/Twitter through your browser",
       "metadata": {
         "emoji": "🔍",
-        "vellum": {
+        "max": {
           "display-name": "Influencer Research",
           "includes": [
-            "vellum-browser-use"
+            "max-browser-use"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "kimi-agent",
       "name": "kimi-agent",
-      "description": "Reference for Kimi K2.6 and the Kimi Code CLI / kimi-agent-sdk agentic runtime — model capabilities, built-in tools, CLI/SDK features, and how Vellum's kimi-agent provider uses them. Load when working with the kimi-agent provider.",
+      "description": "Reference for Kimi K2.6 and the Kimi Code CLI / kimi-agent-sdk agentic runtime — model capabilities, built-in tools, CLI/SDK features, and how Max's kimi-agent provider uses them. Load when working with the kimi-agent provider.",
       "metadata": {
         "emoji": "🌙",
-        "vellum": {
+        "max": {
           "display-name": "Kimi Agent SDK",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants using the kimi-agent provider"
+      "compatibility": "Designed for Max personal assistants using the kimi-agent provider"
     },
     {
       "id": "kimi-webbridge",
@@ -301,12 +301,12 @@
       "description": "Control the user's REAL browser (their logged-in sessions) — navigate, read via accessibility snapshot, click, fill, screenshot, evaluate JS, save PDF. Use whenever a task needs a real browser or the user's existing logins. Precise: targets elements by stable @e refs from snapshot, not pixels.",
       "metadata": {
         "emoji": "🧭",
-        "vellum": {
+        "max": {
           "display-name": "Web Bridge (real browser)",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants; requires the kimi-webbridge daemon + browser extension"
+      "compatibility": "Designed for Max personal assistants; requires the kimi-webbridge daemon + browser extension"
     },
     {
       "id": "linear-app-setup",
@@ -314,12 +314,12 @@
       "description": "Create and configure a Linear agent app so the assistant can manage issues, projects, and workflows under its own identity",
       "metadata": {
         "emoji": "🔷",
-        "vellum": {
+        "max": {
           "display-name": "Linear App Setup",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "llm-cost-optimizer",
@@ -327,7 +327,7 @@
       "description": "Analyze and reduce LLM spend by mapping call-site overrides to managed profiles (Balanced / Quality / Speed). Covers spend analysis, profile assignment, and config correctness.",
       "metadata": {
         "emoji": "💸",
-        "vellum": {
+        "max": {
           "display-name": "LLM Cost Optimizer"
         }
       }
@@ -338,7 +338,7 @@
       "description": "Automate native macOS apps and system interactions via osascript (AppleScript)",
       "metadata": {
         "emoji": "🍎",
-        "vellum": {
+        "max": {
           "display-name": "macOS Automation",
           "activation-hints": [
             "Interacting with native macOS apps (Messages, Contacts, Calendar, Mail, Reminders, Music, Finder, etc.) via osascript"
@@ -348,7 +348,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "mailgun-setup",
@@ -356,12 +356,12 @@
       "description": "Set up and send emails via a user-provided Mailgun account (BYO email provider)",
       "metadata": {
         "emoji": "📬",
-        "vellum": {
+        "max": {
           "display-name": "Mailgun Email Setup",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "mcp-setup",
@@ -369,11 +369,11 @@
       "description": "Add, authenticate, list, and remove MCP (Model Context Protocol) servers",
       "metadata": {
         "emoji": "🔌",
-        "vellum": {
+        "max": {
           "display-name": "MCP Setup"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "meet-join",
@@ -381,7 +381,7 @@
       "description": "Join a Google Meet call to take notes; only when the user explicitly asks.",
       "metadata": {
         "emoji": "📹",
-        "vellum": {
+        "max": {
           "display-name": "Meet Join",
           "feature-flag": "meet"
         }
@@ -393,9 +393,9 @@
       "description": "Generate memes from 170+ classic templates using the free Memegen.link API. Search templates, generate captioned images, and download them for posting. No API key required.",
       "metadata": {
         "emoji": "🐸",
-        "author": "vellum-ai",
+        "author": "max-ai",
         "version": "0.1",
-        "vellum": {
+        "max": {
           "display-name": "Meme Generator",
           "activation-hints": [
             "User asks to create or generate a meme",
@@ -417,11 +417,11 @@
       "description": "Send notifications through the unified notification router",
       "metadata": {
         "emoji": "🔔",
-        "vellum": {
+        "max": {
           "display-name": "Notifications"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "notion",
@@ -429,11 +429,11 @@
       "description": "Read and write Notion pages and databases using the Notion API",
       "metadata": {
         "emoji": "📝",
-        "vellum": {
+        "max": {
           "display-name": "Notion"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "oura",
@@ -441,14 +441,14 @@
       "description": "Pull sleep, activity, readiness, heart rate, and other health data from a connected Oura Ring via the Oura Cloud API V2",
       "metadata": {
         "emoji": "💍",
-        "vellum": {
+        "max": {
           "display-name": "Oura Ring",
           "includes": [
             "oura-setup"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "oura-setup",
@@ -456,11 +456,11 @@
       "description": "Connect an Oura Ring via OAuth2 — app registration, token exchange, and credential storage",
       "metadata": {
         "emoji": "💍",
-        "vellum": {
+        "max": {
           "display-name": "Oura Ring Setup"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "outlook",
@@ -468,12 +468,12 @@
       "description": "Manage Outlook email — drafting, sending, organizing, rules, vacation replies, and inbox analysis",
       "metadata": {
         "emoji": "📧",
-        "vellum": {
+        "max": {
           "display-name": "Outlook",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "outlook-calendar",
@@ -481,12 +481,12 @@
       "description": "View, create, and manage Outlook Calendar events and check availability",
       "metadata": {
         "emoji": "📅",
-        "vellum": {
+        "max": {
           "display-name": "Outlook Calendar",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "public-ingress",
@@ -494,7 +494,7 @@
       "description": "Set up and manage ngrok-based public ingress for local assistants; do not use this in managed mode when platform callback routing is available",
       "metadata": {
         "emoji": "🌍",
-        "vellum": {
+        "max": {
           "display-name": "Public Ingress",
           "activation-hints": [
             "Local assistant needs a public webhook or OAuth callback URL",
@@ -505,7 +505,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "resend-setup",
@@ -513,12 +513,12 @@
       "description": "Set up and send emails via a user-provided Resend account (BYO email provider)",
       "metadata": {
         "emoji": "📤",
-        "vellum": {
+        "max": {
           "display-name": "Resend Email Setup",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "restaurant-reservation",
@@ -526,14 +526,14 @@
       "description": "Book reservations on OpenTable or Resy with explicit confirmations",
       "metadata": {
         "emoji": "🍽️",
-        "vellum": {
+        "max": {
           "display-name": "Restaurant Reservation Booking",
           "includes": [
-            "vellum-browser-use"
+            "max-browser-use"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "screen-recording",
@@ -541,23 +541,23 @@
       "description": "Record the user's screen as a video file",
       "metadata": {
         "emoji": "🎬",
-        "vellum": {
+        "max": {
           "display-name": "Screen Recording"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "self-upgrade",
       "name": "self-upgrade",
-      "description": "Upgrade vellum to the latest version, restart the assistant, and restart the gateway",
+      "description": "Upgrade max to the latest version, restart the assistant, and restart the gateway",
       "metadata": {
         "emoji": "⬆️",
-        "vellum": {
+        "max": {
           "display-name": "Self Upgrade"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "sentry-app-setup",
@@ -565,12 +565,12 @@
       "description": "Create and configure a Sentry internal integration so the assistant can manage issues, alerts, and releases under its own identity",
       "metadata": {
         "emoji": "🔺",
-        "vellum": {
+        "max": {
           "display-name": "Sentry App Setup",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "slack",
@@ -578,26 +578,26 @@
       "description": "Read, send, and manage Slack messages via the Web API",
       "metadata": {
         "emoji": "💬",
-        "vellum": {
+        "max": {
           "display-name": "Slack"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "slack-app-setup",
       "name": "slack-app-setup",
-      "description": "Connect a Slack app to the Vellum Assistant via Socket Mode with one-click app creation and identity verification",
+      "description": "Connect a Slack app to the Max Assistant via Socket Mode with one-click app creation and identity verification",
       "metadata": {
         "emoji": "💬",
-        "vellum": {
+        "max": {
           "display-name": "Slack App Setup",
           "includes": [
             "guardian-verify-setup"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "start-the-day",
@@ -605,11 +605,11 @@
       "description": "Get a personalized daily briefing with weather, news, and actionable insights",
       "metadata": {
         "emoji": "🌅",
-        "vellum": {
+        "max": {
           "display-name": "Start the Day"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "stripe-app-setup",
@@ -617,12 +617,12 @@
       "description": "Create and configure a Stripe restricted API key so the assistant can manage payments, subscriptions, and customers under its own scoped identity",
       "metadata": {
         "emoji": "💳",
-        "vellum": {
+        "max": {
           "display-name": "Stripe App Setup",
           "user-invocable": "true"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "stripe-link-wallet",
@@ -631,7 +631,7 @@
       "metadata": {
         "emoji": "💳"
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "tasks",
@@ -639,7 +639,7 @@
       "description": "Two-layer task system with reusable templates and a prioritized work queue",
       "metadata": {
         "emoji": "✅",
-        "vellum": {
+        "max": {
           "display-name": "Tasks",
           "activation-hints": [
             "User wants to add, check, or manage items on their to-do list or task queue",
@@ -650,15 +650,15 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "telegram-setup",
       "name": "telegram-setup",
-      "description": "Connect a Telegram bot to the Vellum Assistant gateway with automated webhook registration and credential storage",
+      "description": "Connect a Telegram bot to the Max Assistant gateway with automated webhook registration and credential storage",
       "metadata": {
         "emoji": "🤖",
-        "vellum": {
+        "max": {
           "display-name": "Telegram Setup",
           "activation-hints": [
             "Telegram bot setup, webhook configuration, or BotFather token",
@@ -669,7 +669,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "time-based-actions",
@@ -677,11 +677,11 @@
       "description": "Unified routing guide for reminders, schedules, notifications, and tasks - prevents common misrouting",
       "metadata": {
         "emoji": "⏰",
-        "vellum": {
+        "max": {
           "display-name": "Time-Based Actions"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "twilio-setup",
@@ -689,14 +689,14 @@
       "description": "Configure Twilio credentials and phone numbers for voice calls",
       "metadata": {
         "emoji": "📱",
-        "vellum": {
+        "max": {
           "display-name": "Twilio Setup",
           "includes": [
             "public-ingress"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "typescript-eval",
@@ -704,72 +704,72 @@
       "description": "Test TypeScript code snippets before persisting as skills",
       "metadata": {
         "emoji": "🧪",
-        "vellum": {
+        "max": {
           "display-name": "TypeScript Evaluation"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-avatar",
-      "name": "vellum-avatar",
+      "id": "max-avatar",
+      "name": "max-avatar",
       "description": "Customize the assistant's avatar - build a native character, upload an image, or generate one with AI",
       "metadata": {
         "emoji": "🎨",
-        "vellum": {
+        "max": {
           "display-name": "Avatar"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-browser-use",
-      "name": "vellum-browser-use",
+      "id": "max-browser-use",
+      "name": "max-browser-use",
       "description": "Browse the web using `assistant browser` CLI commands",
       "metadata": {
         "emoji": "🌐",
-        "vellum": {
+        "max": {
           "display-name": "Browser",
           "activation-hints": [
             "Load first if you need to browse the web (navigating, clicking, extracting web content) via `assistant browser` commands"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-conversation-management",
-      "name": "vellum-conversation-management",
+      "id": "max-conversation-management",
+      "name": "max-conversation-management",
       "description": "Manage conversation threads (rename, list, export, wipe)",
       "metadata": {
         "emoji": "💬",
-        "vellum": {
+        "max": {
           "display-name": "Conversations"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-github-app-setup",
-      "name": "vellum-github-app-setup",
+      "id": "max-github-app-setup",
+      "name": "max-github-app-setup",
       "description": "Create and configure a GitHub App so the assistant can push commits, open PRs, and comment under its own bot identity. Use when the user wants the assistant to have its own GitHub identity, or when setting up git push access for the first time.",
       "metadata": {
         "emoji": "🤖",
-        "author": "vellum-ai",
+        "author": "max-ai",
         "version": "1.0",
-        "vellum": {
+        "max": {
           "display-name": "GitHub App Setup"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants. Requires Python 3, bun, and the assistant credentials CLI."
+      "compatibility": "Designed for Max personal assistants. Requires Python 3, bun, and the assistant credentials CLI."
     },
     {
-      "id": "vellum-heartbeat",
-      "name": "vellum-heartbeat",
+      "id": "max-heartbeat",
+      "name": "max-heartbeat",
       "description": "Configure periodic background checklist runs",
       "metadata": {
         "emoji": "💓",
-        "vellum": {
+        "max": {
           "display-name": "Heartbeat",
           "activation-hints": [
             "Set up a heartbeat, periodic checklist, background health check, or recurring background task"
@@ -779,15 +779,15 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-memory-v2-migration",
-      "name": "vellum-memory-v2-migration",
+      "id": "max-memory-v2-migration",
+      "name": "max-memory-v2-migration",
       "description": "Perform a one-time migration from memory v1, to memory v2, which was introduced in 0.8.0.",
       "metadata": {
         "emoji": "🧠",
-        "vellum": {
+        "max": {
           "display-name": "Memory v2 Migration",
           "user-invocable": "true",
           "activation-hints": [
@@ -800,31 +800,31 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-oauth-integrations",
-      "name": "vellum-oauth-integrations",
+      "id": "max-oauth-integrations",
+      "name": "max-oauth-integrations",
       "description": "Act on behalf of your user in any third-party software that supports OAuth 2.0",
       "metadata": {
         "emoji": "🔌",
-        "vellum": {
-          "display-name": "Vellum OAuth Integrations"
+        "max": {
+          "display-name": "Max OAuth Integrations"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-self-knowledge",
-      "name": "vellum-self-knowledge",
-      "description": "Answer questions about Vellum, the assistant's architecture, capabilities, and current configuration by routing to live sources of truth",
+      "id": "max-self-knowledge",
+      "name": "max-self-knowledge",
+      "description": "Answer questions about Max, the assistant's architecture, capabilities, and current configuration by routing to live sources of truth",
       "metadata": {
         "emoji": "🪞",
-        "vellum": {
-          "display-name": "Vellum Self-Knowledge",
+        "max": {
+          "display-name": "Max Self-Knowledge",
           "activation-hints": [
             "When the user asks what model the assistant is running on",
-            "When the user asks about Vellum, how the assistant works, or its architecture",
+            "When the user asks about Max, how the assistant works, or its architecture",
             "When the user asks about the assistant's current configuration or settings",
             "When the user asks what the assistant can do or what skills/tools are available"
           ],
@@ -833,15 +833,15 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-skills-catalog",
-      "name": "vellum-skills-catalog",
+      "id": "max-skills-catalog",
+      "name": "max-skills-catalog",
       "description": "Discover bundled skills and search/install community skills from the skills.sh registry",
       "metadata": {
         "emoji": "🧩",
-        "vellum": {
+        "max": {
           "display-name": "Skills Catalog",
           "activation-hints": [
             "what can you do",
@@ -856,29 +856,29 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-sounds",
-      "name": "vellum-sounds",
+      "id": "max-sounds",
+      "name": "max-sounds",
       "description": "Customize the macOS app's sound effects — add sound files to the workspace, enable sounds globally, set volume, and assign sounds to 9 app events (message sent, task complete, notifications, etc.)",
       "metadata": {
         "emoji": "🔊",
-        "vellum": {
+        "max": {
           "display-name": "Sounds"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
-      "id": "vellum-terminal-sessions",
-      "name": "vellum-terminal-sessions",
+      "id": "max-terminal-sessions",
+      "name": "max-terminal-sessions",
       "description": "Manage persistent terminal sessions via tmux. Create, read, write to, list, and close named shell sessions. Use when the user asks about running terminal processes, wants help orchestrating CLI tasks, or asks you to monitor or interact with long-running commands. Also use when the user mentions tmux sessions.",
       "metadata": {
         "emoji": "🖥️",
-        "author": "vellum-ai",
+        "author": "max-ai",
         "version": "0.2",
-        "vellum": {
+        "max": {
           "display-name": "Terminal Sessions",
           "activation-hints": [
             "User asks about their running terminal sessions or processes",
@@ -901,14 +901,14 @@
       "description": "Set up a Vercel API token for publishing apps using browser automation",
       "metadata": {
         "emoji": "▲",
-        "vellum": {
+        "max": {
           "display-name": "Vercel Token Setup",
           "includes": [
-            "vellum-browser-use"
+            "max-browser-use"
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "voice-setup",
@@ -916,7 +916,7 @@
       "description": "Complete voice configuration in chat - PTT key, microphone permissions, ElevenLabs TTS, and troubleshooting",
       "metadata": {
         "emoji": "🎙️",
-        "vellum": {
+        "max": {
           "display-name": "Voice Setup",
           "includes": [
             "elevenlabs-voice"
@@ -930,7 +930,7 @@
           ]
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "watch-together",
@@ -938,7 +938,7 @@
       "description": "Watch TV shows and movies with the user in real time by processing screen captures into frames and audio analysis.",
       "metadata": {
         "emoji": "📺",
-        "vellum": {
+        "max": {
           "emoji": "📺"
         }
       }
@@ -949,11 +949,11 @@
       "description": "Create and manage polling watchers that monitor external services (Gmail, Google Calendar, GitHub, Linear, Outlook) for events and process them with custom action prompts",
       "metadata": {
         "emoji": "👀",
-        "vellum": {
+        "max": {
           "display-name": "Watcher"
         }
       },
-      "compatibility": "Designed for Vellum personal assistants"
+      "compatibility": "Designed for Max personal assistants"
     },
     {
       "id": "weather",

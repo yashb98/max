@@ -2,7 +2,7 @@
  * Credential metadata store.
  *
  * Thin wrapper around the portable StaticCredentialMetadataStore from
- * @vellumai/credential-storage. Wires in the platform-specific data
+ * @maxai/credential-storage. Wires in the platform-specific data
  * directory and preserves the existing module-level API so that call
  * sites throughout the assistant daemon do not need to change.
  *
@@ -14,7 +14,7 @@
 
 import { join } from "node:path";
 
-import { StaticCredentialMetadataStore } from "@vellumai/credential-storage";
+import { StaticCredentialMetadataStore } from "@maxai/credential-storage";
 
 import { getDataDir } from "../../util/platform.js";
 import type { CredentialInjectionTemplate } from "./policy-types.js";

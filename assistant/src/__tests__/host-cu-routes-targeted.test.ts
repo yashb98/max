@@ -2,7 +2,7 @@
  * Tests for the host-cu-result route 403 guard introduced in Phase 2.
  *
  * Covers:
- *  1. Targeted + correct x-vellum-client-id header → 200 accepted
+ *  1. Targeted + correct x-max-client-id header → 200 accepted
  *  2. Targeted + missing header → 400 BadRequestError
  *  3. Targeted + wrong header → 403 ForbiddenError, interaction NOT consumed
  *  4. Untargeted (no targetClientId, no header) → 200 accepted (regression)
@@ -164,7 +164,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
 
   // ── 1. Targeted + correct header → 200 ────────────────────────────────────
 
-  describe("targeted + correct x-vellum-client-id header", () => {
+  describe("targeted + correct x-max-client-id header", () => {
     test("returns { accepted: true } and resolves the interaction", async () => {
       const requestId = "req-cu-targeted-match";
       actorPrincipalByClient.set("client-A", "user-1");
@@ -173,8 +173,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       const result = await handleHostCuResult({
         body: cuBody(requestId),
         headers: {
-          "x-vellum-client-id": "client-A",
-          "x-vellum-actor-principal-id": "user-1",
+          "x-max-client-id": "client-A",
+          "x-max-actor-principal-id": "user-1",
         },
       });
 
@@ -192,8 +192,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       const result = await handleHostCuResult({
         body: cuBody(requestId),
         headers: {
-          "x-vellum-client-id": "  client-A  ",
-          "x-vellum-actor-principal-id": "user-1",
+          "x-max-client-id": "  client-A  ",
+          "x-max-actor-principal-id": "user-1",
         },
       });
 
@@ -203,7 +203,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
 
   // ── 2. Targeted + missing header → 400 ────────────────────────────────────
 
-  describe("targeted + missing x-vellum-client-id header", () => {
+  describe("targeted + missing x-max-client-id header", () => {
     test("throws BadRequestError (400) when header is absent", () => {
       const requestId = "req-cu-targeted-no-header";
       registerPending(requestId, { targetClientId: "client-A" });
@@ -220,7 +220,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       expect(() =>
         handleHostCuResult({
           body: cuBody(requestId),
-          headers: { "x-vellum-client-id": "   " },
+          headers: { "x-max-client-id": "   " },
         }),
       ).toThrow(BadRequestError);
     });
@@ -242,7 +242,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
 
   // ── 3. Targeted + wrong header → 403 ──────────────────────────────────────
 
-  describe("targeted + wrong x-vellum-client-id header", () => {
+  describe("targeted + wrong x-max-client-id header", () => {
     test("throws ForbiddenError (403) when client ID does not match", () => {
       const requestId = "req-cu-targeted-mismatch";
       registerPending(requestId, { targetClientId: "client-A" });
@@ -250,7 +250,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       expect(() =>
         handleHostCuResult({
           body: cuBody(requestId),
-          headers: { "x-vellum-client-id": "client-B" },
+          headers: { "x-max-client-id": "client-B" },
         }),
       ).toThrow(ForbiddenError);
     });
@@ -263,7 +263,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       try {
         handleHostCuResult({
           body: cuBody(requestId),
-          headers: { "x-vellum-client-id": "client-B" },
+          headers: { "x-max-client-id": "client-B" },
         });
       } catch (e) {
         caught = e;
@@ -282,7 +282,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       try {
         handleHostCuResult({
           body: cuBody(requestId),
-          headers: { "x-vellum-client-id": "client-B" },
+          headers: { "x-max-client-id": "client-B" },
         });
       } catch {
         // expected
@@ -304,8 +304,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       const result = await handleHostCuResult({
         body: cuBody(requestId),
         headers: {
-          "x-vellum-client-id": "client-A",
-          "x-vellum-actor-principal-id": "user-1",
+          "x-max-client-id": "client-A",
+          "x-max-actor-principal-id": "user-1",
         },
       });
 
@@ -323,8 +323,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
         handleHostCuResult({
           body: cuBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-2",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-2",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -339,8 +339,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
         handleHostCuResult({
           body: cuBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-2",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-2",
           },
         });
       } catch {
@@ -359,7 +359,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
       expect(() =>
         handleHostCuResult({
           body: cuBody(requestId),
-          headers: { "x-vellum-client-id": "client-A" },
+          headers: { "x-max-client-id": "client-A" },
         }),
       ).toThrow(ForbiddenError);
     });
@@ -373,8 +373,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
         handleHostCuResult({
           body: cuBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-1",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-1",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -389,8 +389,8 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
         handleHostCuResult({
           body: cuBody(requestId),
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "   ",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "   ",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -419,7 +419,7 @@ describe("handleHostCuResult — Phase 2 targetClientId guard", () => {
 
       const result = await handleHostCuResult({
         body: cuBody(requestId),
-        headers: { "x-vellum-client-id": "client-whatever" },
+        headers: { "x-max-client-id": "client-whatever" },
       });
 
       expect(result).toEqual({ accepted: true });

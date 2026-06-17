@@ -34,7 +34,7 @@
  *     without touching real sockets or a real STT provider account.
  *   - This file has zero `assistant/` imports — every runtime dependency
  *     arrives via the {@link SkillHost} contract from
- *     `@vellumai/skill-host-contracts`.
+ *     `@maxai/skill-host-contracts`.
  */
 
 import { timingSafeEqual } from "node:crypto";
@@ -45,7 +45,7 @@ import {
   type Socket as NetSocket,
 } from "node:net";
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "@maxai/skill-host-contracts";
 
 import type { TranscriptChunkEvent } from "../contracts/index.js";
 import { registerSubModule } from "./modules-registry.js";

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a new `kimi-agent` LLM provider that drives Moonshot's **Kimi Agent SDK** (`@moonshot-ai/kimi-agent-sdk` → the `kimi` Code CLI) as an in-process agentic runtime, mirroring the existing `claude-subscription` provider, while preserving every Vellum tool-execution security invariant.
+**Goal:** Add a new `kimi-agent` LLM provider that drives Moonshot's **Kimi Agent SDK** (`@moonshot-ai/kimi-agent-sdk` → the `kimi` Code CLI) as an in-process agentic runtime, mirroring the existing `claude-subscription` provider, while preserving every Max tool-execution security invariant.
 
-**Architecture:** The Kimi Agent SDK runs its own agent loop inside the `kimi` CLI subprocess (same shape as `@anthropic-ai/claude-agent-sdk`). A new `KimiAgentProvider` implements Vellum's `Provider` interface: it creates a Kimi session, exposes each Vellum tool to the SDK as a Kimi **external tool** whose handler bridges back into Vellum's `ToolExecutor` (via the existing `SendMessageOptions.toolBridge` seam), and enforces isolation through the SDK's **approval gate** (`yoloMode: false` + reject every tool call that is not an allowlisted external tool — the analog of `claude-subscription`'s `canUseTool` deny). Streamed SDK events map onto Vellum's existing `ProviderEvent` union. This reuses 100% of the bridge plumbing (`agent/loop.ts` closure, `ProviderToolBridge`, `ToolBridgeResult`) that `claude-subscription` already established.
+**Architecture:** The Kimi Agent SDK runs its own agent loop inside the `kimi` CLI subprocess (same shape as `@anthropic-ai/claude-agent-sdk`). A new `KimiAgentProvider` implements Max's `Provider` interface: it creates a Kimi session, exposes each Max tool to the SDK as a Kimi **external tool** whose handler bridges back into Max's `ToolExecutor` (via the existing `SendMessageOptions.toolBridge` seam), and enforces isolation through the SDK's **approval gate** (`yoloMode: false` + reject every tool call that is not an allowlisted external tool — the analog of `claude-subscription`'s `canUseTool` deny). Streamed SDK events map onto Max's existing `ProviderEvent` union. This reuses 100% of the bridge plumbing (`agent/loop.ts` closure, `ProviderToolBridge`, `ToolBridgeResult`) that `claude-subscription` already established.
 
-**Tech Stack:** TypeScript, Bun (`bun:test`), `@moonshot-ai/kimi-agent-sdk` (new dep), the `kimi` Code CLI (external binary, like `claude`), Vellum's provider/registry/feature-flag infrastructure.
+**Tech Stack:** TypeScript, Bun (`bun:test`), `@moonshot-ai/kimi-agent-sdk` (new dep), the `kimi` Code CLI (external binary, like `claude`), Max's provider/registry/feature-flag infrastructure.
 
 **Reference implementation to mirror at every step:** `assistant/src/providers/claude-subscription/` and `assistant/docs/architecture/claude-subscription-bridge.md`. Where this plan says "mirror X", read X first and copy its structure.
 
@@ -79,7 +79,7 @@ The verified Kimi SDK surface (from `MoonshotAI/kimi-agent-sdk` `node/agent_sdk/
 - `assistant/src/providers/provider-availability.ts` — add `kimi-agent` availability branch (`kimi` CLI present + API key/config).
 - `meta/feature-flags/feature-flag-registry.json` — add `kimi-agent-provider` flag (`defaultEnabled: false` until verified).
 - `assistant/src/tools/terminal/safe-env.ts` — allowlist `MOONSHOT_API_KEY` (per `assistant/CLAUDE.md`).
-- `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift` — add picker group/mapping (Phase 3).
+- `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift` — add picker group/mapping (Phase 3).
 
 **Reuse unchanged:** `agent/loop.ts` (the `toolBridge` closure is provider-agnostic), `providers/types.ts` (`ProviderToolBridge`, `ToolBridgeResult`, `ProviderEvent`, `SendMessageOptions`), `RetryProvider`, `UsageTrackingProvider`.
 
@@ -178,7 +178,7 @@ const agentFile = join(dir, "agent.md");
 // Probe content: a distinctive persona we can detect in the reply.
 writeFileSync(
   agentFile,
-  "You are VELLUM-PROBE. When asked your name, reply exactly 'I am VELLUM-PROBE'. You are not a coding assistant.",
+  "You are MAX-PROBE. When asked your name, reply exactly 'I am MAX-PROBE'. You are not a coding assistant.",
 );
 
 const session = createSession({ workDir: dir, yoloMode: false, agentFile });
@@ -189,7 +189,7 @@ for await (const ev of turn) {
 }
 console.log("REPLY:", text);
 console.log(
-  `VERDICT: ${/VELLUM-PROBE/.test(text) ? "✅ agentFile REPLACED persona" : "❌ persona NOT replaced — find another mechanism"}`,
+  `VERDICT: ${/MAX-PROBE/.test(text) ? "✅ agentFile REPLACED persona" : "❌ persona NOT replaced — find another mechanism"}`,
 );
 ```
 
@@ -528,7 +528,7 @@ Expected: PASS.
 git commit -am "feat(kimi-agent): approval-deny isolation (canUseTool analog)"
 ```
 
-### Task 4: External-tool bridge → Vellum `ToolExecutor`
+### Task 4: External-tool bridge → Max `ToolExecutor`
 
 **Files:**
 - Modify: `assistant/src/providers/kimi-agent/client.ts`
@@ -538,7 +538,7 @@ git commit -am "feat(kimi-agent): approval-deny isolation (canUseTool analog)"
 
 ```ts
 describe("KimiAgentProvider external-tool bridge", () => {
-  test("U-5: each Vellum tool becomes an external tool whose handler calls the bridge", async () => {
+  test("U-5: each Max tool becomes an external tool whose handler calls the bridge", async () => {
     let captured: any;
     createSession.mockImplementation((opts: any) => {
       captured = opts;
@@ -602,7 +602,7 @@ private buildExternalTools(
   }));
 }
 ```
-Wire it into `sendMessage`: resolve the bridge (`options?.toolBridge ?? registryBridge ?? stubBridge` — mirror `claude-subscription` Task), then pass `externalTools: this.buildExternalTools(tools ?? [], bridge)` to `createSession`. Add `setVellumToolBridge` / `clearVellumToolBridge` / `stubBridge` by copying `claude-subscription/client.ts:88-201`.
+Wire it into `sendMessage`: resolve the bridge (`options?.toolBridge ?? registryBridge ?? stubBridge` — mirror `claude-subscription` Task), then pass `externalTools: this.buildExternalTools(tools ?? [], bridge)` to `createSession`. Add `setMaxToolBridge` / `clearMaxToolBridge` / `stubBridge` by copying `claude-subscription/client.ts:88-201`.
 
 - [ ] **Step 4: Run; verify it passes**
 
@@ -629,10 +629,10 @@ describe("KimiAgentProvider control", () => {
     let captured: any;
     createSession.mockImplementation((o: any) => { captured = o; return { prompt: () => makeFakeTurn([{ type: "TurnEnd" }]), close: mock(()=>{}) }; });
     await new KimiAgentProvider("kimi-k2.6", {}).sendMessage(
-      [{ role: "user", content: [{ type: "text", text: "x" }] }], [], "BE VELLUM", {});
+      [{ role: "user", content: [{ type: "text", text: "x" }] }], [], "BE MAX", {});
     expect(typeof captured.agentFile).toBe("string");
     const fs = await import("node:fs");
-    expect(fs.readFileSync(captured.agentFile, "utf8")).toContain("BE VELLUM");
+    expect(fs.readFileSync(captured.agentFile, "utf8")).toContain("BE MAX");
   });
 
   test("U-7: StatusUpdate token_usage aggregates into ProviderResponse.usage", async () => {
@@ -763,7 +763,7 @@ Insert after the `kimi` entry. Use real Kimi model metadata (cross-check against
   id: "kimi-agent",
   displayName: "Kimi (Agent SDK)",
   subtitle:
-    "Kimi K2.6 driven through the Kimi Code CLI's agentic runtime. Tool calls route through an external-tool bridge to Vellum's skill runner. Requires the kimi CLI + a Moonshot API key.",
+    "Kimi K2.6 driven through the Kimi Code CLI's agentic runtime. Tool calls route through an external-tool bridge to Max's skill runner. Requires the kimi CLI + a Moonshot API key.",
   setupMode: "api-key",
   envVar: "MOONSHOT_API_KEY",
   setupHint:
@@ -839,7 +839,7 @@ Append to the `flags` array in `meta/feature-flags/feature-flag-registry.json`:
   "scope": "assistant",
   "key": "kimi-agent-provider",
   "label": "Kimi Agent SDK Provider",
-  "description": "Enable the `kimi-agent` LLM provider. Drives the Kimi Code CLI (@moonshot-ai/kimi-agent-sdk) as an in-process agentic runtime; bridges its tool calls to Vellum's ToolExecutor via external tools and isolates built-ins via approval-deny. Requires the kimi CLI + a Moonshot API key. Default off until empirically validated. See assistant/docs/architecture/kimi-agent-bridge.md.",
+  "description": "Enable the `kimi-agent` LLM provider. Drives the Kimi Code CLI (@moonshot-ai/kimi-agent-sdk) as an in-process agentic runtime; bridges its tool calls to Max's ToolExecutor via external tools and isolates built-ins via approval-deny. Requires the kimi CLI + a Moonshot API key. Default off until empirically validated. See assistant/docs/architecture/kimi-agent-bridge.md.",
   "defaultEnabled": false
 }
 ```

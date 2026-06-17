@@ -1,10 +1,10 @@
 ---
 name: inbox-management
 description: Ongoing Gmail inbox management via scheduled runs. Archives known noise, flags urgent items, drafts replies in-thread (never auto-sends), and catches stale follow-ups. Starts in flag-only mode — earns autonomy through a three-stage trust ladder.
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📬"
-  vellum:
+  max:
     display-name: "Inbox Management"
     includes: ["gmail"]
     activation-hints:

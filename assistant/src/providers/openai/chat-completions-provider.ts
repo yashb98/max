@@ -67,7 +67,7 @@ export interface OpenAIChatCompletionsProviderOptions {
   /** Upper bound for `reasoning_effort` sent on the wire. Defaults to "xhigh"
    *  (OpenAI's current ceiling). Compatibility providers whose APIs only
    *  document `low|medium|high` (e.g. Fireworks) should set this to "high" so
-   *  Vellum's `xhigh`/`max` tiers don't 4xx upstream. */
+   *  Max's `xhigh`/`max` tiers don't 4xx upstream. */
   maxReasoningEffort?: "high" | "xhigh";
   /** When true, treat the OpenAI-compatible API as supporting Kimi-style
    *  `reasoning_content` round-tripping: capture `delta.reasoning_content`

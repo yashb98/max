@@ -110,7 +110,7 @@ function runtimeConfig(overrides?: Partial<TransportConfig>): TransportConfig {
 
 function managedConfig(overrides?: Partial<TransportConfig>): TransportConfig {
   return {
-    baseURL: "https://platform.vellum.ai",
+    baseURL: "https://platform.max.ai",
     target: "managed",
     authHeader: "session-token-abc",
     fetchFn: mockFetch(200, {}),
@@ -894,7 +894,7 @@ describe("full end-to-end — managed-to-self-hosted migration", () => {
           JSON.stringify({
             job_id: "exp-m2sh",
             status: "complete",
-            download_url: "https://platform.vellum.ai/downloads/exp-m2sh",
+            download_url: "https://platform.max.ai/downloads/exp-m2sh",
           }),
           {
             status: 200,

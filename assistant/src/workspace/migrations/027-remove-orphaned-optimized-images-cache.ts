@@ -2,7 +2,7 @@
  * Workspace migration 027: Remove orphaned optimized-images cache directory.
  *
  * The optimized image cache was moved from `workspace/cache/optimized-images/`
- * to `os.tmpdir()/vellum-optimized-images/`. This migration cleans up the old
+ * to `os.tmpdir()/max-optimized-images/`. This migration cleans up the old
  * directory and removes the parent `cache/` directory if it is now empty.
  *
  * Idempotent: safe to re-run after interruption at any point.

@@ -1,4 +1,4 @@
-# Vellum Gateway
+# Max Gateway
 
 Standalone service that serves as the public ingress boundary for all external webhooks and callbacks. It owns Telegram integration end-to-end, routes Twilio voice webhooks, handles OAuth callbacks, and acts as an authenticated reverse proxy for the assistant runtime.
 
@@ -28,11 +28,11 @@ bun run dev
 
 | Variable                  | Required | Default | Description                                                                                                                                                                                                                                                                         |
 | ------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`      | No       | —       | Bot token from @BotFather (Telegram disabled when unset). When not set as an env var, the gateway reads from the assistant's secure credential store: CES HTTP API first (when `CES_CREDENTIAL_URL` is configured), then the encrypted file store (`~/.vellum/protected/keys.enc`). |
+| `TELEGRAM_BOT_TOKEN`      | No       | —       | Bot token from @BotFather (Telegram disabled when unset). When not set as an env var, the gateway reads from the assistant's secure credential store: CES HTTP API first (when `CES_CREDENTIAL_URL` is configured), then the encrypted file store (`~/.max/protected/keys.enc`). |
 | `TELEGRAM_WEBHOOK_SECRET` | No       | —       | Secret for verifying webhook requests (Telegram disabled when unset). Same credential reader fallback behavior as `TELEGRAM_BOT_TOKEN`.                                                                                                                                             |
 | `GATEWAY_PORT`            | No       | `7830`  | Port for the gateway HTTP server                                                                                                                                                                                                                                                    |
 
-Most gateway behavior is now configured via hardcoded defaults or workspace config (`~/.vellum/workspace/config.json`) rather than environment variables. Channel operational settings (Telegram API base URL, timeouts, deliver auth bypass flags, runtime base URL, routing, proxy settings, attachment limits, shutdown drain) are managed via `workspace/config.json` through `ConfigFileCache`. See the channel-specific sections in `ARCHITECTURE.md` for details.
+Most gateway behavior is now configured via hardcoded defaults or workspace config (`~/.max/workspace/config.json`) rather than environment variables. Channel operational settings (Telegram API base URL, timeouts, deliver auth bypass flags, runtime base URL, routing, proxy settings, attachment limits, shutdown drain) are managed via `workspace/config.json` through `ConfigFileCache`. See the channel-specific sections in `ARCHITECTURE.md` for details.
 
 ## Routing
 
@@ -180,7 +180,7 @@ To receive external callbacks during local development, point a tunnel service a
 
 #### Test Gateway Source Changes Locally (No Release Needed)
 
-Use this flow when you are changing files under `gateway/` and need to validate immediately without publishing `@vellumai/vellum-gateway`.
+Use this flow when you are changing files under `gateway/` and need to validate immediately without publishing `@maxai/max-gateway`.
 
 ```bash
 # Terminal 1: restart assistant runtime HTTP server
@@ -216,7 +216,7 @@ Velay is a managed ingress transport for assistant-hosted HTTP and WebSocket tra
 
 Use Velay when testing Twilio voice webhooks or Twilio WebSocket upgrades through the platform-managed tunnel:
 
-1. In `vellum-assistant-platform`, start the local Velay service:
+1. In `max-assistant-platform`, start the local Velay service:
 
    ```bash
    vel up velay
@@ -318,13 +318,13 @@ On `SIGTERM` the gateway enters drain mode: `/readyz` begins returning `503` so 
 
 ```bash
 # Build
-docker build -t vellum-gateway:local gateway
+docker build -t max-gateway:local gateway
 
 # Run (pass required env vars)
 docker run --rm -p 7830:7830 \
   -e TELEGRAM_BOT_TOKEN=... \
   -e TELEGRAM_WEBHOOK_SECRET=... \
-  vellum-gateway:local
+  max-gateway:local
 ```
 
 The image runs as non-root user `gateway` (uid 1001) and exposes port `7830`.
@@ -355,7 +355,7 @@ The CD workflow requires these GitHub repository variables:
 - `GCP_WORKLOAD_IDENTITY_PROVIDER` — OIDC provider for keyless auth
 - `GCP_SERVICE_ACCOUNT` — Service account with push permissions
 - `GCP_PROJECT_ID` — GCP project ID
-- `GATEWAY_IMAGE_NAME` — Image name (e.g. `vellum-gateway`)
+- `GATEWAY_IMAGE_NAME` — Image name (e.g. `max-gateway`)
 - `GCP_REGISTRY_HOST` — Registry host (e.g. `gcr.io`)
 
 ## Load Testing
@@ -371,7 +371,7 @@ See [`benchmarking/gateway/README.md`](../benchmarking/gateway/README.md) for lo
 | "No route configured" replies  | Add a routing entry or configure the unmapped policy to `default` with a default assistant via workspace config                                                                |
 | Runtime errors                 | Is the assistant runtime reachable? Check runtime logs.                                                                                                                        |
 | No reply from assistant        | Is the assistant runtime processing messages? Check that the runtime HTTP server is running.                                                                                   |
-| 403 on channel inbound         | The runtime rejected the request because JWT authentication failed. Ensure the gateway and runtime share the same signing key (`~/.vellum/protected/actor-token-signing-key`). |
+| 403 on channel inbound         | The runtime rejected the request because JWT authentication failed. Ensure the gateway and runtime share the same signing key (`~/.max/protected/actor-token-signing-key`). |
 
 ### Guardian-Specific Troubleshooting
 

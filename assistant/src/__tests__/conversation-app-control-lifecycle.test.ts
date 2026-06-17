@@ -151,7 +151,7 @@ function makeConversation(): Conversation {
     () => {},
     "/tmp",
   );
-  conv.setTrustContext({ trustClass: "guardian", sourceChannel: "vellum" });
+  conv.setTrustContext({ trustClass: "guardian", sourceChannel: "max" });
   return conv;
 }
 

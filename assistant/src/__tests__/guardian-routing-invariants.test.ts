@@ -1555,8 +1555,8 @@ describe("routing invariant: invite handoff bypass for access requests", () => {
 
     const result = await routeGuardianReply({
       messageText: "C0D3A5 approve",
-      channel: "vellum",
-      actor: trustedActor({ channel: "vellum" }),
+      channel: "max",
+      actor: trustedActor({ channel: "max" }),
       conversationId: "conv-guardian-conversation",
       pendingRequestIds: [req.id],
       approvalConversationGenerator: undefined,
@@ -1594,8 +1594,8 @@ describe("routing invariant: invite handoff bypass for access requests", () => {
 
     const result = await routeGuardianReply({
       messageText: "please approve this request",
-      channel: "vellum",
-      actor: trustedActor({ channel: "vellum" }),
+      channel: "max",
+      actor: trustedActor({ channel: "max" }),
       conversationId: "conv-guardian-conversation",
       pendingRequestIds: [req.id],
       approvalConversationGenerator: approvalConversationGenerator as any,

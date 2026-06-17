@@ -1,7 +1,7 @@
 export const CHANNEL_IDS = [
   "telegram",
   "phone",
-  "vellum",
+  "max",
   "whatsapp",
   "slack",
   "email",
@@ -64,7 +64,7 @@ export interface ChannelInfo {
  * Per-channel display metadata for the channels the gateway can currently
  * surface to clients. Add an entry here when surfacing a new channel via
  * `/v1/channels/available`. `Partial` because unsurfaced channels (e.g.
- * `vellum`, `platform`) deliberately have no metadata — keep this map
+ * `max`, `platform`) deliberately have no metadata — keep this map
  * minimal until there's a real surface to feed.
  */
 export const CHANNEL_METADATA: Partial<Record<ChannelId, ChannelInfo>> = {
@@ -155,15 +155,15 @@ export type InterfaceId = (typeof INTERFACE_IDS)[number];
  * `normalizeInterfaceId` maps these to their canonical replacements.
  */
 const LEGACY_INTERFACE_ALIASES: Record<string, InterfaceId> = {
-  // The web client used to report "vellum" as its interface ID. Older
+  // The web client used to report "max" as its interface ID. Older
   // conversation records and in-flight SSE connections may still carry this
   // value. Normalize to "web" so downstream logic only needs one branch.
-  vellum: "web",
+  max: "web",
 };
 
 /**
  * Strict type guard — returns `true` only for canonical `InterfaceId`
- * values. Legacy aliases like `"vellum"` return `false`; use
+ * values. Legacy aliases like `"max"` return `false`; use
  * `parseInterfaceId` to accept and normalize those.
  */
 export function isInterfaceId(value: unknown): value is InterfaceId {

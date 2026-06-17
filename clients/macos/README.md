@@ -1,4 +1,4 @@
-# vellum-assistant
+# max-assistant
 
 A native macOS menu bar app that controls your Mac via accessibility APIs and CGEvent input injection, powered by large language models with tool use.
 
@@ -13,7 +13,7 @@ The app supports a **managed sign-in** flow that connects to a platform-hosted a
 1. User clicks "Sign in" during first-run onboarding
 2. WorkOS authentication opens in the system browser
 3. On success, `ManagedAssistantBootstrapService.ensureManagedAssistant()` discovers or creates a platform assistant
-4. A lockfile entry is written with `cloud: "vellum"` and the `activeAssistant` field is set in the lockfile
+4. A lockfile entry is written with `cloud: "max"` and the `activeAssistant` field is set in the lockfile
 5. HTTP transport is configured in `platformAssistantProxy` mode with session token auth
 
 ### Transport Modes
@@ -25,7 +25,7 @@ The app supports a **managed sign-in** flow that connects to a platform-hosted a
 
 ### Key Differences in Managed Mode
 
-- No local daemon process -- the assistant runs on the Vellum platform
+- No local daemon process -- the assistant runs on the Max platform
 - No actor credentials or bearer token -- session token auth is used instead (stored in Credential Store)
 - Onboarding skips local daemon hatching and Fn key setup
 - If bootstrap fails, the user stays on the onboarding screen with a retry option
@@ -35,8 +35,8 @@ The app supports a **managed sign-in** flow that connects to a platform-hosted a
 | State | Location |
 |-------|----------|
 | Session token | Credential Store (`AuthManager`) |
-| Lockfile entry | `~/.vellum.lock.json` (with `cloud: "vellum"`) |
-| Connected assistant ID | Lockfile (`activeAssistant` field in `~/.vellum.lock.json`) |
+| Lockfile entry | `~/.max.lock.json` (with `cloud: "max"`) |
+| Connected assistant ID | Lockfile (`activeAssistant` field in `~/.max.lock.json`) |
 
 For the full managed sign-in architecture, see `clients/ARCHITECTURE.md`.
 
@@ -46,17 +46,17 @@ For the full managed sign-in architecture, see `clients/ARCHITECTURE.md`.
 
 To install the pre-built macOS app, download the signed and notarized DMG:
 
-**[Download Vellum.dmg](https://github.com/vellum-ai/vellum-assistant/releases/latest/download/vellum-assistant.dmg)**
+**[Download Max.dmg](https://github.com/max-ai/max-assistant/releases/latest/download/max-assistant.dmg)**
 
-1. Open the DMG and drag **Vellum.app** to your Applications folder
-2. Launch Vellum — macOS may prompt "are you sure?" on first launch (click Open)
+1. Open the DMG and drag **Max.app** to your Applications folder
+2. Launch Max — macOS may prompt "are you sure?" on first launch (click Open)
 3. The app appears as a sparkles icon in your menu bar
 
 The app includes **Sparkle auto-update** — after the initial install, updates are downloaded and applied automatically in the background. You'll be prompted to relaunch when a new version is ready.
 
-> **Note (local mode):** You need the daemon running for the app to function in local mode. See the [Local Assistant (Daemon)](#local-assistant-daemon) section below for setup. In managed mode, the assistant runs on the Vellum platform and no local daemon is required.
+> **Note (local mode):** You need the daemon running for the app to function in local mode. See the [Local Assistant (Daemon)](#local-assistant-daemon) section below for setup. In managed mode, the assistant runs on the Max platform and no local daemon is required.
 
-All releases are available at [github.com/vellum-ai/vellum-assistant/releases](https://github.com/vellum-ai/vellum-assistant/releases).
+All releases are available at [github.com/max-ai/max-assistant/releases](https://github.com/max-ai/max-assistant/releases).
 
 ---
 
@@ -66,12 +66,12 @@ All releases are available at [github.com/vellum-ai/vellum-assistant/releases](h
 - macOS 15.0 (Sequoia) or later
 - Xcode 26+ (for building from source)
 - Anthropic API key
-- Local daemon running (`vellum wake`)
+- Local daemon running (`max wake`)
 
 ### Managed Mode
 - macOS 15.0 (Sequoia) or later
 - Xcode 26+ (for building from source)
-- Internet connection (assistant runs on the Vellum platform)
+- Internet connection (assistant runs on the Max platform)
 - No API key or local daemon required
 
 ---
@@ -84,24 +84,24 @@ The fastest way to build and launch the app locally:
 ./build.sh run
 ```
 
-The managed sign-in platform host is resolved from `VELLUM_ENVIRONMENT` (`local`, `dev`, `test`, `staging`, `production`) — set the environment to target a different platform host. See `VellumEnvironment.platformURL` in `clients/shared/App/VellumEnvironment.swift`.
+The managed sign-in platform host is resolved from `MAX_ENVIRONMENT` (`local`, `dev`, `test`, `staging`, `production`) — set the environment to target a different platform host. See `MaxEnvironment.platformURL` in `clients/shared/App/MaxEnvironment.swift`.
 
 Defaulting behavior for local development:
 
 - `./build.sh` and `./build.sh run` default to `dev` (so local source builds point at the dev cloud stack).
-- If either `VELLUM_PLATFORM_URL` or `VELLUM_WEB_URL` is set to a loopback `http://...` URL (for example when running via `vel up`), the build defaults to `local`.
+- If either `MAX_PLATFORM_URL` or `MAX_WEB_URL` is set to a loopback `http://...` URL (for example when running via `vel up`), the build defaults to `local`.
 - `./build.sh test` defaults to `test`.
 - `./build.sh release` / `./build.sh release-application` derive `staging` vs `production` from the release version (`*-staging*` => `staging`, otherwise `production`).
 
-`VELLUM_ENVIRONMENT` always takes precedence when explicitly exported.
+`MAX_ENVIRONMENT` always takes precedence when explicitly exported.
 
 To point in-app docs links at a staging or local docs server for a local run:
 
 ```bash
-VELLUM_DOCS_BASE_URL=https://staging.vellum.ai/docs ./build.sh run
+MAX_DOCS_BASE_URL=https://staging.max.ai/docs ./build.sh run
 ```
 
-Defaults to `https://www.vellum.ai/docs`. The override must be a parseable absolute http(s) URL with no query or fragment, otherwise it's ignored and the default is used.
+Defaults to `https://www.max.ai/docs`. The override must be a parseable absolute http(s) URL with no query or fragment, otherwise it's ignored and the default is used.
 
 This builds a debug `.app` bundle, codesigns it, and launches it immediately.
 
@@ -110,7 +110,7 @@ This builds a debug `.app` bundle, codesigns it, and launches it immediately.
 ## Build
 
 ```bash
-# Build debug .app bundle (→ dist/Vellum.app)
+# Build debug .app bundle (→ dist/Max.app)
 ./build.sh
 
 # Build + launch + watch for changes (auto-rebuild)
@@ -131,7 +131,7 @@ The build script uses incremental compilation and caching:
 - Running `./build.sh` again without code changes takes ~1-2s (skips binary copying, still updates Info.plist/assets/codesigning)
 - Small code changes rebuild in ~4 seconds
 - Use `./build.sh clean` if you encounter build issues, need to force a complete rebuild, or after removing resources/frameworks (incremental builds don't detect deletions)
-- The first app build downloads and caches the Kata 3.17.0 ARM64 kernel in `clients/macos/.container-cache/`, then bundles it into `Vellum.app/Contents/Resources/DeveloperVM/`
+- The first app build downloads and caches the Kata 3.17.0 ARM64 kernel in `clients/macos/.container-cache/`, then bundles it into `Max.app/Contents/Resources/DeveloperVM/`
 
 ### First-Time Setup: Code Signing (Optional but Recommended)
 
@@ -144,7 +144,7 @@ The build script automatically detects and uses any valid code signing certifica
 1. Open any Swift file in Xcode:
    ```bash
    # From clients/macos/ directory:
-   open vellum-assistant/App/AppDelegate.swift
+   open max-assistant/App/AppDelegate.swift
    ```
 
 2. In Xcode menu bar: **Xcode → Settings → Accounts**
@@ -226,17 +226,17 @@ This builds the app (if needed), generates the background image, creates a style
 
 The macOS app is a frontend — all inference (chat, computer-use sessions, ambient analysis) goes through the **local assistant process**, a backend process that manages LLM API calls, conversation state, and tool execution. The app connects to the assistant exclusively through the **Gateway** (a local HTTP proxy) — it should never connect to the assistant process directly. The Gateway port is resolved dynamically from the lockfile for multi-instance setups.
 
-**Local mode: You must start the assistant before using the app.** Without it, the app will connect but get no responses. (In managed mode, the assistant runs on the Vellum platform — no local process needed.)
+**Local mode: You must start the assistant before using the app.** Without it, the app will connect but get no responses. (In managed mode, the assistant runs on the Max platform — no local process needed.)
 
 ```bash
-# Recommended: use the vellum CLI (starts daemon + gateway)
-vellum wake
+# Recommended: use the max CLI (starts daemon + gateway)
+max wake
 
 # Check process status
-vellum ps
+max ps
 
 # Stop everything
-vellum sleep
+max sleep
 ```
 
 For low-level development, you can also start the daemon directly:
@@ -247,7 +247,7 @@ cd assistant && bun run src/index.ts daemon start
 
 The app will auto-reconnect if the assistant process restarts.
 
-> **Multi-instance note:** Every local assistant has its own data directory at `<resources.instanceDir>/.vellum/`, stored in the lockfile entry. New production hatches allocate `instanceDir` under `~/.local/share/vellum/assistants/<name>/`; existing legacy entries with `instanceDir = ~` continue to resolve to `~/.vellum/`. Non-production environments use `~/.local/share/vellum-<env>/assistants/<name>/`. See `LockfileAssistant` and `clients/shared/Utilities/VellumPaths.swift` for resolution logic.
+> **Multi-instance note:** Every local assistant has its own data directory at `<resources.instanceDir>/.max/`, stored in the lockfile entry. New production hatches allocate `instanceDir` under `~/.local/share/max/assistants/<name>/`; existing legacy entries with `instanceDir = ~` continue to resolve to `~/.max/`. Non-production environments use `~/.local/share/max-<env>/assistants/<name>/`. See `LockfileAssistant` and `clients/shared/Utilities/MaxPaths.swift` for resolution logic.
 
 ---
 
@@ -270,7 +270,7 @@ Grant these in System Settings → Privacy & Security.
 4. Click the menu bar icon or press `⌘⇧G` to open the task input
 5. Type a task (e.g., "Fill in the name field with John Smith") and press Go
 6. Or hold the Fn key to dictate a task via voice
-7. Watch the overlay as vellum-assistant works through the task
+7. Watch the overlay as max-assistant works through the task
 8. Press Escape at any time to cancel
 9. The main window shows a chat interface — type a message to start a conversation
 10. Responses stream in real-time from the assistant
@@ -335,7 +335,7 @@ Use Component Gallery as the visual verification surface for UI components. Do n
    # Or from the repo root:
    open clients/Package.swift
    ```
-   This opens the Swift package in Xcode. The `Package.swift` lives in the `clients/` directory and declares the macOS targets (`VellumAssistantShared`, `VellumAssistantLib`, `vellum-assistant`).
+   This opens the Swift package in Xcode. The `Package.swift` lives in the `clients/` directory and declares the macOS targets (`MaxAssistantShared`, `MaxAssistantLib`, `max-assistant`).
 
 2. Xcode will open and start resolving dependencies (you'll see a spinner in the top status bar). Wait for it to finish — this only takes a few seconds.
 
@@ -344,11 +344,11 @@ Use Component Gallery as the visual verification surface for UI components. Do n
 <details>
 <summary><strong>Step-by-step: Opening Component Gallery</strong></summary>
 
-1. **Run a debug build of `vellum-assistant`.**
-   In Xcode, use the `vellum-assistant` scheme and run on `My Mac`.
+1. **Run a debug build of `max-assistant`.**
+   In Xcode, use the `max-assistant` scheme and run on `My Mac`.
 
 2. **Open the menu bar app menu.**
-   Click the Vellum menu bar icon, then choose **Component Gallery**.
+   Click the Max menu bar icon, then choose **Component Gallery**.
 
 3. **Validate components in Gallery.**
    Verify variants/states in the appropriate section (`Gallery/Sections/`).
@@ -375,7 +375,7 @@ Use Component Gallery as the visual verification surface for UI components. Do n
 
 ```
 App/                  AppDelegate, menu bar setup, permissions, voice input
-vellum-assistant-app/ Entry point (@main VellumAssistantApp — thin wrapper)
+max-assistant-app/ Entry point (@main MaxAssistantApp — thin wrapper)
 ComputerUse/          Core perception + action pipeline
   AccessibilityTree   AX element enumeration & formatting
   AXTreeDiff          Diff between AX tree snapshots across steps
@@ -421,7 +421,7 @@ Logging/
 
 ## Remote Assistant
 
-The app supports connecting to a remote assistant process over HTTP. Configure a remote assistant entry in the lockfile with its `runtimeUrl` and optional `bearerToken`, or use managed mode to connect through the Vellum platform. See the [Remote Access](../../docs/internal-reference.md#remote-access) section in the internal reference documentation.
+The app supports connecting to a remote assistant process over HTTP. Configure a remote assistant entry in the lockfile with its `runtimeUrl` and optional `bearerToken`, or use managed mode to connect through the Max platform. See the [Remote Access](../../docs/internal-reference.md#remote-access) section in the internal reference documentation.
 
 ---
 

@@ -2,7 +2,7 @@
 
 /**
  * Local JSON caching for Slack channel and user resolution.
- * Caches are stored under ~/.vellum/workspace/data/slack-skill/.
+ * Caches are stored under ~/.max/workspace/data/slack-skill/.
  */
 
 import { homedir } from "node:os";
@@ -12,7 +12,7 @@ import { slackRequest } from "./slack-client.js";
 
 const CACHE_DIR = join(
   homedir(),
-  ".vellum",
+  ".max",
   "workspace",
   "data",
   "slack-skill",

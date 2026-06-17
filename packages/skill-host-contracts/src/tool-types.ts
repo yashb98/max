@@ -123,7 +123,7 @@ export interface ToolExecutionResult {
   /**
    * Runtime-internal sensitive output bindings (placeholder -> real value).
    * Populated by the executor when tool output contains
-   * `<vellum-sensitive-output>` directives. The agent loop merges these
+   * `<max-sensitive-output>` directives. The agent loop merges these
    * into a per-run substitution map for deterministic post-generation
    * replacement. MUST NOT be emitted in client-facing events or logs.
    */

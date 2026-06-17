@@ -56,7 +56,7 @@ function makeCtx(overrides: Partial<TurnContext> = {}): TurnContext {
     requestId: "req-1",
     conversationId: "conv-1",
     turnIndex: 0,
-    trust: { sourceChannel: "vellum", trustClass: "unknown" },
+    trust: { sourceChannel: "max", trustClass: "unknown" },
     ...overrides,
   };
 }

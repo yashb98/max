@@ -6,6 +6,8 @@
  */
 
 import { execFile } from "node:child_process";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 
 import { isAssistantFeatureFlagEnabled } from "../config/assistant-feature-flags.js";
@@ -132,6 +134,92 @@ async function isClaudeSubscriptionAvailable(
   return status.available;
 }
 
+// ---------------------------------------------------------------------------
+// kimi-agent availability
+// ---------------------------------------------------------------------------
+
+/**
+ * Cached result of the CLI + login probes for kimi-agent. Stores the
+ * *derived* `{ available, reason? }` based on filesystem/PATH state — does
+ * NOT include the feature-flag dimension (the flag is read fresh on every
+ * call so runtime toggles take effect immediately).
+ *
+ * Tests MUST call `clearKimiAgentAvailabilityCache()` between probe sets.
+ */
+let kimiAgentCliLoginCache: ProviderAvailabilityStatus | undefined;
+
+export function clearKimiAgentAvailabilityCache(): void {
+  kimiAgentCliLoginCache = undefined;
+}
+
+/**
+ * Probe overrides for the kimi-agent availability check. Allows tests to
+ * replace real `which`/`fs.access` calls with deterministic mocks.
+ *
+ * Production callers do not pass `probes`; the defaults are the same
+ * real-subprocess implementations the module uses for claude-subscription.
+ */
+export interface KimiAgentProbes {
+  cliPresent?: () => Promise<boolean>;
+  loginPresent?: () => Promise<boolean>;
+}
+
+async function isKimiCliInstalled(): Promise<boolean> {
+  try {
+    const cmd = process.platform === "win32" ? "where" : "which";
+    await execFileAsync(cmd, ["kimi"], { timeout: 2000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function isKimiConfigPresent(): Promise<boolean> {
+  try {
+    const fs = await import("node:fs/promises");
+    await fs.access(join(homedir(), ".kimi", "config.toml"));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Default `loginPresent` probe: checks vault key first, then
+ * `~/.kimi/config.toml`. Both paths represent a valid Kimi/Moonshot
+ * credential. The probe contract is: return `true` if any auth credential
+ * for kimi-agent is present, `false` otherwise.
+ */
+async function isKimiLoginPresent(): Promise<boolean> {
+  if (await getProviderKeyAsync("kimi-agent")) return true;
+  return isKimiConfigPresent();
+}
+
+async function getKimiAgentCliLoginStatus(
+  probes: KimiAgentProbes = {},
+): Promise<ProviderAvailabilityStatus> {
+  if (kimiAgentCliLoginCache !== undefined) {
+    return kimiAgentCliLoginCache;
+  }
+  const cliPresent = await (probes.cliPresent ?? isKimiCliInstalled)();
+  if (!cliPresent) {
+    log.info("kimi CLI not on PATH; kimi-agent unavailable");
+    kimiAgentCliLoginCache = { available: false, reason: "missing-cli" };
+    return kimiAgentCliLoginCache;
+  }
+  // Check for a vault key or ~/.kimi/config.toml login session.
+  const hasAuth = await (probes.loginPresent ?? isKimiLoginPresent)();
+  if (!hasAuth) {
+    log.info(
+      "kimi CLI present but no API key or config.toml found; kimi-agent unavailable",
+    );
+    kimiAgentCliLoginCache = { available: false, reason: "no-api-key" };
+    return kimiAgentCliLoginCache;
+  }
+  kimiAgentCliLoginCache = { available: true };
+  return kimiAgentCliLoginCache;
+}
+
 /**
  * Reason a provider is unavailable. Used by the picker's setup-hint UX to
  * render specific copy (e.g. "Install Claude Code" vs "Run `claude login`")
@@ -166,7 +254,7 @@ export interface ProviderAvailabilityStatus {
  */
 export async function getProviderAvailabilityStatus(
   provider: string,
-  probes: ClaudeSubscriptionProbes = {},
+  probes: ClaudeSubscriptionProbes & KimiAgentProbes = {},
 ): Promise<ProviderAvailabilityStatus> {
   if (provider === "ollama") return { available: true };
   if (provider === "claude-subscription") {
@@ -179,6 +267,17 @@ export async function getProviderAvailabilityStatus(
       return { available: false, reason: "not-enabled" };
     }
     return getClaudeSubscriptionCliLoginStatus(probes);
+  }
+  if (provider === "kimi-agent") {
+    if (
+      !isAssistantFeatureFlagEnabled(
+        "kimi-agent-provider",
+        {} as AssistantConfig,
+      )
+    ) {
+      return { available: false, reason: "not-enabled" };
+    }
+    return getKimiAgentCliLoginStatus(probes);
   }
   const ok =
     !!(await getProviderKeyAsync(provider)) ||
@@ -193,7 +292,7 @@ export async function getProviderAvailabilityStatus(
  * `assistant/docs/architecture/claude-subscription-picker-setup-hint.md`.
  */
 export async function getAllProviderAvailability(
-  probes: ClaudeSubscriptionProbes = {},
+  probes: ClaudeSubscriptionProbes & KimiAgentProbes = {},
 ): Promise<Record<string, ProviderAvailabilityStatus>> {
   const result: Record<string, ProviderAvailabilityStatus> = {};
   for (const entry of PROVIDER_CATALOG) {
@@ -213,11 +312,15 @@ export async function getAllProviderAvailability(
  */
 export async function isProviderAvailable(
   provider: string,
-  probes: ClaudeSubscriptionProbes = {},
+  probes: ClaudeSubscriptionProbes & KimiAgentProbes = {},
 ): Promise<boolean> {
   if (provider === "ollama") return true;
   if (provider === "claude-subscription") {
     return isClaudeSubscriptionAvailable(probes);
+  }
+  if (provider === "kimi-agent") {
+    const status = await getProviderAvailabilityStatus("kimi-agent", probes);
+    return status.available;
   }
   return !!(
     (await getProviderKeyAsync(provider)) ||

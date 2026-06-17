@@ -230,7 +230,7 @@ describe("cleanAssistantContent", () => {
     const content = [
       {
         type: "text",
-        text: 'Here is the file:\n<vellum-attachment path="out.png" />',
+        text: 'Here is the file:\n<max-attachment path="out.png" />',
       },
     ];
     const result = cleanAssistantContent(content);
@@ -245,7 +245,7 @@ describe("cleanAssistantContent", () => {
   test("leaves non-text blocks unchanged", () => {
     const content = [
       { type: "tool_use", id: "t1", name: "read", input: {} },
-      { type: "text", text: '<vellum-attachment path="x.pdf" />' },
+      { type: "text", text: '<max-attachment path="x.pdf" />' },
     ];
     const result = cleanAssistantContent(content);
 
@@ -255,7 +255,7 @@ describe("cleanAssistantContent", () => {
 
   test("accumulates warnings for malformed tags", () => {
     const content = [
-      { type: "text", text: '<vellum-attachment source="bad" path="x.txt" />' },
+      { type: "text", text: '<max-attachment source="bad" path="x.txt" />' },
     ];
     const result = cleanAssistantContent(content);
 
@@ -336,14 +336,14 @@ describe("cleanAssistantContent", () => {
 
 describe("drainDirectiveDisplayBuffer", () => {
   test("strips complete valid directives from streamed text", () => {
-    const input = 'Before <vellum-attachment path="out.png" /> After';
+    const input = 'Before <max-attachment path="out.png" /> After';
     const result = drainDirectiveDisplayBuffer(input);
     expect(result.emitText).toBe("Before  After");
     expect(result.bufferedRemainder).toBe("");
   });
 
   test("inserts space when inline directive is stripped with no surrounding whitespace", () => {
-    const input = 'sentence.<vellum-attachment path="out.png" />Next sentence.';
+    const input = 'sentence.<max-attachment path="out.png" />Next sentence.';
     const result = drainDirectiveDisplayBuffer(input);
     expect(result.emitText).toBe("sentence. Next sentence.");
     expect(result.bufferedRemainder).toBe("");
@@ -351,7 +351,7 @@ describe("drainDirectiveDisplayBuffer", () => {
 
   test("does not insert space when stripped directive already has trailing whitespace", () => {
     const input =
-      'sentence. <vellum-attachment path="out.png" />Next sentence.';
+      'sentence. <max-attachment path="out.png" />Next sentence.';
     const result = drainDirectiveDisplayBuffer(input);
     expect(result.emitText).toBe("sentence. Next sentence.");
     expect(result.bufferedRemainder).toBe("");
@@ -359,14 +359,14 @@ describe("drainDirectiveDisplayBuffer", () => {
 
   test("does not insert space when stripped directive already has leading whitespace on next char", () => {
     const input =
-      'sentence.<vellum-attachment path="out.png" /> Next sentence.';
+      'sentence.<max-attachment path="out.png" /> Next sentence.';
     const result = drainDirectiveDisplayBuffer(input);
     expect(result.emitText).toBe("sentence. Next sentence.");
     expect(result.bufferedRemainder).toBe("");
   });
 
   test("preserves invalid directives as plain text", () => {
-    const input = 'Bad <vellum-attachment source="bad" path="x.txt" /> tag';
+    const input = 'Bad <max-attachment source="bad" path="x.txt" /> tag';
     const result = drainDirectiveDisplayBuffer(input);
     expect(result.emitText).toBe(input);
     expect(result.bufferedRemainder).toBe("");
@@ -374,10 +374,10 @@ describe("drainDirectiveDisplayBuffer", () => {
 
   test("buffers incomplete directives until completion", () => {
     const first = drainDirectiveDisplayBuffer(
-      'Start <vellum-attachment path="file',
+      'Start <max-attachment path="file',
     );
     expect(first.emitText).toBe("Start ");
-    expect(first.bufferedRemainder).toContain("<vellum-attachment");
+    expect(first.bufferedRemainder).toContain("<max-attachment");
 
     const second = drainDirectiveDisplayBuffer(
       first.bufferedRemainder + '.png" /> done',
@@ -392,29 +392,29 @@ describe("drainDirectiveDisplayBuffer", () => {
     expect(result.bufferedRemainder).toBe("<");
   });
 
-  test('buffers trailing partial prefix "<vel" split across chunks', () => {
-    const result = drainDirectiveDisplayBuffer("Some text<vel");
+  test('buffers trailing partial prefix "<max" split across chunks', () => {
+    const result = drainDirectiveDisplayBuffer("Some text<max");
     expect(result.emitText).toBe("Some text");
-    expect(result.bufferedRemainder).toBe("<vel");
+    expect(result.bufferedRemainder).toBe("<max");
   });
 
-  test('buffers trailing partial prefix "<vellum-attachmen" (one char short)', () => {
-    const result = drainDirectiveDisplayBuffer("Data <vellum-attachmen");
+  test('buffers trailing partial prefix "<max-attachmen" (one char short)', () => {
+    const result = drainDirectiveDisplayBuffer("Data <max-attachmen");
     expect(result.emitText).toBe("Data ");
-    expect(result.bufferedRemainder).toBe("<vellum-attachmen");
+    expect(result.bufferedRemainder).toBe("<max-attachmen");
   });
 
   test('does not buffer trailing "<" that is not a prefix of the tag', () => {
-    // "<x" does not match any prefix of "<vellum-attachment"
+    // "<x" does not match any prefix of "<max-attachment"
     const result = drainDirectiveDisplayBuffer("Hello<x");
     expect(result.emitText).toBe("Hello<x");
     expect(result.bufferedRemainder).toBe("");
   });
 
   test("partial prefix reassembles into a complete directive across chunks", () => {
-    const first = drainDirectiveDisplayBuffer("Before <vellum-at");
+    const first = drainDirectiveDisplayBuffer("Before <max-at");
     expect(first.emitText).toBe("Before ");
-    expect(first.bufferedRemainder).toBe("<vellum-at");
+    expect(first.bufferedRemainder).toBe("<max-at");
 
     const second = drainDirectiveDisplayBuffer(
       first.bufferedRemainder + 'tachment path="out.png" /> After',

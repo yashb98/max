@@ -16,7 +16,7 @@ let testFilePath: string;
 beforeEach(() => {
   testDir = join(
     tmpdir(),
-    `vellum-test-profiles-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-test-profiles-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(testDir, { recursive: true });
   testFilePath = join(testDir, "dictation-profiles.json");

@@ -112,7 +112,7 @@ describe("generateAndSaveAvatar", () => {
   test("atomic write — file is written to .tmp then renamed", async () => {
     await executeAvatar("a friendly cat");
 
-    const expectedPath = `${process.env.VELLUM_WORKSPACE_DIR}/data/avatar/avatar-image.png`;
+    const expectedPath = `${process.env.MAX_WORKSPACE_DIR}/data/avatar/avatar-image.png`;
 
     // Verify mkdirSync was called for the directory
     expect(mkdirSyncFn).toHaveBeenCalledTimes(1);

@@ -236,7 +236,7 @@ export const lifecycleEvents = sqliteTable("lifecycle_events", {
  * Per-tool-call telemetry for the claude-subscription bridge.
  *
  * Mirrors `llm_usage_events`'s flush pattern: each row represents one
- * Vellum tool that ran through the bridge inside an agentic provider's
+ * Max tool that ran through the bridge inside an agentic provider's
  * SDK loop (currently only `claude-subscription`). Used by ops to
  * answer "how often do bridge tools succeed/fail?" and "which tool
  * names dominate bridge traffic?" — questions you can't answer from

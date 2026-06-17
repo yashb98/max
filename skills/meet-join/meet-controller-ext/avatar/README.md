@@ -1,4 +1,4 @@
-# Vellum Meet avatar tab
+# Max Meet avatar tab
 
 This directory contains the assets the meet-bot's Chrome extension
 loads into the pinned second tab that TalkingHead.js renders into.

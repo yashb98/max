@@ -347,7 +347,7 @@ describe("guardian-action-late-reply", () => {
       });
       const delivery = createGuardianActionDelivery({
         requestId: request.id,
-        destinationChannel: "vellum",
+        destinationChannel: "max",
         destinationConversationId: sharedDeliveryConvId,
       });
       updateDeliveryStatus(delivery.id, "sent");
@@ -438,7 +438,7 @@ describe("guardian-action-late-reply", () => {
       const { request: req1 } = createPendingInSharedConv("src-r1", sharedConv);
       const { request: req2 } = createPendingInSharedConv("src-r2", sharedConv);
 
-      resolveGuardianActionRequest(req1.id, "answer to first", "vellum");
+      resolveGuardianActionRequest(req1.id, "answer to first", "max");
 
       const remaining = getPendingDeliveriesByConversation(sharedConv);
       expect(remaining).toHaveLength(1);

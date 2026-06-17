@@ -286,8 +286,8 @@ export const MeetServiceSchema = z
       ),
     containerImage: z
       .string({ error: "services.meet.containerImage must be a string" })
-      .transform((v) => v || "vellum-meet-bot:dev")
-      .default("vellum-meet-bot:dev")
+      .transform((v) => v || "max-meet-bot:dev")
+      .default("max-meet-bot:dev")
       .describe(
         "Docker image tag used to spawn the Meet bot container for each joined meeting",
       ),

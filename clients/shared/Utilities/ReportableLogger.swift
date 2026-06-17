@@ -7,7 +7,7 @@ import os
 ///
 /// Usage:
 /// ```swift
-/// private let log = ReportableLogger(subsystem: "com.vellum.vellum-assistant", category: "MyFeature")
+/// private let log = ReportableLogger(subsystem: "com.max.max-assistant", category: "MyFeature")
 /// log.info("loaded")           // → os.Logger only
 /// log.error("something broke") // → os.Logger + error reporter (if configured)
 /// ```

@@ -3,7 +3,7 @@ name: meet-join
 description: Join a Google Meet call to take notes; only when the user explicitly asks.
 metadata:
   emoji: "📹"
-  vellum:
+  max:
     display-name: "Meet Join"
     feature-flag: meet
 ---

@@ -3,17 +3,17 @@ import { describe, expect, test } from "bun:test";
 import type { SessionNotification } from "@agentclientprotocol/sdk";
 
 import type { ServerMessage } from "../../daemon/message-protocol.js";
-import { VellumAcpClientHandler } from "../client-handler.js";
+import { MaxAcpClientHandler } from "../client-handler.js";
 
 const ACP_SESSION_ID = "acp-session-abc";
 const PARENT_CONVERSATION_ID = "conv-xyz";
 
 function makeHandler(): {
-  handler: VellumAcpClientHandler;
+  handler: MaxAcpClientHandler;
   sent: ServerMessage[];
 } {
   const sent: ServerMessage[] = [];
-  const handler = new VellumAcpClientHandler(
+  const handler = new MaxAcpClientHandler(
     ACP_SESSION_ID,
     (msg) => {
       sent.push(msg);
@@ -23,7 +23,7 @@ function makeHandler(): {
   return { handler, sent };
 }
 
-describe("VellumAcpClientHandler.sessionUpdate", () => {
+describe("MaxAcpClientHandler.sessionUpdate", () => {
   test("forwards agent_thought_chunk as an acp_session_update", async () => {
     const { handler, sent } = makeHandler();
 

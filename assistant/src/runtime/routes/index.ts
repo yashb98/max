@@ -96,6 +96,7 @@ import { ROUTES as PLATFORM_ROUTES } from "./platform-routes.js";
 import { ROUTES as PLAYGROUND_ROUTES } from "./playground/index.js";
 import { ROUTES as PROFILER_ROUTES } from "./profiler-routes.js";
 import { ROUTES as PROVIDER_AVAILABILITY_ROUTES } from "./provider-availability-routes.js";
+import { ROUTES as PROVIDER_LOGIN_ROUTES } from "./provider-login-routes.js";
 import { ROUTES as PS_ROUTES } from "./ps-routes.js";
 import { ROUTES as PUBLISH_ROUTES } from "./publish-routes.js";
 import { ROUTES as QUESTION_ROUTES } from "./question-routes.js";
@@ -214,6 +215,7 @@ export const ROUTES: RouteDefinition[] = [
   ...PLAYGROUND_ROUTES,
   ...PROFILER_ROUTES,
   ...PROVIDER_AVAILABILITY_ROUTES,
+  ...PROVIDER_LOGIN_ROUTES,
   ...PS_ROUTES,
   ...PUBLISH_ROUTES,
   ...QUESTION_ROUTES,

@@ -190,7 +190,7 @@ export async function loadFromDb(ctx: LoadFromDbContext): Promise<void> {
 
   // Mirror the injection-time gate (`shouldExposePersonalMemory` in
   // `conversation-agent-loop.ts`) so background/local conversations
-  // (sourceChannel `undefined` or `"vellum"`) can rehydrate the persisted
+  // (sourceChannel `undefined` or `"max"`) can rehydrate the persisted
   // v2 static memory block. Use `resolveTrustClass` for parity with the
   // agent loop — it folds in the HTTP-auth-disabled dev bypass so
   // rehydration and injection agree on the effective trust class.

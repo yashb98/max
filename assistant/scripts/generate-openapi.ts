@@ -498,10 +498,10 @@ function buildSpec(
   return {
     openapi: "3.0.0",
     info: {
-      title: "Vellum Assistant API",
+      title: "Max Assistant API",
       version,
       description:
-        "Auto-generated OpenAPI specification for the Vellum Assistant runtime HTTP server.",
+        "Auto-generated OpenAPI specification for the Max Assistant runtime HTTP server.",
     },
     servers: [
       {

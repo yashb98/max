@@ -217,7 +217,7 @@ describe("parseFrontmatterFields", () => {
       'description: "A test skill"',
       "metadata:",
       '  emoji: "\uD83D\uDD0C"',
-      "  vellum:",
+      "  max:",
       '    display-name: "Test Skill"',
       "    some-custom-field: true",
       "---",
@@ -228,7 +228,7 @@ describe("parseFrontmatterFields", () => {
     expect(result!.fields.name).toBe("Test");
     expect(result!.fields.metadata).toEqual({
       emoji: "\uD83D\uDD0C",
-      vellum: {
+      max: {
         "display-name": "Test Skill",
         "some-custom-field": true,
       },
@@ -241,7 +241,7 @@ describe("parseFrontmatterFields", () => {
       'name: "Test"',
       'description: "A test skill"',
       "metadata:",
-      "  vellum:",
+      "  max:",
       "    requires:",
       "      bins:",
       "        - node",
@@ -255,8 +255,8 @@ describe("parseFrontmatterFields", () => {
     const result = parseFrontmatterFields(input);
     expect(result).not.toBeNull();
     const meta = result!.fields.metadata as Record<string, unknown>;
-    const vellum = meta.vellum as Record<string, unknown>;
-    expect(vellum.requires).toEqual({
+    const max = meta.max as Record<string, unknown>;
+    expect(max.requires).toEqual({
       bins: ["node", "npm"],
       env: ["API_KEY", "SECRET"],
     });

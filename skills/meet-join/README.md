@@ -48,7 +48,7 @@ qemu-user-static). Expect order-of-magnitude overhead on `booted_delta`
 vs. a native amd64 host and 3–5× on `ready_delta`._
 
 ```
-# image=vellum-meet-bot:<tag> iterations=<n> meet_url=<test-room>
+# image=max-meet-bot:<tag> iterations=<n> meet_url=<test-room>
 # booted_delta (start → meet-bot booted): n=<n> mean=<m>ms median=<m>ms p95=<m>ms
 # ready_delta  (start → meet-bot ready):  n=<n> mean=<m>ms median=<m>ms p95=<m>ms
 ```

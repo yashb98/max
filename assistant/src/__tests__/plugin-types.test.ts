@@ -49,7 +49,7 @@ import {
 import type { Tool } from "../tools/types.js";
 
 const sampleTrust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 
@@ -314,6 +314,6 @@ describe("plugin core types", () => {
     // `TrustContext` this fails to compile.
     const ctx: TurnContext = sampleTurnContext;
     expect(ctx.trust.trustClass).toBe("guardian");
-    expect(ctx.trust.sourceChannel).toBe("vellum");
+    expect(ctx.trust.sourceChannel).toBe("max");
   });
 });

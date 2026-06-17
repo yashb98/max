@@ -2356,17 +2356,17 @@ describe("OpenRouterProvider — Anthropic dispatch", () => {
     await provider.sendMessage([userMsg("hi")], undefined, undefined, {
       config: {
         usageAttributionHeaders: {
-          "Vellum-Organization-Id": "org-123",
+          "Max-Organization-Id": "org-123",
         },
       },
     });
 
     expect(_lastStreamOptions?.headers).toEqual(
       expect.objectContaining({
-        "HTTP-Referer": "https://www.vellum.ai",
-        "X-OpenRouter-Title": "Vellum Assistant",
+        "HTTP-Referer": "https://www.max.ai",
+        "X-OpenRouter-Title": "Max Assistant",
         "X-OpenRouter-Categories": "personal-agent,cli-agent",
-        "Vellum-Organization-Id": "org-123",
+        "Max-Organization-Id": "org-123",
       }),
     );
     expect(lastStreamParams).not.toHaveProperty("HTTP-Referer");

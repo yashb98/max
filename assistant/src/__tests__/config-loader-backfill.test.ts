@@ -21,7 +21,7 @@ import {
 // Mocks — declared before imports that depend on platform/logger
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_DIR = process.env.MAX_WORKSPACE_DIR!;
 const CONFIG_PATH = join(WORKSPACE_DIR, "config.json");
 
 function ensureTestDir(): void {
@@ -309,14 +309,14 @@ describe("loadConfig startup behavior", () => {
     if (existsSync(updatesPath)) rmSync(updatesPath, { force: true });
     ensureTestDir();
     _setStorePath(join(WORKSPACE_DIR, "keys.enc"));
-    delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+    delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
     delete process.env.IS_PLATFORM;
     invalidateConfigCache();
   });
 
   afterEach(() => {
     _setStorePath(null);
-    delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+    delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
     delete process.env.IS_PLATFORM;
     invalidateConfigCache();
   });
@@ -426,7 +426,7 @@ describe("loadConfig startup behavior", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -473,7 +473,7 @@ describe("loadConfig startup behavior", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -511,7 +511,7 @@ describe("loadConfig startup behavior", () => {
       JSON.stringify({ llm: { default: { provider: "anthropic" } } }, null, 2) +
         "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
 
@@ -553,7 +553,7 @@ describe("loadConfig startup behavior", () => {
       JSON.stringify({ llm: { default: { provider: "anthropic" } } }, null, 2) +
         "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
 
@@ -595,7 +595,7 @@ describe("loadConfig startup behavior", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const raw = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
@@ -799,7 +799,7 @@ describe("loadConfig startup behavior", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -856,7 +856,7 @@ describe("loadConfig startup behavior", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
 
@@ -927,14 +927,14 @@ describe("seedInferenceProfiles BYOK-mode managed profile labels", () => {
     }
     ensureTestDir();
     _setStorePath(join(WORKSPACE_DIR, "keys.enc"));
-    delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+    delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
     delete process.env.IS_PLATFORM;
     invalidateConfigCache();
   });
 
   afterEach(() => {
     _setStorePath(null);
-    delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+    delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
     delete process.env.IS_PLATFORM;
     invalidateConfigCache();
   });
@@ -953,7 +953,7 @@ describe("seedInferenceProfiles BYOK-mode managed profile labels", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -987,7 +987,7 @@ describe("seedInferenceProfiles BYOK-mode managed profile labels", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -1035,7 +1035,7 @@ describe("seedInferenceProfiles BYOK-mode managed profile labels", () => {
         2,
       ) + "\n",
     );
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = overlayPath;
 
     await mergeDefaultConfigAndSeedInferenceProfiles();
     const config = loadConfig();
@@ -1195,7 +1195,7 @@ describe("seedInferenceProfiles BYOK-mode managed profile labels", () => {
 
     // User's "active" decision survives the boot upsert.
     expect(config.llm.profiles.balanced?.status).toBe("active");
-    // Label is still suffixed (Vellum can push label updates).
+    // Label is still suffixed (Max can push label updates).
     expect(config.llm.profiles.balanced?.label).toBe("Balanced (Managed)");
   });
 });

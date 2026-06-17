@@ -2,9 +2,9 @@
 #
 # production-release.sh — Download the latest release DMG and install it on a Mac mini.
 #
-# Fetches the most recent GitHub release from vellum-ai/vellum-assistant,
-# downloads vellum-assistant.dmg, SCPs it to the Mac mini, and installs
-# Vellum.app into /Applications.
+# Fetches the most recent GitHub release from max-ai/max-assistant,
+# downloads max-assistant.dmg, SCPs it to the Mac mini, and installs
+# Max.app into /Applications.
 #
 # Configuration is read from scripts/.env (see scripts/.env.example).
 #
@@ -57,7 +57,7 @@ MAC_MINI_PASSWORD="${MAC_MINI_PASSWORD:-}"
 MAC_MINI_SSH_KEY="${MAC_MINI_SSH_KEY:-}"
 
 # GitHub repository to fetch the release from.
-GITHUB_REPO="${GITHUB_REPO:-vellum-ai/vellum-assistant}"
+GITHUB_REPO="${GITHUB_REPO:-max-ai/max-assistant}"
 
 # ---------------------------------------------------------------------------
 # Derived values
@@ -102,18 +102,18 @@ remote_ssh() {
 
 echo "Fetching latest release from ${GITHUB_REPO}..."
 
-DMG_URL=$(gh release view --repo "$GITHUB_REPO" --json assets --jq '.assets[] | select(.name == "vellum-assistant.dmg") | .url')
+DMG_URL=$(gh release view --repo "$GITHUB_REPO" --json assets --jq '.assets[] | select(.name == "max-assistant.dmg") | .url')
 if [ -z "$DMG_URL" ]; then
-  echo "ERROR: Could not find vellum-assistant.dmg in the latest release of ${GITHUB_REPO}"
+  echo "ERROR: Could not find max-assistant.dmg in the latest release of ${GITHUB_REPO}"
   exit 1
 fi
 
 RELEASE_TAG=$(gh release view --repo "$GITHUB_REPO" --json tagName --jq '.tagName')
 echo "Latest release: ${RELEASE_TAG}"
 
-LOCAL_DMG="/tmp/vellum-assistant.dmg"
-echo "Downloading vellum-assistant.dmg..."
-gh release download --repo "$GITHUB_REPO" --pattern "vellum-assistant.dmg" --dir /tmp --clobber
+LOCAL_DMG="/tmp/max-assistant.dmg"
+echo "Downloading max-assistant.dmg..."
+gh release download --repo "$GITHUB_REPO" --pattern "max-assistant.dmg" --dir /tmp --clobber
 echo "Downloaded: ${LOCAL_DMG}"
 ls -lh "$LOCAL_DMG"
 
@@ -143,7 +143,7 @@ fi
 # 3. Upload to Mac mini and install into /Applications
 # ---------------------------------------------------------------------------
 
-REMOTE_DMG="/tmp/vellum-assistant.dmg"
+REMOTE_DMG="/tmp/max-assistant.dmg"
 
 echo "Uploading DMG to ${SCP_HOST}..."
 remote_scp "$LOCAL_DMG" "${SCP_HOST}:${REMOTE_DMG}"
@@ -151,10 +151,10 @@ remote_scp "$LOCAL_DMG" "${SCP_HOST}:${REMOTE_DMG}"
 echo "Installing into /Applications on ${SCP_HOST}..."
 remote_ssh "${SCP_HOST}" bash -s <<'REMOTE_SCRIPT'
 set -euo pipefail
-DMG="/tmp/vellum-assistant.dmg"
+DMG="/tmp/max-assistant.dmg"
 
-# Kill running Vellum instance if any
-pkill -x "Vellum" 2>/dev/null || true
+# Kill running Max instance if any
+pkill -x "Max" 2>/dev/null || true
 sleep 1
 
 # Mount, copy to /Applications, unmount
@@ -164,14 +164,14 @@ if [ -z "$MOUNT_POINT" ]; then
   exit 1
 fi
 
-rm -rf "/Applications/Vellum.app"
-cp -R "$MOUNT_POINT/Vellum.app" "/Applications/Vellum.app"
+rm -rf "/Applications/Max.app"
+cp -R "$MOUNT_POINT/Max.app" "/Applications/Max.app"
 hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
 rm -f "$DMG"
 
-echo "Installed: /Applications/Vellum.app"
+echo "Installed: /Applications/Max.app"
 REMOTE_SCRIPT
 
 rm -f "$LOCAL_DMG"
 
-echo "Done! Vellum app installed to /Applications on ${SCP_HOST} (${RELEASE_TAG})"
+echo "Done! Max app installed to /Applications on ${SCP_HOST} (${RELEASE_TAG})"

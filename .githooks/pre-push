@@ -174,7 +174,7 @@ if [ -n "$SWIFT_CHANGED_FILES" ] && [ "$SKIP_SWIFT_BUILD" != "1" ]; then
             echo ""
             echo "Fix the build errors or push with --no-verify to skip."
         }
-        (cd "${REPO_ROOT}/clients" && swift build --product vellum-assistant --scratch-path "$_scratch_path" -Xswiftc -module-cache-path -Xswiftc "$_module_cache" >"$_swift_out_file" 2>&1)
+        (cd "${REPO_ROOT}/clients" && swift build --product max-assistant --scratch-path "$_scratch_path" -Xswiftc -module-cache-path -Xswiftc "$_module_cache" >"$_swift_out_file" 2>&1)
         _swift_exit=$?
         if [ $_swift_exit -ne 0 ]; then
             if grep -q "Dependencies could not be resolved because no versions of" "$_swift_out_file"; then
@@ -186,7 +186,7 @@ if [ -n "$SWIFT_CHANGED_FILES" ] && [ "$SKIP_SWIFT_BUILD" != "1" ]; then
                 rm -rf "$_scratch_path" "$_module_cache"
                 mkdir -p "$_scratch_path"
                 rm -f "$_swift_out_file"
-                if ! (cd "${REPO_ROOT}/clients" && swift build --product vellum-assistant --scratch-path "$_scratch_path" -Xswiftc -module-cache-path -Xswiftc "$_module_cache" 2>&1); then
+                if ! (cd "${REPO_ROOT}/clients" && swift build --product max-assistant --scratch-path "$_scratch_path" -Xswiftc -module-cache-path -Xswiftc "$_module_cache" 2>&1); then
                     _swift_build_failed
                     _debug_log "swift build retry done (FAILED)"
                     exit 1
@@ -251,7 +251,7 @@ if [ -n "$CHANGED_FILES" ]; then
         # assistant/src/daemon/external-skills-bootstrap.ts statically imports
         # skills/meet-join/register.ts, so `tsc --noEmit` in assistant/ follows
         # the import and type-checks the skill. The skill's own imports
-        # (`@vellumai/skill-host-contracts`, `zod`) resolve via
+        # (`@maxai/skill-host-contracts`, `zod`) resolve via
         # skills/meet-join/node_modules — which the shared worktree script does
         # not symlink (its find runs at -maxdepth 2, but skills/meet-join lives
         # at depth 3). Self-heal by installing on first run so worktrees don't

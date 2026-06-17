@@ -43,7 +43,7 @@ import type {
   DaemonRuntimeMode,
   Logger,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 /**
  * No-op logger used when a `DockerRunner` is instantiated without an
@@ -76,15 +76,15 @@ function detectRuntimeModeFromEnv(): DaemonRuntimeMode {
 /**
  * Resolve a stable, per-instance identifier path for the current daemon.
  *
- * Uses `VELLUM_WORKSPACE_DIR` (the canonical per-instance env var set by
+ * Uses `MAX_WORKSPACE_DIR` (the canonical per-instance env var set by
  * the CLI for named instances) when available, otherwise falls back to
- * `$HOME/.vellum/workspace`. The resolved path is hashed by
+ * `$HOME/.max/workspace`. The resolved path is hashed by
  * {@link getMeetBotInstanceHash} to scope Docker labels per instance.
  */
 function resolveWorkspaceDir(): string {
-  const workspaceDir = process.env.VELLUM_WORKSPACE_DIR?.trim();
+  const workspaceDir = process.env.MAX_WORKSPACE_DIR?.trim();
   if (workspaceDir) return workspaceDir;
-  return pathJoin(homedir(), ".vellum", "workspace");
+  return pathJoin(homedir(), ".max", "workspace");
 }
 
 /** Path to the Docker Engine unix socket. */
@@ -189,7 +189,7 @@ export interface DockerRunOptions {
    * Engine API's `Devices` field has the same semantics whether the target
    * is the host's engine or an inner nested `dockerd`. In Docker mode the
    * device must also be bind-mounted into the assistant container (the CLI
-   * does this via `VELLUM_AVATAR_DEVICE`) so inner `dockerd` can see the
+   * does this via `MAX_AVATAR_DEVICE`) so inner `dockerd` can see the
    * node.
    *
    * Intentionally a run-time argument rather than a config-schema field:
@@ -200,8 +200,8 @@ export interface DockerRunOptions {
   avatarDevicePath?: string;
   /**
    * Docker labels applied at container-create time. Meet-bot containers
-   * are tagged with `vellum.meet.bot=true`,
-   * `vellum.meet.meetingId=<id>`, and `vellum.meet.instance=<hash>` so
+   * are tagged with `max.meet.bot=true`,
+   * `max.meet.meetingId=<id>`, and `max.meet.instance=<hash>` so
    * the orphan reaper (see {@link reapOrphanedMeetBots}) can discover
    * and clean them up after a crashed prior run without misidentifying
    * unrelated containers or cross-killing bots from a different daemon
@@ -848,7 +848,7 @@ export const HOST_GATEWAY_ALIAS = "host.docker.internal:host-gateway";
  * {@link MEET_BOT_MEETING_ID_LABEL} for orphan discovery in
  * {@link reapOrphanedMeetBots}.
  */
-export const MEET_BOT_LABEL = "vellum.meet.bot";
+export const MEET_BOT_LABEL = "max.meet.bot";
 
 /**
  * Docker-label key that carries the meeting ID for the running bot. Pairs
@@ -856,12 +856,12 @@ export const MEET_BOT_LABEL = "vellum.meet.bot";
  * container's meeting ID against the currently-active session set and only
  * kill the ones that belong to no live session.
  */
-export const MEET_BOT_MEETING_ID_LABEL = "vellum.meet.meetingId";
+export const MEET_BOT_MEETING_ID_LABEL = "max.meet.meetingId";
 
 /**
  * Docker-label key that scopes a meet-bot container to a specific daemon
  * instance. Value is a short hash derived from the per-instance workspace
- * path (resolved via `VELLUM_WORKSPACE_DIR`). The orphan reaper compares
+ * path (resolved via `MAX_WORKSPACE_DIR`). The orphan reaper compares
  * this against the current instance's hash and refuses to kill any
  * container whose hash differs — so a second concurrent daemon pointed at
  * a different instance cannot SIGTERM another instance's live bots.
@@ -871,7 +871,7 @@ export const MEET_BOT_MEETING_ID_LABEL = "vellum.meet.meetingId";
  * belong to a different installation. Users upgrading across this change
  * with a stale container still running must `docker rm` it manually once.
  */
-export const MEET_BOT_INSTANCE_LABEL = "vellum.meet.instance";
+export const MEET_BOT_INSTANCE_LABEL = "max.meet.instance";
 
 /**
  * Derive the per-instance hash stamped onto meet-bot containers at create
@@ -882,7 +882,7 @@ export const MEET_BOT_INSTANCE_LABEL = "vellum.meet.instance";
  * The hash is over the workspace directory absolute path so the full
  * filesystem path isn't leaked into Docker metadata. Deterministic for a
  * given instance — the stamp-side and the reap-side see the same value
- * as long as the daemon process sees the same `VELLUM_WORKSPACE_DIR`.
+ * as long as the daemon process sees the same `MAX_WORKSPACE_DIR`.
  * The path resolution is inlined via {@link resolveWorkspaceDir} so the
  * skill keeps zero `assistant/` imports.
  */
@@ -1054,14 +1054,14 @@ export const REAPER_TERM_KILL_GRACE_MS = 10_000;
  * **Label scheme.** Every meet-bot container created by this daemon is
  * tagged at `/containers/create` time with three Docker labels:
  *
- *   - `vellum.meet.bot=true` — identifies the container as a meet-bot
+ *   - `max.meet.bot=true` — identifies the container as a meet-bot
  *     managed by this codebase (distinguishes from any other containers
  *     the user might be running).
- *   - `vellum.meet.meetingId=<id>` — carries the originating meeting ID
+ *   - `max.meet.meetingId=<id>` — carries the originating meeting ID
  *     so the reaper can match each labeled container against the currently-
  *     active in-process session set and only kill the ones that belong to
  *     no live session.
- *   - `vellum.meet.instance=<hash>` — scopes the container to a specific
+ *   - `max.meet.instance=<hash>` — scopes the container to a specific
  *     daemon instance root (see {@link getMeetBotInstanceHash}). The reaper
  *     refuses to touch containers whose hash differs so a second daemon
  *     pointed at a different instance root (common on developer machines
@@ -1069,7 +1069,7 @@ export const REAPER_TERM_KILL_GRACE_MS = 10_000;
  *     another instance's live bots.
  *
  * **Filter semantics.** The reaper lists candidates filtered at the Docker
- * API layer by `vellum.meet.bot=true` only — not by the instance label.
+ * API layer by `max.meet.bot=true` only — not by the instance label.
  * This is deliberate: we need to *observe* pre-label containers (from a
  * version before this change shipped) so we can skip them and log a
  * breadcrumb, rather than silently hide them behind an API filter. Same-
@@ -1092,7 +1092,7 @@ export const REAPER_TERM_KILL_GRACE_MS = 10_000;
  * @param opts.instanceHash The current daemon instance's hash (from
  *   {@link getMeetBotInstanceHash}). Required — not optional — so callers
  *   cannot accidentally widen the sweep to all instances on the host.
- *   Containers whose `vellum.meet.instance` label doesn't match go into
+ *   Containers whose `max.meet.instance` label doesn't match go into
  *   `kept`; containers missing the label go into `skippedUnlabeled`.
  * @param opts.createdBefore Optional Unix-epoch-seconds cutoff. Containers
  *   with `Created >= createdBefore` are kept unconditionally. Pass the
@@ -1109,7 +1109,7 @@ export const REAPER_TERM_KILL_GRACE_MS = 10_000;
  * Structural subset of the SkillHost `Logger` contract — the reaper only
  * emits info/warn/debug lines and doesn't want a hard dep on the full
  * contract re-export from this module. Signature matches
- * `@vellumai/skill-host-contracts` `Logger`: `(msg: string, meta?: unknown)`.
+ * `@maxai/skill-host-contracts` `Logger`: `(msg: string, meta?: unknown)`.
  *
  * Do not restore pino-style `(obj, msg?)` here: TypeScript's bivariant
  * method checking would accept a `Logger` in this slot and silently swap
@@ -1168,7 +1168,7 @@ export async function reapOrphanedMeetBots(opts: {
     // container is actually stale.
     if (containerInstance === undefined) {
       logger.debug(
-        "reapOrphanedMeetBots: skipping pre-label container (missing vellum.meet.instance)",
+        "reapOrphanedMeetBots: skipping pre-label container (missing max.meet.instance)",
         { containerId, meetingId },
       );
       skippedUnlabeled.push(containerId);

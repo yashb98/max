@@ -45,7 +45,7 @@ interface MockContact {
   userFile: string | null;
 }
 
-let mockVellumGuardian: {
+let mockMaxGuardian: {
   contact: MockContact;
   channel: Record<string, unknown>;
 } | null = null;
@@ -62,7 +62,7 @@ let updatedUserFiles: Array<{ contactId: string; userFile: string }> = [];
 
 mock.module("../contacts/contact-store.js", () => ({
   findGuardianForChannel: (channelType: string) =>
-    channelType === "vellum" ? mockVellumGuardian : null,
+    channelType === "max" ? mockMaxGuardian : null,
   listGuardianChannels: () => mockAnyGuardian,
   generateUserFileSlug: (displayName: string) => {
     if (mockSlugOverride) return mockSlugOverride(displayName);
@@ -87,7 +87,7 @@ mock.module("../memory/db-connection.js", () => ({
         where: () => ({
           run: () => {
             const guardian =
-              mockVellumGuardian?.contact ?? mockAnyGuardian?.contact ?? null;
+              mockMaxGuardian?.contact ?? mockAnyGuardian?.contact ?? null;
             if (guardian) {
               guardian.userFile = values.userFile;
               updatedUserFiles.push({
@@ -147,7 +147,7 @@ function customizedContent(): string {
 - Preferred name/reference: Chris
 - Pronouns: they/them
 - Work role: Engineer
-- Daily tools: Vellum, vim, tmux
+- Daily tools: Max, vim, tmux
 `;
 }
 
@@ -161,7 +161,7 @@ afterAll(() => {
 
 beforeEach(() => {
   workspaceDir = mkdtempSync(join(testRoot, "ws-"));
-  mockVellumGuardian = null;
+  mockMaxGuardian = null;
   mockAnyGuardian = null;
   mockSlugOverride = null;
   updatedUserFiles = [];
@@ -191,14 +191,14 @@ describe("workspace migration 031-drop-user-md", () => {
   });
 
   test("pre-017 customized USER.md with guardian missing userFile backfills slug and migrates content", () => {
-    // Guardian exists on the 'vellum' channel but has no userFile.
-    mockVellumGuardian = {
+    // Guardian exists on the 'max' channel but has no userFile.
+    mockMaxGuardian = {
       contact: {
         id: "guardian-1",
         displayName: "Chris",
         userFile: null,
       },
-      channel: { type: "vellum" },
+      channel: { type: "max" },
     };
 
     const userMdPath = join(workspaceDir, "USER.md");
@@ -223,13 +223,13 @@ describe("workspace migration 031-drop-user-md", () => {
 
   test("post-017 users/<slug>.md already populated, USER.md still on disk as template — does not overwrite dest, deletes USER.md", () => {
     // Guardian already has a userFile from a prior 017 run.
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: {
         id: "guardian-2",
         displayName: "Chris",
         userFile: "chris.md",
       },
-      channel: { type: "vellum" },
+      channel: { type: "max" },
     };
 
     // Pre-populated persona file (post-017 state).
@@ -256,13 +256,13 @@ describe("workspace migration 031-drop-user-md", () => {
   });
 
   test("idempotent: second run is a no-op after the first run deleted USER.md", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: {
         id: "guardian-3",
         displayName: "Alice",
         userFile: "alice.md",
       },
-      channel: { type: "vellum" },
+      channel: { type: "max" },
     };
 
     const userMdPath = join(workspaceDir, "USER.md");
@@ -284,13 +284,13 @@ describe("workspace migration 031-drop-user-md", () => {
   });
 
   test("guardian exists but users/ directory is missing — migration creates the directory", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: {
         id: "guardian-4",
         displayName: "Bob",
         userFile: "bob.md",
       },
-      channel: { type: "vellum" },
+      channel: { type: "max" },
     };
 
     // USER.md present but no users/ dir yet.
@@ -309,8 +309,8 @@ describe("workspace migration 031-drop-user-md", () => {
 
   // ─── Bonus coverage for edge cases ───────────────────────────────
 
-  test("falls back to listGuardianChannels when no vellum-channel guardian exists", () => {
-    mockVellumGuardian = null;
+  test("falls back to listGuardianChannels when no max-channel guardian exists", () => {
+    mockMaxGuardian = null;
     mockAnyGuardian = {
       contact: {
         id: "guardian-5",
@@ -332,13 +332,13 @@ describe("workspace migration 031-drop-user-md", () => {
   });
 
   test("template-shaped USER.md with no destination file — seeds scaffold and deletes USER.md", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: {
         id: "guardian-6",
         displayName: "Dana",
         userFile: "dana.md",
       },
-      channel: { type: "vellum" },
+      channel: { type: "max" },
     };
 
     const userMdPath = join(workspaceDir, "USER.md");

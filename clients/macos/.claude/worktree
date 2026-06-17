@@ -90,7 +90,7 @@ remove() {
 
   # Fall back to legacy prefix for worktrees created before the rename
   if [ ! -d "$dir" ]; then
-    local legacy_dir="$PARENT_DIR/vellum-wt-${slug}"
+    local legacy_dir="$PARENT_DIR/max-wt-${slug}"
     if [ -d "$legacy_dir" ]; then
       dir="$legacy_dir"
     else

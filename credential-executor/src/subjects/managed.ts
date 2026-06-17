@@ -24,7 +24,7 @@ import {
   HandleType,
   parseHandle,
   type PlatformOAuthHandle,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 // ---------------------------------------------------------------------------
 // Common subject interface
@@ -117,7 +117,7 @@ export class SubjectResolutionError extends Error {
 export interface ManagedSubjectResolverOptions {
   /**
    * Platform base URL (without trailing slash).
-   * e.g. "https://api.vellum.ai"
+   * e.g. "https://api.max.ai"
    */
   platformBaseUrl: string;
   /**

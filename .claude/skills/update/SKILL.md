@@ -1,12 +1,12 @@
 ---
 name: update
 description: >
-  Restart Vellum services and rebuild the macOS app. Smart branch handling: pulls from main by default, restarts in-place on feature branches, or switches to a specified branch. Pass --pull to force-pull on the current branch.
+  Restart Max services and rebuild the macOS app. Smart branch handling: pulls from main by default, restarts in-place on feature branches, or switches to a specified branch. Pass --pull to force-pull on the current branch.
 ---
 
-# Update - Restart Vellum (with Smart Branch Handling)
+# Update - Restart Max (with Smart Branch Handling)
 
-Restart Vellum services and rebuild the macOS app with branch-aware git behavior.
+Restart Max services and rebuild the macOS app with branch-aware git behavior.
 
 ## Arguments
 
@@ -28,33 +28,33 @@ The user may pass `$ARGUMENTS` to control branch behavior:
 
 1. Preflight snapshot - capture current state before making changes:
    ```bash
-   vellum ps
+   max ps
    ```
 
-2. Kill the macOS app and any stale file-watcher processes first (old `build.sh run` watchers will detect git-pulled Swift changes and bounce the app repeatedly). Use `-f` to match against the full command line, catching all environment variants (`Vellum`, `Vellum Local`, `Vellum Dev`, etc.):
+2. Kill the macOS app and any stale file-watcher processes first (old `build.sh run` watchers will detect git-pulled Swift changes and bounce the app repeatedly). Use `-f` to match against the full command line, catching all environment variants (`Max`, `Max Local`, `Max Dev`, etc.):
    ```bash
-   pkill -f "Vellum.*\.app/Contents/MacOS/" || true
+   pkill -f "Max.*\.app/Contents/MacOS/" || true
    pkill -f "build\.sh run" || true
    ```
 
-3. Quiesce with `vellum sleep` - stop assistant and gateway processes. This is directory-agnostic and stops processes globally regardless of CWD:
+3. Quiesce with `max sleep` - stop assistant and gateway processes. This is directory-agnostic and stops processes globally regardless of CWD:
    ```bash
-   vellum sleep || true
+   max sleep || true
    ```
 
-4. Verify stopped - run `vellum ps` and confirm no running processes. If `vellum ps` shows processes still running, run fallback cleanup to force-kill them:
+4. Verify stopped - run `max ps` and confirm no running processes. If `max ps` shows processes still running, run fallback cleanup to force-kill them:
    ```bash
-   vellum ps
+   max ps
    ```
 
-   **Fallback cleanup if `vellum ps` confirms processes are still running:**
+   **Fallback cleanup if `max ps` confirms processes are still running:**
    ```bash
-   pkill -x "vellum-assistant" || true
+   pkill -x "max-assistant" || true
    pkill -f "gateway/src/index" || true
    lsof -ti :7830 | xargs kill -9 2>/dev/null || true
    lsof -ti :7821 | xargs kill -9 2>/dev/null || true
    ```
-   After fallback cleanup, run `vellum ps` again to confirm all processes are stopped.
+   After fallback cleanup, run `max ps` again to confirm all processes are stopped.
 
 5. Smart branch handling - determine what git operations (if any) to perform:
 
@@ -107,9 +107,9 @@ The user may pass `$ARGUMENTS` to control branch behavior:
    fi
    ```
 
-7. Restart with `vellum wake` - start assistant and gateway from the current checkout. `vellum wake` must be run from the checkout directory that should supply the new assistant code:
+7. Restart with `max wake` - start assistant and gateway from the current checkout. `max wake` must be run from the checkout directory that should supply the new assistant code:
    ```bash
-   vellum wake
+   max wake
    ```
 
 8. Build the macOS app (foreground, so compilation errors are caught immediately):
@@ -124,12 +124,12 @@ The user may pass `$ARGUMENTS` to control branch behavior:
    cd clients/macos && ./build.sh run &
    ```
 
-9. Verify fresh state - run `vellum ps` to confirm processes are running:
+9. Verify fresh state - run `max ps` to confirm processes are running:
    ```bash
    sleep 5
    echo ""
    echo "=== Startup Summary ==="
-   vellum ps
+   max ps
    echo "======================="
    ```
 

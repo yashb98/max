@@ -2,12 +2,12 @@
  * Shared test preload — runs before every gateway test file.
  *
  * Creates a per-file temporary directory tree and sets GATEWAY_SECURITY_DIR
- * and VELLUM_WORKSPACE_DIR so that gateway code resolves under the temp dir
- * instead of the real ~/.vellum paths.
+ * and MAX_WORKSPACE_DIR so that gateway code resolves under the temp dir
+ * instead of the real ~/.max paths.
  *
  * Exports:
  *   testSecurityDir  — the per-file temp GATEWAY_SECURITY_DIR
- *   testWorkspaceDir — the per-file temp VELLUM_WORKSPACE_DIR
+ *   testWorkspaceDir — the per-file temp MAX_WORKSPACE_DIR
  *
  * These are safe to import from any test file:
  *
@@ -28,7 +28,7 @@ import { afterAll } from "bun:test";
 // ---------------------------------------------------------------------------
 
 const testRoot = realpathSync(
-  mkdtempSync(join(tmpdir(), "vellum-gateway-test-")),
+  mkdtempSync(join(tmpdir(), "max-gateway-test-")),
 );
 
 export const testSecurityDir = join(testRoot, "protected");
@@ -42,12 +42,12 @@ mkdirSync(testWorkspaceDir, { recursive: true });
 // ---------------------------------------------------------------------------
 
 const savedSecurityDir = process.env.GATEWAY_SECURITY_DIR;
-const savedWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
+const savedWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
 const savedCesCredentialUrl = process.env.CES_CREDENTIAL_URL;
 const savedCesServiceToken = process.env.CES_SERVICE_TOKEN;
 
 process.env.GATEWAY_SECURITY_DIR = testSecurityDir;
-process.env.VELLUM_WORKSPACE_DIR = testWorkspaceDir;
+process.env.MAX_WORKSPACE_DIR = testWorkspaceDir;
 
 // Prevent tests from hitting a real CES sidecar that may be running
 // in the sandbox. Without this, readCredential() resolves secrets from
@@ -67,9 +67,9 @@ afterAll(() => {
   }
 
   if (savedWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = savedWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = savedWorkspaceDir;
   }
 
   if (savedCesCredentialUrl === undefined) {

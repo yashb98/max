@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 final class LLMContextClientDecodingTests: XCTestCase {
     func testLegacyPayloadDecodesWithoutNormalizedFields() throws {
@@ -166,9 +166,9 @@ final class LLMContextClientDecodingTests: XCTestCase {
                       "label": "Assistant message 2 tool use",
                       "role": "assistant",
                       "toolName": "web_search",
-                      "text": "{\"query\":\"vellum changelog\"}",
+                      "text": "{\"query\":\"max changelog\"}",
                       "data": {
-                        "query": "vellum changelog"
+                        "query": "max changelog"
                       }
                     }
                   ],
@@ -228,7 +228,7 @@ final class LLMContextClientDecodingTests: XCTestCase {
         XCTAssertEqual(anthropic.summary?.cacheReadInputTokens, 80)
         XCTAssertEqual(anthropic.requestSections?.first?.kind, .toolUse)
         XCTAssertEqual(anthropic.requestSections?.first?.toolName, "web_search")
-        XCTAssertEqual(anthropic.requestSections?.first?.data, AnyCodable(["query": "vellum changelog"]))
+        XCTAssertEqual(anthropic.requestSections?.first?.data, AnyCodable(["query": "max changelog"]))
         XCTAssertEqual(anthropic.responseSections?.first?.kind, .toolResult)
         XCTAssertEqual(anthropic.responseSections?.first?.text, "[Web search results]")
 

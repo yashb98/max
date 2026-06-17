@@ -3,7 +3,7 @@
  *
  * Reads guardian delivery info from the contacts table.
  *
- * - Vellum: no external endpoint needed — delivery goes through the event
+ * - Max: no external endpoint needed — delivery goes through the event
  *   broadcast mechanism to connected desktop/mobile clients. The
  *   guardianPrincipalId is included in metadata so downstream adapters
  *   can scope guardian-sensitive notifications to bound guardian devices.
@@ -39,22 +39,22 @@ export function resolveDestinations(
     // NotificationChannel — TypeScript cannot infer this from the runtime
     // guard, so we narrow with a switch over known deliverable values.
     switch (channel as NotificationChannel) {
-      case "vellum": {
-        // Vellum delivery is local — no external endpoint required.
+      case "max": {
+        // Max delivery is local — no external endpoint required.
         // Include the guardianPrincipalId so the adapter can annotate
         // guardian-sensitive notifications for scoped delivery.
-        const guardianResult = findGuardianForChannel("vellum");
+        const guardianResult = findGuardianForChannel("max");
         const metadata: Record<string, unknown> = {};
         if (guardianResult) {
           metadata.guardianPrincipalId = guardianResult.contact.principalId;
         }
-        result.set("vellum", {
-          channel: "vellum",
+        result.set("max", {
+          channel: "max",
           metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
         });
         log.debug(
           {
-            channel: "vellum",
+            channel: "max",
             source: "contacts",
             hasEndpoint: false,
           },
@@ -127,10 +127,10 @@ export function resolveDestinations(
         break;
       }
       case "platform": {
-        // Platform delivery goes through the daemon's VellumPlatformClient —
+        // Platform delivery goes through the daemon's MaxPlatformClient —
         // no external binding needed. Include guardianPrincipalId so the
         // adapter can scope guardian-sensitive notifications.
-        const platformGuardian = findGuardianForChannel("vellum");
+        const platformGuardian = findGuardianForChannel("max");
         const platformMeta: Record<string, unknown> = {};
         if (platformGuardian) {
           platformMeta.guardianPrincipalId =

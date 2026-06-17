@@ -336,7 +336,7 @@ describe("Meet Docker-mode spawn-arg E2E", () => {
       const createReq = findCreateRequest(engine.captured);
       expect(createReq).toBeDefined();
       // Container name is encoded in the query string.
-      expect(createReq!.url).toContain("name=vellum-meet-m-docker-1");
+      expect(createReq!.url).toContain("name=max-meet-m-docker-1");
 
       const body = JSON.parse(createReq!.body) as DockerCreateBody;
 

@@ -1,4 +1,4 @@
-process.title = "vellum-gateway";
+process.title = "max-gateway";
 
 import { randomBytes } from "node:crypto";
 
@@ -8,7 +8,7 @@ import {
   TWILIO_RELAY_WEBHOOK_PATH,
   TWILIO_STATUS_WEBHOOK_PATH,
   TWILIO_VOICE_WEBHOOK_PATH,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 
 import { AuthRateLimiter } from "./auth-rate-limiter.js";
 import {
@@ -274,7 +274,7 @@ async function main() {
   const config = loadConfig();
   initLogger(config.logFile);
 
-  log.info("Starting Vellum Gateway...");
+  log.info("Starting Max Gateway...");
 
   // Initialize the JWT signing key shared with the daemon.
   // This must happen before any request handling.
@@ -314,7 +314,7 @@ async function main() {
   let telegramReady = false;
   let whatsappReady = false;
   let slackReady = false;
-  let vellumReady = false;
+  let maxReady = false;
   let velayStartRequested = false;
 
   function maybeStartVelayTunnelForTwilio(
@@ -1347,7 +1347,7 @@ async function main() {
     // ── Trust rules v3 — assistant-scoped variants ──
     // Mirror the flat /v1/trust-rules routes for clients that use
     // GatewayHTTPClient's auto-prefix (Swift TrustRuleClient and
-    // vellum-assistant-platform's web/src/lib/trust-rules/api.ts), which build
+    // max-assistant-platform's web/src/lib/trust-rules/api.ts), which build
     // URLs like /v1/assistants/<id>/trust-rules/. Without these, the request
     // falls through to the runtime-proxy catch-all and the daemon serves 404
     // on mutations (the daemon HTTP handlers were stripped by #28784).
@@ -1502,9 +1502,9 @@ async function main() {
     const url = new URL(req.url);
 
     // ── CORS: webview preflight & origin tracking ──
-    // The macOS WKWebView loads pages from https://{appId}.vellum.local/
+    // The macOS WKWebView loads pages from https://{appId}.max.local/
     // which is cross-origin to the gateway at http://127.0.0.1:{port}.
-    // Reflect the origin back on matched requests so window.vellum.fetch
+    // Reflect the origin back on matched requests so window.max.fetch
     // calls succeed.
     const extensionOrigin = resolveExtensionOrigin(req);
     if (extensionOrigin && req.method === "OPTIONS") {
@@ -1733,8 +1733,8 @@ async function main() {
       const [platformBaseUrl, assistantApiKey, assistantIdRaw] =
         await Promise.all([
           getPlatformBaseUrl(credentialCache),
-          credentialCache.get(credentialKey("vellum", "assistant_api_key")),
-          credentialCache.get(credentialKey("vellum", "platform_assistant_id")),
+          credentialCache.get(credentialKey("max", "assistant_api_key")),
+          credentialCache.get(credentialKey("max", "platform_assistant_id")),
         ]);
 
       const assistantId = assistantIdRaw?.trim() || undefined;
@@ -2038,11 +2038,11 @@ async function main() {
     const slackCreds = event.credentials.get("slack_channel");
     slackReady = !!(slackCreds?.bot_token && slackCreds?.app_token);
 
-    const vellumCreds = event.credentials.get("vellum");
-    vellumReady = !!(
-      vellumCreds?.platform_base_url &&
-      vellumCreds?.assistant_api_key &&
-      vellumCreds?.platform_assistant_id
+    const maxCreds = event.credentials.get("max");
+    maxReady = !!(
+      maxCreds?.platform_base_url &&
+      maxCreds?.assistant_api_key &&
+      maxCreds?.platform_assistant_id
     );
     const twilioCreds = event.credentials.get("twilio");
 
@@ -2086,9 +2086,9 @@ async function main() {
 
     // Register email callback route with the platform so inbound email
     // webhooks are forwarded to this gateway (same pattern as Telegram).
-    // Fires on initial credential load and whenever vellum credentials change
+    // Fires on initial credential load and whenever max credentials change
     // (key rotation, late provisioning).
-    if (changed.has("vellum")) {
+    if (changed.has("max")) {
       registerEmailCallbackRoute({
         credentials: credentialCache,
         configFile: configFileCache,
@@ -2156,7 +2156,7 @@ async function main() {
     if (
       event.changedKeys.has("ingress") &&
       !onlyVelayPublicBaseUrlChanged &&
-      vellumReady
+      maxReady
     ) {
       registerEmailCallbackRoute({
         credentials: credentialCache,

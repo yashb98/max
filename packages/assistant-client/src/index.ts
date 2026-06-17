@@ -1,5 +1,5 @@
 /**
- * @vellumai/assistant-client
+ * @maxai/assistant-client
  *
  * Shared gateway-to-assistant-runtime client helpers. This package provides
  * reusable transport primitives for HTTP proxy forwarding and WebSocket

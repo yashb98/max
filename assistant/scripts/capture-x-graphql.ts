@@ -3,7 +3,7 @@
  * Capture X.com GraphQL API calls via Chrome CDP.
  *
  * Usage:
- *   1. Make sure Chrome is running with CDP (vellum x refresh will do this)
+ *   1. Make sure Chrome is running with CDP (max x refresh will do this)
  *   2. Run: bun run scripts/capture-x-graphql.ts [--auto] [--all]
  *   3. In --auto mode, Chrome is navigated automatically. Otherwise browse X manually.
  *   4. Press Ctrl+C to stop (or wait for --auto to finish).
@@ -227,7 +227,7 @@ const GUIDE_STEPS: GuideStep[] = [
 
 const res = await fetch(`${CDP_BASE}/json/list`);
 if (!res.ok) {
-  console.error("Chrome CDP not available. Run `vellum x refresh` first.");
+  console.error("Chrome CDP not available. Run `max x refresh` first.");
   process.exit(1);
 }
 const targets = (await res.json()) as Array<{

@@ -1,4 +1,4 @@
-# Vellum Assistant — Architecture
+# Max Assistant — Architecture
 
 This file is the cross-system architecture index. Detailed designs live in domain docs close to code ownership.
 
@@ -32,17 +32,17 @@ This file is the cross-system architecture index. Detailed designs live in domai
 - Notification producers emit through `emitNotificationSignal()` to preserve decisioning and audit invariants. Reminder routing metadata (`routingIntent`, `routingHints`) flows through the signal and is enforced post-decision to control multi-channel fanout. The decision engine produces per-channel conversation actions (`start_new` / `reuse_existing`) validated against a candidate set; `notification_conversation_created` is emitted only on actual creation, not on reuse.
 - Memory extraction/recall must enforce actor-role provenance gates for untrusted actors.
 - **Credential Execution Service (CES)** is a separate top-level package (`credential-executor/`) and a separate managed container image that enforces hard process-boundary isolation for credential-bearing operations. The assistant communicates with CES exclusively via RPC (stdio JSON-RPC locally, Unix socket in managed). In Docker mode, the assistant and gateway also access credential CRUD operations via the CES HTTP API (`CES_CREDENTIAL_URL`), authenticated with `CES_SERVICE_TOKEN`. CES exposes three tools (`run_authenticated_command`, `make_authenticated_request`, `manage_secure_command_tool`) as a deliberate exception to the skill-first tool direction — these require hard isolation that skills cannot provide. Shared contract types, credential-storage abstractions, egress-proxy session management, and typed service clients live in seven private packages under `packages/` — these are the only allowed shared-code path; direct source imports between `assistant/` and `credential-executor/` remain banned:
-  - `@vellumai/service-contracts` — CES wire-protocol schemas (RPC methods, handshake types, Zod validators) and shared trust-rule types. Consumed via explicit domain subpaths: `@vellumai/service-contracts/credential-rpc`, `@vellumai/service-contracts/trust-rules`, `@vellumai/service-contracts/handles`, `@vellumai/service-contracts/grants`, `@vellumai/service-contracts/rpc`, `@vellumai/service-contracts/rendering`, `@vellumai/service-contracts/error`.
-  - `@vellumai/credential-storage` — Credential-storage abstractions shared by assistant and CES.
-  - `@vellumai/egress-proxy` — Egress-proxy session management for CES secure commands.
-  - `@vellumai/gateway-client` — Typed HTTP client for assistant-to-gateway calls (trust API, feature flags, log export, deliver).
-  - `@vellumai/assistant-client` — Typed HTTP client for gateway-to-assistant calls (runtime proxy, export).
-  - `@vellumai/ces-client` — Typed HTTP and RPC client for assistant/gateway-to-CES calls (credential CRUD, log export, RPC handshake/envelope). Sub-module exports: `@vellumai/ces-client/http-credentials`, `@vellumai/ces-client/http-log-export`, `@vellumai/ces-client/rpc-client`.
+  - `@maxai/service-contracts` — CES wire-protocol schemas (RPC methods, handshake types, Zod validators) and shared trust-rule types. Consumed via explicit domain subpaths: `@maxai/service-contracts/credential-rpc`, `@maxai/service-contracts/trust-rules`, `@maxai/service-contracts/handles`, `@maxai/service-contracts/grants`, `@maxai/service-contracts/rpc`, `@maxai/service-contracts/rendering`, `@maxai/service-contracts/error`.
+  - `@maxai/credential-storage` — Credential-storage abstractions shared by assistant and CES.
+  - `@maxai/egress-proxy` — Egress-proxy session management for CES secure commands.
+  - `@maxai/gateway-client` — Typed HTTP client for assistant-to-gateway calls (trust API, feature flags, log export, deliver).
+  - `@maxai/assistant-client` — Typed HTTP client for gateway-to-assistant calls (runtime proxy, export).
+  - `@maxai/ces-client` — Typed HTTP and RPC client for assistant/gateway-to-CES calls (credential CRUD, log export, RPC handshake/envelope). Sub-module exports: `@maxai/ces-client/http-credentials`, `@maxai/ces-client/http-log-export`, `@maxai/ces-client/rpc-client`.
 
   Secure commands are manifest-driven: each bundle declares an auth adapter (`env_var`, `temp_file`, or `credential_process`), an egress mode (`proxy_required` or `no_network`), and allowed argv patterns; generic HTTP clients, interpreters, and shell trampolines are structurally denied as entrypoints. CES-owned durable state (grants and audit logs) is never read or written by the assistant directly. Credential key files (`keys.enc`, `store.key`) are stored on the CES security volume (`/ces-security`) in Docker mode — no other container has access to this volume. `host_bash` is outside the strong CES secrecy guarantee. Response/output filtering (header stripping, body clamping, secret scrubbing) is defense-in-depth, not the primary protection. Managed rollout requires a third runtime image alongside the assistant and gateway images, with corresponding `vembda` pod-template changes; rollout is gated by five feature flags (`ces-tools`, `ces-shell-lockdown`, `ces-secure-install`, `ces-grant-audit`, `ces-managed-sidecar`; keys are simple kebab-case, e.g. `ces-tools`), all defaulting to off. See [`assistant/docs/credential-execution-service.md`](assistant/docs/credential-execution-service.md).
 
 - Trusted contact ingress ACL is channel-agnostic; identity binding adapts per channel (chat ID, E.164 phone, external user ID) without channel-specific branching.
-- macOS managed sign-in connects the desktop app to a platform-hosted assistant via Django assistant-scoped proxy endpoints (`/v1/assistants/{id}/...`). The `HTTPDaemonClient` operates in `platformAssistantProxy` route mode with `X-Session-Token` auth. Managed lockfile entries have `cloud: "vellum"`. Startup guardrails skip local daemon hatching and actor credential bootstrap. See [`clients/ARCHITECTURE.md`](clients/ARCHITECTURE.md) for the full flow.
+- macOS managed sign-in connects the desktop app to a platform-hosted assistant via Django assistant-scoped proxy endpoints (`/v1/assistants/{id}/...`). The `HTTPDaemonClient` operates in `platformAssistantProxy` route mode with `X-Session-Token` auth. Managed lockfile entries have `cloud: "max"`. Startup guardrails skip local daemon hatching and actor credential bootstrap. See [`clients/ARCHITECTURE.md`](clients/ARCHITECTURE.md) for the full flow.
 - **Assistant feature flags** control skill availability at runtime. The canonical key format is simple kebab-case (e.g., `browser`, `ces-tools`); the legacy `feature_flags.<id>.enabled` and `skills.<id>.enabled` formats are no longer supported. All declared flags live in the unified registry at `meta/feature-flags/feature-flag-registry.json`, scoped by `scope` (`assistant` or `client`). Labels come from the registry. Bundled copies exist at `assistant/src/config/feature-flag-registry.json` and `gateway/src/feature-flag-registry.json`. The gateway owns the `/v1/feature-flags` REST API and the IPC `get_feature_flags` method (see [`gateway/ARCHITECTURE.md`](gateway/ARCHITECTURE.md)); the assistant resolves effective flag state via IPC to the gateway socket (`gateway.sock`) — see [`assistant/ARCHITECTURE.md`](assistant/ARCHITECTURE.md). When a flag is OFF, the corresponding skill is excluded from all exposure surfaces: client skill lists, system prompt catalog, `skill_load`, runtime tool projection, and included child skills. Guard tests enforce that all flag keys in code use the canonical format and that all referenced flags are declared in the unified registry.
 - **Safe storage limits** are entirely gated by the assistant feature flag `safe-storage-limits`. When enabled and workspace disk usage reaches the critical 95% threshold, the assistant enters storage cleanup mode: background work is skipped, remote ingress including trusted-contact messages is blocked, local guardian turns get cleanup-specific runtime instructions, and clients must show acknowledgement/status UI until enough space is freed or the guardian explicitly overrides the lock. See [Safe Storage Limits](#safe-storage-limits).
 - **Permission controls v2** removes deterministic tool-by-tool approval friction for assistant-owned actions. Under `permission-controls-v2`, the only built-in deterministic approval surface is conversation-scoped host computer access for `host_*` / host-target tools. All other assistant-owned tool usage relies on model-mediated consent, not temporary approvals, wildcard scopes, per-tool persistence, or network/side-effect approval cards. Cross-principal identity checks (for example unknown actors) still fail closed deterministically.
@@ -50,27 +50,27 @@ This file is the cross-system architecture index. Detailed designs live in domai
 
 ## Environment and Data Layout
 
-Environments are **namespaces**, not containers. `VELLUM_ENVIRONMENT` selects a path prefix (`vellum` for `production`, `vellum-<env>` for the non-production seeds `dev`, `staging`, `test`, `local`). It does not own data. Data directories are always per-assistant, and the lockfile's `resources.instanceDir` field is the source of truth for any given assistant's on-disk location.
+Environments are **namespaces**, not containers. `MAX_ENVIRONMENT` selects a path prefix (`max` for `production`, `max-<env>` for the non-production seeds `dev`, `staging`, `test`, `local`). It does not own data. Data directories are always per-assistant, and the lockfile's `resources.instanceDir` field is the source of truth for any given assistant's on-disk location.
 
 ### Per-assistant data directories
 
-Every local assistant's daemon root is `<resources.instanceDir>/.vellum/`. The CLI passes per-instance paths to spawned daemons and gateways via explicit environment variables: `VELLUM_WORKSPACE_DIR` (workspace data), `GATEWAY_SECURITY_DIR` (gateway security state), and `CREDENTIAL_SECURITY_DIR` (CES key stores). `assistant/src/util/platform.ts:vellumRoot` resolves the root from `VELLUM_WORKSPACE_DIR` when set, falling back to `join(homedir(), ".vellum")`. All root-level state (PID file, `.env`, `runtime-port`, `protected/` with its encrypted keys, trust rules, credentials, capability token, etc.) and the workspace directory derive from these helpers.
+Every local assistant's daemon root is `<resources.instanceDir>/.max/`. The CLI passes per-instance paths to spawned daemons and gateways via explicit environment variables: `MAX_WORKSPACE_DIR` (workspace data), `GATEWAY_SECURITY_DIR` (gateway security state), and `CREDENTIAL_SECURITY_DIR` (CES key stores). `assistant/src/util/platform.ts:maxRoot` resolves the root from `MAX_WORKSPACE_DIR` when set, falling back to `join(homedir(), ".max")`. All root-level state (PID file, `.env`, `runtime-port`, `protected/` with its encrypted keys, trust rules, credentials, capability token, etc.) and the workspace directory derive from these helpers.
 
 Allocation of `instanceDir` for new hatches:
 
 | Environment                     | `instanceDir` path                               |
 | ------------------------------- | ------------------------------------------------ |
-| `production`                    | `$XDG_DATA_HOME/vellum/assistants/<name>/`       |
-| non-production (`vellum-<env>`) | `$XDG_DATA_HOME/vellum-<env>/assistants/<name>/` |
+| `production`                    | `$XDG_DATA_HOME/max/assistants/<name>/`       |
+| non-production (`max-<env>`) | `$XDG_DATA_HOME/max-<env>/assistants/<name>/` |
 
-There is no "first local" special case — every new hatch goes through the same allocator (`cli/src/lib/assistant-config.ts:allocateLocalResources`) and lands under the XDG multi-instance tree. `~/.vellum/` is never an allocation target; it is only reached via existing lockfile entries whose `instanceDir = homedir()` was recorded before this change.
+There is no "first local" special case — every new hatch goes through the same allocator (`cli/src/lib/assistant-config.ts:allocateLocalResources`) and lands under the XDG multi-instance tree. `~/.max/` is never an allocation target; it is only reached via existing lockfile entries whose `instanceDir = homedir()` was recorded before this change.
 
 ### Lockfile
 
 | Environment    | Canonical path                                | Read fallback                             |
 | -------------- | --------------------------------------------- | ----------------------------------------- |
-| `production`   | `~/.vellum.lock.json`                         | `~/.vellum.lockfile.json` (legacy rename) |
-| non-production | `$XDG_CONFIG_HOME/vellum-<env>/lockfile.json` | (none — new path)                         |
+| `production`   | `~/.max.lock.json`                         | `~/.max.lockfile.json` (legacy rename) |
+| non-production | `$XDG_CONFIG_HOME/max-<env>/lockfile.json` | (none — new path)                         |
 
 The CLI routes all lockfile reads/writes through `cli/src/lib/environments/paths.ts:getLockfilePath` / `getLockfilePaths` so non-production environments land in the env-scoped XDG config tree. The parent directory is created on first write.
 
@@ -78,22 +78,22 @@ The CLI routes all lockfile reads/writes through `cli/src/lib/environments/paths
 
 | Environment    | Config dir                       |
 | -------------- | -------------------------------- |
-| `production`   | `$XDG_CONFIG_HOME/vellum/`       |
-| non-production | `$XDG_CONFIG_HOME/vellum-<env>/` |
+| `production`   | `$XDG_CONFIG_HOME/max/`       |
+| non-production | `$XDG_CONFIG_HOME/max-<env>/` |
 
-Platform tokens (`platform-token`), device IDs (`device-id`), and guardian tokens (`assistants/<id>/guardian-token.json`) live under the env-scoped config dir. The CLI (`cli/src/lib/platform-client.ts`, `cli/src/lib/guardian-token.ts`), the daemon (`assistant/src/util/platform.ts:getXdgPlatformTokenPath`, `getXdgVellumConfigDirName`), and the Swift client (`clients/shared/Utilities/VellumPaths.swift:configDir`) all agree on the same env-scoped path, so `vellum login`, guardian leasing, persisted device IDs, and desktop session state never bleed between environments.
+Platform tokens (`platform-token`), device IDs (`device-id`), and guardian tokens (`assistants/<id>/guardian-token.json`) live under the env-scoped config dir. The CLI (`cli/src/lib/platform-client.ts`, `cli/src/lib/guardian-token.ts`), the daemon (`assistant/src/util/platform.ts:getXdgPlatformTokenPath`, `getXdgMaxConfigDirName`), and the Swift client (`clients/shared/Utilities/MaxPaths.swift:configDir`) all agree on the same env-scoped path, so `max login`, guardian leasing, persisted device IDs, and desktop session state never bleed between environments.
 
 ### Backwards compatibility
 
 Backwards compatibility lives entirely in the read path — no on-disk migration is performed.
 
-- Existing production lockfile entries with `instanceDir = homedir()` continue to work: the daemon receives `VELLUM_WORKSPACE_DIR = homedir()/.vellum/workspace` and resolves to `~/.vellum/` exactly as before.
-- Production writes still go to the legacy `~/.vellum.lock.json` filename; the rename-era `~/.vellum.lockfile.json` is accepted as a read fallback.
-- Unknown values of `VELLUM_ENVIRONMENT` (anything outside the seed table) resolve to `vellum` rather than a fabricated `vellum-<garbage>` directory, so misconfiguration degrades gracefully to the production path.
+- Existing production lockfile entries with `instanceDir = homedir()` continue to work: the daemon receives `MAX_WORKSPACE_DIR = homedir()/.max/workspace` and resolves to `~/.max/` exactly as before.
+- Production writes still go to the legacy `~/.max.lock.json` filename; the rename-era `~/.max.lockfile.json` is accepted as a read fallback.
+- Unknown values of `MAX_ENVIRONMENT` (anything outside the seed table) resolve to `max` rather than a fabricated `max-<garbage>` directory, so misconfiguration degrades gracefully to the production path.
 
 ### Mixed local/remote and targeting
 
-The lockfile can contain both local and remote entries side-by-side. Remote entries (`cloud: "gcp"`, `"aws"`, `"vellum"`, `"custom"`) carry connection metadata (`runtimeUrl`, `bearerToken`, etc.) but no `resources` block. `wake` and `sleep` only operate on local entries. `retire` works on both and dispatches per-cloud teardown for remote entries. CLI commands resolve which instance to target via `resolveTargetAssistant()` in the order: explicit name argument → `activeAssistant` field (set by `vellum use`) → sole local assistant.
+The lockfile can contain both local and remote entries side-by-side. Remote entries (`cloud: "gcp"`, `"aws"`, `"max"`, `"custom"`) carry connection metadata (`runtimeUrl`, `bearerToken`, etc.) but no `resources` block. `wake` and `sleep` only operate on local entries. `retire` works on both and dispatches per-cloud teardown for remote entries. CLI commands resolve which instance to target via `resolveTargetAssistant()` in the order: explicit name argument → `activeAssistant` field (set by `max use`) → sole local assistant.
 
 ## Multi-Local Instance Isolation
 
@@ -104,11 +104,11 @@ Multiple local assistant instances can run side-by-side on the same machine, eac
 Each named instance gets its own directory tree. The exact location depends on environment and whether the lockfile entry predates the env-aware allocator (see [Environment and Data Layout](#environment-and-data-layout) for allocation rules). For a production install of two new assistants `alice` and `bob`:
 
 ```
-~/.vellum.lock.json                                       # Global lockfile
-~/.local/share/vellum/assistants/
+~/.max.lock.json                                       # Global lockfile
+~/.local/share/max/assistants/
 ├── alice/                                                # instanceDir for alice
-│   └── .vellum/                                          # Daemon root (vellumRoot())
-│       ├── vellum.pid                                    # Daemon PID (duplicated by the CLI on spawn)
+│   └── .max/                                          # Daemon root (maxRoot())
+│       ├── max.pid                                    # Daemon PID (duplicated by the CLI on spawn)
 │       ├── gateway.pid
 │       ├── ngrok.pid
 │       ├── runtime-port
@@ -122,23 +122,23 @@ Each named instance gets its own directory tree. The exact location depends on e
 │           │   └── logs/
 │           └── skills/
 └── bob/
-    └── .vellum/
+    └── .max/
         └── ...                                           # Same structure as alice
 ```
 
-An existing production lockfile entry created before env-aware allocation may still have `instanceDir = ~` and all of its state under `~/.vellum/`. That path is preserved via the lockfile read path — no data is moved. Non-production (`vellum-<env>`) hatches use the same layout under `$XDG_DATA_HOME/vellum-<env>/assistants/<name>/`.
+An existing production lockfile entry created before env-aware allocation may still have `instanceDir = ~` and all of its state under `~/.max/`. That path is preserved via the lockfile read path — no data is moved. Non-production (`max-<env>`) hatches use the same layout under `$XDG_DATA_HOME/max-<env>/assistants/<name>/`.
 
-All instances are created with explicit names via `vellum hatch --name <name>`.
+All instances are created with explicit names via `max hatch --name <name>`.
 
 ### Isolation model
 
 Each instance gets its own:
 
-- **`VELLUM_WORKSPACE_DIR`**: Set to `<instanceDir>/.vellum/workspace`. The daemon resolves all workspace state (DB, logs, memory indices) relative to this directory.
-- **`GATEWAY_SECURITY_DIR`** / **`CREDENTIAL_SECURITY_DIR`**: Set to `<instanceDir>/.vellum/protected`. The gateway and credential-executor resolve their security state (keys, trust rules, credentials) relative to these directories.
+- **`MAX_WORKSPACE_DIR`**: Set to `<instanceDir>/.max/workspace`. The daemon resolves all workspace state (DB, logs, memory indices) relative to this directory.
+- **`GATEWAY_SECURITY_DIR`** / **`CREDENTIAL_SECURITY_DIR`**: Set to `<instanceDir>/.max/protected`. The gateway and credential-executor resolve their security state (keys, trust rules, credentials) relative to these directories.
 - **Daemon port** (`RUNTIME_HTTP_PORT`), **Gateway port** (`GATEWAY_PORT`), **Qdrant port** (`QDRANT_HTTP_PORT`): Allocated by scanning upward from the environment's base port — see "Port allocation" below.
-- **PID file**: `<instanceDir>/.vellum/vellum.pid`
-- **SQLite database, logs, memory indices**: All under `<instanceDir>/.vellum/workspace/data/`
+- **PID file**: `<instanceDir>/.max/max.pid`
+- **SQLite database, logs, memory indices**: All under `<instanceDir>/.max/workspace/data/`
 
 ### Port allocation
 
@@ -146,7 +146,7 @@ Each instance gets its own:
 
 ### Lockfile schema
 
-The production lockfile (`~/.vellum.lock.json`) tracks all instances:
+The production lockfile (`~/.max.lock.json`) tracks all instances:
 
 ```jsonc
 {
@@ -157,11 +157,11 @@ The production lockfile (`~/.vellum.lock.json`) tracks all instances:
       "cloud": "local",
       "hatchedAt": "2026-03-04T...",
       "resources": {                    // Present for local entries
-        "instanceDir": "~/.local/share/vellum/assistants/alice",
+        "instanceDir": "~/.local/share/max/assistants/alice",
         "daemonPort": 7821,
         "gatewayPort": 7830,
         "qdrantPort": 6333,
-        "pidFile": "~/.local/share/vellum/assistants/alice/.vellum/vellum.pid"
+        "pidFile": "~/.local/share/max/assistants/alice/.max/max.pid"
       }
     },
     {
@@ -171,14 +171,14 @@ The production lockfile (`~/.vellum.lock.json`) tracks all instances:
       "resources": { ... }
     }
   ],
-  "activeAssistant": "alice"           // Set by `vellum use <name>`
+  "activeAssistant": "alice"           // Set by `max use <name>`
 }
 ```
 
 - `resources` (`LocalInstanceResources`): Present on all local entries. Contains per-instance ports and paths.
 - `activeAssistant`: Determines which instance CLI commands target by default.
-- Remote assistants (`cloud: "gcp"`, `"aws"`, `"vellum"`, etc.) are unaffected and have no `resources` field.
-- Non-production environments use `$XDG_CONFIG_HOME/vellum-<env>/lockfile.json` with the same schema.
+- Remote assistants (`cloud: "gcp"`, `"aws"`, `"max"`, etc.) are unaffected and have no `resources` field.
+- Non-production environments use `$XDG_CONFIG_HOME/max-<env>/lockfile.json` with the same schema.
 
 ## Docker Volume Architecture
 
@@ -196,7 +196,7 @@ Docker instances use dedicated volumes with per-service access boundaries instea
 <instance-name>-dockerd-data    →  /var/lib/docker      (assistant only — inner dockerd state)
 ```
 
-- **Workspace volume** (`/workspace`): Shared state — config, conversations, apps, skills, database, logs. Set via `VELLUM_WORKSPACE_DIR=/workspace`. The assistant and gateway have read-write access; the CES mounts it read-only (for config reading).
+- **Workspace volume** (`/workspace`): Shared state — config, conversations, apps, skills, database, logs. Set via `MAX_WORKSPACE_DIR=/workspace`. The assistant and gateway have read-write access; the CES mounts it read-only (for config reading).
 - **Gateway security volume** (`/gateway-security`): Files private to the gateway container. Only the gateway container mounts this volume. Set via `GATEWAY_SECURITY_DIR=/gateway-security`.
 - **CES security volume** (`/ces-security`): Credential encryption keys (`keys.enc`, `store.key`). Only the CES container mounts this volume. Set via `CREDENTIAL_SECURITY_DIR=/ces-security`.
 - **Socket volume** (`/run/ces-bootstrap`): CES bootstrap socket for initial service handshake between the assistant and CES containers.
@@ -230,7 +230,7 @@ Each bot container receives a bind of `/workspace` sourced from the assistant's 
 
 **Bare-metal fallback.** When the assistant runs directly on the host (bare-metal / local-dev mode) there is no inner `dockerd`; the daemon connects to the host's Docker engine and spawns bot containers as _siblings_ of the assistant process. In that configuration host-level `docker ps` does see each bot, and an ungraceful assistant exit can leave orphan bot containers — the meet-bot image's built-in max-meeting-minutes timeout caps their lifetime.
 
-**Security boundary — single-user local only.** The Docker-in-Docker model requires the assistant container to run with `--privileged`, or at minimum `CAP_SYS_ADMIN` + `CAP_NET_ADMIN`, so the inner `dockerd` can set up cgroups, overlay mounts, and container networks. This is acceptable for single-user local deployments where the assistant already runs with the user's privileges. It is **not** acceptable as-is for managed/multi-tenant mode: Kubernetes deployments must configure Pod Security Admission to allow this privilege level on the assistant pod, or swap in a different bot-spawn model (e.g. a Kubernetes job runner or a dedicated bot-scheduler service) before Meet can ship to managed instances. Managed Meet support is explicitly out of scope for this Docker-in-Docker approach — see [`vellum-assistant-platform`](../vellum-assistant-platform).
+**Security boundary — single-user local only.** The Docker-in-Docker model requires the assistant container to run with `--privileged`, or at minimum `CAP_SYS_ADMIN` + `CAP_NET_ADMIN`, so the inner `dockerd` can set up cgroups, overlay mounts, and container networks. This is acceptable for single-user local deployments where the assistant already runs with the user's privileges. It is **not** acceptable as-is for managed/multi-tenant mode: Kubernetes deployments must configure Pod Security Admission to allow this privilege level on the assistant pod, or swap in a different bot-spawn model (e.g. a Kubernetes job runner or a dedicated bot-scheduler service) before Meet can ship to managed instances. Managed Meet support is explicitly out of scope for this Docker-in-Docker approach — see [`max-assistant-platform`](../max-assistant-platform).
 
 ### Cross-Service Access Patterns
 
@@ -335,7 +335,7 @@ subgraph "Text Q&A Session"
             JOBS_WORKER["MemoryJobsWorker<br/>poll every 1.5s<br/>embed, extract, cleanup_stale"]
         end
 
-        subgraph "SQLite Database (~/.vellum/workspace/data/db/assistant.db)"
+        subgraph "SQLite Database (~/.max/workspace/data/db/assistant.db)"
             DB_CONV["conversations"]
             DB_MSG["messages"]
             DB_TOOL["tool_invocations"]
@@ -438,10 +438,10 @@ subgraph "Text Q&A Session"
     end
 
     subgraph "macOS Local Storage"
-        ENC_STORE["Encrypted Store<br/>(local: ~/.vellum/protected/keys.enc<br/>Docker: /ces-security/keys.enc)"]
+        ENC_STORE["Encrypted Store<br/>(local: ~/.max/protected/keys.enc<br/>Docker: /ces-security/keys.enc)"]
         USERDEFAULTS["UserDefaults<br/>preferences / state"]
-        APP_SUPPORT["~/Library/App Support/<br/>vellum-assistant/"]
-        APPS_DATA["~/.vellum/workspace/data/apps/<br/>app JSON + pages"]
+        APP_SUPPORT["~/Library/App Support/<br/>max-assistant/"]
+        APPS_DATA["~/.max/workspace/data/apps/<br/>app JSON + pages"]
         SESSION_LOGS["logs/session-*.json"]
     end
 
@@ -479,7 +479,7 @@ subgraph "Text Q&A Session"
     HTTP_RT -->|"ui_surface_show"| SURFACE_MGR
     SURFACE_MGR -->|"display != inline<br/>.openDynamicWorkspace"| WORKSPACE
     WORKSPACE --> DYN_PAGE
-    DYN_PAGE -->|"vellumBridge<br/>actions + data RPC<br/>(HTTP)"| HTTP_RT
+    DYN_PAGE -->|"maxBridge<br/>actions + data RPC<br/>(HTTP)"| HTTP_RT
 
     %% Daemon internals
     HTTP_RT --> HANDLERS
@@ -614,7 +614,7 @@ All feature flags (assistant-scoped and client-scoped) are declared in the unifi
 
 **Resolution priority:** When determining whether an assistant flag is enabled, the resolver checks (highest priority first):
 
-1. `~/.vellum/protected/feature-flags.json` overrides (local) or gateway IPC socket (Docker)
+1. `~/.max/protected/feature-flags.json` overrides (local) or gateway IPC socket (Docker)
 2. Defaults registry `defaultEnabled`
 3. `true` (unknown flags are open by default)
 
@@ -625,7 +625,7 @@ All feature flags (assistant-scoped and client-scoped) are declared in the unifi
 
 ## Safe Storage Limits
 
-`safe-storage-limits` is an assistant-scoped feature flag, default off. The companion `vellum-assistant-platform` work provisions the LaunchDarkly/Terraform flag and web app UI; this repo owns the assistant runtime contract, bundled registries, macOS client UI, and release notes.
+`safe-storage-limits` is an assistant-scoped feature flag, default off. The companion `max-assistant-platform` work provisions the LaunchDarkly/Terraform flag and web app UI; this repo owns the assistant runtime contract, bundled registries, macOS client UI, and release notes.
 
 When the flag is enabled, `assistant/src/daemon/disk-pressure-guard.ts` samples workspace disk usage every 60 seconds using the shared disk-usage sampler. At or above 95% usage it creates an in-memory lock with a `lockId`, usage snapshot, `acknowledged` state, optional `overrideActive` state, and blocked capabilities: `agent-turns`, `background-work`, and `remote-ingress`. Dropping below the threshold clears the lock. Disabling the flag returns a stable disabled status and stops enforcement.
 

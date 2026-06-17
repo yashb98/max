@@ -1,10 +1,10 @@
 ---
 name: computer-use
 description: Control the macOS desktop
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🖥️"
-  vellum:
+  max:
     display-name: "Computer Use"
     activation-hints:
       - "User asks the assistant to click, type, drag, or interact with the macOS GUI directly"

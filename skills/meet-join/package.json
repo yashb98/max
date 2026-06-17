@@ -1,5 +1,5 @@
 {
-  "name": "@vellumai/meet-skill",
+  "name": "@maxai/meet-skill",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -9,7 +9,7 @@
     "meet-host": "bun run entrypoint.ts"
   },
   "dependencies": {
-    "@vellumai/skill-host-contracts": "file:../../packages/skill-host-contracts",
+    "@maxai/skill-host-contracts": "file:../../packages/skill-host-contracts",
     "zod": "4.3.6"
   },
   "devDependencies": {

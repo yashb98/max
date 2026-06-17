@@ -4,7 +4,7 @@
  * POST /v1/surface-actions — dispatch a surface action to an active conversation.
  * Requires the conversation to already exist (does not create new conversations).
  *
- * Trust context is resolved from the `x-vellum-actor-principal-id` header
+ * Trust context is resolved from the `x-max-actor-principal-id` header
  * injected by the HTTP adapter from the authenticated AuthContext.
  */
 import { z } from "zod";
@@ -20,7 +20,7 @@ import {
 import { rawGet } from "../../memory/raw-query.js";
 import { getLogger } from "../../util/logger.js";
 import { DAEMON_INTERNAL_ASSISTANT_ID } from "../assistant-scope.js";
-import { healGuardianBindingDrift } from "../guardian-vellum-migration.js";
+import { healGuardianBindingDrift } from "../guardian-max-migration.js";
 import { resolveLocalTrustContext } from "../local-actor-identity.js";
 import {
   resolveTrustContext,
@@ -52,7 +52,7 @@ function applyTrustContext(
 ): void {
   if (!conversation.setTrustContext) return;
 
-  const sourceChannel = "vellum";
+  const sourceChannel = "max";
 
   if (actorPrincipalId) {
     if (isHttpAuthDisabled() && actorPrincipalId === "dev-bypass") {
@@ -156,7 +156,7 @@ async function handleSurfaceAction({
     throw new NotFoundError("No active conversation found");
   }
 
-  const actorPrincipalId = headers?.["x-vellum-actor-principal-id"];
+  const actorPrincipalId = headers?.["x-max-actor-principal-id"];
   applyTrustContext(conversation, actorPrincipalId);
 
   try {

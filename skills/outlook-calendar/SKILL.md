@@ -1,10 +1,10 @@
 ---
 name: outlook-calendar
 description: View, create, and manage Outlook Calendar events and check availability
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📅"
-  vellum:
+  max:
     display-name: "Outlook Calendar"
     user-invocable: true
 ---
@@ -49,7 +49,7 @@ bun scripts/outlook-cal.ts rsvp --event-id "AAMkAD..." --response accepted
 ## Connection Setup
 
 1. **Check connection health first.** Run `assistant oauth status outlook`. This checks whether the user's Outlook/Microsoft account is connected and the token is valid. Outlook Calendar shares the same OAuth connection as Outlook email — if the user already connected Outlook email, calendar access is included.
-2. **If no connection is found or the status check fails:** Load the `vellum-oauth-integrations` skill. The skill will evaluate whether managed or your-own mode is appropriate and guide the user accordingly.
+2. **If no connection is found or the status check fails:** Load the `max-oauth-integrations` skill. The skill will evaluate whether managed or your-own mode is appropriate and guide the user accordingly.
 
 ## Scheduling Playbook
 
@@ -87,6 +87,6 @@ Confidence scores for medium-risk operations:
 When a calendar script fails with a token or authorization error:
 
 1. **Try to reconnect silently.** Run `assistant oauth ping outlook`. This often resolves expired tokens automatically.
-2. **If reconnection fails, go straight to setup.** Don't present options, ask which route the user prefers, or explain what went wrong technically. Just tell the user briefly (e.g., "Outlook Calendar needs to be reconnected - let me set that up") and immediately load the `vellum-oauth-integrations` skill. The user came to you to get something done, not to troubleshoot - make it seamless.
+2. **If reconnection fails, go straight to setup.** Don't present options, ask which route the user prefers, or explain what went wrong technically. Just tell the user briefly (e.g., "Outlook Calendar needs to be reconnected - let me set that up") and immediately load the `max-oauth-integrations` skill. The user came to you to get something done, not to troubleshoot - make it seamless.
 3. **Never try alternative approaches.** Don't use curl, browser automation, or any workaround. If the scripts can't do it, the reconnection flow is the answer.
 4. **Never expose error details.** The user doesn't need to see error messages about tokens, OAuth, or API failures. Translate errors into plain language.

@@ -178,8 +178,8 @@ async function startStubServer(socketPath: string): Promise<StubServer> {
           case "host.platform.workspaceDir":
             result = "/tmp/test-workspace";
             break;
-          case "host.platform.vellumRoot":
-            result = "/tmp/test-vellum";
+          case "host.platform.maxRoot":
+            result = "/tmp/test-max";
             break;
           case "host.platform.runtimeMode":
             result = "bare-metal";

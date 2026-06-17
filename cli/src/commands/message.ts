@@ -1,19 +1,19 @@
 /**
- * `vellum message <assistant> <message>`
+ * `max message <assistant> <message>`
  *
  * Send a message to a running assistant via its runtime HTTP API and
  * print the result.  This is a fire-and-send command — it does NOT
- * subscribe to SSE events (use `vellum events` for that).
+ * subscribe to SSE events (use `max events` for that).
  */
 
 import { extractFlag } from "../lib/arg-utils.js";
 import { AssistantClient } from "../lib/assistant-client.js";
 
 function printUsage(): void {
-  console.log(`vellum message - Send a message to a running assistant
+  console.log(`max message - Send a message to a running assistant
 
 USAGE:
-    vellum message [assistant] <message>
+    max message [assistant] <message>
 
 ARGUMENTS:
     [assistant]    Instance name (default: active assistant)
@@ -24,10 +24,10 @@ OPTIONS:
     --json                    Output raw JSON response
 
 EXAMPLES:
-    vellum message "hello"
-    vellum message my-assistant "ping"
-    vellum message --conversation-key my-thread "hello"
-    vellum message --json "hello"
+    max message "hello"
+    max message my-assistant "ping"
+    max message --conversation-key my-thread "hello"
+    max message --json "hello"
 `);
 }
 
@@ -52,11 +52,11 @@ export async function message(): Promise<void> {
   let messageContent: string | undefined;
 
   if (args.length >= 2) {
-    // vellum message <assistant> <message>
+    // max message <assistant> <message>
     assistantId = args[0];
     messageContent = args[1];
   } else if (args.length === 1) {
-    // vellum message <message>  (uses active/latest assistant)
+    // max message <message>  (uses active/latest assistant)
     messageContent = args[0];
   }
 
@@ -71,7 +71,7 @@ export async function message(): Promise<void> {
 
   const payload: Record<string, string> = {
     content: messageContent,
-    sourceChannel: "vellum",
+    sourceChannel: "max",
     interface: "cli",
   };
   if (conversationKey) {

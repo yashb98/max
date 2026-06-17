@@ -114,7 +114,7 @@ function mintAccessToken(
   const sub = `actor:${externalAssistantId}:${guardianPrincipalId}`;
 
   const token = mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub,
     scope_profile: "actor_client_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,

@@ -179,7 +179,7 @@ describe("derefToolResultReReads", () => {
         role: "assistant",
         content: [
           makeToolUse(toolUseId, "file_read", {
-            path: `/home/user/.vellum/workspace/conversations/abc/${TOOL_RESULT_DIR}/abc123.txt`,
+            path: `/home/user/.max/workspace/conversations/abc/${TOOL_RESULT_DIR}/abc123.txt`,
           }),
         ],
       },

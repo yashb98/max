@@ -107,21 +107,21 @@ function fakeCredentialCache(
 
 function defaultCredentials(): Record<string, string> {
   return {
-    "credential/vellum/platform_base_url": "https://platform.vellum.ai",
-    "credential/vellum/assistant_api_key": "test-api-key",
+    "credential/max/platform_base_url": "https://platform.max.ai",
+    "credential/max/assistant_api_key": "test-api-key",
   };
 }
 
 // ---------------------------------------------------------------------------
 // Setup / teardown
 // ---------------------------------------------------------------------------
-const savedVellumPlatformUrl = process.env.VELLUM_PLATFORM_URL;
+const savedMaxPlatformUrl = process.env.MAX_PLATFORM_URL;
 const savedAssistantCredential = process.env.ASSISTANT_API_KEY;
 
 beforeEach(() => {
   // Clear env vars that the production code falls back to, so tests remain
   // deterministic unless they explicitly set them.
-  delete process.env.VELLUM_PLATFORM_URL;
+  delete process.env.MAX_PLATFORM_URL;
   delete process.env.ASSISTANT_API_KEY;
   mkdirSync(protectedDir, { recursive: true });
   // Write the test registry and point resolution at it
@@ -141,7 +141,7 @@ afterEach(() => {
       process.env[key] = saved;
     }
   };
-  restoreEnv("VELLUM_PLATFORM_URL", savedVellumPlatformUrl);
+  restoreEnv("MAX_PLATFORM_URL", savedMaxPlatformUrl);
   restoreEnv("ASSISTANT_API_KEY", savedAssistantCredential);
   try {
     rmSync(protectedDir, { recursive: true, force: true });
@@ -162,8 +162,8 @@ describe("RemoteFeatureFlagSync", () => {
     fetchMock = mock(async () => Response.json({ flags: { ff1: true } }));
 
     const creds = defaultCredentials();
-    delete creds["credential/vellum/platform_base_url"];
-    delete process.env.VELLUM_PLATFORM_URL;
+    delete creds["credential/max/platform_base_url"];
+    delete process.env.MAX_PLATFORM_URL;
 
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -175,12 +175,12 @@ describe("RemoteFeatureFlagSync", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  test("falls back to VELLUM_PLATFORM_URL env var when platform_base_url is missing", async () => {
+  test("falls back to MAX_PLATFORM_URL env var when platform_base_url is missing", async () => {
     fetchMock = mock(async () => Response.json({ flags: {} }));
-    process.env.VELLUM_PLATFORM_URL = "https://env-platform.example.com";
+    process.env.MAX_PLATFORM_URL = "https://env-platform.example.com";
 
     const creds = defaultCredentials();
-    delete creds["credential/vellum/platform_base_url"];
+    delete creds["credential/max/platform_base_url"];
 
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -197,7 +197,7 @@ describe("RemoteFeatureFlagSync", () => {
 
   test("skips sync when assistant_api_key is missing", async () => {
     const creds = defaultCredentials();
-    delete creds["credential/vellum/assistant_api_key"];
+    delete creds["credential/max/assistant_api_key"];
 
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -212,8 +212,8 @@ describe("RemoteFeatureFlagSync", () => {
     fetchMock = mock(async () => Response.json({ flags: { ff1: true } }));
 
     const creds = {
-      "credential/vellum/platform_base_url": "https://platform.example.com",
-      "credential/vellum/assistant_api_key": "test-api-key",
+      "credential/max/platform_base_url": "https://platform.example.com",
+      "credential/max/assistant_api_key": "test-api-key",
     };
 
     const sync = new RemoteFeatureFlagSync({
@@ -230,7 +230,7 @@ describe("RemoteFeatureFlagSync", () => {
     process.env.ASSISTANT_API_KEY = "env-key";
 
     const creds = {
-      "credential/vellum/platform_base_url": "https://platform.example.com",
+      "credential/max/platform_base_url": "https://platform.example.com",
     };
 
     const sync = new RemoteFeatureFlagSync({
@@ -346,7 +346,7 @@ describe("RemoteFeatureFlagSync", () => {
     const apiKey = "my-secret-key-42";
     const creds = {
       ...defaultCredentials(),
-      "credential/vellum/assistant_api_key": apiKey,
+      "credential/max/assistant_api_key": apiKey,
     };
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -365,7 +365,7 @@ describe("RemoteFeatureFlagSync", () => {
 
     const creds = {
       ...defaultCredentials(),
-      "credential/vellum/platform_base_url": "https://platform.example.com",
+      "credential/max/platform_base_url": "https://platform.example.com",
     };
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -444,7 +444,7 @@ describe("RemoteFeatureFlagSync", () => {
 
     const creds = {
       ...defaultCredentials(),
-      "credential/vellum/platform_base_url": "https://platform.example.com///",
+      "credential/max/platform_base_url": "https://platform.example.com///",
     };
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -502,8 +502,8 @@ describe("RemoteFeatureFlagSync", () => {
     fetchMock = mock(async () => Response.json({ flags: {} }));
 
     const creds = {
-      "credential/vellum/platform_base_url": "  https://platform.example.com  ",
-      "credential/vellum/assistant_api_key": "  trimmed-key  ",
+      "credential/max/platform_base_url": "  https://platform.example.com  ",
+      "credential/max/assistant_api_key": "  trimmed-key  ",
     };
     const sync = new RemoteFeatureFlagSync({
       credentials: fakeCredentialCache(creds),
@@ -675,7 +675,7 @@ describe("RemoteFeatureFlagSync", () => {
 
     const creds = fakeCredentialCache({
       ...defaultCredentials(),
-      "credential/vellum/assistant_api_key": undefined,
+      "credential/max/assistant_api_key": undefined,
     });
 
     const sync = new RemoteFeatureFlagSync({

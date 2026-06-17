@@ -16,24 +16,24 @@ export interface RemoteProcess {
 
 export function classifyProcess(command: string): string {
   if (/qdrant/.test(command)) return "qdrant";
-  if (/vellum-gateway/.test(command)) return "gateway";
+  if (/max-gateway/.test(command)) return "gateway";
   if (
-    /vellum-openclaw-adapter|openclaw-runtime-server|openclaw-http-server/.test(
+    /max-openclaw-adapter|openclaw-runtime-server|openclaw-http-server/.test(
       command,
     )
   )
     return "openclaw-adapter";
-  if (/vellum-daemon/.test(command)) return "assistant";
+  if (/max-daemon/.test(command)) return "assistant";
   if (/daemon\s+(start|restart)/.test(command)) return "assistant";
-  if (/vellum-cli/.test(command)) return "vellum";
+  if (/max-cli/.test(command)) return "max";
   // Exclude macOS desktop app processes — their path contains .app/Contents/MacOS/
   // but they are not background service processes.
   if (/\.app\/Contents\/MacOS\//.test(command)) return "unknown";
-  // Match vellum CLI commands (e.g. "vellum hatch", "vellum sleep") but NOT
+  // Match max CLI commands (e.g. "max hatch", "max sleep") but NOT
   // unrelated processes whose working directory or repo path happens to contain
-  // "vellum" (e.g. /Users/runner/work/vellum-assistant/vellum-assistant/...).
-  // We require a word boundary before "vellum" to avoid matching repo paths.
-  if (/(?:^|\/)vellum(?:\s|$)/.test(command)) return "vellum";
+  // "max" (e.g. /Users/runner/work/max-assistant/max-assistant/...).
+  // We require a word boundary before "max" to avoid matching repo paths.
+  if (/(?:^|\/)max(?:\s|$)/.test(command)) return "max";
   return "unknown";
 }
 
@@ -91,12 +91,12 @@ export function getKnownPidsFromAssistants(
   const pids = new Set<string>();
   for (const entry of entries) {
     if (entry.cloud === "local" && entry.resources) {
-      const vellumDir = join(entry.resources.instanceDir, ".vellum");
+      const maxDir = join(entry.resources.instanceDir, ".max");
       const candidates = [
         getDaemonPidPath(entry.resources),
-        join(vellumDir, "gateway.pid"),
-        join(vellumDir, "workspace", "data", "qdrant", "qdrant.pid"),
-        join(vellumDir, "workspace", "embed-worker.pid"),
+        join(maxDir, "gateway.pid"),
+        join(maxDir, "workspace", "data", "qdrant", "qdrant.pid"),
+        join(maxDir, "workspace", "embed-worker.pid"),
       ];
       for (const file of candidates) {
         const pid = readPidFile(file);
@@ -128,8 +128,8 @@ export async function detectOrphanedProcesses(
   const seenPids = new Set<string>();
 
   // PIDs that belong to a known assistant in *any* environment are not
-  // orphans. Without this filter, running `vellum ps` from an env that has
-  // no assistants — or `vellum clean` from any env — would flag (or kill)
+  // orphans. Without this filter, running `max ps` from an env that has
+  // no assistants — or `max clean` from any env — would flag (or kill)
   // another env's healthy services as orphans.
   const knownPids =
     options.excludePids ??
@@ -140,7 +140,7 @@ export async function detectOrphanedProcesses(
   try {
     const output = await execOutput("sh", [
       "-c",
-      "ps ax -o pid=,ppid=,args= | grep -E 'vellum|qdrant|openclaw' | grep -v grep",
+      "ps ax -o pid=,ppid=,args= | grep -E 'max|qdrant|openclaw' | grep -v grep",
     ]);
     const procs = parseRemotePs(output);
     const ownPid = String(process.pid);

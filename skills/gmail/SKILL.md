@@ -1,10 +1,10 @@
 ---
 name: gmail
 description: Manage Gmail email — drafting, sending, organizing, filters, vacation replies, and inbox analysis
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📨"
-  vellum:
+  max:
     display-name: "Gmail"
     user-invocable: true
 ---
@@ -220,7 +220,7 @@ bun run scripts/gmail-prefs.ts --action remove-safelist --emails "important@exam
 
 ## Email Routing Priority
 
-When the user mentions "email" - sending, reading, checking, decluttering, drafting, or anything else - **always default to the user's own email (Gmail)** unless they explicitly ask about the assistant's own email address (e.g., "set up your email", "send from your address", "check your inbox"). The vast majority of email requests are about the user's Gmail, not the assistant's @vellum.me address.
+When the user mentions "email" - sending, reading, checking, decluttering, drafting, or anything else - **always default to the user's own email (Gmail)** unless they explicitly ask about the assistant's own email address (e.g., "set up your email", "send from your address", "check your inbox"). The vast majority of email requests are about the user's Gmail, not the assistant's @max.me address.
 
 Do not offer the assistant's own email as an option unless the user specifically asks. If Gmail is not connected, guide them through Gmail setup.
 
@@ -229,7 +229,7 @@ Do not offer the assistant's own email as an option unless the user specifically
 ### Gmail
 
 1. **Check connection health first.** Run `assistant oauth status google`. This checks whether the user's Google account is connected and the token is valid.
-2. **If no connection is found or the status check fails:** Load the `vellum-oauth-integrations` skill. The skill will evaluate whether managed or your-own mode is appropriate and guide the user accordingly.
+2. **If no connection is found or the status check fails:** Load the `max-oauth-integrations` skill. The skill will evaluate whether managed or your-own mode is appropriate and guide the user accordingly.
 
 ## Communication Style
 
@@ -243,7 +243,7 @@ Do not offer the assistant's own email as an option unless the user specifically
 When a Gmail script fails with a token or authorization error:
 
 1. **Try to reconnect silently.** Run `assistant oauth ping google`. This often resolves expired tokens automatically.
-2. **If reconnection fails, go straight to setup.** Don't present options, ask which route the user prefers, or explain what went wrong technically. Just tell the user briefly (e.g., "Gmail needs to be reconnected - let me set that up") and immediately load the `vellum-oauth-integrations` skill. The user came to you to get something done, not to troubleshoot - make it seamless.
+2. **If reconnection fails, go straight to setup.** Don't present options, ask which route the user prefers, or explain what went wrong technically. Just tell the user briefly (e.g., "Gmail needs to be reconnected - let me set that up") and immediately load the `max-oauth-integrations` skill. The user came to you to get something done, not to troubleshoot - make it seamless.
 3. **Never try alternative approaches.** Don't use curl, browser automation, or any workaround. If the scripts can't do it, the reconnection flow is the answer.
 4. **Never expose error details.** The user doesn't need to see error messages about tokens, OAuth, or API failures. Translate errors into plain language.
 
@@ -396,7 +396,7 @@ The `gmail-prefs.ts` script persists sender preferences across cleanup sessions:
 
 ### Company-Domain Sender Handling
 
-When scan results include senders from the user's own company domain (e.g., `@vellum.ai`):
+When scan results include senders from the user's own company domain (e.g., `@max.ai`):
 
 - **Protect individual colleagues**: Cofounders, direct reports, teammates sending from their personal work address (e.g., `akash@company.com`, `aaron@company.com`) — deselect these from cleanup tables.
 - **Archive mailing lists and group addresses**: Addresses like `devops@`, `alerts@`, `noreply@`, `security@`, `billing@` at the company domain are automated forwards, not personal correspondence. These are archivable by default — pre-select them in the cleanup table.

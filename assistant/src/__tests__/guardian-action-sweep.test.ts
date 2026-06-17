@@ -102,12 +102,12 @@ describe("guardian-action-sweep", () => {
     ensureConversation("conv-mac-1");
     createGuardianActionDelivery({
       requestId: request.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: "conv-mac-1",
     });
     updateDeliveryStatus(
       getDeliveriesByRequestId(request.id).find(
-        (d) => d.destinationChannel === "vellum",
+        (d) => d.destinationChannel === "max",
       )!.id,
       "sent",
     );

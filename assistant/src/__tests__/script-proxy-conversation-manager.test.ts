@@ -260,7 +260,7 @@ describe("session-manager", () => {
   // ── MITM handler wiring tests ──────────────────────────────────────
 
   describe("MITM handler wiring", () => {
-    const DATA_DIR = "/tmp/vellum-test-mitm";
+    const DATA_DIR = "/tmp/max-test-mitm";
 
     test("session without credential IDs creates proxy without MITM handler", async () => {
       // No credential IDs and no dataDir — plain tunnel proxy

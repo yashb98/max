@@ -1,10 +1,10 @@
 ---
 name: slack
 description: Read, send, and manage Slack messages via the Web API
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "💬"
-  vellum:
+  max:
     display-name: "Slack"
 ---
 
@@ -25,7 +25,7 @@ All scripts return JSON:
 - **Success**: `{ "ok": true, "data": { "id": "C...", "name": "general", ... } }`
 - **Failure**: `{ "ok": false, "error": "..." }`
 
-The cache is stored locally under `~/.vellum/workspace/data/slack-skill/`. On first use the script fetches all channels/users from Slack and caches them. Subsequent lookups read from the cache with no API calls. Pass `--refresh` to force a refresh.
+The cache is stored locally under `~/.max/workspace/data/slack-skill/`. On first use the script fetches all channels/users from Slack and caches them. Subsequent lookups read from the cache with no API calls. Pass `--refresh` to force a refresh.
 
 ## Making Slack API Calls
 

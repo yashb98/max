@@ -125,7 +125,7 @@ export async function pairDeliveryWithConversation(
 
     // Prefer model-provided conversationSeedMessage when present and sane;
     // fall back to the runtime composer which adapts verbosity to the
-    // delivery surface (vellum/macos = richer, telegram = compact).
+    // delivery surface (max/macos = richer, telegram = compact).
     const messageContent = isConversationSeedSane(copy.conversationSeedMessage)
       ? copy.conversationSeedMessage
       : composeConversationSeed(signal, channel, copy);

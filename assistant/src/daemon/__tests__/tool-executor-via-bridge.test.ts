@@ -111,7 +111,7 @@ const mockConfig = {
     enabled: false,
     backend: "native" as const,
     docker: {
-      image: "vellum-sandbox:latest",
+      image: "max-sandbox:latest",
       cpus: 1,
       memoryMb: 512,
       pidsLimit: 256,
@@ -296,7 +296,7 @@ async function invokeCallToolOnLastServer(
     string,
     { instance: { server: { _requestHandlers: Map<string, unknown> } } }
   >;
-  const server = mcpServers["vellum-skills"].instance.server;
+  const server = mcpServers["max-skills"].instance.server;
   const handlerEntry = [...server._requestHandlers.entries()].find(([k]) =>
     String(k).includes("tools/call"),
   );

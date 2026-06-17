@@ -761,7 +761,7 @@ export class RuntimeHttpServer {
       return httpError("UNAUTHORIZED", "Unauthorized", 401);
     }
 
-    const jwtResult = verifyToken(token, "vellum-daemon");
+    const jwtResult = verifyToken(token, "max-daemon");
     if (!jwtResult.ok) {
       return httpError("UNAUTHORIZED", "Unauthorized", 401);
     }

@@ -29,7 +29,7 @@ describe("constants", () => {
 
   test("VALID_SPECIES includes expected species", () => {
     expect(VALID_SPECIES).toContain("openclaw");
-    expect(VALID_SPECIES).toContain("vellum");
+    expect(VALID_SPECIES).toContain("max");
   });
 
   test("SPECIES_CONFIG has entries for all valid species", () => {

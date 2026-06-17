@@ -15,7 +15,7 @@ import { renameConversationDiskViewDirsMigration } from "../workspace/migrations
 
 function freshWorkspace(): { workspaceDir: string; conversationsDir: string } {
   const workspaceDir = mkdtempSync(
-    join(tmpdir(), `vellum-migration-012-test-${Date.now()}-`),
+    join(tmpdir(), `max-migration-012-test-${Date.now()}-`),
   );
   const conversationsDir = join(workspaceDir, "conversations");
   mkdirSync(conversationsDir, { recursive: true });

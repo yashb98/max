@@ -2,7 +2,7 @@
  * File-based persistence for user-defined apps and their records.
  *
  * Directory layout:
- *   ~/.vellum/apps/
+ *   ~/.max/apps/
  *     <dirName>.json            # app definition
  *     <dirName>/
  *       records/

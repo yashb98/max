@@ -3,7 +3,7 @@
  * index entries to match the new `<domain>-oauth-app-setup` naming convention.
  *
  * Also removes deleted skills (collaborative-oauth-flow, oauth-setup) that
- * were superseded by vellum-oauth-integrations.
+ * were superseded by max-oauth-integrations.
  *
  * Idempotent: safe to re-run after interruption at any point.
  */

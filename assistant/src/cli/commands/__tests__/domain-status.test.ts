@@ -108,7 +108,7 @@ describe("assistant domain status", () => {
           results: [
             {
               id: "550e8400-e29b-41d4-a716-446655440000",
-              domain: "becky.vellum.me",
+              domain: "becky.max.me",
               status: "active",
               verified: true,
               created_at: "2026-04-15T19:00:00Z",
@@ -132,7 +132,7 @@ describe("assistant domain status", () => {
           results: [
             {
               id: "550e8400-e29b-41d4-a716-446655440000",
-              domain: "becky.vellum.me",
+              domain: "becky.max.me",
               status: "active",
               verified: true,
               created_at: "2026-04-15T19:00:00Z",
@@ -146,7 +146,7 @@ describe("assistant domain status", () => {
 
     const parsed = JSON.parse(output.trim());
     expect(parsed.results).toHaveLength(1);
-    expect(parsed.results[0].domain).toBe("becky.vellum.me");
+    expect(parsed.results[0].domain).toBe("becky.max.me");
     expect(process.exitCode).toBe(0);
   });
 

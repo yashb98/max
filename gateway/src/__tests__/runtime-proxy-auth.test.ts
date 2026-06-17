@@ -21,10 +21,10 @@ const { createRuntimeProxyHandler } =
 const TEST_SIGNING_KEY = Buffer.from("test-signing-key-at-least-32-bytes-long");
 initSigningKey(TEST_SIGNING_KEY);
 
-/** Mint a valid edge JWT (aud=vellum-gateway) for test requests. */
+/** Mint a valid edge JWT (aud=max-gateway) for test requests. */
 function mintEdgeToken(): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: "actor:test-assistant:test-user",
     scope_profile: "actor_client_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -131,7 +131,7 @@ describe("runtime proxy auth enforcement", () => {
 
     const upstreamAuth = capturedHeaders!.get("authorization");
     expect(upstreamAuth).toBeTruthy();
-    // The upstream should receive an exchange token (aud=vellum-daemon),
+    // The upstream should receive an exchange token (aud=max-daemon),
     // NOT the original edge token.
     expect(upstreamAuth).toStartWith("Bearer ");
     expect(upstreamAuth).not.toBe(`Bearer ${TOKEN}`);

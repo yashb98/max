@@ -4,9 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // Create a temp directory that acts as a fake home, so allocateLocalResources()
-// never touches the real ~/.vellum directory.
+// never touches the real ~/.max directory.
 const testDir = mkdtempSync(join(tmpdir(), "cli-multi-local-test-"));
-process.env.VELLUM_LOCKFILE_DIR = testDir;
+process.env.MAX_LOCKFILE_DIR = testDir;
 
 // Mock homedir() to return testDir — this isolates allocateLocalResources()
 // which uses homedir() directly for instance directory creation.
@@ -46,19 +46,19 @@ import {
 
 afterAll(() => {
   rmSync(testDir, { recursive: true, force: true });
-  delete process.env.VELLUM_LOCKFILE_DIR;
+  delete process.env.MAX_LOCKFILE_DIR;
 });
 
 function writeLockfile(data: unknown): void {
   writeFileSync(
-    join(testDir, ".vellum.lock.json"),
+    join(testDir, ".max.lock.json"),
     JSON.stringify(data, null, 2),
   );
 }
 
 function readLockfileRaw(): Record<string, unknown> {
   return JSON.parse(
-    readFileSync(join(testDir, ".vellum.lock.json"), "utf-8"),
+    readFileSync(join(testDir, ".max.lock.json"), "utf-8"),
   ) as Record<string, unknown>;
 }
 
@@ -75,12 +75,12 @@ const makeEntry = (
 
 function resetLockfile(): void {
   try {
-    rmSync(join(testDir, ".vellum.lock.json"));
+    rmSync(join(testDir, ".max.lock.json"));
   } catch {
     // file may not exist
   }
   try {
-    rmSync(join(testDir, ".vellum.lockfile.json"));
+    rmSync(join(testDir, ".max.lockfile.json"));
   } catch {
     // file may not exist
   }
@@ -107,7 +107,7 @@ describe("multi-local", () => {
         // THEN it lands under the XDG multi-instance dir (no "first = home"
         // special case anymore)
         expect(res.instanceDir).toBe(
-          join(xdgDataHome, "vellum", "assistants", "instance-a"),
+          join(xdgDataHome, "max", "assistants", "instance-a"),
         );
 
         // AND it gets the default ports since no other instances exist
@@ -125,11 +125,11 @@ describe("multi-local", () => {
     });
 
     test("first instance (dev) uses env-scoped multi-instance dir", async () => {
-      // GIVEN VELLUM_ENVIRONMENT=dev and XDG_DATA_HOME set to scratch
-      const prevEnv = process.env.VELLUM_ENVIRONMENT;
+      // GIVEN MAX_ENVIRONMENT=dev and XDG_DATA_HOME set to scratch
+      const prevEnv = process.env.MAX_ENVIRONMENT;
       const prevXdg = process.env.XDG_DATA_HOME;
       const xdgDataHome = mkdtempSync(join(tmpdir(), "cli-multi-xdg-dev-"));
-      process.env.VELLUM_ENVIRONMENT = "dev";
+      process.env.MAX_ENVIRONMENT = "dev";
       process.env.XDG_DATA_HOME = xdgDataHome;
       try {
         // WHEN we allocate resources for the first instance
@@ -137,13 +137,13 @@ describe("multi-local", () => {
 
         // THEN it lands under the env-scoped multi-instance dir
         expect(res.instanceDir).toBe(
-          join(xdgDataHome, "vellum-dev", "assistants", "instance-a"),
+          join(xdgDataHome, "max-dev", "assistants", "instance-a"),
         );
       } finally {
         if (prevEnv !== undefined) {
-          process.env.VELLUM_ENVIRONMENT = prevEnv;
+          process.env.MAX_ENVIRONMENT = prevEnv;
         } else {
-          delete process.env.VELLUM_ENVIRONMENT;
+          delete process.env.MAX_ENVIRONMENT;
         }
         if (prevXdg !== undefined) {
           process.env.XDG_DATA_HOME = prevXdg;
@@ -156,12 +156,12 @@ describe("multi-local", () => {
 
     test("allocation picks env-specific port bases for non-prod envs", async () => {
       // Each non-prod env sits in its own 1000-port window (see
-      // environments/seeds.ts). Hatching under VELLUM_ENVIRONMENT=dev should
+      // environments/seeds.ts). Hatching under MAX_ENVIRONMENT=dev should
       // produce ports in the dev block (18000+), not the production defaults.
-      const prevEnv = process.env.VELLUM_ENVIRONMENT;
+      const prevEnv = process.env.MAX_ENVIRONMENT;
       const prevXdg = process.env.XDG_DATA_HOME;
       const xdgDataHome = mkdtempSync(join(tmpdir(), "cli-multi-xdg-ports-"));
-      process.env.VELLUM_ENVIRONMENT = "dev";
+      process.env.MAX_ENVIRONMENT = "dev";
       process.env.XDG_DATA_HOME = xdgDataHome;
       try {
         const res = await allocateLocalResources("dev-a");
@@ -171,9 +171,9 @@ describe("multi-local", () => {
         expect(res.cesPort).toBe(18300);
       } finally {
         if (prevEnv !== undefined) {
-          process.env.VELLUM_ENVIRONMENT = prevEnv;
+          process.env.MAX_ENVIRONMENT = prevEnv;
         } else {
-          delete process.env.VELLUM_ENVIRONMENT;
+          delete process.env.MAX_ENVIRONMENT;
         }
         if (prevXdg !== undefined) {
           process.env.XDG_DATA_HOME = prevXdg;

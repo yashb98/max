@@ -2,15 +2,15 @@ import Foundation
 
 public enum LockfilePaths {
     public static var primary: URL {
-        VellumPaths.current.lockfileCandidates[0]
+        MaxPaths.current.lockfileCandidates[0]
     }
 
     public static var primaryPath: String { primary.path }
 
-    /// Read and parse the lockfile, iterating `VellumPaths.current.lockfileCandidates`
+    /// Read and parse the lockfile, iterating `MaxPaths.current.lockfileCandidates`
     /// in priority order. Returns nil if no candidate exists or all are malformed.
     public static func read() -> [String: Any]? {
-        for url in VellumPaths.current.lockfileCandidates {
+        for url in MaxPaths.current.lockfileCandidates {
             guard let data = try? Data(contentsOf: url),
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 continue

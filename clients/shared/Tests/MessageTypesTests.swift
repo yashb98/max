@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Unit tests for `ServerMessage` discriminated-union decoding.
 ///

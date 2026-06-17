@@ -18,7 +18,7 @@ A CSS/JS widget library is auto-injected alongside the design system. Use these 
 | `.v-progress-bar` / `.v-progress-track` / `.v-progress-fill` | Horizontal progress                                            |
 | `.v-status-badge`                                            | Colored pill with dot (`.success`/`.error`/`.warning`/`.info`) |
 | `.v-stat-row` / `.v-stat`                                    | Horizontal label-value pairs                                   |
-| `.v-toast`                                                   | Notification banner - prefer `vellum.widgets.toast()`          |
+| `.v-toast`                                                   | Notification banner - prefer `max.widgets.toast()`          |
 | `.v-avatar-row`                                              | Contact/team display                                           |
 | `.v-tag-group`                                               | Wrapping tag row                                               |
 
@@ -50,21 +50,21 @@ A CSS/JS widget library is auto-injected alongside the design system. Use these 
 
 ## Widget JavaScript utilities
 
-Interactive utilities at `window.vellum.widgets.*`:
+Interactive utilities at `window.max.widgets.*`:
 
 ### Charts
 
 Always use these instead of hand-coding SVG/CSS charts:
 
 ```javascript
-vellum.widgets.sparkline("container-id", [10, 25, 15, 30], {
+max.widgets.sparkline("container-id", [10, 25, 15, 30], {
   width: 200,
   height: 40,
   color: "var(--v-success)",
   strokeWidth: 2,
   fill: true,
 });
-vellum.widgets.barChart(
+max.widgets.barChart(
   "container-id",
   [
     { label: "Jan", value: 120 },
@@ -78,7 +78,7 @@ vellum.widgets.barChart(
     horizontal: false,
   },
 );
-vellum.widgets.lineChart(
+max.widgets.lineChart(
   "container-id",
   [
     { label: "Mon", value: 42 },
@@ -86,7 +86,7 @@ vellum.widgets.lineChart(
   ],
   { width: 400, height: 200, showDots: true, showGrid: true, gridLines: 4 },
 );
-vellum.widgets.progressRing("container-id", 75, {
+max.widgets.progressRing("container-id", 75, {
   size: 100,
   strokeWidth: 8,
   color: "var(--v-success)",
@@ -97,22 +97,22 @@ vellum.widgets.progressRing("container-id", 75, {
 ### Data Formatting
 
 ```javascript
-vellum.widgets.formatCurrency(1234.56, "USD"); // "$1,234.56"
-vellum.widgets.formatDate("2025-01-15", "relative"); // "3d ago"
-vellum.widgets.formatDate("2025-01-15", "short"); // "1/15/25"
-vellum.widgets.formatNumber(1234567, { compact: true }); // "1.2M"
+max.widgets.formatCurrency(1234.56, "USD"); // "$1,234.56"
+max.widgets.formatDate("2025-01-15", "relative"); // "3d ago"
+max.widgets.formatDate("2025-01-15", "short"); // "1/15/25"
+max.widgets.formatNumber(1234567, { compact: true }); // "1.2M"
 ```
 
 ### Interactive Behaviors
 
 ```javascript
-vellum.widgets.sortTable("table-id"); // Wire th[data-sortable] click-to-sort
-vellum.widgets.filterTable("table-id", "input-id"); // Live text search
-vellum.widgets.tabs("tabs-id"); // Tab switching + keyboard nav
-vellum.widgets.accordion("accordion-id", { allowMultiple: true });
-vellum.widgets.multiSelect("table-id"); // Checkboxes + select-all
-vellum.widgets.toast("Saved!", "success", 4000); // Auto-dismiss notification
-vellum.widgets.countdown("timer-el", "2025-12-31T00:00:00Z", {
+max.widgets.sortTable("table-id"); // Wire th[data-sortable] click-to-sort
+max.widgets.filterTable("table-id", "input-id"); // Live text search
+max.widgets.tabs("tabs-id"); // Tab switching + keyboard nav
+max.widgets.accordion("accordion-id", { allowMultiple: true });
+max.widgets.multiSelect("table-id"); // Checkboxes + select-all
+max.widgets.toast("Saved!", "success", 4000); // Auto-dismiss notification
+max.widgets.countdown("timer-el", "2025-12-31T00:00:00Z", {
   onComplete: () => {},
 });
 ```
@@ -122,4 +122,4 @@ vellum.widgets.countdown("timer-el", "2025-12-31T00:00:00Z", {
 - **Use widgets** for standard patterns - tables, metrics, timelines, notifications
 - **Use custom HTML** for novel or creative UIs - games, art tools, unique dashboards
 - **Mix freely** - widgets compose well together and with custom elements
-- **ALWAYS use `vellum.widgets.*` chart functions** instead of hand-coding SVG/CSS charts. They handle overflow clipping, bounds, scaling, and dark mode. Hand-coded charts break layouts.
+- **ALWAYS use `max.widgets.*` chart functions** instead of hand-coding SVG/CSS charts. They handle overflow clipping, bounds, scaling, and dark mode. Hand-coded charts break layouts.

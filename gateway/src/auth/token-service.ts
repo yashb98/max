@@ -142,7 +142,7 @@ export function mintToken(params: {
 }): string {
   const now = Math.floor(Date.now() / 1000);
   const claims: TokenClaims = {
-    iss: "vellum-auth",
+    iss: "max-auth",
     aud: params.aud,
     sub: params.sub,
     scope_profile: params.scope_profile,

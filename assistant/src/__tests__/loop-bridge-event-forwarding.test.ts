@@ -100,9 +100,9 @@ describe("I-7 — bridged sensitiveBindings substituted in streamed text", () =>
   test("text_delta after a bridge call renders the real value, not the placeholder", async () => {
     // The placeholder must use a real `SensitiveOutputKind` prefix so
     // the streaming substitution's tail-buffering heuristic
-    // (`PREFIX = "VELLUM_ASSISTANT_"` in
+    // (`PREFIX = "MAX_ASSISTANT_"` in
     // `sensitive-output-placeholders.ts`) treats it correctly.
-    const placeholder = "VELLUM_ASSISTANT_INVITE_CODE_test-binding-xyz";
+    const placeholder = "MAX_ASSISTANT_INVITE_CODE_test-binding-xyz";
     const realValue = "real-secret-token-9f3a";
 
     // LoopToolExecutor that returns one sensitive binding. The bridge
@@ -188,7 +188,7 @@ describe("I-7 — bridged sensitiveBindings substituted in streamed text", () =>
 
   test("without a binding the placeholder text passes through verbatim", async () => {
     // Discrimination: no bridge call → no binding → placeholder is emitted as-is.
-    const placeholder = "VELLUM_ASSISTANT_INVITE_CODE_unbound-suffix";
+    const placeholder = "MAX_ASSISTANT_INVITE_CODE_unbound-suffix";
     const provider: Provider = {
       name: "mock-no-binding",
       async sendMessage(
@@ -233,5 +233,220 @@ describe("I-7 — bridged sensitiveBindings substituted in streamed text", () =>
     // path above is genuinely measuring the bridge-driven merge, not a
     // global "always substitute" behavior.
     expect(joined).toContain(placeholder);
+  });
+});
+
+describe("Empty-turn nudge opens for bridged tool activity (agentic providers)", () => {
+  // Agentic bridge providers (kimi-agent, claude-subscription) run their
+  // whole tool loop inside one sendMessage, so the outer loop's
+  // `toolUseTurns` is always 0. Bridged tool events must open the
+  // empty-response nudge gate, or an inner-tool-work-then-no-text turn
+  // is persisted as a silent blank assistant message (root-caused
+  // 2026-06-05 against the kimi-agent provider).
+  test("bridged_tool_result + empty content → loop nudges and retries (session-resuming provider)", async () => {
+    const seenMessages: Message[][] = [];
+    let call = 0;
+    const provider: Provider = {
+      name: "mock-bridged",
+      supportsEmptyTurnNudge: true,
+      async sendMessage(
+        messages: Message[],
+        _tools: ToolDefinition[] | undefined,
+        _systemPrompt: string | undefined,
+        options?: SendMessageOptions,
+      ): Promise<ProviderResponse> {
+        seenMessages.push(messages);
+        call++;
+        if (call === 1) {
+          // Inner agent did tool work but produced no text.
+          options?.onEvent?.({
+            type: "bridged_tool_result",
+            toolUseId: "kimi-bridge-1",
+            content: "tool output",
+            isError: false,
+          });
+          return {
+            content: [],
+            model: "mock-model",
+            usage: { inputTokens: 1, outputTokens: 1 },
+            stopReason: "end_turn",
+          };
+        }
+        return {
+          content: [{ type: "text", text: "Here is what I found." }],
+          model: "mock-model",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          stopReason: "end_turn",
+        };
+      },
+    };
+
+    const loop = new AgentLoop(provider, "sys", {}, noTools);
+    const history = await loop.run([userMessage("hi")], () => {});
+
+    // The loop must have retried once with the canonical nudge.
+    expect(call).toBe(2);
+    const secondCallMessages = seenMessages[1];
+    const nudge = secondCallMessages[secondCallMessages.length - 1];
+    expect(nudge.role).toBe("user");
+    expect(
+      (nudge.content[0] as { text: string }).text,
+    ).toContain("Your previous response was empty");
+
+    // The final assistant message carries the retried text.
+    const lastAssistant = [...history]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    expect(
+      (lastAssistant?.content[0] as { text: string }).text,
+    ).toBe("Here is what I found.");
+  });
+
+  test("no bridged activity + empty content → no nudge (single call, accepted)", async () => {
+    let call = 0;
+    const provider: Provider = {
+      name: "mock-plain",
+      async sendMessage(): Promise<ProviderResponse> {
+        call++;
+        return {
+          content: [],
+          model: "mock-model",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          stopReason: "end_turn",
+        };
+      },
+    };
+
+    const loop = new AgentLoop(provider, "sys", {}, noTools);
+    await loop.run([userMessage("hi")], () => {});
+
+    // A truly bare empty first turn is accepted, not nudged — the gate
+    // only opens when tool work (outer or bridged) preceded the empty turn.
+    expect(call).toBe(1);
+  });
+
+  test("non-resuming bridge provider (no supportsEmptyTurnNudge) → NO nudge despite bridged activity", async () => {
+    // claude-subscription does not resume its inner session across
+    // sendMessage calls — a nudge would spin up a fresh inner agent run
+    // and RE-EXECUTE side-effecting tools. The gate must stay closed for
+    // providers that don't declare nudge support; the zero-content
+    // persistence fallback handles user visibility instead.
+    let call = 0;
+    const provider: Provider = {
+      name: "mock-non-resuming-bridge",
+      async sendMessage(
+        _messages: Message[],
+        _tools: ToolDefinition[] | undefined,
+        _systemPrompt: string | undefined,
+        options?: SendMessageOptions,
+      ): Promise<ProviderResponse> {
+        call++;
+        options?.onEvent?.({
+          type: "bridged_tool_result",
+          toolUseId: "mcp-bridge-1",
+          content: "tool output",
+          isError: false,
+        });
+        return {
+          content: [],
+          model: "mock-model",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          stopReason: "end_turn",
+        };
+      },
+    };
+
+    const loop = new AgentLoop(provider, "sys", {}, noTools);
+    await loop.run([userMessage("hi")], () => {});
+
+    expect(call).toBe(1);
+  });
+
+  test("nudged retry that is ALSO empty → retry budget caps at one nudge (exactly 2 calls)", async () => {
+    // bridgedToolCalls accumulates per run() and never resets, so once a
+    // bridged tool fires the gate stays open on every later empty turn —
+    // emptyResponseRetries is the only thing preventing infinite nudging.
+    let call = 0;
+    const provider: Provider = {
+      name: "mock-bridged",
+      supportsEmptyTurnNudge: true,
+      async sendMessage(
+        _messages: Message[],
+        _tools: ToolDefinition[] | undefined,
+        _systemPrompt: string | undefined,
+        options?: SendMessageOptions,
+      ): Promise<ProviderResponse> {
+        call++;
+        options?.onEvent?.({
+          type: "bridged_tool_result",
+          toolUseId: `kimi-bridge-${call}`,
+          content: "tool output",
+          isError: false,
+        });
+        return {
+          content: [],
+          model: "mock-model",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          stopReason: "end_turn",
+        };
+      },
+    };
+
+    const loop = new AgentLoop(provider, "sys", {}, noTools);
+    await loop.run([userMessage("hi")], () => {});
+
+    // 1 original call + 1 nudge retry, then the budget is exhausted and
+    // the empty turn is accepted (the persistence guard backstops UX).
+    expect(call).toBe(2);
+  });
+
+  test("bridged_tool_committed alone (bridge threw before result) still opens the nudge gate", async () => {
+    // When a bridged tool throws, the provider emits bridged_tool_committed
+    // (the input) but never bridged_tool_result — the committed increment
+    // is the only signal that inner tool work happened.
+    let call = 0;
+    const provider: Provider = {
+      name: "mock-bridged",
+      supportsEmptyTurnNudge: true,
+      async sendMessage(
+        _messages: Message[],
+        _tools: ToolDefinition[] | undefined,
+        _systemPrompt: string | undefined,
+        options?: SendMessageOptions,
+      ): Promise<ProviderResponse> {
+        call++;
+        if (call === 1) {
+          options?.onEvent?.({
+            type: "bridged_tool_committed",
+            toolUseId: "kimi-bridge-1",
+            toolName: "host_bash",
+            input: { command: "true" },
+          });
+          return {
+            content: [],
+            model: "mock-model",
+            usage: { inputTokens: 1, outputTokens: 1 },
+            stopReason: "end_turn",
+          };
+        }
+        return {
+          content: [{ type: "text", text: "recovered" }],
+          model: "mock-model",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          stopReason: "end_turn",
+        };
+      },
+    };
+
+    const loop = new AgentLoop(provider, "sys", {}, noTools);
+    const history = await loop.run([userMessage("hi")], () => {});
+
+    expect(call).toBe(2);
+    const lastAssistant = [...history]
+      .reverse()
+      .find((m) => m.role === "assistant");
+    expect((lastAssistant?.content[0] as { text: string }).text).toBe(
+      "recovered",
+    );
   });
 });

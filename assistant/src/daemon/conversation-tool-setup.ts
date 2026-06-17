@@ -298,6 +298,16 @@ export interface SkillProjectionContext {
   preactivatedSkillIds?: string[];
   readonly skillProjectionState: Map<string, string>;
   readonly skillProjectionCache: SkillProjectionCache;
+  /**
+   * Skill IDs activated via bridged tool calls (agentic providers that run
+   * their own inner SDK loop, e.g. kimi-agent). These never appear as
+   * `tool_use` blocks in the outer history so `deriveActiveSkills` misses
+   * them. Populated by `handleToolResult` when a bridged `skill_load` result
+   * carries a `<loaded_skill>` marker. Merged into effectivePreactivated by
+   * `createResolveToolsCallback`. Optional so tests / subagent contexts that
+   * don't wire this field continue to compile without change.
+   */
+  readonly bridgedActiveSkillIds?: Set<string>;
   readonly coreToolNames: Set<string>;
   allowedToolNames?: Set<string>;
   /** When > 0, the resolveTools callback returns no tools at all. */
@@ -371,8 +381,8 @@ export const HOST_TOOL_NAMES = new Set(HOST_TOOL_TO_CAPABILITY.keys());
  * All members below adopt the same-actor enforcement pattern: the proxy
  * binds the request to a specific client id + actor principal id at
  * dispatch time, and the corresponding result route requires the
- * submitting client to present an `x-vellum-client-id` matching the
- * captured target plus an `x-vellum-actor-principal-id` matching the
+ * submitting client to present an `x-max-client-id` matching the
+ * captured target plus an `x-max-actor-principal-id` matching the
  * captured actor (see `enforceSameActorOrThrow` in
  * `runtime/auth/same-actor.ts`).
  *
@@ -512,7 +522,7 @@ export function isToolActiveForContext(
  * Core (non-MCP) tool definitions are captured at conversation creation and
  * reused on each turn. MCP tool definitions are re-read from the global
  * registry on each turn so that tools registered after conversation creation
- * (e.g. via `vellum mcp reload`) are automatically picked up without
+ * (e.g. via `max mcp reload`) are automatically picked up without
  * requiring conversation disposal or app restart.
  */
 export function createResolveToolsCallback(
@@ -558,7 +568,7 @@ export function createResolveToolsCallback(
       : filteredCoreDefs;
 
     // Re-read MCP tool definitions from the registry each turn so conversations
-    // automatically pick up tools added/removed by `vellum mcp reload`.
+    // automatically pick up tools added/removed by `max mcp reload`.
     const currentMcpDefs = getMcpToolDefinitions();
     log.debug(
       {
@@ -576,6 +586,11 @@ export function createResolveToolsCallback(
     const effectivePreactivated = [
       ...DEFAULT_PREACTIVATED_SKILL_IDS,
       ...(ctx.preactivatedSkillIds ?? []),
+      // Skills activated via bridged tool calls (e.g. kimi-agent running
+      // skill_load inside its inner SDK loop) are stored here because they
+      // never produce tool_use blocks in the outer history that
+      // deriveActiveSkills could scan.
+      ...(ctx.bridgedActiveSkillIds ?? []),
     ];
     const projection = projectSkillTools(history, {
       preactivatedSkillIds: effectivePreactivated,

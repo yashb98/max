@@ -17,12 +17,12 @@
  * runtime modes in the future without renaming every callsite.
  *
  * The `DaemonRuntimeMode` type itself is declared in
- * `@vellumai/skill-host-contracts` so skill-side code can name the same type
+ * `@maxai/skill-host-contracts` so skill-side code can name the same type
  * without importing assistant internals; it is re-exported here so existing
  * assistant callers can continue to import it from this module.
  */
 
-import { type DaemonRuntimeMode } from "@vellumai/skill-host-contracts";
+import { type DaemonRuntimeMode } from "@maxai/skill-host-contracts";
 
 import { getIsContainerized } from "../config/env-registry.js";
 

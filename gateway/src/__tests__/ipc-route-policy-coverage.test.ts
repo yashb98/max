@@ -6,7 +6,7 @@
  * have no policy entry. Routes restricted to the `svc_gateway` principal
  * on the daemon HTTP path must also be locked down on IPC — otherwise an
  * authenticated edge JWT can reach them by setting
- * `X-Vellum-Proxy-Server: ipc`, bypassing the daemon HTTP router entirely.
+ * `X-Max-Proxy-Server: ipc`, bypassing the daemon HTTP router entirely.
  *
  * Symmetrically, the IPC entry's `requiredScopes` must match the daemon's
  * `requiredScopes`. If IPC permits a broader scope than the daemon HTTP
@@ -25,7 +25,7 @@
  * Implementation notes:
  *   - Uses text parsing rather than direct imports because the gateway
  *     and assistant packages don't share source-level imports (they
- *     communicate through the `@vellumai/service-contracts` package).
+ *     communicate through the `@maxai/service-contracts` package).
  *   - Regexes are intentionally loose. False positives (matching too
  *     much) only result in extra coverage; false negatives (missing
  *     real gateway-only routes) defeat the lint.

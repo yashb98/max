@@ -18,7 +18,7 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 // ── Test directory ────────────────────────────────────────────────────────────
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 // ── Mocks (must be declared before any imports from the project) ─────────────
 
@@ -118,7 +118,7 @@ function writeSkill(
 
   let frontmatter = `---\nname: "${name}"\ndescription: "${description}"`;
   if (options?.includes && options.includes.length > 0) {
-    frontmatter += `\nmetadata:\n  vellum:\n    includes:\n`;
+    frontmatter += `\nmetadata:\n  max:\n    includes:\n`;
     for (const inc of options.includes) {
       frontmatter += `      - "${inc}"\n`;
     }

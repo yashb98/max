@@ -23,7 +23,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
-import { SkillHostClient } from "@vellumai/skill-host-contracts";
+import { SkillHostClient } from "@maxai/skill-host-contracts";
 
 import {
   SKILL_IPC_DAEMON_ID_PREFIX,
@@ -86,7 +86,7 @@ async function startPair(): Promise<{
   // Stub the routes the contracts client prefetches at connect-time.
   srv.registerMethod("host.identity.getAssistantName", () => null);
   srv.registerMethod("host.platform.workspaceDir", () => "/tmp/workspace");
-  srv.registerMethod("host.platform.vellumRoot", () => "/tmp/vellum");
+  srv.registerMethod("host.platform.maxRoot", () => "/tmp/max");
   srv.registerMethod("host.platform.runtimeMode", () => "bare-metal");
 
   await c.connect();

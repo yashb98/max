@@ -93,7 +93,7 @@ which rebuilds the module automatically against the running kernel:
 
 ```bash
 sudo apt-get install v4l2loopback-dkms
-sudo modprobe v4l2loopback video_nr=10 card_label="VellumAvatar" exclusive_caps=1
+sudo modprobe v4l2loopback video_nr=10 card_label="MaxAvatar" exclusive_caps=1
 ```
 
 The three module arguments matter:
@@ -102,23 +102,23 @@ The three module arguments matter:
   path; callers that need a different number must override the `devicePath`
   argument to `openVideoDevice()` and the `--device` passthrough on both
   the daemon and bot containers.
-- `card_label="VellumAvatar"` sets the `friendlyName` Chrome surfaces in the
-  camera-picker UI. Any string works; `VellumAvatar` is just a stable label
+- `card_label="MaxAvatar"` sets the `friendlyName` Chrome surfaces in the
+  camera-picker UI. Any string works; `MaxAvatar` is just a stable label
   for operator debugging.
 - `exclusive_caps=1` is required for Chrome to treat the node as a normal
   capture device. Without it, Chrome enumerates the loopback node in a way
   that Meet ignores.
 
 To persist the load across reboots, drop the module name into
-`/etc/modules-load.d/vellum-avatar.conf` and the arguments into
-`/etc/modprobe.d/vellum-avatar.conf`:
+`/etc/modules-load.d/max-avatar.conf` and the arguments into
+`/etc/modprobe.d/max-avatar.conf`:
 
 ```
-# /etc/modules-load.d/vellum-avatar.conf
+# /etc/modules-load.d/max-avatar.conf
 v4l2loopback
 
-# /etc/modprobe.d/vellum-avatar.conf
-options v4l2loopback video_nr=10 card_label="VellumAvatar" exclusive_caps=1
+# /etc/modprobe.d/max-avatar.conf
+options v4l2loopback video_nr=10 card_label="MaxAvatar" exclusive_caps=1
 ```
 
 ### macOS / Docker Desktop note
@@ -143,7 +143,7 @@ container receives it as a bind-mount:
   when the avatar feature is enabled. The assistant's `DockerRunner`
   accepts an opt-in `avatarDevicePath` option for this.
 - **Docker mode (DinD)** — the CLI automatically passes
-  `VELLUM_AVATAR_DEVICE` (default `/dev/video10`) to the assistant
+  `MAX_AVATAR_DEVICE` (default `/dev/video10`) to the assistant
   container and bind-mounts the device node when it exists on the host.
   The `DockerRunner` then forwards the device to the inner `dockerd`
   when spawning bot containers.
@@ -166,7 +166,7 @@ the meet subsystem, run this manual verification loop.
 
 - Docker Desktop running on the host (the assistant uses the Docker Engine
   socket at `/var/run/docker.sock`).
-- The `vellum-meet-bot:dev` image built locally:
+- The `max-meet-bot:dev` image built locally:
   ```bash
   bash scripts/build-meet-bot-image.sh
   ```
@@ -176,7 +176,7 @@ the meet subsystem, run this manual verification loop.
   meeting-start time; the bot itself does not see STT credentials.
 - The `meet` feature flag enabled. Either:
   - **Local override** — set `meet` to `true` in
-    `~/.vellum/workspace/config.json` (or `$VELLUM_WORKSPACE_DIR/config.json`
+    `~/.max/workspace/config.json` (or `$MAX_WORKSPACE_DIR/config.json`
     in Docker mode) under the assistant feature flags block, OR
   - **LaunchDarkly** — flip the `meet` flag on for your platform user.
 - A throwaway Google Meet URL with at least one other human participant so
@@ -184,7 +184,7 @@ the meet subsystem, run this manual verification loop.
 
 ### Procedure
 
-1. **Ask the assistant to join.** From any conversation in the Vellum
+1. **Ask the assistant to join.** From any conversation in the Max
    macOS app:
    ```
    meet_join https://meet.google.com/xxx-yyyy-zzz
@@ -200,7 +200,7 @@ the meet subsystem, run this manual verification loop.
      appears in the Meet participant list.
    - The bot posts the consent message in Meet chat (the string from
      `services.meet.consentMessage` with `{assistantName}` substituted).
-   - Live transcripts of human participants start appearing in the Vellum
+   - Live transcripts of human participants start appearing in the Max
      conversation, each prefixed with `[<SpeakerName>]: <text>`.
 3. **Verify SSE events in the macOS client.** The "In meeting" status panel
    should reflect live participant and speaker changes as people join,
@@ -213,7 +213,7 @@ the meet subsystem, run this manual verification loop.
 5. **Inspect on-disk artifacts.** After the bot leaves, the workspace
    directory should contain the meeting's artifact tree:
    ```bash
-   ls -la ~/.vellum/workspace/meets/<meetingId>/
+   ls -la ~/.max/workspace/meets/<meetingId>/
    ```
    Expected files:
    - `audio.opus` — Opus-encoded audio, non-empty.
@@ -225,10 +225,10 @@ the meet subsystem, run this manual verification loop.
      meeting content (no empty transcripts when people were clearly
      speaking, no missing speaker names that were visible in the Meet UI).
 6. **Verify graceful daemon shutdown.** Join a meeting, wait for the bot
-   to stabilize, then kill the assistant with `SIGTERM` (the Vellum CLI's
+   to stabilize, then kill the assistant with `SIGTERM` (the Max CLI's
    stop flow, or `kill <daemon-pid>`). Expected: the bot leaves the
    meeting cleanly (no leftover participant in the Meet UI) and the
-   container is removed (`docker ps -a | grep vellum-meet-` should be
+   container is removed (`docker ps -a | grep max-meet-` should be
    empty) within the 15-second shutdown budget.
 
 ### Failure triage
@@ -241,7 +241,7 @@ the meet subsystem, run this manual verification loop.
     ```
     (may not always exist; if it does, look for `Extension error:` lines).
   - Confirm the native-messaging host manifest exists at
-    `/etc/opt/chrome/native-messaging-hosts/com.vellum.meet.json` and the
+    `/etc/opt/chrome/native-messaging-hosts/com.max.meet.json` and the
     extension ID inside that manifest's `allowed_origins` matches the ID
     derived from the extension's public key.
   - Confirm the NMH shim (`src/native-messaging/nmh-shim.ts`) is executable
@@ -252,7 +252,7 @@ the meet subsystem, run this manual verification loop.
     image, or Docker socket not reachable from inside the container host.
 - **Extension failed to connect to native host** — the most specific flavor
   of "bot never joins":
-  - Verify `/etc/opt/chrome/native-messaging-hosts/com.vellum.meet.json`
+  - Verify `/etc/opt/chrome/native-messaging-hosts/com.max.meet.json`
     contains `{"path": "/app/bot/src/native-messaging/nmh-shim.ts", ...}`
     pointing at an existing, executable file.
   - Verify the manifest's `allowed_origins` includes the extension's origin

@@ -1,7 +1,7 @@
 {
-  "name": "@vellumai/plugin-api",
+  "name": "@maxai/plugin-api",
   "version": "0.0.0-source",
-  "description": "Public API surface for Vellum assistant plugins. Source-of-truth lives here; the bundled artifact is what gets published to npm and embedded into the assistant binary.",
+  "description": "Public API surface for Max assistant plugins. Source-of-truth lives here; the bundled artifact is what gets published to npm and embedded into the assistant binary.",
   "type": "module",
   "private": true,
   "main": "./index.ts",

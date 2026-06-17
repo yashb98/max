@@ -133,10 +133,10 @@ function makeDecision(
 ): NotificationDecision {
   return {
     shouldNotify: true,
-    selectedChannels: ["vellum"],
+    selectedChannels: ["max"],
     reasoningSummary: "Test decision",
     renderedCopy: {
-      vellum: { title: "Test Alert", body: "Something happened" },
+      max: { title: "Test Alert", body: "Something happened" },
     },
     dedupeKey: "broadcast-test-001",
     confidence: 0.9,
@@ -171,50 +171,50 @@ describe("notification broadcaster", () => {
     pairingCalls.length = 0;
     nextPairingResult = null;
   });
-  test("dispatches to the vellum adapter when selected", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+  test("dispatches to the max adapter when selected", async () => {
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision();
 
     const results = await broadcaster.broadcastDecision(signal, decision);
 
-    expect(vellumAdapter.sent).toHaveLength(1);
-    expect(vellumAdapter.sent[0].copy.title).toBe("Test Alert");
+    expect(maxAdapter.sent).toHaveLength(1);
+    expect(maxAdapter.sent[0].copy.title).toBe("Test Alert");
     expect(
-      results.some((r) => r.channel === "vellum" && r.status === "sent"),
+      results.some((r) => r.channel === "max" && r.status === "sent"),
     ).toBe(true);
   });
 
   test("skips channels without registered adapters", async () => {
-    // Register only vellum, but decision selects both
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    // Register only max, but decision selects both
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision({
-      selectedChannels: ["vellum", "telegram"],
+      selectedChannels: ["max", "telegram"],
       renderedCopy: {
-        vellum: { title: "Test", body: "Body" },
+        max: { title: "Test", body: "Body" },
         telegram: { title: "Test", body: "Body" },
       },
     });
 
     const results = await broadcaster.broadcastDecision(signal, decision);
 
-    // Vellum should succeed, telegram should be skipped (no adapter registered)
+    // Max should succeed, telegram should be skipped (no adapter registered)
     expect(results).toHaveLength(2);
-    const vellumResult = results.find((r) => r.channel === "vellum");
+    const maxResult = results.find((r) => r.channel === "max");
     const telegramResult = results.find((r) => r.channel === "telegram");
-    expect(vellumResult?.status).toBe("sent");
+    expect(maxResult?.status).toBe("sent");
     expect(telegramResult?.status).toBe("skipped");
   });
 
   test("reports failed delivery when adapter returns error", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    vellumAdapter.shouldFail = true;
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    maxAdapter.shouldFail = true;
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision();
@@ -227,8 +227,8 @@ describe("notification broadcaster", () => {
   });
 
   test("passes deepLinkTarget through to adapter payload", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision({
@@ -237,12 +237,12 @@ describe("notification broadcaster", () => {
 
     await broadcaster.broadcastDecision(signal, decision);
 
-    expect(vellumAdapter.sent).toHaveLength(1);
+    expect(maxAdapter.sent).toHaveLength(1);
     // The broadcaster overwrites deepLinkTarget.conversationId with the
     // paired conversation ID, so the original 'conv-123' is replaced.
     // Verify the structure is correct and that conversationId comes from
     // the pairing result, not the pre-pairing placeholder.
-    const deepLink = vellumAdapter.sent[0].deepLinkTarget;
+    const deepLink = maxAdapter.sent[0].deepLinkTarget;
     expect(deepLink).toBeDefined();
     expect(deepLink!.screen).toBe("thread");
     expect(deepLink!.conversationId).toBeDefined();
@@ -252,34 +252,34 @@ describe("notification broadcaster", () => {
   });
 
   test("multiple channels receive independent copy from the decision", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
+    const maxAdapter = new MockAdapter("max");
     const telegramAdapter = new MockAdapter("telegram");
     const broadcaster = new NotificationBroadcaster([
-      vellumAdapter,
+      maxAdapter,
       telegramAdapter,
     ]);
 
     const signal = makeSignal();
     const decision = makeDecision({
-      selectedChannels: ["vellum", "telegram"],
+      selectedChannels: ["max", "telegram"],
       renderedCopy: {
-        vellum: { title: "Desktop Alert", body: "For desktop" },
+        max: { title: "Desktop Alert", body: "For desktop" },
         telegram: { title: "Mobile Alert", body: "For mobile" },
       },
     });
 
     await broadcaster.broadcastDecision(signal, decision);
 
-    expect(vellumAdapter.sent).toHaveLength(1);
-    expect(vellumAdapter.sent[0].copy.title).toBe("Desktop Alert");
+    expect(maxAdapter.sent).toHaveLength(1);
+    expect(maxAdapter.sent[0].copy.title).toBe("Desktop Alert");
 
     expect(telegramAdapter.sent).toHaveLength(1);
     expect(telegramAdapter.sent[0].copy.title).toBe("Mobile Alert");
   });
 
   test("uses fallback copy when decision is missing copy for a channel", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal({ sourceEventName: "schedule.notify" });
     const decision = makeDecision({
@@ -289,20 +289,20 @@ describe("notification broadcaster", () => {
 
     await broadcaster.broadcastDecision(signal, decision);
 
-    expect(vellumAdapter.sent).toHaveLength(1);
+    expect(maxAdapter.sent).toHaveLength(1);
     // The fallback should produce some copy (either from template or generic)
-    expect(vellumAdapter.sent[0].copy.title).toBeDefined();
-    expect(vellumAdapter.sent[0].copy.body).toBeDefined();
+    expect(maxAdapter.sent[0].copy.title).toBeDefined();
+    expect(maxAdapter.sent[0].copy.body).toBeDefined();
   });
 
   test("adapter receives concise copy (title/body), not the conversation seed message", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision({
       renderedCopy: {
-        vellum: {
+        max: {
           title: "Reminder",
           body: "Take out the trash",
           conversationSeedMessage:
@@ -313,17 +313,17 @@ describe("notification broadcaster", () => {
 
     await broadcaster.broadcastDecision(signal, decision);
 
-    expect(vellumAdapter.sent).toHaveLength(1);
+    expect(maxAdapter.sent).toHaveLength(1);
     // The adapter payload uses the full copy object — title/body are what
     // the native notification displays. The conversationSeedMessage is only consumed
     // by conversation pairing, not by the adapter's display logic.
-    expect(vellumAdapter.sent[0].copy.title).toBe("Reminder");
-    expect(vellumAdapter.sent[0].copy.body).toBe("Take out the trash");
+    expect(maxAdapter.sent[0].copy.title).toBe("Reminder");
+    expect(maxAdapter.sent[0].copy.body).toBe("Take out the trash");
   });
 
   test("empty selectedChannels produces no deliveries", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision({
@@ -333,14 +333,14 @@ describe("notification broadcaster", () => {
     const results = await broadcaster.broadcastDecision(signal, decision);
 
     expect(results).toHaveLength(0);
-    expect(vellumAdapter.sent).toHaveLength(0);
+    expect(maxAdapter.sent).toHaveLength(0);
   });
 
   // ── Conversation-created event emission ─────────────────────────────
 
-  test("fires onConversationCreated when a new vellum conversation is created (start_new)", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+  test("fires onConversationCreated when a new max conversation is created (start_new)", async () => {
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const conversationCreatedCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) =>
       conversationCreatedCalls.push(info),
@@ -358,8 +358,8 @@ describe("notification broadcaster", () => {
   });
 
   test("fires per-dispatch onConversationCreated callback on new conversation", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const dispatchCalls: ConversationCreatedInfo[] = [];
 
     const signal = makeSignal();
@@ -373,8 +373,8 @@ describe("notification broadcaster", () => {
   });
 
   test("does NOT fire class-level onConversationCreated when reusing an existing conversation", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const eventCalls: ConversationCreatedInfo[] = [];
     const dispatchCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) => eventCalls.push(info));
@@ -394,7 +394,7 @@ describe("notification broadcaster", () => {
     const signal = makeSignal();
     const decision = makeDecision({
       conversationActions: {
-        vellum: {
+        max: {
           action: "reuse_existing",
           conversationId: "conv-existing-123",
         },
@@ -489,8 +489,8 @@ describe("notification broadcaster", () => {
   });
 
   test("reused conversation via binding-key continuation does NOT emit class-level onConversationCreated", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const eventCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) => eventCalls.push(info));
 
@@ -516,8 +516,8 @@ describe("notification broadcaster", () => {
   });
 
   test("fresh conversation for continue_existing_conversation does NOT emit class-level onConversationCreated", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const eventCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) => eventCalls.push(info));
 
@@ -544,8 +544,8 @@ describe("notification broadcaster", () => {
   });
 
   test("per-dispatch onConversationCreated fires for reused binding-key conversation", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const dispatchCalls: ConversationCreatedInfo[] = [];
 
     // Binding-key reuse: conversation already exists
@@ -570,25 +570,25 @@ describe("notification broadcaster", () => {
     expect(dispatchCalls[0].conversationId).toBe("conv-bound-telegram-456");
   });
 
-  test("vellum delivery does NOT carry binding context into pairing", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+  test("max delivery does NOT carry binding context into pairing", async () => {
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
     const signal = makeSignal();
     const decision = makeDecision();
 
     await broadcaster.broadcastDecision(signal, decision);
 
-    const vellumCall = pairingCalls.find((c) => c.channel === "vellum");
-    expect(vellumCall).toBeDefined();
-    expect(vellumCall!.options?.bindingContext).toBeUndefined();
+    const maxCall = pairingCalls.find((c) => c.channel === "max");
+    expect(maxCall).toBeDefined();
+    expect(maxCall!.options?.bindingContext).toBeUndefined();
   });
 
   // ── conversationMetadata propagation ──────────────────────────────
 
   test("onConversationCreated includes groupId and source from conversationMetadata", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const createdCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) => createdCalls.push(info));
 
@@ -611,8 +611,8 @@ describe("notification broadcaster", () => {
   });
 
   test("onConversationCreated omits groupId and source when conversationMetadata is absent", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const createdCalls: ConversationCreatedInfo[] = [];
     broadcaster.setOnConversationCreated((info) => createdCalls.push(info));
 
@@ -627,8 +627,8 @@ describe("notification broadcaster", () => {
   });
 
   test("per-dispatch callback receives conversationMetadata fields", async () => {
-    const vellumAdapter = new MockAdapter("vellum");
-    const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    const maxAdapter = new MockAdapter("max");
+    const broadcaster = new NotificationBroadcaster([maxAdapter]);
     const dispatchCalls: ConversationCreatedInfo[] = [];
 
     const signal = makeSignal({

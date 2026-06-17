@@ -51,13 +51,13 @@ describe("resolveBundledDir", () => {
     });
 
     test("prefers Contents/Resources/<bundleName> when it exists", () => {
-      // Simulate macOS .app bundle: binary at Contents/MacOS/vellum-daemon
+      // Simulate macOS .app bundle: binary at Contents/MacOS/max-daemon
       const macosDir = join(tempDir, "Contents", "MacOS");
       const resourcesDir = join(tempDir, "Contents", "Resources");
       mkdirSync(macosDir, { recursive: true });
       mkdirSync(join(resourcesDir, "templates"), { recursive: true });
 
-      process.execPath = join(macosDir, "vellum-daemon");
+      process.execPath = join(macosDir, "max-daemon");
 
       const result = resolveBundledDir(
         "/$bunfs/root/src/config",
@@ -72,7 +72,7 @@ describe("resolveBundledDir", () => {
       const binDir = join(tempDir, "bin");
       mkdirSync(join(binDir, "templates"), { recursive: true });
 
-      process.execPath = join(binDir, "vellum-daemon");
+      process.execPath = join(binDir, "max-daemon");
 
       const result = resolveBundledDir(
         "/$bunfs/root/src/config",
@@ -87,7 +87,7 @@ describe("resolveBundledDir", () => {
       mkdirSync(binDir, { recursive: true });
       // Don't create any asset directories
 
-      process.execPath = join(binDir, "vellum-daemon");
+      process.execPath = join(binDir, "max-daemon");
 
       const result = resolveBundledDir(
         "/$bunfs/root/src/config",
@@ -105,7 +105,7 @@ describe("resolveBundledDir", () => {
       // Also create at execDir level
       mkdirSync(join(macosDir, "compact-prompts"), { recursive: true });
 
-      process.execPath = join(macosDir, "vellum-daemon");
+      process.execPath = join(macosDir, "max-daemon");
 
       const result = resolveBundledDir(
         "/$bunfs/root/src/context/prompts",
@@ -121,7 +121,7 @@ describe("resolveBundledDir", () => {
       mkdirSync(macosDir, { recursive: true });
       mkdirSync(join(resourcesDir, "prebuilt"), { recursive: true });
 
-      process.execPath = join(macosDir, "vellum-daemon");
+      process.execPath = join(macosDir, "max-daemon");
 
       const result = resolveBundledDir(
         "/$bunfs/root/src/widgets/prebuilt",

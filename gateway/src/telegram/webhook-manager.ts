@@ -34,10 +34,10 @@ async function registerManagedTelegramCallbackRoute(
   const [platformBaseUrlRaw, assistantApiKeyRaw, assistantIdRaw] =
     caches?.credentials
       ? await Promise.all([
-          caches.credentials.get(credentialKey("vellum", "platform_base_url")),
-          caches.credentials.get(credentialKey("vellum", "assistant_api_key")),
+          caches.credentials.get(credentialKey("max", "platform_base_url")),
+          caches.credentials.get(credentialKey("max", "assistant_api_key")),
           caches.credentials.get(
-            credentialKey("vellum", "platform_assistant_id"),
+            credentialKey("max", "platform_assistant_id"),
           ),
         ])
       : [undefined, undefined, undefined];
@@ -46,7 +46,7 @@ async function registerManagedTelegramCallbackRoute(
   // matching the daemon's resolvePlatformCallbackRegistrationContext().
   const platformBaseUrl = (
     platformBaseUrlRaw?.trim() ||
-    process.env.VELLUM_PLATFORM_URL?.trim() ||
+    process.env.MAX_PLATFORM_URL?.trim() ||
     ""
   ).replace(/\/+$/, "");
 
@@ -138,7 +138,7 @@ async function resolveExpectedTelegramWebhookUrl(
   }
 
   // Only fall back to managed callback registration in containerized mode.
-  // A local gateway that happens to have stored vellum credentials should not
+  // A local gateway that happens to have stored max credentials should not
   // silently reroute Telegram webhooks to the platform.
   if (!process.env.IS_CONTAINERIZED) {
     return undefined;

@@ -138,8 +138,8 @@ let previousWorkspaceEnv: string | undefined;
 
 beforeAll(() => {
   tmpWorkspace = mkdtempSync(join(tmpdir(), "conv-graph-v2-routing-test-"));
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 
   // Seed v2 layout with a single concept page so the real injection module
   // has something concrete to render. Generic placeholders only.
@@ -152,9 +152,9 @@ beforeAll(() => {
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
   // Restore mocks so a sibling test loaded in the same `bun test` run sees

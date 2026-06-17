@@ -19,11 +19,11 @@ import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 import {
   credentialKey,
   StaticCredentialMetadataStore,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-static-cred-compat-${randomBytes(4).toString("hex")}`,
+  `max-static-cred-compat-${randomBytes(4).toString("hex")}`,
 );
 const META_PATH = join(TEST_DIR, "metadata.json");
 

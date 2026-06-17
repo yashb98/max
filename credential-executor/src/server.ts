@@ -2,7 +2,7 @@
  * CES RPC server.
  *
  * Implements the server-side of the CES wire protocol defined in
- * `@vellumai/service-contracts`. The server reads newline-delimited JSON
+ * `@maxai/service-contracts`. The server reads newline-delimited JSON
  * messages from a readable stream, dispatches them through the RPC
  * contract, and writes responses back to a writable stream.
  *
@@ -32,7 +32,7 @@ import {
   type RunAuthenticatedCommandResponse,
   type TransportMessage,
   TransportMessageSchema,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import { resolve } from "node:path";
 

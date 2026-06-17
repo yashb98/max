@@ -50,12 +50,12 @@ export function registerSkillsCommand(program: Command): void {
   registerCommand(program, {
     name: "skills",
     transport: "ipc",
-    description: "Browse and install skills from the Vellum catalog",
+    description: "Browse and install skills from the Max catalog",
     build: (skills) => {
       skills.addHelpText(
         "after",
         `
-Manage skills from the Vellum catalog. Skills extend the assistant's
+Manage skills from the Max catalog. Skills extend the assistant's
 capabilities with pre-built workflows and tools.
 
 Examples:
@@ -111,7 +111,7 @@ Examples:
               description: s.description,
               emoji: s.emoji,
               source:
-                s.origin === "vellum" && s.kind === "bundled"
+                s.origin === "max" && s.kind === "bundled"
                   ? "bundled"
                   : s.origin,
               state: s.status,
@@ -241,7 +241,7 @@ Examples:
       skills
         .command("search <query>")
         .description(
-          "Search the Vellum catalog, skills.sh, and clawhub community registries",
+          "Search the Max catalog, skills.sh, and clawhub community registries",
         )
         .option("--limit <n>", "Maximum number of community results", "10")
         .option("--json", "Machine-readable JSON output")
@@ -250,11 +250,11 @@ Examples:
           `
 Arguments:
   query    Free-text search term matched against skill names, descriptions,
-           and tags. Searches the Vellum catalog, the skills.sh community
+           and tags. Searches the Max catalog, the skills.sh community
            registry, and the clawhub registry.
 
 Displays results from all sources with clear labels. When a skill ID
-exists in both the Vellum catalog and a community registry, a conflict
+exists in both the Max catalog and a community registry, a conflict
 note is shown with guidance on which install command to use.
 
 Examples:
@@ -266,7 +266,7 @@ Examples:
           const json = opts.json ?? false;
           const limit = parseInt(opts.limit, 10) || 10;
 
-          // Step 1: Vellum catalog (installed + remote available)
+          // Step 1: Max catalog (installed + remote available)
           const catalogR = await cliIpcCall<{
             skills: Array<{
               id: string;
@@ -279,8 +279,8 @@ Examples:
               updatedAt?: string;
             }>;
           }>("listSkills", { queryParams: { include: "catalog", q: query } });
-          const vellumSkills = catalogR.ok
-            ? catalogR.result!.skills.filter((s) => s.origin === "vellum")
+          const maxSkills = catalogR.ok
+            ? catalogR.result!.skills.filter((s) => s.origin === "max")
             : [];
 
           // Step 2: community (skills.sh with audits + clawhub) + local bundled/installed
@@ -303,11 +303,11 @@ Examples:
             }>;
           }>("searchSkills", { queryParams: { q: query, limit: String(limit) } });
           const communitySkills = communityR.ok
-            ? communityR.result!.skills.filter((s) => s.origin !== "vellum")
+            ? communityR.result!.skills.filter((s) => s.origin !== "max")
             : [];
 
-          // Deduplicate by id — vellum wins
-          const seen = new Set(vellumSkills.map((s) => s.id));
+          // Deduplicate by id — max wins
+          const seen = new Set(maxSkills.map((s) => s.id));
           const dedupedCommunity = communitySkills.filter((s) => {
             if (seen.has(s.id)) return false;
             seen.add(s.id);
@@ -321,7 +321,7 @@ Examples:
             .slice(0, limit);
 
           const hasResults =
-            vellumSkills.length > 0 ||
+            maxSkills.length > 0 ||
             clawhubResults.length > 0 ||
             skillsshResults.length > 0;
 
@@ -329,7 +329,7 @@ Examples:
             console.log(
               JSON.stringify({
                 ok: true,
-                catalog: vellumSkills,
+                catalog: maxSkills,
                 community: skillsshResults,
                 clawhub: clawhubResults,
                 ...(catalogR.ok ? {} : { catalogError: catalogR.error }),
@@ -342,15 +342,15 @@ Examples:
           if (!hasResults) {
             log.info(`No skills found for "${query}".`);
             if (!catalogR.ok)
-              log.warn(`(Vellum catalog unavailable: ${catalogR.error})`);
+              log.warn(`(Max catalog unavailable: ${catalogR.error})`);
             if (!communityR.ok)
               log.warn(`(Community registry unavailable: ${communityR.error})`);
             return;
           }
 
-          if (vellumSkills.length > 0) {
-            log.info(`Vellum catalog (${vellumSkills.length}):\n`);
-            for (const s of vellumSkills) {
+          if (maxSkills.length > 0) {
+            log.info(`Max catalog (${maxSkills.length}):\n`);
+            for (const s of maxSkills) {
               const emoji = s.emoji ? `${s.emoji} ` : "";
               const badge = s.kind === "installed" ? " [installed]" : "";
               log.info(`  ${emoji}${s.name}${badge}`);
@@ -413,7 +413,7 @@ Examples:
           "after",
           `
 Arguments:
-  skill-id   Skill identifier from the Vellum catalog. Run 'assistant skills list'
+  skill-id   Skill identifier from the Max catalog. Run 'assistant skills list'
              to see available IDs. For community skills, use 'assistant skills add'.
 
 Downloads and installs the skill into the workspace skills directory. If the

@@ -34,7 +34,7 @@ import { createServer, type Server, type Socket } from "node:net";
 import {
   ensureSocketDir,
   SocketWatchdog,
-} from "@vellumai/ipc-server-utils";
+} from "@maxai/ipc-server-utils";
 
 import { findLocalGuardianPrincipalId } from "../runtime/local-actor-identity.js";
 import { RouteError } from "../runtime/routes/errors.js";
@@ -567,17 +567,17 @@ export class AssistantIpcServer {
 // ---------------------------------------------------------------------------
 
 /**
- * Inject a synthetic `x-vellum-actor-principal-id` header from the local
+ * Inject a synthetic `x-max-actor-principal-id` header from the local
  * guardian principal when the caller hasn't already provided one.
  *
  * Local IPC is intra-process and owned by the same user as the daemon, so
- * routes that consume `headers["x-vellum-actor-principal-id"]` (e.g. the
+ * routes that consume `headers["x-max-actor-principal-id"]` (e.g. the
  * same-user filter on `GET /v1/clients`) need an actor identity to function
  * over IPC. The HTTP adapter does this from the verified `AuthContext`
  * (`http-adapter.ts`); this helper mirrors that convention for IPC.
  *
  * Existing headers from the caller (e.g. the gateway's IPC runtime proxy,
- * which forwards real `x-vellum-*` headers from the authenticated HTTP
+ * which forwards real `x-max-*` headers from the authenticated HTTP
  * request) are preserved — we only fill in the gap for direct CLI/local
  * IPC callers.
  */
@@ -586,7 +586,7 @@ function injectLocalActorHeader(
 ): RouteHandlerArgs {
   const args = (params ?? {}) as RouteHandlerArgs;
   const existingHeaders = args.headers;
-  if (existingHeaders?.["x-vellum-actor-principal-id"]) {
+  if (existingHeaders?.["x-max-actor-principal-id"]) {
     return args;
   }
 
@@ -610,7 +610,7 @@ function injectLocalActorHeader(
     ...args,
     headers: {
       ...existingHeaders,
-      "x-vellum-actor-principal-id": localActor,
+      "x-max-actor-principal-id": localActor,
     },
   };
 }

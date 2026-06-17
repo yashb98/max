@@ -20,7 +20,7 @@ const WS_CLOSED = WebSocket.CLOSED;
 
 function mintEdgeToken(actorPrincipalId: string = "test-user"): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: `actor:test-assistant:${actorPrincipalId}`,
     scope_profile: "actor_client_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -30,7 +30,7 @@ function mintEdgeToken(actorPrincipalId: string = "test-user"): string {
 
 function mintServiceEdgeToken(): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: "svc:gateway:self",
     scope_profile: "gateway_service_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,

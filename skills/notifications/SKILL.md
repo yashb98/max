@@ -1,10 +1,10 @@
 ---
 name: notifications
 description: Send notifications through the unified notification router
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔔"
-  vellum:
+  max:
     display-name: "Notifications"
 ---
 
@@ -35,7 +35,7 @@ assistant notifications send \
 | `--visible-in-source-now`     | No       | User is already viewing the source context (default: `false`)            |
 | `--no-visible-in-source-now`  | No       | Explicitly mark source as not visible                                    |
 | `--deadline-at <epoch-ms>`    | No       | Optional deadline timestamp in epoch milliseconds                        |
-| `--preferred-channels <list>` | No       | Comma-separated routing hints: `vellum,telegram,slack`                   |
+| `--preferred-channels <list>` | No       | Comma-separated routing hints: `max,telegram,slack`                   |
 | `--session-id <id>`           | No       | Optional source session ID for notification context                      |
 | `--dedupe-key <key>`          | No       | Optional dedupe key to suppress duplicate notifications                  |
 | `--deep-link-metadata <json>` | No       | Optional JSON metadata clients can use for deep linking                  |
@@ -69,7 +69,7 @@ assistant notifications send \
   --urgency low \
   --no-requires-action \
   --is-async-background \
-  --preferred-channels vellum,slack \
+  --preferred-channels max,slack \
   --json
 
 # Notification with deduplication

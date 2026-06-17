@@ -16,7 +16,7 @@ let workspaceDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-076-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-076-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(workspaceDir, { recursive: true });
 }
@@ -38,11 +38,11 @@ function configPath(): string {
 
 beforeEach(() => {
   freshWorkspace();
-  delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+  delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
 });
 
 afterEach(() => {
-  delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+  delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
   if (existsSync(workspaceDir)) {
     rmSync(workspaceDir, { recursive: true, force: true });
   }
@@ -135,8 +135,8 @@ describe("077-seed-memory-router-callsite migration", () => {
     });
   });
 
-  test("skips when VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH is set", () => {
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = "/tmp/overlay.json";
+  test("skips when MAX_DEFAULT_WORKSPACE_CONFIG_PATH is set", () => {
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = "/tmp/overlay.json";
     writeConfig({ llm: { default: { provider: "anthropic" } } });
 
     seedMemoryRouterCallsiteMigration.run(workspaceDir);

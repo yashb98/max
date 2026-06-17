@@ -90,7 +90,7 @@ describe("list_clients route — same-user filter", () => {
 
     const handler = findHandler("list_clients");
     const result = handler({
-      headers: { "x-vellum-actor-principal-id": "user-A" },
+      headers: { "x-max-actor-principal-id": "user-A" },
     }) as ListClientsResponse;
 
     const ids = result.clients.map((c) => c.clientId).sort();
@@ -103,7 +103,7 @@ describe("list_clients route — same-user filter", () => {
 
     const handler = findHandler("list_clients");
     const result = handler({
-      headers: { "x-vellum-actor-principal-id": "user-B" },
+      headers: { "x-max-actor-principal-id": "user-B" },
     }) as ListClientsResponse;
 
     const ids = result.clients.map((c) => c.clientId);
@@ -119,7 +119,7 @@ describe("list_clients route — same-user filter", () => {
 
     const handler = findHandler("list_clients");
     const result = handler({
-      headers: { "x-vellum-actor-principal-id": "user-A" },
+      headers: { "x-max-actor-principal-id": "user-A" },
     }) as ListClientsResponse;
 
     const ids = result.clients.map((c) => c.clientId);
@@ -146,7 +146,7 @@ describe("list_clients route — same-user filter", () => {
 
     const handler = findHandler("list_clients");
     const result = handler({
-      headers: { "x-vellum-actor-principal-id": "user-A" },
+      headers: { "x-max-actor-principal-id": "user-A" },
     }) as ListClientsResponse;
 
     const ids = result.clients.map((c) => c.clientId).sort();

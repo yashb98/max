@@ -173,7 +173,7 @@ function handleDeleteConnection({ pathParams = {} }: RouteHandlerArgs) {
   // re-overlaid by `seed-inference-profiles.ts` on boot).
   if (MANAGED_CONNECTION_NAMES.has(name)) {
     throw new BadRequestError(
-      `Cannot delete managed connection "${name}". This is a Vellum-managed connection — disable it via PATCH status="disabled" if you want to opt out of platform inference.`,
+      `Cannot delete managed connection "${name}". This is a Max-managed connection — disable it via PATCH status="disabled" if you want to opt out of platform inference.`,
     );
   }
 
@@ -308,7 +308,7 @@ export const ROUTES: RouteDefinition[] = [
     pathParams: [{ name: "name", description: "Connection name" }],
     responseBody: z.object({ ok: z.literal(true) }),
     additionalResponses: {
-      "400": { description: "Connection is a Vellum-managed connection and cannot be deleted" },
+      "400": { description: "Connection is a Max-managed connection and cannot be deleted" },
       "404": { description: "Connection not found" },
       "409": { description: "Connection is referenced by profile(s) or call site(s)" },
     },

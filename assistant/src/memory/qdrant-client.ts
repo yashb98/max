@@ -85,9 +85,9 @@ export function stripLegacySparseSuffix(sentinel: string): string {
   return sentinel.replace(/:sparse-v\d+$/, "");
 }
 
-let _instance: VellumQdrantClient | null = null;
+let _instance: MaxQdrantClient | null = null;
 
-export function getQdrantClient(): VellumQdrantClient {
+export function getQdrantClient(): MaxQdrantClient {
   if (!_instance) {
     throw new Error(
       "Qdrant client not initialized. Call initQdrantClient() first.",
@@ -98,12 +98,12 @@ export function getQdrantClient(): VellumQdrantClient {
 
 export function initQdrantClient(
   config: QdrantClientConfig,
-): VellumQdrantClient {
-  _instance = new VellumQdrantClient(config);
+): MaxQdrantClient {
+  _instance = new MaxQdrantClient(config);
   return _instance;
 }
 
-export class VellumQdrantClient {
+export class MaxQdrantClient {
   private readonly client: QdrantRestClient;
   private readonly collection: string;
   private readonly vectorSize: number;

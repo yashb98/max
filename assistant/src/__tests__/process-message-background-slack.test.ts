@@ -368,7 +368,7 @@ describe("processMessageInBackground Slack option propagation", () => {
       "Regular background wake",
       undefined,
       undefined,
-      "vellum",
+      "max",
       "web",
     );
 

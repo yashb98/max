@@ -30,9 +30,9 @@ import { probePort } from "./port-probe.js";
 export interface LocalInstanceResources {
   /**
    * Instance-specific data root. New local assistants are placed under
-   * `$XDG_DATA_HOME/vellum{-env}/assistants/<name>/`. Legacy entries
+   * `$XDG_DATA_HOME/max{-env}/assistants/<name>/`. Legacy entries
    * (pre env-data-layout) may still point at `~` — the read path honors
-   * whatever `instanceDir` is stored. The daemon's `.vellum/` directory
+   * whatever `instanceDir` is stored. The daemon's `.max/` directory
    * lives inside it.
    */
   instanceDir: string;
@@ -117,13 +117,13 @@ interface LockfileData {
 /**
  * Derive the daemon PID file path from a resources object. The PID file
  * lives inside the instance's workspace directory. When no resources are
- * available, falls back to `~/.vellum/workspace/vellum.pid`.
+ * available, falls back to `~/.max/workspace/max.pid`.
  */
 export function getDaemonPidPath(resources?: LocalInstanceResources): string {
-  const vellumDir = resources
-    ? join(resources.instanceDir, ".vellum")
-    : join(homedir(), ".vellum");
-  return join(vellumDir, "workspace", "vellum.pid");
+  const maxDir = resources
+    ? join(resources.instanceDir, ".max")
+    : join(homedir(), ".max");
+  return join(maxDir, "workspace", "max.pid");
 }
 
 function readLockfile(): LockfileData {
@@ -365,7 +365,7 @@ function readLockfileForEnv(env: EnvironmentDefinition): LockfileData {
  * lockfile path, data dir). A running assistant from `dev` is invisible to
  * `loadAllAssistants()` when the current env is `local`, but its host
  * processes (daemon/gateway/qdrant) still show up in `ps ax`. The orphan
- * detector and `vellum clean` need the union of all envs' entries to avoid
+ * detector and `max clean` need the union of all envs' entries to avoid
  * misclassifying — or worse, killing — another env's running services.
  *
  * Optional `envs` override is provided for testability so call sites can
@@ -413,7 +413,7 @@ export function setActiveAssistant(assistantId: string): void {
  *
  * Priority:
  * 1. Explicit name argument
- * 2. Active assistant set via `vellum use`
+ * 2. Active assistant set via `max use`
  * 3. Sole lockfile entry (any cloud)
  */
 export function resolveAssistant(nameArg?: string): AssistantEntry | null {
@@ -440,7 +440,7 @@ export function resolveAssistant(nameArg?: string): AssistantEntry | null {
  *
  * Priority:
  * 1. Explicit name argument
- * 2. Active assistant set via `vellum use`
+ * 2. Active assistant set via `max use`
  * 3. Sole lockfile entry (any cloud)
  */
 export function resolveTargetAssistant(nameArg?: string): AssistantEntry {
@@ -452,10 +452,10 @@ export function resolveTargetAssistant(nameArg?: string): AssistantEntry {
   } else {
     const all = readAssistants();
     if (all.length === 0) {
-      console.error("No assistant found. Run 'vellum hatch' first.");
+      console.error("No assistant found. Run 'max hatch' first.");
     } else {
       console.error(
-        `Multiple assistants found. Set an active assistant with 'vellum use <name>'.`,
+        `Multiple assistants found. Set an active assistant with 'max use <name>'.`,
       );
     }
   }
@@ -510,10 +510,10 @@ async function findAvailablePort(
 /**
  * Allocate an isolated set of resources for a named local instance.
  * Every new local assistant is allocated under
- * `$XDG_DATA_HOME/vellum{-env}/assistants/<name>/`. The legacy `~/.vellum/`
+ * `$XDG_DATA_HOME/max{-env}/assistants/<name>/`. The legacy `~/.max/`
  * path is only reached via existing lockfile entries from before this change
  * — the read path honors whatever `resources.instanceDir` is stored, so
- * production users' existing first-local assistants keep their `~/.vellum/`
+ * production users' existing first-local assistants keep their `~/.max/`
  * roots unchanged.
  */
 export async function allocateLocalResources(

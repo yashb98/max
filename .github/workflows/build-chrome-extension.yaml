@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'VELLUM_ENVIRONMENT to bake into the bundle'
+        description: 'MAX_ENVIRONMENT to bake into the bundle'
         required: false
         type: choice
         default: 'production'
@@ -77,7 +77,7 @@ jobs:
         working-directory: clients/chrome-extension
         env:
           VERSION: ${{ steps.resolve-version.outputs.version }}
-          VELLUM_ENVIRONMENT: ${{ inputs.environment }}
+          MAX_ENVIRONMENT: ${{ inputs.environment }}
         run: bash build.sh
 
       - name: Verify manifest version
@@ -98,16 +98,16 @@ jobs:
         run: rm -f clients/chrome-extension/privatekey.pem
 
       - name: Upload extension CRX
-        if: hashFiles('clients/chrome-extension/vellum-browser-relay.crx') != ''
+        if: hashFiles('clients/chrome-extension/max-browser-relay.crx') != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chrome-extension-crx
-          path: clients/chrome-extension/vellum-browser-relay.crx
+          path: clients/chrome-extension/max-browser-relay.crx
           retention-days: 90
 
       - name: Upload extension zip
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chrome-extension-zip
-          path: clients/chrome-extension/vellum-browser-relay.zip
+          path: clients/chrome-extension/max-browser-relay.zip
           retention-days: 90

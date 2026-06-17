@@ -26,7 +26,7 @@ assistant/src/config/feature-flag-registry.json
 gateway/src/feature-flag-registry.json
 
 # Working copy overwritten on every macOS build by clients/macos/build.sh from
-# build-resources/icons/$VELLUM_ENVIRONMENT/. Source of truth lives in
+# build-resources/icons/$MAX_ENVIRONMENT/. Source of truth lives in
 # build-resources/icons/<env>/.
 clients/macos/build-resources/AppIcon.icon/
 
@@ -67,7 +67,7 @@ CLAUDE.md
 !assistant/CLAUDE.md
 .agents
 .codex
-.vellum
+.max
 
 # IDE
 .idea/
@@ -109,15 +109,15 @@ next-env.d.ts
 
 # bun build artifacts
 *.bun-build
-vellum-assistant-safe-do-permissions
+max-assistant-safe-do-permissions
 
 # macOS binary
-clients/macos/assistant-bin/vellum-assistant
-vellum-assistant-do-fix-retriever-null-check
+clients/macos/assistant-bin/max-assistant
+max-assistant-do-fix-retriever-null-check
 
 # Chrome browser extension build
-clients/chrome-extension/vellum-browser-relay.zip
+clients/chrome-extension/max-browser-relay.zip
 
 # Drizzle migration files — schema is applied via drizzle-kit push at runtime
 gateway/src/db/migrations/
-clients/chrome-extension/vellum-browser-relay.zip
+clients/chrome-extension/max-browser-relay.zip

@@ -32,7 +32,7 @@ let testDataDir: string;
 function freshTempDir(): string {
   return join(
     tmpdir(),
-    `vellum-app-backfill-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-app-backfill-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 }
 
@@ -86,7 +86,7 @@ beforeEach(() => {
 
   // Fresh temp dir for app-store filesystem operations
   testDataDir = freshTempDir();
-  process.env.VELLUM_WORKSPACE_DIR = testDataDir;
+  process.env.MAX_WORKSPACE_DIR = testDataDir;
 });
 
 afterEach(() => {

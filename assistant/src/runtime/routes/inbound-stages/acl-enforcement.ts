@@ -48,13 +48,13 @@ const log = getLogger("runtime-http");
 /**
  * Resolve the guardian's display name for use in requester-facing messages.
  *
- * Uses the assistant's anchored vellum principal to validate the guardian
+ * Uses the assistant's anchored max principal to validate the guardian
  * contact, matching the same strategy used by `notifyGuardianOfAccessRequest`.
  * This prevents stale or cross-assistant contacts from leaking a wrong name.
  */
 function resolveGuardianLabel(sourceChannel: ChannelId): string {
-  const vellumGuardian = findGuardianForChannel("vellum");
-  const anchoredPrincipalId = vellumGuardian?.contact.principalId;
+  const maxGuardian = findGuardianForChannel("max");
+  const anchoredPrincipalId = maxGuardian?.contact.principalId;
 
   if (!anchoredPrincipalId) {
     return resolveGuardianName(undefined);
@@ -70,7 +70,7 @@ function resolveGuardianLabel(sourceChannel: ChannelId): string {
     return resolveGuardianName(sourceGuardian.contact.displayName);
   }
 
-  return resolveGuardianName(vellumGuardian.contact.displayName);
+  return resolveGuardianName(maxGuardian.contact.displayName);
 }
 
 // ---------------------------------------------------------------------------

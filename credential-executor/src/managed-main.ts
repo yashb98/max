@@ -22,7 +22,7 @@ import { createServer as createNetServer, type Socket } from "node:net";
 import { dirname, join } from "node:path";
 import { Readable, Writable } from "node:stream";
 
-import { CES_PROTOCOL_VERSION, CesRpcMethod } from "@vellumai/service-contracts/credential-rpc";
+import { CES_PROTOCOL_VERSION, CesRpcMethod } from "@maxai/service-contracts/credential-rpc";
 
 import { AuditStore } from "./audit/store.js";
 import { PersistentGrantStore } from "./grants/persistent-store.js";
@@ -56,10 +56,10 @@ import { validateSourceUrl } from "./toolstore/manifest.js";
 import { buildCesEgressHooks } from "./commands/egress-hooks.js";
 import { resolveManagedSubject } from "./subjects/managed.js";
 import { materializeManagedToken } from "./materializers/managed-platform.js";
-import { HandleType, parseHandle } from "@vellumai/service-contracts/credential-rpc";
+import { HandleType, parseHandle } from "@maxai/service-contracts/credential-rpc";
 import { buildLazyGetters, type ApiKeyRef, type AssistantIdRef } from "./managed-lazy-getters.js";
 import { MANAGED_LOCAL_STATIC_REJECTION_ERROR } from "./managed-errors.js";
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 import { createLocalSecureKeyBackend } from "./materializers/local-secure-key-backend.js";
 import { handleCredentialRoute, type CredentialRouteDeps } from "./http/credential-routes.js";
 import { handleLogExportRoute } from "./http/log-export-routes.js";
@@ -115,7 +115,7 @@ function buildHandlers(sessionIdRef: SessionIdRef, apiKeyRef: ApiKeyRef, assista
   // from the bootstrap handshake (the assistant forwards it after hatch).
   // We use a lazy getter so the handshake-provided key takes effect even
   // though handlers are built before the handshake completes.
-  const platformBaseUrl = process.env["VELLUM_PLATFORM_URL"] ?? "";
+  const platformBaseUrl = process.env["MAX_PLATFORM_URL"] ?? "";
 
   const { getAssistantApiKey, getManagedSubjectOptions, getManagedMaterializerOptions } =
     buildLazyGetters({
@@ -127,18 +127,18 @@ function buildHandlers(sessionIdRef: SessionIdRef, apiKeyRef: ApiKeyRef, assista
 
   if (!platformBaseUrl) {
     log.warn(
-      "VELLUM_PLATFORM_URL not set. " +
+      "MAX_PLATFORM_URL not set. " +
         "Managed credential materialisation will depend on the handshake-provided values.",
     );
   }
 
   // -- Workspace root for command execution cwd ------------------------------
-  // Use VELLUM_WORKSPACE_DIR when set, otherwise fall back to the legacy
+  // Use MAX_WORKSPACE_DIR when set, otherwise fall back to the legacy
   // path derived from the assistant data mount.
-  const defaultWorkspaceDir = process.env["VELLUM_WORKSPACE_DIR"] ?? (() => {
+  const defaultWorkspaceDir = process.env["MAX_WORKSPACE_DIR"] ?? (() => {
     const assistantDataMount =
       process.env["CES_ASSISTANT_DATA_MOUNT"] ?? "/assistant-data-ro";
-    return join(join(assistantDataMount, ".vellum"), "workspace");
+    return join(join(assistantDataMount, ".max"), "workspace");
   })();
 
   // -- Build handler registry ------------------------------------------------
@@ -210,7 +210,7 @@ function buildHandlers(sessionIdRef: SessionIdRef, apiKeyRef: ApiKeyRef, assista
               return {
                 ok: false as const,
                 error:
-                  "VELLUM_PLATFORM_URL and/or ASSISTANT_API_KEY not set. " +
+                  "MAX_PLATFORM_URL and/or ASSISTANT_API_KEY not set. " +
                   "Managed credential materialisation is not available.",
               };
             }
@@ -542,8 +542,8 @@ async function main(): Promise<void> {
   // credential CRUD handlers (always available).
   const assistantDataMount =
     process.env["CES_ASSISTANT_DATA_MOUNT"] ?? "/assistant-data-ro";
-  const vellumRoot = join(assistantDataMount, ".vellum");
-  const secureKeyBackend = createLocalSecureKeyBackend(vellumRoot);
+  const maxRoot = join(assistantDataMount, ".max");
+  const secureKeyBackend = createLocalSecureKeyBackend(maxRoot);
 
   // Run one-time credential store migrations before accepting connections.
   await runCesMigrations(getCesDataRoot("managed"), secureKeyBackend, CES_MIGRATIONS);

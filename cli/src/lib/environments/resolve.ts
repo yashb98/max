@@ -15,13 +15,13 @@ const DEFAULT_ENVIRONMENT_NAME = "production";
 
 /**
  * Path to the user's persisted default environment file.
- * Lives at `~/.config/vellum/environment` — a fixed, environment-agnostic
+ * Lives at `~/.config/max/environment` — a fixed, environment-agnostic
  * location so it can be read before the environment is resolved.
  */
 function getDefaultEnvironmentPath(): string {
   const xdgConfig =
     process.env.XDG_CONFIG_HOME?.trim() || join(homedir(), ".config");
-  return join(xdgConfig, "vellum", "environment");
+  return join(xdgConfig, "max", "environment");
 }
 
 /**
@@ -78,20 +78,20 @@ export function getSeed(name: string): EnvironmentDefinition | undefined {
  *
  * Priority:
  *   1. `override` argument (from a `--environment` CLI flag, when wired)
- *   2. `VELLUM_ENVIRONMENT` env var
- *   3. User config file (`~/.config/vellum/environment`, set via `vellum env set`)
+ *   2. `MAX_ENVIRONMENT` env var
+ *   3. User config file (`~/.config/max/environment`, set via `max env set`)
  *   4. Default: `production`
  *
  * Per-field env-var overrides are honored on the resolved definition as
  * ad-hoc escape hatches (they do not materialize new environments):
- *   - `VELLUM_PLATFORM_URL` overrides `platformUrl`
- *   - `VELLUM_WEB_URL` overrides `webUrl`
- *   - `VELLUM_ASSISTANT_PLATFORM_URL` overrides `assistantPlatformUrl`
- *   - `VELLUM_LOCKFILE_DIR` overrides `lockfileDirOverride` (legacy e2e
+ *   - `MAX_PLATFORM_URL` overrides `platformUrl`
+ *   - `MAX_WEB_URL` overrides `webUrl`
+ *   - `MAX_ASSISTANT_PLATFORM_URL` overrides `assistantPlatformUrl`
+ *   - `MAX_LOCKFILE_DIR` overrides `lockfileDirOverride` (legacy e2e
  *     test hook)
  *
  * This function should be the single entrypoint for environment resolution.
- * No other code should drive off `VELLUM_ENVIRONMENT` directly.
+ * No other code should drive off `MAX_ENVIRONMENT` directly.
  */
 export function getCurrentEnvironment(
   override?: string,
@@ -101,16 +101,16 @@ export function getCurrentEnvironment(
   // When the environment was resolved from the config file, propagate it
   // into process.env so child processes (daemon, gateway) inherit the same
   // environment without needing to read the config file themselves.
-  if (source === "config" && !process.env.VELLUM_ENVIRONMENT) {
-    process.env.VELLUM_ENVIRONMENT = name;
+  if (source === "config" && !process.env.MAX_ENVIRONMENT) {
+    process.env.MAX_ENVIRONMENT = name;
   }
 
   const seed = SEEDS[name];
   if (!seed) {
     if (name !== DEFAULT_ENVIRONMENT_NAME) {
       // Warn on stderr instead of throwing, to match the silent-fallback
-      // behavior in assistant/src/util/platform.ts:getXdgVellumConfigDirName
-      // and clients/shared/App/VellumEnvironment.swift:current. Those two
+      // behavior in assistant/src/util/platform.ts:getXdgMaxConfigDirName
+      // and clients/shared/App/MaxEnvironment.swift:current. Those two
       // silently fall back to production; the CLI should agree so all three
       // writers don't end up in disjoint states on a typo.
       process.stderr.write(
@@ -129,23 +129,23 @@ export function getCurrentEnvironment(
 
   const resolved: EnvironmentDefinition = { ...seed };
 
-  const platformUrlOverride = process.env.VELLUM_PLATFORM_URL?.trim();
+  const platformUrlOverride = process.env.MAX_PLATFORM_URL?.trim();
   if (platformUrlOverride) {
     resolved.platformUrl = platformUrlOverride;
   }
 
-  const webUrlOverride = process.env.VELLUM_WEB_URL?.trim();
+  const webUrlOverride = process.env.MAX_WEB_URL?.trim();
   if (webUrlOverride) {
     resolved.webUrl = webUrlOverride;
   }
 
   const assistantPlatformUrlOverride =
-    process.env.VELLUM_ASSISTANT_PLATFORM_URL?.trim();
+    process.env.MAX_ASSISTANT_PLATFORM_URL?.trim();
   if (assistantPlatformUrlOverride) {
     resolved.assistantPlatformUrl = assistantPlatformUrlOverride;
   }
 
-  const lockfileDirOverride = process.env.VELLUM_LOCKFILE_DIR?.trim();
+  const lockfileDirOverride = process.env.MAX_LOCKFILE_DIR?.trim();
   if (lockfileDirOverride) {
     resolved.lockfileDirOverride = lockfileDirOverride;
   }
@@ -164,7 +164,7 @@ export function resolveEnvironmentSource(override?: string): {
   if (trimmedOverride && trimmedOverride.length > 0) {
     return { name: trimmedOverride, source: "flag" };
   }
-  const envVar = process.env.VELLUM_ENVIRONMENT?.trim();
+  const envVar = process.env.MAX_ENVIRONMENT?.trim();
   if (envVar && envVar.length > 0) {
     return { name: envVar, source: "env" };
   }

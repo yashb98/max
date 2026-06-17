@@ -34,7 +34,7 @@ import {
   buildTwilioStatusWebhookUrl,
   buildTwilioVoiceWebhookUrl,
   normalizePublicBaseUrl,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 
 import { getIngressPublicBaseUrl } from "../config/env.js";
 

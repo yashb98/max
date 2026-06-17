@@ -56,7 +56,7 @@ import { join } from "node:path";
 
 function printHelp(): void {
   console.log(
-    "Usage: vellum teleport --from <assistant> <--local | --docker | --platform> [name] [options]",
+    "Usage: max teleport --from <assistant> <--local | --docker | --platform> [name] [options]",
   );
   console.log("");
   console.log(
@@ -118,12 +118,12 @@ function printHelp(): void {
   console.log("  --help, -h          Show this help");
   console.log("");
   console.log("Examples:");
-  console.log("  vellum teleport --from my-local --docker");
+  console.log("  max teleport --from my-local --docker");
   console.log(
     "      Hatch a new docker assistant, import data, and retire my-local",
   );
   console.log("");
-  console.log("  vellum teleport --from my-local --docker my-docker");
+  console.log("  max teleport --from my-local --docker my-docker");
   console.log(
     "      Import data from my-local into existing docker assistant my-docker",
   );
@@ -131,23 +131,23 @@ function printHelp(): void {
     "      (or hatch a new docker assistant named my-docker if it doesn't exist)",
   );
   console.log("");
-  console.log("  vellum teleport --from my-local --platform");
+  console.log("  max teleport --from my-local --platform");
   console.log(
     "      Hatch a new platform assistant and import data from my-local",
   );
   console.log("");
-  console.log("  vellum teleport --from my-cloud --local my-new-local");
+  console.log("  max teleport --from my-cloud --local my-new-local");
   console.log(
     "      Import data from platform assistant my-cloud into local assistant",
   );
   console.log("");
-  console.log("  vellum teleport --from my-docker --local --keep-source");
+  console.log("  max teleport --from my-docker --local --keep-source");
   console.log(
     "      Transfer to a new local assistant but keep the docker source running",
   );
   console.log("");
   console.log(
-    "  vellum teleport --from staging --docker staging-copy --dry-run",
+    "  max teleport --from staging --docker staging-copy --dry-run",
   );
   console.log("      Preview what would be imported without applying changes");
 }
@@ -250,7 +250,7 @@ async function getAccessToken(
       console.error(
         `Error: Could not connect to assistant '${displayName}'. Is it running?`,
       );
-      console.error(`Try: vellum wake ${displayName}`);
+      console.error(`Try: max wake ${displayName}`);
       process.exit(1);
     }
     throw err;
@@ -370,7 +370,7 @@ async function exportFromAssistant(
   const platformToken = readPlatformToken();
   if (!platformToken) {
     console.error(
-      "Not logged in. Run 'vellum login' first (required for GCS-based teleport).",
+      "Not logged in. Run 'max login' first (required for GCS-based teleport).",
     );
     process.exit(1);
   }
@@ -381,7 +381,7 @@ async function exportFromAssistant(
     // CLI), so the daemon's version is what defines the bundle's
     // `min_runtime_version`. Stamping with `cliPkg.version` instead would
     // record an inaccurate compatibility band whenever the CLI/daemon have
-    // drifted (a normal case in real usage — `vellum upgrade` swaps the
+    // drifted (a normal case in real usage — `max upgrade` swaps the
     // daemon, the CLI is updated separately).
     let sourceRuntimeVersion: string;
     try {
@@ -475,7 +475,7 @@ async function exportFromAssistant(
     return { bundleKey };
   }
 
-  if (cloud === "vellum") {
+  if (cloud === "max") {
     // Ask the managed runtime which version it's running so the signed-URL
     // request records the bundle's actual `min_runtime_version`. The
     // platform-managed runtime is the exporter; the CLI version is
@@ -500,7 +500,7 @@ async function exportFromAssistant(
     // reached via the platform's wildcard runtime proxy at
     // `/v1/assistants/<id>/migrations/export-to-gcs` — the
     // `localRuntimeExportToGcs` helper uses `resolveRuntimeMigrationUrl` to
-    // pick that shape for `cloud === "vellum"` and `migrationRequestHeaders`
+    // pick that shape for `cloud === "max"` and `migrationRequestHeaders`
     // to send platform-token auth (no guardian-token bootstrap).
     const { url: uploadUrl, bundleKey } = await platformRequestSignedUrl(
       {
@@ -532,21 +532,21 @@ async function exportFromAssistant(
     console.log(`Export started (job ${jobId})...`);
 
     // Polling also goes through the wildcard proxy — `localRuntimePollJobStatus`
-    // builds `/v1/assistants/<id>/migrations/jobs/<jobId>` for `cloud === "vellum"`
+    // builds `/v1/assistants/<id>/migrations/jobs/<jobId>` for `cloud === "max"`
     // (the dedicated `/v1/migrations/jobs/{id}/` endpoint queries platform-side
     // ImportJob records and 404s on runtime-created job IDs).
     const terminal = await pollJobUntilDone({
       label: "platform export",
       poll: () => localRuntimePollJobStatus(entry, exportPlatformToken, jobId),
       // The platform token is normally static per-process, but re-reading the
-      // on-disk credential covers the case where the user ran `vellum login`
+      // on-disk credential covers the case where the user ran `max login`
       // in another terminal during a long migration. A persistent 401 after
       // a re-read surfaces to the caller with a clear next step.
       refreshOn401: async () => {
         const refreshed = readPlatformToken();
         if (!refreshed) {
           throw new Error(
-            "Platform auth expired during export and no credential was found on disk. Run 'vellum login' and retry.",
+            "Platform auth expired during export and no credential was found on disk. Run 'max login' and retry.",
           );
         }
         exportPlatformToken = refreshed;
@@ -581,12 +581,12 @@ async function importToAssistant(
   const platformToken = readPlatformToken();
   if (!platformToken) {
     console.error(
-      "Not logged in. Run 'vellum login' first (required for GCS-based teleport).",
+      "Not logged in. Run 'max login' first (required for GCS-based teleport).",
     );
     process.exit(1);
   }
 
-  if (cloud === "vellum") {
+  if (cloud === "max") {
     // Platform target — the bundle is already in GCS; kick off preflight or
     // async import via the unified job-status endpoint.
     if (dryRun) {
@@ -599,7 +599,7 @@ async function importToAssistant(
       );
 
       if (preflight.statusCode === 401 || preflight.statusCode === 403) {
-        console.error("Authentication failed. Run 'vellum login' to refresh.");
+        console.error("Authentication failed. Run 'max login' to refresh.");
         process.exit(1);
       }
 
@@ -614,7 +614,7 @@ async function importToAssistant(
         preflight.statusCode === 504
       ) {
         console.error(
-          `Assistant is unreachable. Try 'vellum wake ${entry.assistantId}'.`,
+          `Assistant is unreachable. Try 'max wake ${entry.assistantId}'.`,
         );
         process.exit(1);
       }
@@ -640,7 +640,7 @@ async function importToAssistant(
     );
 
     if (importResult.statusCode === 401 || importResult.statusCode === 403) {
-      console.error("Authentication failed. Run 'vellum login' to refresh.");
+      console.error("Authentication failed. Run 'max login' to refresh.");
       process.exit(1);
     }
 
@@ -655,7 +655,7 @@ async function importToAssistant(
       importResult.statusCode === 504
     ) {
       console.error(
-        `Assistant is unreachable. Try 'vellum wake ${entry.assistantId}'.`,
+        `Assistant is unreachable. Try 'max wake ${entry.assistantId}'.`,
       );
       process.exit(1);
     }
@@ -683,7 +683,7 @@ async function importToAssistant(
           const refreshed = readPlatformToken();
           if (!refreshed) {
             throw new Error(
-              "Platform auth expired during import and no credential was found on disk. Run 'vellum login' and retry.",
+              "Platform auth expired during import and no credential was found on disk. Run 'max login' and retry.",
             );
           }
           importPlatformToken = refreshed;
@@ -741,7 +741,7 @@ async function importToAssistant(
       console.error(
         `Error: Could not read target runtime version from '${entry.assistantId}': ${msg}`,
       );
-      console.error(`Try: vellum wake ${entry.assistantId}`);
+      console.error(`Try: max wake ${entry.assistantId}`);
       process.exit(1);
     }
 
@@ -843,7 +843,7 @@ export async function resolveOrHatchTarget(
       // Validate the existing assistant's cloud matches the requested env
       const existingCloud = resolveCloud(existing);
       const normalizedExisting =
-        existingCloud === "vellum" ? "platform" : existingCloud;
+        existingCloud === "max" ? "platform" : existingCloud;
       if (normalizedExisting !== targetEnv) {
         console.error(
           `Error: Assistant '${targetName}' is a ${normalizedExisting} assistant, not ${targetEnv}. ` +
@@ -877,7 +877,7 @@ export async function resolveOrHatchTarget(
   // Hatch a new assistant in the target environment
   if (targetEnv === "local") {
     const beforeIds = new Set(loadAllAssistants().map((e) => e.assistantId));
-    await hatchLocal("vellum", targetName ?? null, false, false, {});
+    await hatchLocal("max", targetName ?? null, false, false, {});
     const entry = targetName
       ? findAssistantByName(targetName)
       : (loadAllAssistants().find((e) => !beforeIds.has(e.assistantId)) ??
@@ -892,7 +892,7 @@ export async function resolveOrHatchTarget(
 
   if (targetEnv === "docker") {
     const beforeIds = new Set(loadAllAssistants().map((e) => e.assistantId));
-    await hatchDocker("vellum", false, targetName ?? null, false, {});
+    await hatchDocker("max", false, targetName ?? null, false, {});
     const entry = targetName
       ? findAssistantByName(targetName)
       : (loadAllAssistants().find((e) => !beforeIds.has(e.assistantId)) ??
@@ -910,7 +910,7 @@ export async function resolveOrHatchTarget(
   if (targetEnv === "platform") {
     const token = readPlatformToken();
     if (!token) {
-      console.error("Not logged in. Run 'vellum login' first.");
+      console.error("Not logged in. Run 'max login' first.");
       process.exit(1);
     }
 
@@ -923,8 +923,8 @@ export async function resolveOrHatchTarget(
       const entry: AssistantEntry = {
         assistantId: result.id,
         runtimeUrl: getPlatformUrl(),
-        cloud: "vellum",
-        species: "vellum",
+        cloud: "max",
+        species: "max",
         hatchedAt: new Date().toISOString(),
       };
       saveAssistantEntry(entry);
@@ -932,7 +932,7 @@ export async function resolveOrHatchTarget(
         `Error: You already have a platform assistant '${result.id}'.`,
       );
       console.error(
-        `Retire it first with 'vellum retire ${result.id}', then retry the teleport.`,
+        `Retire it first with 'max retire ${result.id}', then retry the teleport.`,
       );
       process.exit(1);
     }
@@ -940,8 +940,8 @@ export async function resolveOrHatchTarget(
     const entry: AssistantEntry = {
       assistantId: result.id,
       runtimeUrl: getPlatformUrl(),
-      cloud: "vellum",
-      species: "vellum",
+      cloud: "max",
+      species: "max",
       hatchedAt: new Date().toISOString(),
     };
     saveAssistantEntry(entry);
@@ -1092,7 +1092,7 @@ async function tryInjectPlatformCredentials(
     if (!assistantApiKey) {
       const cached = await readGatewayCredential(
         entry.runtimeUrl,
-        "vellum:assistant_api_key",
+        "max:assistant_api_key",
         entry.bearerToken,
       );
       if (cached.value) {
@@ -1149,10 +1149,10 @@ export async function teleport(): Promise<void> {
   if (to) {
     console.error("Error: --to is deprecated. Use environment flags instead:");
     console.error(
-      "  vellum teleport --from <source> --local|--docker|--platform [name]",
+      "  max teleport --from <source> --local|--docker|--platform [name]",
     );
     console.error("");
-    console.error("Run 'vellum teleport --help' for details.");
+    console.error("Run 'max teleport --help' for details.");
     process.exit(1);
   }
 
@@ -1170,7 +1170,7 @@ export async function teleport(): Promise<void> {
   const fromEntry = findAssistantByName(from);
   if (!fromEntry) {
     console.error(
-      `Assistant '${from}' not found in lockfile. Run \`vellum ps\` to see available assistants.`,
+      `Assistant '${from}' not found in lockfile. Run \`max ps\` to see available assistants.`,
     );
     process.exit(1);
   }
@@ -1186,7 +1186,7 @@ export async function teleport(): Promise<void> {
 
   // Early same-environment guard — compare source cloud against the CLI flag
   // BEFORE exporting or hatching, to avoid creating orphaned assistants.
-  const normalizedSourceEnv = fromCloud === "vellum" ? "platform" : fromCloud;
+  const normalizedSourceEnv = fromCloud === "max" ? "platform" : fromCloud;
   if (normalizedSourceEnv === targetEnv) {
     console.error(
       `Cannot teleport between two ${targetEnv} assistants. Teleport transfers data across different environments.`,
@@ -1202,7 +1202,7 @@ export async function teleport(): Promise<void> {
     if (existingTarget) {
       // Target exists — validate cloud matches the flag, then run preflight
       const toCloud = resolveCloud(existingTarget);
-      const normalizedTargetEnv = toCloud === "vellum" ? "platform" : toCloud;
+      const normalizedTargetEnv = toCloud === "max" ? "platform" : toCloud;
       if (normalizedTargetEnv !== targetEnv) {
         console.error(
           `Error: Assistant '${targetName}' is a ${normalizedTargetEnv} assistant, not ${targetEnv}. ` +
@@ -1231,7 +1231,7 @@ export async function teleport(): Promise<void> {
       }
 
       // Version guard: block platform→non-platform when target is behind
-      if (fromCloud === "vellum" && toCloud !== "vellum") {
+      if (fromCloud === "max" && toCloud !== "max") {
         const [sourceVersion, targetVersion] = await Promise.all([
           fetchCurrentVersion(fromEntry.runtimeUrl),
           fetchCurrentVersion(existingTarget.runtimeUrl),
@@ -1246,7 +1246,7 @@ export async function teleport(): Promise<void> {
               `but the platform source is on ${sourceVersion}.`,
           );
           console.error(
-            `Upgrade your ${toCloud} assistant first: vellum upgrade ${existingTarget.assistantId}`,
+            `Upgrade your ${toCloud} assistant first: max upgrade ${existingTarget.assistantId}`,
           );
           process.exit(1);
         }
@@ -1257,9 +1257,9 @@ export async function teleport(): Promise<void> {
       // platform sources it's owned by the source platform. Only one of
       // these branches applies at a time (same-env was rejected earlier).
       const bundlePlatformUrl =
-        toCloud === "vellum"
+        toCloud === "max"
           ? existingTarget.runtimeUrl
-          : fromCloud === "vellum"
+          : fromCloud === "max"
             ? fromEntry.runtimeUrl
             : undefined;
 
@@ -1297,7 +1297,7 @@ export async function teleport(): Promise<void> {
   if (targetEnv === "platform") {
     const token = readPlatformToken();
     if (!token) {
-      console.error("Not logged in. Run 'vellum login' first.");
+      console.error("Not logged in. Run 'max login' first.");
       process.exit(1);
     }
 
@@ -1306,7 +1306,7 @@ export async function teleport(): Promise<void> {
     const existingTarget = targetName ? findAssistantByName(targetName) : null;
     if (existingTarget) {
       const existingCloud = resolveCloud(existingTarget);
-      if (existingCloud !== "vellum") {
+      if (existingCloud !== "max") {
         console.error(
           `Error: Assistant '${targetName}' is a ${existingCloud} assistant, not platform. ` +
             `Use --${existingCloud} to target it.`,
@@ -1330,15 +1330,15 @@ export async function teleport(): Promise<void> {
         saveAssistantEntry({
           assistantId: existing.id,
           runtimeUrl: getPlatformUrl(),
-          cloud: "vellum",
-          species: "vellum",
+          cloud: "max",
+          species: "max",
           hatchedAt: new Date().toISOString(),
         });
         console.error(
           `Error: You already have a platform assistant '${existing.id}'.`,
         );
         console.error(
-          `Retire it first with 'vellum retire ${existing.id}', then retry the teleport.`,
+          `Retire it first with 'max retire ${existing.id}', then retry the teleport.`,
         );
         process.exit(1);
       }
@@ -1380,14 +1380,14 @@ export async function teleport(): Promise<void> {
   // Non-platform targets (local/docker)
   // For local<->docker transfers, stop (sleep) the source to free up ports
   // before hatching the target. We do NOT retire yet — if hatch or import
-  // fails, the user can recover by running `vellum wake <source>`.
+  // fails, the user can recover by running `max wake <source>`.
   const sourceIsLocalOrDocker = fromCloud === "local" || fromCloud === "docker";
   const targetIsLocalOrDocker = targetEnv === "local" || targetEnv === "docker";
 
   // Version guard (pre-hatch): for existing targets, check BEFORE hatching
   // to avoid creating orphaned assistants when the version check would fail.
   let versionGuardPassed = false;
-  if (fromCloud === "vellum" && targetIsLocalOrDocker && targetName) {
+  if (fromCloud === "max" && targetIsLocalOrDocker && targetName) {
     const existingTarget = findAssistantByName(targetName);
     if (existingTarget) {
       const [sourceVersion, existingVersion] = await Promise.all([
@@ -1404,7 +1404,7 @@ export async function teleport(): Promise<void> {
             `but the platform source is on ${sourceVersion}.`,
         );
         console.error(
-          `Upgrade your ${targetEnv} assistant first: vellum upgrade ${existingTarget.assistantId}`,
+          `Upgrade your ${targetEnv} assistant first: max upgrade ${existingTarget.assistantId}`,
         );
         process.exit(1);
       }
@@ -1419,7 +1419,7 @@ export async function teleport(): Promise<void> {
   // platform getPlatformUrl() currently resolves to — we resolve it once
   // here so a lockfile change mid-teleport can't split export and import.
   const bundlePlatformUrl =
-    fromCloud === "vellum" ? fromEntry.runtimeUrl : getPlatformUrl();
+    fromCloud === "max" ? fromEntry.runtimeUrl : getPlatformUrl();
 
   // Export from source (bundle lives in GCS after this returns).
   console.log(`Exporting from ${from} (${fromCloud})...`);
@@ -1435,8 +1435,8 @@ export async function teleport(): Promise<void> {
       const res = dockerResourceNames(fromEntry.assistantId);
       await sleepContainers(res);
     } else if (fromEntry.resources) {
-      const vellumDir = join(fromEntry.resources.instanceDir, ".vellum");
-      const gatewayPidFile = join(vellumDir, "gateway.pid");
+      const maxDir = join(fromEntry.resources.instanceDir, ".max");
+      const gatewayPidFile = join(maxDir, "gateway.pid");
       await stopProcessByPidFile(
         getDaemonPidPath(fromEntry.resources),
         "assistant",
@@ -1453,7 +1453,7 @@ export async function teleport(): Promise<void> {
   // Post-hatch same-environment safety net — uses resolved clouds in case
   // the resolved target cloud differs from the CLI flag (e.g., --docker
   // targeting a name that is actually a local entry).
-  const normalizedTargetEnv = toCloud === "vellum" ? "platform" : toCloud;
+  const normalizedTargetEnv = toCloud === "max" ? "platform" : toCloud;
   if (normalizedSourceEnv === normalizedTargetEnv) {
     console.error(
       `Cannot teleport between two ${normalizedTargetEnv} assistants. Teleport transfers data across different environments.`,
@@ -1465,7 +1465,7 @@ export async function teleport(): Promise<void> {
   // hatch because the assistant doesn't exist yet before. If it fails, clean
   // up the freshly hatched assistant to avoid orphans.
   // Skip if the pre-hatch guard already ran for an existing target.
-  if (!versionGuardPassed && fromCloud === "vellum" && toCloud !== "vellum") {
+  if (!versionGuardPassed && fromCloud === "max" && toCloud !== "max") {
     const [sourceVersion, targetVersion] = await Promise.all([
       fetchCurrentVersion(fromEntry.runtimeUrl),
       fetchCurrentVersion(toEntry.runtimeUrl),
@@ -1507,9 +1507,9 @@ export async function teleport(): Promise<void> {
   );
 
   // After successful import, inject fresh platform credentials if the
-  // user is logged in — replaces the source's stale vellum:* credentials
+  // user is logged in — replaces the source's stale max:* credentials
   // that were filtered during import.
-  if (fromCloud === "vellum") {
+  if (fromCloud === "max") {
     await tryInjectPlatformCredentials(toEntry);
   }
 

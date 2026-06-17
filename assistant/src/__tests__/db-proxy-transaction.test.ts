@@ -5,7 +5,7 @@
  * exception or `requireChanges` violation rolls the entire batch back.
  *
  * Uses the real DB (via `initializeDb()`); the test preload points
- * `VELLUM_WORKSPACE_DIR` at a per-file temp dir.
+ * `MAX_WORKSPACE_DIR` at a per-file temp dir.
  */
 
 import { beforeEach, describe, expect, test } from "bun:test";

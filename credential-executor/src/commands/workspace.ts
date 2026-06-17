@@ -196,7 +196,10 @@ export function validateContainedPath(
       const ancestor = dirname(current);
       const tail = resolvedPath.slice(ancestor.length);
       try {
-        normalizedPath = realpathSync(ancestor) + tail;
+        // resolve() collapses any "." / ".." in the non-existent tail so a
+        // traversal like "<root>/../other" can't spuriously startsWith the
+        // root prefix (the existing ancestor is already symlink-resolved).
+        normalizedPath = resolve(realpathSync(ancestor) + tail);
         resolved = true;
       } catch {
         if (ancestor === current) {

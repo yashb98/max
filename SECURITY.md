@@ -2,9 +2,9 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Vellum Assistant, please report it responsibly. **Do not open a public GitHub issue.**
+If you discover a security vulnerability in Max Assistant, please report it responsibly. **Do not open a public GitHub issue.**
 
-Email **security@vellum.ai** with:
+Email **security@max.ai** with:
 - A description of the vulnerability
 - Steps to reproduce
 - The potential impact
@@ -26,4 +26,4 @@ For Socket.dev supply-chain controls and autofix operations, see [docs/socket.md
 
 ## Security Model
 
-For details on Vellum Assistant's security architecture — including sandboxing, credential storage, permission modes, and trust rules — see the [Security Architecture documentation](assistant/docs/architecture/security.md).
+For details on Max Assistant's security architecture — including sandboxing, credential storage, permission modes, and trust rules — see the [Security Architecture documentation](assistant/docs/architecture/security.md).

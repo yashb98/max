@@ -33,7 +33,7 @@ export interface CatalogSkill {
   updatedAt?: string;
   metadata?: {
     emoji?: string;
-    vellum?: {
+    max?: {
       "display-name"?: string;
       "activation-hints"?: string[];
       "avoid-when"?: string[];
@@ -55,7 +55,7 @@ function getSkillsIndexPath(): string {
 
 /**
  * Resolve the directory containing a `catalog.json` and first-party skill
- * sources — either bundled next to a compiled binary (e.g. `Vellum.app`) or
+ * sources — either bundled next to a compiled binary (e.g. `Max.app`) or
  * in the dev repo.
  *
  * Both `getCatalog()` in `catalog-cache.ts` and `resolveCatalog()` below
@@ -86,7 +86,7 @@ export function getRepoSkillsDir(): string | undefined {
     return undefined;
   }
 
-  if (!process.env.VELLUM_DEV) return undefined;
+  if (!process.env.MAX_DEV) return undefined;
 
   // assistant/src/skills/catalog-install.ts -> ../../../skills/
   const candidate = join(importDir, "..", "..", "..", "skills");
@@ -323,7 +323,7 @@ export async function installSkillLocally(
 
   // Write install metadata
   writeInstallMeta(skillDir, {
-    origin: "vellum",
+    origin: "max",
     installedAt: new Date().toISOString(),
     ...(catalogEntry.version ? { version: catalogEntry.version } : {}),
     ...(contactId ? { installedBy: contactId } : {}),

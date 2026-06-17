@@ -588,7 +588,7 @@ export async function executeWebFetch(
       "Accept-Encoding": "identity",
       "User-Agent":
         process.env.HTTP_USER_AGENT ||
-        "VellumAssistant/1.0 (+https://vellum.ai)",
+        "MaxAssistant/1.0 (+https://max.ai)",
     };
 
     let currentUrl = new URL(requestedUrl);

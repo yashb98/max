@@ -3,7 +3,7 @@ name: skill-management
 description: Create and delete custom managed skills
 metadata:
   emoji: "\U0001F9E9"
-  vellum:
+  max:
     display-name: "Skill Management"
     activation-hints:
       - "User wants to scaffold a new managed skill in their workspace from a description"

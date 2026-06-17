@@ -99,8 +99,8 @@ mock.module("../daemon/process-message.js", () => ({
   processMessageInBackground: mock(() =>
     Promise.resolve({ messageId: "msg-bg" }),
   ),
-  resolveTurnChannel: () => "vellum",
-  resolveTurnInterface: () => "vellum",
+  resolveTurnChannel: () => "max",
+  resolveTurnInterface: () => "max",
 }));
 
 const createdConversations: Array<{ conversationType: string }> = [];

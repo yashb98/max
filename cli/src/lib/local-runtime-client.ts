@@ -44,10 +44,10 @@ function bearerHeaders(token: string): Record<string, string> {
 /**
  * Build the auth + content headers for a runtime migration request.
  *
- * - For `cloud === "vellum"` we go through the platform's wildcard runtime
+ * - For `cloud === "max"` we go through the platform's wildcard runtime
  *   proxy, which authenticates user-session / vak_ tokens via DRF's default
  *   authentication classes — `authHeaders()` produces the right combination
- *   (`X-Session-Token` + `Vellum-Organization-Id`, or `Authorization: Bearer
+ *   (`X-Session-Token` + `Max-Organization-Id`, or `Authorization: Bearer
  *   vak_...`).
  * - For local/docker the runtime endpoint expects a guardian-token bearer.
  */
@@ -55,7 +55,7 @@ async function migrationRequestHeaders(
   entry: Pick<AssistantEntry, "cloud" | "runtimeUrl">,
   token: string,
 ): Promise<Record<string, string>> {
-  if (entry.cloud === "vellum") {
+  if (entry.cloud === "max") {
     return {
       ...(await authHeaders(token, entry.runtimeUrl)),
       Accept: "application/json",
@@ -103,7 +103,7 @@ async function throwIfInProgress(
  *
  * For local/docker assistants this POSTs to
  * `{runtimeUrl}/v1/migrations/export-to-gcs` with guardian-token bearer
- * auth. For platform-managed (cloud="vellum") assistants the URL is rewritten
+ * auth. For platform-managed (cloud="max") assistants the URL is rewritten
  * to the wildcard-runtime-proxy shape
  * `{platformUrl}/v1/assistants/<assistantId>/migrations/export-to-gcs` and
  * authenticated via the platform-token header set the platform's DRF auth
@@ -155,7 +155,7 @@ export async function localRuntimeExportToGcs(
  *
  * For local/docker assistants this POSTs to
  * `{runtimeUrl}/v1/migrations/import-from-gcs` with guardian-token bearer
- * auth. For platform-managed (cloud="vellum") assistants the URL is rewritten
+ * auth. For platform-managed (cloud="max") assistants the URL is rewritten
  * to the wildcard-runtime-proxy shape
  * `{platformUrl}/v1/assistants/<assistantId>/migrations/import-from-gcs` and
  * authenticated via the platform token. On 409 throws
@@ -245,7 +245,7 @@ export interface RuntimeIdentity {
 
 /**
  * Fetch the target runtime's APP_VERSION via `/v1/health`. Used by
- * `vellum teleport` and `vellum backup` to stamp the exported bundle's
+ * `max teleport` and `max backup` to stamp the exported bundle's
  * `min_runtime_version` with the version of the runtime that actually
  * produced it — which can diverge from the orchestrating CLI's version when
  * the target was upgraded independently.
@@ -258,19 +258,19 @@ export interface RuntimeIdentity {
  * (no filesystem reads), so it's safe to call against any running runtime.
  *
  * For local/docker assistants this GETs `{runtimeUrl}/v1/health` with
- * guardian-token bearer auth. For platform-managed (cloud="vellum")
+ * guardian-token bearer auth. For platform-managed (cloud="max")
  * assistants the URL is rewritten to the wildcard runtime proxy shape
  * `{platformUrl}/v1/assistants/<assistantId>/health` and authenticated via
  * the platform token.
  *
- * For the vellum target this is the FIRST network call in the
- * teleport/backup export flow, so a stale `Vellum-Organization-Id` cache
+ * For the max target this is the FIRST network call in the
+ * teleport/backup export flow, so a stale `Max-Organization-Id` cache
  * entry would surface as a hard abort before any retry-friendly call (like
  * `platformRequestSignedUrl`) gets a chance to recover. Mirror that helper's
  * one-shot 401-retry: invalidate the org-ID cache and retry once. Local /
  * docker entries do not use the org-ID cache and are wrapped in
  * `callRuntimeWithAuthRetry` by callers for guardian-token refresh, so the
- * retry is intentionally vellum-only.
+ * retry is intentionally max-only.
  *
  * The function name is intentionally retained ("identity-ish info about the
  * runtime") even though the implementation now hits `/v1/health` — renaming
@@ -291,8 +291,8 @@ export async function localRuntimeIdentity(
     });
 
   let response = await doRequest();
-  if (response.status === 401 && entry.cloud === "vellum") {
-    // `entry.runtimeUrl` is the platform host for vellum-cloud entries
+  if (response.status === 401 && entry.cloud === "max") {
+    // `entry.runtimeUrl` is the platform host for max-cloud entries
     // (the wildcard runtime proxy lives there). Pass it as the cache key
     // platformUrl so we invalidate the same entry that authHeaders cached.
     invalidateOrgIdCache(token, entry.runtimeUrl);

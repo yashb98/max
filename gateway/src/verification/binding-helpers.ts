@@ -74,7 +74,7 @@ export async function getMostRecentChannelGuardianTimestamp(
 
 /**
  * Resolve the canonical principal ID for the guardian.
- * Looks up the vellum channel binding's principal; falls back to the provided ID.
+ * Looks up the max channel binding's principal; falls back to the provided ID.
  */
 export async function resolveCanonicalPrincipal(
   fallback: string,
@@ -83,7 +83,7 @@ export async function resolveCanonicalPrincipal(
     `SELECT c.principal_id AS principalId
      FROM contacts c
      JOIN contact_channels cc ON cc.contact_id = c.id
-     WHERE c.role = 'guardian' AND cc.type = 'vellum' AND cc.status = 'active'
+     WHERE c.role = 'guardian' AND cc.type = 'max' AND cc.status = 'active'
      LIMIT 1`,
     [],
   );

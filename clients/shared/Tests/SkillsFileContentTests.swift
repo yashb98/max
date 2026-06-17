@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 // MARK: - Mock URLProtocol for SkillsClient HTTP tests
 

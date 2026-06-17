@@ -54,7 +54,7 @@ export function WelcomeScreen({ onSignIn, onSelfHosted, signingIn, signInError }
           disabled={signingIn}
           className="bg-fg text-bg rounded-lg px-4 py-2.5 text-sm font-medium w-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {signingIn ? 'Signing in...' : 'Sign in with Vellum'}
+          {signingIn ? 'Signing in...' : 'Sign in with Max'}
         </button>
         <button
           type="button"
@@ -73,7 +73,7 @@ export function WelcomeScreen({ onSignIn, onSelfHosted, signingIn, signInError }
       )}
 
       <p className="text-xs text-fg-subtle mt-auto pt-4">
-        &copy; 2026 Vellum Inc.
+        &copy; 2026 Max Inc.
       </p>
     </div>
   );

@@ -66,7 +66,7 @@ function makeContext(): ToolContext {
 }
 
 beforeEach(() => {
-  TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+  TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
   mkdirSync(join(TEST_DIR, "skills"), { recursive: true });
 });
 

@@ -1,14 +1,14 @@
 /**
  * Integration tests confirming both importers preserve the target's
- * `vellum:*` credential metadata entries across a bundle import.
+ * `max:*` credential metadata entries across a bundle import.
  *
  * Covers:
- * - Buffer-based `commitImport`: target has all 4 vellum entries, bundle
- *   carries non-vellum user entries → target retains its vellum entries
+ * - Buffer-based `commitImport`: target has all 4 max entries, bundle
+ *   carries non-max user entries → target retains its max entries
  *   and gains the bundle's user entries.
  * - Streaming `streamCommitImport`: same scenario via the atomic-swap
  *   path.
- * - Bundle with rogue vellum entries → filtered out on both paths.
+ * - Bundle with rogue max entries → filtered out on both paths.
  * - Bundle without a metadata.json entry → target's preserved entries are
  *   restored on the buffer path.
  */
@@ -47,7 +47,7 @@ interface Record {
   updatedAt: number;
 }
 
-const VELLUM_FIELDS = [
+const MAX_FIELDS = [
   "platform_base_url",
   "assistant_api_key",
   "platform_assistant_id",
@@ -71,8 +71,8 @@ function metadataJson(records: Record[]): string {
   return JSON.stringify({ version: 5, credentials: records });
 }
 
-function vellumRecords(prefix = "target"): Record[] {
-  return VELLUM_FIELDS.map((field) => record("vellum", field, prefix));
+function maxRecords(prefix = "target"): Record[] {
+  return MAX_FIELDS.map((field) => record("max", field, prefix));
 }
 
 function readMetadata(path: string): { credentials: Record[] } {
@@ -130,8 +130,8 @@ describe("commitImport — credential metadata merge", () => {
     }
   });
 
-  test("target vellum:* entries survive; bundle user entries land", () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("target max:* entries survive; bundle user entries land", () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
 
     const bundleMetadata = metadataJson([
       record("telegram", "bot_token", "source"),
@@ -162,25 +162,25 @@ describe("commitImport — credential metadata merge", () => {
     expect(result.ok).toBe(true);
     const merged = readMetadata(metadataPath);
     const mergedKeys = keys(merged.credentials);
-    for (const field of VELLUM_FIELDS) {
-      expect(mergedKeys.has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(mergedKeys.has(`max:${field}`)).toBe(true);
     }
     expect(mergedKeys.has("telegram:bot_token")).toBe(true);
     expect(mergedKeys.has("slack_channel:app_token")).toBe(true);
 
-    // Preserved vellum entries must carry target's credentialIds.
+    // Preserved max entries must carry target's credentialIds.
     for (const r of merged.credentials) {
-      if (r.service === "vellum") {
+      if (r.service === "max") {
         expect(r.credentialId.startsWith("target-")).toBe(true);
       }
     }
   });
 
-  test("rogue vellum entries in the bundle are dropped", () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("rogue max entries in the bundle are dropped", () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
     const bundleMetadata = metadataJson([
-      record("vellum", "assistant_api_key", "source-rogue"),
-      record("vellum", "platform_base_url", "source-rogue"),
+      record("max", "assistant_api_key", "source-rogue"),
+      record("max", "platform_base_url", "source-rogue"),
       record("telegram", "bot_token", "source"),
     ]);
     const { archive } = buildVBundle({
@@ -206,16 +206,16 @@ describe("commitImport — credential metadata merge", () => {
     expect(result.ok).toBe(true);
 
     const merged = readMetadata(metadataPath);
-    const vellum = merged.credentials.filter((r) => r.service === "vellum");
-    expect(vellum.length).toBe(4);
-    for (const r of vellum) {
+    const max = merged.credentials.filter((r) => r.service === "max");
+    expect(max.length).toBe(4);
+    for (const r of max) {
       expect(r.credentialId.startsWith("target-")).toBe(true);
     }
     expect(keys(merged.credentials).has("telegram:bot_token")).toBe(true);
   });
 
-  test("bundle without metadata.json still leaves target's vellum entries on disk", () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("bundle without metadata.json still leaves target's max entries on disk", () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
 
     const { archive } = buildVBundle({
       files: [
@@ -235,8 +235,8 @@ describe("commitImport — credential metadata merge", () => {
     expect(existsSync(metadataPath)).toBe(true);
     const merged = readMetadata(metadataPath);
     const mergedKeys = keys(merged.credentials);
-    for (const field of VELLUM_FIELDS) {
-      expect(mergedKeys.has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(mergedKeys.has(`max:${field}`)).toBe(true);
     }
   });
 
@@ -291,8 +291,8 @@ describe("streamCommitImport — credential metadata merge", () => {
     }
   });
 
-  test("target vellum:* entries survive atomic swap; bundle user entries land", async () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("target max:* entries survive atomic swap; bundle user entries land", async () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
 
     const bundleMetadata = metadataJson([
       record("telegram", "bot_token", "source"),
@@ -322,21 +322,21 @@ describe("streamCommitImport — credential metadata merge", () => {
 
     const merged = readMetadata(metadataPath);
     const mergedKeys = keys(merged.credentials);
-    for (const field of VELLUM_FIELDS) {
-      expect(mergedKeys.has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(mergedKeys.has(`max:${field}`)).toBe(true);
     }
     expect(mergedKeys.has("telegram:bot_token")).toBe(true);
     for (const r of merged.credentials) {
-      if (r.service === "vellum") {
+      if (r.service === "max") {
         expect(r.credentialId.startsWith("target-")).toBe(true);
       }
     }
   });
 
-  test("rogue vellum entries in bundle are dropped on streaming path", async () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("rogue max entries in bundle are dropped on streaming path", async () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
     const bundleMetadata = metadataJson([
-      record("vellum", "assistant_api_key", "source-rogue"),
+      record("max", "assistant_api_key", "source-rogue"),
       record("telegram", "bot_token", "source"),
     ]);
     const { archive } = buildVBundle({
@@ -363,15 +363,15 @@ describe("streamCommitImport — credential metadata merge", () => {
 
     const merged = readMetadata(metadataPath);
     for (const r of merged.credentials) {
-      if (r.service === "vellum") {
+      if (r.service === "max") {
         expect(r.credentialId.startsWith("target-")).toBe(true);
       }
     }
     expect(keys(merged.credentials).has("telegram:bot_token")).toBe(true);
   });
 
-  test("bundle without metadata.json keeps target's vellum entries after swap", async () => {
-    const metadataPath = seedTargetMetadata(workspaceDir, vellumRecords());
+  test("bundle without metadata.json keeps target's max entries after swap", async () => {
+    const metadataPath = seedTargetMetadata(workspaceDir, maxRecords());
 
     const { archive } = buildVBundle({
       files: [
@@ -391,8 +391,8 @@ describe("streamCommitImport — credential metadata merge", () => {
     expect(existsSync(metadataPath)).toBe(true);
     const merged = readMetadata(metadataPath);
     const mergedKeys = keys(merged.credentials);
-    for (const field of VELLUM_FIELDS) {
-      expect(mergedKeys.has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(mergedKeys.has(`max:${field}`)).toBe(true);
     }
   });
 

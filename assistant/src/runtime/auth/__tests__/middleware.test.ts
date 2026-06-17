@@ -58,7 +58,7 @@ function mintValidToken(overrides?: {
     ttl = overrides.exp - now;
   }
   return mintToken({
-    aud: overrides?.aud ?? "vellum-daemon",
+    aud: overrides?.aud ?? "max-daemon",
     sub: overrides?.sub ?? "actor:self:principal-test",
     scope_profile: overrides?.scope_profile ?? "actor_client_v1",
     policy_epoch: overrides?.policy_epoch ?? 1,
@@ -234,8 +234,8 @@ describe("authenticateRequest", () => {
   });
 
   test("rejects token with wrong audience", () => {
-    // Mint a token with an unrecognized audience (neither vellum-daemon nor vellum-gateway)
-    const token = mintValidToken({ aud: "vellum-other" as TokenAudience });
+    // Mint a token with an unrecognized audience (neither max-daemon nor max-gateway)
+    const token = mintValidToken({ aud: "max-other" as TokenAudience });
 
     const req = new Request("http://localhost/v1/messages", {
       method: "POST",

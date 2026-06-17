@@ -39,9 +39,9 @@ describe("AssistantEventHub — machineName", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "client-with-name-001",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-machine-name": "alice-mbp.local",
+          "x-max-client-id": "client-with-name-001",
+          "x-max-interface-id": "macos",
+          "x-max-machine-name": "alice-mbp.local",
         },
         abortSignal: ac.signal,
       },
@@ -63,8 +63,8 @@ describe("AssistantEventHub — machineName", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "client-without-name-001",
-          "x-vellum-interface-id": "macos",
+          "x-max-client-id": "client-without-name-001",
+          "x-max-interface-id": "macos",
         },
         abortSignal: ac.signal,
       },
@@ -88,9 +88,9 @@ describe("AssistantEventHub — machineName", () => {
     handleSubscribeAssistantEvents(
       {
         headers: {
-          "x-vellum-client-id": "client-with-trimmed-name-001",
-          "x-vellum-interface-id": "macos",
-          "x-vellum-machine-name": "  bob-mbp.local  ",
+          "x-max-client-id": "client-with-trimmed-name-001",
+          "x-max-interface-id": "macos",
+          "x-max-machine-name": "  bob-mbp.local  ",
         },
         abortSignal: ac.signal,
       },

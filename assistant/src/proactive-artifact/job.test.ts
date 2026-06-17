@@ -213,7 +213,7 @@ mock.module("./trigger-state.js", () => ({
 // Trust context mock
 mock.module("../daemon/trust-context.js", () => ({
   INTERNAL_GUARDIAN_TRUST_CONTEXT: {
-    sourceChannel: "vellum",
+    sourceChannel: "max",
     trustClass: "guardian",
   },
 }));
@@ -444,7 +444,7 @@ describe("runProactiveArtifactJob", () => {
       const pmOpts = processMessageCalls[0].options as Record<string, unknown>;
       expect(pmOpts.callSite).toBe("proactiveArtifactBuild");
       expect(pmOpts.trustContext).toEqual({
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "guardian",
       });
 
@@ -474,7 +474,7 @@ describe("runProactiveArtifactJob", () => {
       // Notification emitted
       expect(emitSignalCalls).toHaveLength(1);
       expect(emitSignalCalls[0].sourceEventName).toBe("activity.complete");
-      expect(emitSignalCalls[0].sourceChannel).toBe("vellum");
+      expect(emitSignalCalls[0].sourceChannel).toBe("max");
       expect(emitSignalCalls[0].dedupeKey).toBe("proactive-artifact");
       const hints = emitSignalCalls[0].attentionHints as Record<
         string,

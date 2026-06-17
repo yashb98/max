@@ -1545,9 +1545,9 @@ describe('createHostBrowserDispatcher', () => {
     });
   });
 
-  // ── Synthetic Vellum.attach ──────────────────────────────────────
+  // ── Synthetic Max.attach ──────────────────────────────────────
 
-  describe('Vellum.attach — synthetic attach command', () => {
+  describe('Max.attach — synthetic attach command', () => {
     test('attaches and posts success without issuing proxy.send', async () => {
       harness = createHarness();
 
@@ -1555,7 +1555,7 @@ describe('createHostBrowserDispatcher', () => {
         type: 'host_browser_request',
         requestId: 'attach-1',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.attach',
+        cdpMethod: 'Max.attach',
       };
 
       await harness.dispatcher.handle(attachRequest);
@@ -1564,7 +1564,7 @@ describe('createHostBrowserDispatcher', () => {
       expect(harness.proxy.attachCalls.length).toBe(1);
       expect(harness.proxy.attachCalls[0].target).toEqual({ tabId: 42 });
 
-      // proxy.send was NOT called — Vellum.attach is synthetic.
+      // proxy.send was NOT called — Max.attach is synthetic.
       expect(harness.proxy.sendCalls.length).toBe(0);
 
       // A success result was posted.
@@ -1576,14 +1576,14 @@ describe('createHostBrowserDispatcher', () => {
       expect(payload.target).toEqual({ tabId: 42 });
     });
 
-    test('deduplicates — second Vellum.attach skips proxy.attach', async () => {
+    test('deduplicates — second Max.attach skips proxy.attach', async () => {
       harness = createHarness();
 
       const attachRequest: HostBrowserRequestEnvelope = {
         type: 'host_browser_request',
         requestId: 'attach-1',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.attach',
+        cdpMethod: 'Max.attach',
       };
 
       await harness.dispatcher.handle(attachRequest);
@@ -1606,7 +1606,7 @@ describe('createHostBrowserDispatcher', () => {
         type: 'host_browser_request',
         requestId: 'attach-1',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.attach',
+        cdpMethod: 'Max.attach',
       };
 
       await harness.dispatcher.handle(attachRequest);
@@ -1618,9 +1618,9 @@ describe('createHostBrowserDispatcher', () => {
     });
   });
 
-  // ── Synthetic Vellum.detach ──────────────────────────────────────
+  // ── Synthetic Max.detach ──────────────────────────────────────
 
-  describe('Vellum.detach — synthetic detach command', () => {
+  describe('Max.detach — synthetic detach command', () => {
     test('detaches, evicts cache, and allows a subsequent normal request to reattach', async () => {
       harness = createHarness({
         sendResult: { id: 1, result: { ok: true } },
@@ -1635,7 +1635,7 @@ describe('createHostBrowserDispatcher', () => {
         type: 'host_browser_request',
         requestId: 'detach-1',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.detach',
+        cdpMethod: 'Max.detach',
       };
 
       await harness.dispatcher.handle(detachRequest);
@@ -1670,7 +1670,7 @@ describe('createHostBrowserDispatcher', () => {
         type: 'host_browser_request',
         requestId: 'detach-1',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.detach',
+        cdpMethod: 'Max.detach',
       };
 
       // First detach — actually calls proxy.detach.
@@ -1696,7 +1696,7 @@ describe('createHostBrowserDispatcher', () => {
         type: 'host_browser_request',
         requestId: 'detach-cold',
         conversationId: 'conv-1',
-        cdpMethod: 'Vellum.detach',
+        cdpMethod: 'Max.detach',
       };
 
       await harness.dispatcher.handle(detachRequest);

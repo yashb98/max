@@ -93,7 +93,7 @@ function runtimeConfig(overrides?: Partial<TransportConfig>): TransportConfig {
 
 function managedConfig(overrides?: Partial<TransportConfig>): TransportConfig {
   return {
-    baseURL: "https://platform.vellum.ai",
+    baseURL: "https://platform.max.ai",
     target: "managed",
     authHeader: "test-session-token",
     fetchFn: mockFetch(200, {}),
@@ -596,7 +596,7 @@ describe("executeTransferStep", () => {
       files: [
         {
           path: "data/db/assistant.db",
-          disk_path: "/home/.vellum/data/db/assistant.db",
+          disk_path: "/home/.max/data/db/assistant.db",
           action: "created",
           size: 64,
           sha256: "xyz",

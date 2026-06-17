@@ -2,7 +2,7 @@
  * Stable per-install client identity for the CLI.
  *
  * Generates a UUID on first use and persists it to
- * `~/.config/vellum/client-id` so the daemon's event hub can
+ * `~/.config/max/client-id` so the daemon's event hub can
  * track this terminal across SSE reconnects and CLI restarts.
  */
 
@@ -18,12 +18,12 @@ let cached: string | null = null;
 
 function getConfigDir(): string {
   const configHome = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
-  return join(configHome, "vellum");
+  return join(configHome, "max");
 }
 
 /**
  * Returns a stable UUID identifying this CLI installation.
- * Generated once and persisted to `~/.config/vellum/client-id`.
+ * Generated once and persisted to `~/.config/max/client-id`.
  */
 export function getClientId(): string {
   if (cached) return cached;
@@ -66,7 +66,7 @@ export function getClientRegistrationHeaders(
   interfaceId: string = CLI_INTERFACE_ID,
 ): Record<string, string> {
   return {
-    "X-Vellum-Client-Id": getClientId(),
-    "X-Vellum-Interface-Id": interfaceId,
+    "X-Max-Client-Id": getClientId(),
+    "X-Max-Interface-Id": interfaceId,
   };
 }

@@ -39,7 +39,7 @@ const log = getLogger("skills");
 
 // ─── Zod schemas for frontmatter metadata validation ─────────────────────────
 
-const VellumMetadataSchema = z
+const MaxMetadataSchema = z
   .object({
     emoji: z.string().optional(),
     "display-name": z.string().optional(),
@@ -53,7 +53,7 @@ const VellumMetadataSchema = z
 const SkillMetadataSchema = z
   .object({
     emoji: z.string().optional(),
-    vellum: VellumMetadataSchema.optional(),
+    max: MaxMetadataSchema.optional(),
   })
   .passthrough();
 
@@ -61,7 +61,7 @@ const SkillMetadataSchema = z
  * Origin of a skill in the merged catalog.
  *
  * - `bundled`: ships inside the assistant binary under `bundled-skills/`.
- * - `managed`: installed into `~/.vellum/workspace/skills/` from our catalog.
+ * - `managed`: installed into `~/.max/workspace/skills/` from our catalog.
  * - `workspace`: user-authored skill living in a conversation's working dir.
  * - `extra`: third-party directory roots passed via `loadSkillCatalog`'s
  *   `extraDirs` argument (primarily for tests).
@@ -259,7 +259,7 @@ function parseFrontmatter(
   // metadata is already a parsed object from YAML — validate with Zod schema
   let emoji: string | undefined;
   let parsedMeta: z.infer<typeof SkillMetadataSchema> | undefined;
-  let vellum: z.infer<typeof VellumMetadataSchema> | undefined;
+  let max: z.infer<typeof MaxMetadataSchema> | undefined;
 
   const metadataRaw = fields.metadata;
   if (metadataRaw != null) {
@@ -274,8 +274,8 @@ function parseFrontmatter(
       const zodResult = SkillMetadataSchema.safeParse(metadataRaw);
       if (zodResult.success) {
         parsedMeta = zodResult.data;
-        vellum = parsedMeta.vellum;
-        emoji = vellum?.emoji ?? parsedMeta.emoji;
+        max = parsedMeta.max;
+        emoji = max?.emoji ?? parsedMeta.emoji;
       } else {
         // Zod validation failed — fall back to raw parsed object so we don't
         // lose all metadata because of a single bad field value.  We coerce
@@ -287,9 +287,9 @@ function parseFrontmatter(
         );
         const raw = metadataRaw as Record<string, unknown>;
         parsedMeta = raw as z.infer<typeof SkillMetadataSchema>;
-        vellum = raw?.vellum as z.infer<typeof VellumMetadataSchema>;
-        if (vellum && typeof vellum === "object") {
-          emoji = typeof vellum.emoji === "string" ? vellum.emoji : undefined;
+        max = raw?.max as z.infer<typeof MaxMetadataSchema>;
+        if (max && typeof max === "object") {
+          emoji = typeof max.emoji === "string" ? max.emoji : undefined;
         }
         if (!emoji && typeof parsedMeta?.emoji === "string") {
           emoji = parsedMeta.emoji;
@@ -299,10 +299,10 @@ function parseFrontmatter(
   }
 
   let includes: string[] | undefined;
-  if (Array.isArray(vellum?.includes)) {
+  if (Array.isArray(max?.includes)) {
     const normalized = [
       ...new Set(
-        vellum.includes
+        max.includes
           .filter((item: unknown): item is string => typeof item === "string")
           .map((s: string) => s.trim())
           .filter((s: string) => s.length > 0),
@@ -312,17 +312,17 @@ function parseFrontmatter(
   }
 
   const featureFlag =
-    typeof vellum?.["feature-flag"] === "string"
-      ? vellum["feature-flag"]
+    typeof max?.["feature-flag"] === "string"
+      ? max["feature-flag"]
       : undefined;
 
   const displayName =
-    (typeof vellum?.["display-name"] === "string"
-      ? vellum["display-name"]
+    (typeof max?.["display-name"] === "string"
+      ? max["display-name"]
       : undefined) ?? name;
 
-  const activationHints = normalizeStringArray(vellum?.["activation-hints"]);
-  const avoidWhen = normalizeStringArray(vellum?.["avoid-when"]);
+  const activationHints = normalizeStringArray(max?.["activation-hints"]);
+  const avoidWhen = normalizeStringArray(max?.["avoid-when"]);
 
   const strippedBody = stripCommentLines(body);
 
@@ -459,7 +459,7 @@ function readSkillFromDirectory(
     if (isOutsideSkillsRoot(skillsDir, directoryPath)) {
       log.warn(
         { directoryPath },
-        "Skipping skill directory that resolves outside ~/.vellum/workspace/skills",
+        "Skipping skill directory that resolves outside ~/.max/workspace/skills",
       );
       return null;
     }
@@ -476,7 +476,7 @@ function readSkillFromDirectory(
     if (isOutsideSkillsRoot(skillsDir, skillFilePath)) {
       log.warn(
         { skillFilePath },
-        "Skipping SKILL.md that resolves outside ~/.vellum/workspace/skills",
+        "Skipping SKILL.md that resolves outside ~/.max/workspace/skills",
       );
       return null;
     }
@@ -666,7 +666,7 @@ function resolveIndexEntryToDirectory(
   if (isOutsideSkillsRoot(skillsDir, resolvedDirectory)) {
     log.warn(
       { entry, resolvedDirectory: getCanonicalPath(resolvedDirectory) },
-      "Skipping SKILLS.md entry that resolves outside ~/.vellum/workspace/skills",
+      "Skipping SKILLS.md entry that resolves outside ~/.max/workspace/skills",
     );
     return null;
   }
@@ -837,7 +837,7 @@ export function loadSkillCatalog(
   // Load plugin-contributed skills. They sit above bundled/extra but below
   // managed and workspace so that user-authored filesystem skills can
   // override a plugin-provided skill by declaring the same id under
-  // `~/.vellum/workspace/skills/`. Registration is owned by the plugin
+  // `~/.max/workspace/skills/`. Registration is owned by the plugin
   // bootstrap — this call is a pure read against the in-memory registry.
   const pluginSkills = getPluginContributedSkillSummaries();
   for (const skill of pluginSkills) {
@@ -1105,7 +1105,7 @@ function loadSkillDefinition(skill: SkillSummary): SkillLookupResult {
   if (skill.bundled) {
     loaded = readBundledSkillFromDirectory(skill.directoryPath);
   } else if (skill.source === "workspace") {
-    // Workspace skills live outside ~/.vellum/workspace/skills, so use their parent
+    // Workspace skills live outside ~/.max/workspace/skills, so use their parent
     // directory as the root to avoid the isOutsideSkillsRoot rejection.
     loaded = readSkillFromDirectory(
       skill.directoryPath,

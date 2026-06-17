@@ -1,7 +1,7 @@
 /**
  * HTTP client for CES credential CRUD endpoints.
  *
- * Delegates to `@vellumai/ces-client/http-credentials` for the actual
+ * Delegates to `@maxai/ces-client/http-credentials` for the actual
  * HTTP transport and adapts its interface to the assistant's internal
  * `CredentialBackend` contract used by `secure-keys.ts`.
  *
@@ -16,7 +16,7 @@
 import {
   type CesHttpCredentialClient,
   createCesHttpCredentialClient,
-} from "@vellumai/ces-client/http-credentials";
+} from "@maxai/ces-client/http-credentials";
 
 import { getLogger } from "../util/logger.js";
 import type {

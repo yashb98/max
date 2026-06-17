@@ -1,10 +1,10 @@
 ---
 name: public-ingress
 description: Set up and manage ngrok-based public ingress for local assistants; do not use this in managed mode when platform callback routing is available
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🌍"
-  vellum:
+  max:
     display-name: "Public Ingress"
     activation-hints:
       - "Local assistant needs a public webhook or OAuth callback URL"
@@ -13,13 +13,13 @@ metadata:
       - "Running in a platform-managed assistant with platform callback routing available"
 ---
 
-You are setting up and managing a public ingress tunnel so that external services (Telegram webhooks, OAuth callbacks, etc.) can reach the local Vellum gateway. This skill uses ngrok to create a secure tunnel and persists the public URL as `ingress.publicBaseUrl`.
+You are setting up and managing a public ingress tunnel so that external services (Telegram webhooks, OAuth callbacks, etc.) can reach the local Max gateway. This skill uses ngrok to create a secure tunnel and persists the public URL as `ingress.publicBaseUrl`.
 
 If managed platform callback routing is available, stop and do not continue with ngrok. In platform-managed deployments, Telegram/Twilio/OAuth callback routing should use the platform callback route flow instead of local public ingress.
 
 ## Overview
 
-The Vellum gateway listens locally and needs a publicly reachable URL for:
+The Max gateway listens locally and needs a publicly reachable URL for:
 
 - Telegram webhook delivery
 - Google/Slack OAuth redirect callbacks

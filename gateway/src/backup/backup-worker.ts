@@ -74,7 +74,7 @@ function defaultOffsiteDestinations(): BackupDestination[] {
         "Library",
         "Mobile Documents",
         "com~apple~CloudDocs",
-        "VellumAssistant",
+        "MaxAssistant",
         "backups",
       ),
       encrypt: true,
@@ -217,7 +217,7 @@ async function performBackup(
   }
 
   // Stream the response body to a temp file
-  const tempPath = join(tmpdir(), `vellum-backup-${randomUUID()}.vbundle`);
+  const tempPath = join(tmpdir(), `max-backup-${randomUUID()}.vbundle`);
   try {
     const readableBody = response.body;
     if (!readableBody) {

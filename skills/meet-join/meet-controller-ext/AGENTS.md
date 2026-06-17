@@ -1,7 +1,7 @@
 # meet-controller-ext — Agent Instructions
 
 Chrome extension (Manifest V3) that controls Google Meet on behalf of the
-Vellum meet-bot. It runs inside google-chrome-stable, which the bot spawns
+Max meet-bot. It runs inside google-chrome-stable, which the bot spawns
 as a plain subprocess with `--load-extension=/app/ext` pointed at this
 package's `dist/` output. The bot does NOT use CDP or any CDP-based
 automation library — Meet's BotGuard rejects CDP-attached joiners, so all

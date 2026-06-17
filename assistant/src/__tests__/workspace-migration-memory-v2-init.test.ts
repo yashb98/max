@@ -32,7 +32,7 @@ import { memoryV2InitMigration } from "../workspace/migrations/060-memory-v2-ini
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-migration-060-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-migration-060-test-"));
 });
 
 afterEach(() => {

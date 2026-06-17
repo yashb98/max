@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * @vellumai/credential-executor
+ * @maxai/credential-executor
  *
  * Credential Execution Service (CES) — an isolated runtime that executes
  * credential-bearing tool operations on behalf of untrusted agents. The CES

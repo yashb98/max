@@ -1,5 +1,5 @@
 /**
- * `assistant platform` — manage Vellum Platform integration.
+ * `assistant platform` — manage Max Platform integration.
  *
  * Thin IPC wrapper that delegates all platform operations to the daemon.
  */
@@ -29,14 +29,14 @@ export function registerPlatformCommand(program: Command): void {
   registerCommand(program, {
     name: "platform",
     transport: "ipc",
-    description: "Manage Vellum Platform integration",
+    description: "Manage Max Platform integration",
     build: (platform) => {
       platform.option("--json", "Machine-readable compact JSON output");
 
       platform.addHelpText(
         "after",
         `
-The platform subsystem manages the connection to Vellum Platform. Use
+The platform subsystem manages the connection to Max Platform. Use
 'connect', 'status', and 'disconnect' to manage platform credentials.
 Any assistant using the managed LLM proxy can use these commands.
 
@@ -75,7 +75,7 @@ the current platform deployment context and connection state.
 
 Fields:
   isPlatform          Whether IS_PLATFORM is set (boolean)
-  baseUrl             VELLUM_PLATFORM_URL — the platform gateway base URL
+  baseUrl             MAX_PLATFORM_URL — the platform gateway base URL
   assistantId         This assistant's platform UUID
   hasAssistantApiKey  Whether a stored assistant API key is available
   hasWebhookSecret    Whether a stored webhook secret is available (needed
@@ -194,7 +194,7 @@ Known callback path/type combinations:
   --path oauth/callback             --type oauth
 
 Works for both platform-managed and self-hosted assistants. Requires
-VELLUM_PLATFORM_URL and a platform assistant ID. Returns the platform-provided
+MAX_PLATFORM_URL and a platform assistant ID. Returns the platform-provided
 stable callback URL that external services should use.
 
 Examples:
@@ -232,7 +232,7 @@ Lists all callback routes registered with the platform for this assistant.
 Shows the route type, callback URL, and path for each registered webhook.
 
 Requires platform credentials (run 'assistant platform connect' first or
-ensure IS_PLATFORM and VELLUM_PLATFORM_URL are set and credentials are stored).
+ensure IS_PLATFORM and MAX_PLATFORM_URL are set and credentials are stored).
 
 Examples:
   $ assistant platform callback-routes list

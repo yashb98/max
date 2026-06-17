@@ -1,7 +1,7 @@
 /**
  * Sensitive output placeholder extraction and substitution.
  *
- * Tool outputs may contain `<vellum-sensitive-output kind="..." value="..." />`
+ * Tool outputs may contain `<max-sensitive-output kind="..." value="..." />`
  * directives. This module:
  * 1. Parses and strips those directives from tool output.
  * 2. Replaces any raw sensitive values remaining in the output with stable,
@@ -29,14 +29,14 @@ export interface SensitiveOutputBinding {
 // ---------------------------------------------------------------------------
 
 const DIRECTIVE_RE =
-  /<vellum-sensitive-output\s+kind="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
+  /<max-sensitive-output\s+kind="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
 
 // ---------------------------------------------------------------------------
 // Placeholder generation
 // ---------------------------------------------------------------------------
 
 const KIND_PREFIX: Record<SensitiveOutputKind, string> = {
-  invite_code: "VELLUM_ASSISTANT_INVITE_CODE_",
+  invite_code: "MAX_ASSISTANT_INVITE_CODE_",
 };
 
 const VALID_KINDS = new Set<string>(Object.keys(KIND_PREFIX));
@@ -68,7 +68,7 @@ export interface SanitizeResult {
 }
 
 /**
- * Extract `<vellum-sensitive-output>` directives from tool output content,
+ * Extract `<max-sensitive-output>` directives from tool output content,
  * strip them, replace any remaining occurrences of the raw sensitive values
  * with placeholders, and return the bindings for downstream substitution.
  *
@@ -141,7 +141,7 @@ export function applySubstitutions(
 /**
  * Chunk-safe substitution for streaming text deltas.
  *
- * Because a placeholder like `VELLUM_ASSISTANT_INVITE_CODE_AB12CD34` may be
+ * Because a placeholder like `MAX_ASSISTANT_INVITE_CODE_AB12CD34` may be
  * split across consecutive streamed chunks, this function buffers a trailing
  * segment that could be the start of an incomplete placeholder and returns it
  * as `pending`. The caller must prepend `pending` to the next chunk.
@@ -165,8 +165,8 @@ export function applyStreamingSubstitution(
   }
 
   // Check if the tail of resolved text could be an incomplete placeholder prefix.
-  // All current placeholders start with "VELLUM_ASSISTANT_".
-  const PREFIX = "VELLUM_ASSISTANT_";
+  // All current placeholders start with "MAX_ASSISTANT_".
+  const PREFIX = "MAX_ASSISTANT_";
   const minSuffixLen = 1; // At minimum, one char of the prefix
 
   // Walk backwards from the end to find a trailing partial match of any placeholder prefix

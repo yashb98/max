@@ -4,10 +4,10 @@ import { stopProcess } from "../lib/process";
 export async function clean(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum clean");
+    console.log("Usage: max clean");
     console.log("");
     console.log(
-      "Kill all orphaned vellum processes that are not tracked by any assistant.",
+      "Kill all orphaned max processes that are not tracked by any assistant.",
     );
     process.exit(0);
   }

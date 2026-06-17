@@ -820,7 +820,7 @@ describe("twilio webhook routes", () => {
       expect(res.status).toBe(200);
       const twiml = await res.text();
       expect(twiml).toContain(
-        "wss://__VELLUM_PUBLIC_BASE_URL__/webhooks/twilio/relay",
+        "wss://__MAX_PUBLIC_BASE_URL__/webhooks/twilio/relay",
       );
     });
 
@@ -1136,7 +1136,7 @@ describe("twilio webhook routes", () => {
       expect(twiml).not.toContain("transcriptionProvider=");
       // callSessionId is in the URL path, not as a query param
       expect(twiml).toContain(
-        `wss://__VELLUM_PUBLIC_BASE_URL__/webhooks/twilio/media-stream/${session.id}`,
+        `wss://__MAX_PUBLIC_BASE_URL__/webhooks/twilio/media-stream/${session.id}`,
       );
       expect(twiml).not.toContain("?callSessionId=");
     });

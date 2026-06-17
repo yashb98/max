@@ -1,10 +1,10 @@
 ---
 name: acp
 description: Spawn external coding agents via the Agent Client Protocol (ACP)
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔗"
-  vellum:
+  max:
     display-name: "ACP"
     activation-hints:
       - "User wants to delegate a coding task to Claude Code, Codex, or another ACP agent"
@@ -41,7 +41,7 @@ When the user first tries to use ACP and it's not configured, set it up automati
 
 3. **Wait a few seconds** for the config watcher to pick up the change (it hot-reloads automatically - no restart needed).
 
-4. Then retry the `acp_spawn` call. Do NOT run `vellum sleep && vellum wake` - that kills the conversation.
+4. Then retry the `acp_spawn` call. Do NOT run `max sleep && max wake` - that kills the conversation.
 
 ## Codex setup
 

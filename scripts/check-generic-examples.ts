@@ -79,11 +79,11 @@ const SHAPE_PATTERNS: Pattern[] = [
 // -------- Private pattern loader (from outside the repo) --------
 
 function privateConfigPath(): string {
-  if (process.env.VELLUM_CONTENT_CHECK_PATTERNS) {
-    return process.env.VELLUM_CONTENT_CHECK_PATTERNS;
+  if (process.env.MAX_CONTENT_CHECK_PATTERNS) {
+    return process.env.MAX_CONTENT_CHECK_PATTERNS;
   }
   const xdg = process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config");
-  return join(xdg, "vellum-content-check", "patterns.json");
+  return join(xdg, "max-content-check", "patterns.json");
 }
 
 function loadPrivatePatterns(): Pattern[] {

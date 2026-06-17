@@ -34,7 +34,7 @@ import type {
 
 const log = getLogger("notif-broadcaster");
 
-/** Callback invoked immediately when a vellum notification conversation is created. */
+/** Callback invoked immediately when a max notification conversation is created. */
 export interface ConversationCreatedInfo {
   conversationId: string;
   title: string;
@@ -62,7 +62,7 @@ export class NotificationBroadcaster {
     }
   }
 
-  /** Register a callback that fires immediately when a vellum conversation is paired. */
+  /** Register a callback that fires immediately when a max conversation is paired. */
   setOnConversationCreated(fn: OnConversationCreatedFn): void {
     this.onConversationCreated = fn;
   }
@@ -83,12 +83,12 @@ export class NotificationBroadcaster {
   ): Promise<NotificationDeliveryResult[]> {
     const destinations = resolveDestinations(decision.selectedChannels);
 
-    // Ensure vellum is processed first so the notification_conversation_created
+    // Ensure max is processed first so the notification_conversation_created
     // event fires immediately, before slower channel sends (e.g. Telegram 30s
     // timeout) can delay it past the macOS deep-link retry window.
     const orderedChannels = [...decision.selectedChannels].sort((a, b) => {
-      if (a === "vellum") return -1;
-      if (b === "vellum") return 1;
+      if (a === "max") return -1;
+      if (b === "max") return 1;
       return 0;
     });
 
@@ -210,10 +210,10 @@ export class NotificationBroadcaster {
         { conversationAction, bindingContext: destination.bindingContext },
       );
 
-      // For the vellum channel, merge the conversationId into deep-link metadata
+      // For the max channel, merge the conversationId into deep-link metadata
       // so the macOS client can navigate directly to the notification conversation.
       let deepLinkTarget = decision.deepLinkTarget;
-      if (channel === "vellum" && pairing.conversationId) {
+      if (channel === "max" && pairing.conversationId) {
         deepLinkTarget = {
           ...deepLinkTarget,
           conversationId: pairing.conversationId,
@@ -246,7 +246,7 @@ export class NotificationBroadcaster {
           source: signal.conversationMetadata?.source,
         };
 
-        // The per-dispatch onConversationCreated callback fires whenever a vellum
+        // The per-dispatch onConversationCreated callback fires whenever a max
         // conversation is paired (new or reused) because callers like
         // dispatchGuardianQuestion rely on it to create delivery bookkeeping
         // rows before emitNotificationSignal() returns.

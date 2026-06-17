@@ -14,7 +14,7 @@ const TOKEN = "local-bearer-token";
 
 // All tests in this file exercise the local/docker code path (cloud="local"),
 // which builds `{runtimeUrl}/v1/migrations/<subpath>` URLs and uses
-// guardian-token bearer auth. The platform path (cloud="vellum") is covered
+// guardian-token bearer auth. The platform path (cloud="max") is covered
 // by `runtime-url.test.ts` (URL construction) and the teleport tests
 // (call-site wiring).
 const ENTRY: Pick<AssistantEntry, "cloud" | "runtimeUrl" | "assistantId"> = {
@@ -384,18 +384,18 @@ describe("localRuntimePollJobStatus", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Platform-managed assistants (cloud="vellum") route through the platform's
+// Platform-managed assistants (cloud="max") route through the platform's
 // wildcard runtime proxy at `/v1/assistants/<id>/migrations/...` with
 // platform-token auth (NOT guardian-token bearer). This block asserts the
 // actual URL and headers built by the helpers — not mocked, not abstracted.
 // Regression guard for the routing bug fixed in this PR.
 // ---------------------------------------------------------------------------
-const VELLUM_ENTRY: Pick<
+const MAX_ENTRY: Pick<
   AssistantEntry,
   "cloud" | "runtimeUrl" | "assistantId"
 > = {
-  cloud: "vellum",
-  runtimeUrl: "https://platform.vellum.ai",
+  cloud: "max",
+  runtimeUrl: "https://platform.max.ai",
   assistantId: "11111111-2222-3333-4444-555555555555",
 };
 // `vak_` prefix bypasses `fetchOrganizationId` (org-scoped API keys); the
@@ -403,7 +403,7 @@ const VELLUM_ENTRY: Pick<
 // test stays free of network mocks.
 const VAK_TOKEN = "vak_platform-token";
 
-describe("vellum-cloud routing through wildcard proxy", () => {
+describe("max-cloud routing through wildcard proxy", () => {
   test("export-to-gcs URL has /v1/assistants/<id>/migrations/ prefix and uses platform-token bearer (no guardian)", async () => {
     const { calls, fetchMock } = captureFetch(() => {
       return new Response(
@@ -413,14 +413,14 @@ describe("vellum-cloud routing through wildcard proxy", () => {
     });
     globalThis.fetch = fetchMock;
 
-    const result = await localRuntimeExportToGcs(VELLUM_ENTRY, VAK_TOKEN, {
+    const result = await localRuntimeExportToGcs(MAX_ENTRY, VAK_TOKEN, {
       uploadUrl: "https://storage.example/signed/x",
       description: "teleport export",
     });
 
     expect(result.jobId).toBe("wp-export-1");
     expect(calls[0]!.url).toBe(
-      `https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/export-to-gcs`,
+      `https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/export-to-gcs`,
     );
     expect(calls[0]!.method).toBe("POST");
     expect(calls[0]!.headers.Authorization).toBe(`Bearer ${VAK_TOKEN}`);
@@ -439,12 +439,12 @@ describe("vellum-cloud routing through wildcard proxy", () => {
     });
     globalThis.fetch = fetchMock;
 
-    await localRuntimeImportFromGcs(VELLUM_ENTRY, VAK_TOKEN, {
+    await localRuntimeImportFromGcs(MAX_ENTRY, VAK_TOKEN, {
       bundleUrl: "https://storage.example/download/y",
     });
 
     expect(calls[0]!.url).toBe(
-      `https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/import-from-gcs`,
+      `https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/import-from-gcs`,
     );
     expect(calls[0]!.headers.Authorization).toBe(`Bearer ${VAK_TOKEN}`);
   });
@@ -464,13 +464,13 @@ describe("vellum-cloud routing through wildcard proxy", () => {
     globalThis.fetch = fetchMock;
 
     const status = await localRuntimePollJobStatus(
-      VELLUM_ENTRY,
+      MAX_ENTRY,
       VAK_TOKEN,
       "wp-export-1",
     );
 
     expect(calls[0]!.url).toBe(
-      `https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/jobs/wp-export-1`,
+      `https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/jobs/wp-export-1`,
     );
     expect(calls[0]!.headers.Authorization).toBe(`Bearer ${VAK_TOKEN}`);
     expect(status.status).toBe("complete");
@@ -523,7 +523,7 @@ describe("localRuntimeIdentity", () => {
     expect(calls[0]!.url).not.toContain("/v1/identity");
   });
 
-  test("vellum entry: GETs /v1/assistants/<id>/health through the wildcard proxy", async () => {
+  test("max entry: GETs /v1/assistants/<id>/health through the wildcard proxy", async () => {
     const { calls, fetchMock } = captureFetch(() => {
       return new Response(JSON.stringify({ version: "0.7.2" }), {
         status: 200,
@@ -531,11 +531,11 @@ describe("localRuntimeIdentity", () => {
     });
     globalThis.fetch = fetchMock;
 
-    const result = await localRuntimeIdentity(VELLUM_ENTRY, VAK_TOKEN);
+    const result = await localRuntimeIdentity(MAX_ENTRY, VAK_TOKEN);
 
     expect(result.version).toBe("0.7.2");
     expect(calls[0]!.url).toBe(
-      `https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/health`,
+      `https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/health`,
     );
     expect(calls[0]!.headers.Authorization).toBe(`Bearer ${VAK_TOKEN}`);
   });
@@ -590,15 +590,15 @@ describe("localRuntimeIdentity", () => {
   // ---------------------------------------------------------------------
   // 401-retry parity with platformRequestSignedUrl (Codex P2 regression
   // guard). localRuntimeIdentity is the first network call in the
-  // backup/teleport export flow for vellum-cloud assistants, so a stale
-  // Vellum-Organization-Id cache entry would surface as a hard abort
+  // backup/teleport export flow for max-cloud assistants, so a stale
+  // Max-Organization-Id cache entry would surface as a hard abort
   // before any other helper got a chance to clear the cache and retry.
   // ---------------------------------------------------------------------
 
-  test("vellum entry: retries once after 401 with a fresh org-ID lookup", async () => {
+  test("max entry: retries once after 401 with a fresh org-ID lookup", async () => {
     // Use a non-vak session token so authHeaders fetches + caches an org ID.
     const SESSION_TOKEN = "session-abcdef";
-    const PLATFORM_URL = "https://platform.vellum.ai";
+    const PLATFORM_URL = "https://platform.max.ai";
     const ASSISTANT_ID = "11111111-2222-3333-4444-555555555555";
 
     let healthCalls = 0;
@@ -633,7 +633,7 @@ describe("localRuntimeIdentity", () => {
 
     const result = await localRuntimeIdentity(
       {
-        cloud: "vellum",
+        cloud: "max",
         runtimeUrl: PLATFORM_URL,
         assistantId: ASSISTANT_ID,
       },

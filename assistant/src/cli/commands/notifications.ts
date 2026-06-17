@@ -29,7 +29,7 @@ Examples:
   $ assistant notifications send --source-channel assistant_tool --source-event-name user.send_notification --message "Build finished"
   $ assistant notifications send --source-channel scheduler --source-event-name schedule.notify --message "Stand-up in 5 minutes" --urgency high
   $ assistant notifications send --source-channel watcher --source-event-name watcher.notification --message "File changed" --no-requires-action --is-async-background
-  $ assistant notifications send --source-channel assistant_tool --source-event-name user.send_notification --message "Deploy complete" --preferred-channels vellum,telegram --json`,
+  $ assistant notifications send --source-channel assistant_tool --source-event-name user.send_notification --message "Deploy complete" --preferred-channels max,telegram --json`,
   );
 
   // -------------------------------------------------------------------------
@@ -86,7 +86,7 @@ Examples:
     )
     .option(
       "--preferred-channels <channels>",
-      "Comma-separated channel hints (e.g. vellum,telegram,slack)",
+      "Comma-separated channel hints (e.g. max,telegram,slack)",
     )
     .option(
       "--session-id <id>",
@@ -102,7 +102,7 @@ Examples:
     )
     .option(
       "--conversation-id <id>",
-      "Local vellum conversation ID to deliver into. When set, the notification reuses the specified conversation instead of starting a new one — bypasses the LLM's conversation-routing decision via affinity hint.",
+      "Local max conversation ID to deliver into. When set, the notification reuses the specified conversation instead of starting a new one — bypasses the LLM's conversation-routing decision via affinity hint.",
     )
     .addHelpText(
       "after",
@@ -119,7 +119,7 @@ Behavioral notes:
   - --urgency defaults to medium if not specified.
   - --preferred-channels are hints only; the decision engine may override them.
   - --dedupe-key suppresses duplicate signals with the same key.
-  - --conversation-id pins delivery to an existing vellum conversation
+  - --conversation-id pins delivery to an existing max conversation
     deterministically. Other channels (telegram, slack) continue to use
     binding-based pairing for their external threads.
 
@@ -253,7 +253,7 @@ Examples:
               },
               ...(opts.dedupeKey ? { dedupeKey: opts.dedupeKey } : {}),
               ...(conversationId
-                ? { conversationAffinityHint: { vellum: conversationId } }
+                ? { conversationAffinityHint: { max: conversationId } }
                 : {}),
               throwOnError: true,
             },

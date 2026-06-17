@@ -31,7 +31,7 @@ import {
 function freshTempDir(): string {
   return join(
     tmpdir(),
-    `vellum-app-dir-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-app-dir-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 }
 
@@ -49,7 +49,7 @@ function makeAppParams(name: string) {
 
 beforeEach(() => {
   testDataDir = freshTempDir();
-  process.env.VELLUM_WORKSPACE_DIR = testDataDir;
+  process.env.MAX_WORKSPACE_DIR = testDataDir;
 });
 
 afterEach(() => {

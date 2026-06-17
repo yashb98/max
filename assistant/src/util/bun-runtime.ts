@@ -7,7 +7,7 @@
  * compiled app — not the bun CLI — and the user may not have bun on PATH.
  *
  * This module checks well-known locations first, and if none is found it
- * downloads a pinned release from GitHub into $VELLUM_WORKSPACE_DIR/bin/.
+ * downloads a pinned release from GitHub into $MAX_WORKSPACE_DIR/bin/.
  */
 
 import {
@@ -40,10 +40,10 @@ let inflightDownload: Promise<string> | undefined;
  *
  * Resolution order:
  * 1. `process.execPath` if it IS the bun CLI (dev mode)
- * 2. Previously downloaded copy at $VELLUM_WORKSPACE_DIR/bin/bun
+ * 2. Previously downloaded copy at $MAX_WORKSPACE_DIR/bin/bun
  * 3. Common install locations (~/.bun/bin/bun, /opt/homebrew/bin/bun, etc.)
  * 4. `Bun.which("bun")` (PATH lookup)
- * 5. Download from GitHub releases into $VELLUM_WORKSPACE_DIR/bin/
+ * 5. Download from GitHub releases into $MAX_WORKSPACE_DIR/bin/
  */
 export async function ensureBun(): Promise<string> {
   if (cachedBunPath && existsSync(cachedBunPath)) {

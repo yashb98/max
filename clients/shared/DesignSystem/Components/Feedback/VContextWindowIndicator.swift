@@ -105,7 +105,7 @@ public struct VContextWindowIndicator: View {
                     .foregroundStyle(VColor.contentSecondary)
             }
 
-            Text("Vellum automatically\ncompacts its context.")
+            Text("Max automatically\ncompacts its context.")
                 .font(VFont.labelDefault)
                 .foregroundStyle(VColor.contentTertiary)
         }

@@ -1,5 +1,5 @@
 /**
- * Tests for the `globalThis.__vellumPluginRuntime` bridge.
+ * Tests for the `globalThis.__maxPluginRuntime` bridge.
  *
  * The bridge exists so workspace-local plugins (`<workspaceDir>/plugins/*`)
  * can register with the daemon's bundled module instances even when the
@@ -48,8 +48,8 @@ describe("plugin external-api bridge", () => {
     installPluginRuntime();
     // Mirror the access pattern documented for plugin authors.
     const runtime = (
-      globalThis as { __vellumPluginRuntime?: { version: number } }
-    ).__vellumPluginRuntime;
+      globalThis as { __maxPluginRuntime?: { version: number } }
+    ).__maxPluginRuntime;
     expect(runtime).toBeDefined();
     expect(runtime?.version).toBe(1);
   });

@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import { _setOverridesForTesting } from "../config/assistant-feature-flags.js";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 let currentConfig: Record<string, unknown> = {};
 
@@ -67,7 +67,7 @@ function writeSkill(
   mkdirSync(skillDir, { recursive: true });
   writeFileSync(
     join(skillDir, "SKILL.md"),
-    `---\nname: "${name}"\ndescription: "${description}"\nmetadata: {"vellum":{"feature-flag":"${skillId}"}}\n---\n\n${body}\n`,
+    `---\nname: "${name}"\ndescription: "${description}"\nmetadata: {"max":{"feature-flag":"${skillId}"}}\n---\n\n${body}\n`,
   );
 }
 

@@ -64,7 +64,7 @@ function resolveAllowedAttachmentDirectories(): string[] {
   );
   const recordingsDir = join(
     process.env.HOME ?? "",
-    "Library/Application Support/vellum-assistant/recordings",
+    "Library/Application Support/max-assistant/recordings",
   );
   return [workspaceAttachmentsDir, recordingsDir].map((dir) => {
     try {
@@ -364,11 +364,11 @@ async function handleUploadAttachmentRoute(args: RouteHandlerArgs) {
   const { rawBody, headers = {}, queryParams = {}, body } = args;
   const contentType = headers["content-type"] ?? "";
 
-  // The gateway sets x-vellum-principal-type when proxying authenticated
+  // The gateway sets x-max-principal-type when proxying authenticated
   // requests. Only gateway service principals can opt into the trusted
   // source bypass (skips attachment validation for channel-sourced files).
   const gatewayTrustedSource =
-    headers["x-vellum-principal-type"] === "svc_gateway";
+    headers["x-max-principal-type"] === "svc_gateway";
 
   if (contentType.includes("multipart/form-data") && rawBody) {
     return handleMultipartUpload(rawBody, headers, gatewayTrustedSource);

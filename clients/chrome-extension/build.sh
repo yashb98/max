@@ -8,7 +8,7 @@
 # Commands:
 #   build (default)   Build the extension for distribution
 #   run               Build + watch for local development (rebuilds on source changes)
-#   release           Build a release (VELLUM_ENVIRONMENT defaults to 'production')
+#   release           Build a release (MAX_ENVIRONMENT defaults to 'production')
 #
 # After building, load the dist/ directory as an unpacked extension in Chrome.
 # In `run` mode the script stays alive and rebuilds whenever source files change.
@@ -41,21 +41,21 @@ else
 fi
 
 # Resolve environment for bundle-time injection. CI and developers can
-# always override by exporting VELLUM_ENVIRONMENT before invoking the
+# always override by exporting MAX_ENVIRONMENT before invoking the
 # script — the explicit value takes precedence.
 #
-# Defaults per subcommand (when VELLUM_ENVIRONMENT is unset):
+# Defaults per subcommand (when MAX_ENVIRONMENT is unset):
 #   run     => local   (for local full-stack development)
 #   release => production
 #   build   => dev
-if [ -z "${VELLUM_ENVIRONMENT:-}" ]; then
+if [ -z "${MAX_ENVIRONMENT:-}" ]; then
   case "$CMD" in
-    run)     VELLUM_ENV="local" ;;
-    release) VELLUM_ENV="production" ;;
-    *)       VELLUM_ENV="dev" ;;
+    run)     MAX_ENV="local" ;;
+    release) MAX_ENV="production" ;;
+    *)       MAX_ENV="dev" ;;
   esac
 else
-  VELLUM_ENV="$VELLUM_ENVIRONMENT"
+  MAX_ENV="$MAX_ENVIRONMENT"
 fi
 
 # Preserve the full version string (including prerelease suffix) for
@@ -71,7 +71,7 @@ EXT_VERSION="${EXT_VERSION%%-*}"
 # Build function — shared by initial build and watch-triggered rebuilds.
 # ---------------------------------------------------------------------------
 do_build() {
-  echo "Building the Vellum Assistant Chrome extension…"
+  echo "Building the Max Assistant Chrome extension…"
   echo "  Command: $CMD"
 
   echo "Type-checking with tsc --noEmit..."
@@ -86,14 +86,14 @@ do_build() {
   mkdir -p "$DIST_DIR/icons"
 
   echo "Bundling service worker with bun build..."
-  echo "  Environment: $VELLUM_ENV"
+  echo "  Environment: $MAX_ENV"
   bun build \
     "$SCRIPT_DIR/background/worker.ts" \
     --outdir "$DIST_DIR/background" \
     --target browser \
     --format esm \
     --minify \
-    --define "process.env.VELLUM_ENVIRONMENT=\"$VELLUM_ENV\"" \
+    --define "process.env.MAX_ENVIRONMENT=\"$MAX_ENV\"" \
     || { echo "❌ Service worker bundle failed."; return 1; }
 
   echo "Building popup with Vite..."
@@ -110,9 +110,9 @@ do_build() {
     || { echo "❌ Failed to stamp version."; return 1; }
   echo "  Extension version: $EXT_VERSION (full: $EXT_VERSION_FULL)"
 
-  case "$VELLUM_ENV" in
-    production) EXT_NAME="Vellum Assistant" ;;
-    *)          EXT_NAME="Vellum Assistant $(echo "$VELLUM_ENV" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')" ;;
+  case "$MAX_ENV" in
+    production) EXT_NAME="Max Assistant" ;;
+    *)          EXT_NAME="Max Assistant $(echo "$MAX_ENV" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')" ;;
   esac
   jq --arg n "$EXT_NAME" '.name = $n' "$DIST_DIR/manifest.json" > "$DIST_DIR/manifest.json.tmp" \
     && mv "$DIST_DIR/manifest.json.tmp" "$DIST_DIR/manifest.json" \
@@ -123,8 +123,8 @@ do_build() {
   # developer running the same environment gets the same stable extension ID.
   # Production builds omit the key — Chrome uses the CWS signing key instead.
   # The mapping lives in extension-environments.json alongside this script.
-  ENV_KEY=$(jq -r --arg e "$VELLUM_ENV" '.[$e].key // empty' "$SCRIPT_DIR/extension-environments.json")
-  ENV_EXT_ID=$(jq -r --arg e "$VELLUM_ENV" '.[$e].extensionId // empty' "$SCRIPT_DIR/extension-environments.json")
+  ENV_KEY=$(jq -r --arg e "$MAX_ENV" '.[$e].key // empty' "$SCRIPT_DIR/extension-environments.json")
+  ENV_EXT_ID=$(jq -r --arg e "$MAX_ENV" '.[$e].extensionId // empty' "$SCRIPT_DIR/extension-environments.json")
   if [ -n "$ENV_KEY" ]; then
     jq --arg k "$ENV_KEY" '.key = $k' "$DIST_DIR/manifest.json" > "$DIST_DIR/manifest.json.tmp" \
       && mv "$DIST_DIR/manifest.json.tmp" "$DIST_DIR/manifest.json" \
@@ -141,11 +141,11 @@ do_build() {
   # chrome://extensions page shows the right default.
   if [ -d "$SCRIPT_DIR/icons" ] && [ "$(ls -A "$SCRIPT_DIR/icons" 2>/dev/null)" ]; then
     cp -r "$SCRIPT_DIR/icons/." "$DIST_DIR/icons/"
-    jq --arg e "$VELLUM_ENV" \
+    jq --arg e "$MAX_ENV" \
       '.icons = { "16": "icons/\($e)/icon16.png", "48": "icons/\($e)/icon48.png", "128": "icons/\($e)/icon128.png" }' \
       "$DIST_DIR/manifest.json" > "$DIST_DIR/manifest.json.tmp" \
       && mv "$DIST_DIR/manifest.json.tmp" "$DIST_DIR/manifest.json"
-    echo "  Icons: $VELLUM_ENV (all envs bundled)"
+    echo "  Icons: $MAX_ENV (all envs bundled)"
   else
     echo "  (No icons found — creating placeholder icon files)"
     TINY_PNG_B64="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
@@ -254,8 +254,8 @@ fi
 # chrome-extension directory; CI injects it via secrets.
 # ---------------------------------------------------------------------------
 CRX_KEY_FILE="${CRX_KEY_PATH:-$SCRIPT_DIR/privatekey.pem}"
-CRX_OUT="$SCRIPT_DIR/vellum-browser-relay.crx"
-ZIP_OUT="$SCRIPT_DIR/vellum-browser-relay.zip"
+CRX_OUT="$SCRIPT_DIR/max-browser-relay.crx"
+ZIP_OUT="$SCRIPT_DIR/max-browser-relay.zip"
 
 # Detect Chrome/Chromium binary (macOS & Linux)
 find_chrome() {

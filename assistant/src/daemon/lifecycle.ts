@@ -510,14 +510,14 @@ export async function runDaemon(): Promise<void> {
       }
     } // end if (dbReady)
 
-    // Merge CLI-provided default config (from VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH)
+    // Merge CLI-provided default config (from MAX_DEFAULT_WORKSPACE_CONFIG_PATH)
     // into the workspace config file before profile seeding and the first
     // loadConfig() call so onboarding/platform preferences are visible to the
     // seeder and persisted alongside schema defaults.
     const defaultConfigMerge = mergeDefaultWorkspaceConfig();
 
     // Seed inference profiles into the workspace config. Managed Anthropic
-    // profiles are overwritten on every boot so Vellum can push updates.
+    // profiles are overwritten on every boot so Max can push updates.
     // Off-platform hatches additionally create user profiles + a personal
     // provider connection for the hatch provider.
     try {
@@ -580,7 +580,7 @@ export async function runDaemon(): Promise<void> {
     // Privacy gating: Sentry crash/error reporting is gated by sendDiagnostics,
     // while the usage telemetry reporter is gated by collectUsageData. Both are
     // disabled in dev mode. Early-startup crashes before this point are still captured.
-    const isDevMode = process.env.VELLUM_DEV === "1";
+    const isDevMode = process.env.MAX_DEV === "1";
     const sendDiagnostics = !isDevMode && config.sendDiagnostics;
     const collectUsageData = !isDevMode && config.collectUsageData;
     if (!sendDiagnostics) {
@@ -673,7 +673,7 @@ export async function runDaemon(): Promise<void> {
       });
     }
 
-    // Install the `globalThis.__vellumPluginRuntime` bridge before scanning
+    // Install the `globalThis.__maxPluginRuntime` bridge before scanning
     // for user plugins. Plugins that touch the bridge from their module body
     // would throw without this — see `plugins/external-api.ts` for the
     // rationale (compiled-binary module identity).
@@ -953,7 +953,7 @@ export async function runDaemon(): Promise<void> {
                 ...(options.trustClass
                   ? {
                       trustContext: {
-                        sourceChannel: "vellum",
+                        sourceChannel: "max",
                         trustClass: options.trustClass,
                       },
                     }

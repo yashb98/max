@@ -4,26 +4,26 @@ import PackageDescription
 let appVersion = "0.8.1"
 
 let package = Package(
-    name: "vellum-assistant",
+    name: "max-assistant",
     platforms: [
         .macOS("15.0")
     ],
     products: [
         .library(
-            name: "VellumAssistantLib",
-            targets: ["VellumAssistantLib"]
+            name: "MaxAssistantLib",
+            targets: ["MaxAssistantLib"]
         ),
         .library(
-            name: "VellumAssistantShared",
-            targets: ["VellumAssistantShared"]
+            name: "MaxAssistantShared",
+            targets: ["MaxAssistantShared"]
         ),
         .library(
             name: "ObjCExceptionCatcher",
             targets: ["ObjCExceptionCatcher"]
         ),
         .executable(
-            name: "vellum-assistant",
-            targets: ["vellum-assistant"]
+            name: "max-assistant",
+            targets: ["max-assistant"]
         )
     ],
     dependencies: [
@@ -41,7 +41,7 @@ let package = Package(
             publicHeadersPath: "include"
         ),
         .target(
-            name: "VellumAssistantShared",
+            name: "MaxAssistantShared",
             dependencies: ["ObjCExceptionCatcher"],
             path: "shared",
             exclude: ["Tests", "ObjCExceptionCatcher"],
@@ -66,9 +66,9 @@ let package = Package(
             ]
         ),
         .target(
-            name: "VellumAssistantLib",
+            name: "MaxAssistantLib",
             dependencies: [
-                "VellumAssistantShared",
+                "MaxAssistantShared",
                 .product(name: "Containerization", package: "containerization"),
                 .product(name: "ContainerizationOCI", package: "containerization"),
                 "Sparkle",
@@ -76,16 +76,16 @@ let package = Package(
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
                 .product(name: "SwiftMath", package: "SwiftMath"),
             ],
-            path: "macos/vellum-assistant",
-            exclude: ["Resources/Info.plist", "Resources/VellumDocument.icns"],
+            path: "macos/max-assistant",
+            exclude: ["Resources/Info.plist", "Resources/MaxDocument.icns"],
             resources: [
                 .process("Resources/Assets.xcassets"),
                 .process("Resources/Fonts"),
                 .copy("Resources/Recipes"),
                 .process("Resources/Onboarding"),
-                .process("Resources/vellum-design-system.css"),
-                .process("Resources/vellum-widgets.js"),
-                .process("Resources/vellum-edit-animator.js"),
+                .process("Resources/max-design-system.css"),
+                .process("Resources/max-widgets.js"),
+                .process("Resources/max-edit-animator.js"),
                 .copy("Resources/editor"),
                 .process("Resources/initial-avatar.png"),
                 .process("Resources/welcome-characters.png")
@@ -108,18 +108,18 @@ let package = Package(
             ]
         ),
         .executableTarget(
-            name: "vellum-assistant",
-            dependencies: ["VellumAssistantLib"],
-            path: "macos/vellum-assistant-app"
+            name: "max-assistant",
+            dependencies: ["MaxAssistantLib"],
+            path: "macos/max-assistant-app"
         ),
         .testTarget(
-            name: "vellum-assistantTests",
-            dependencies: ["VellumAssistantLib"],
-            path: "macos/vellum-assistantTests"
+            name: "max-assistantTests",
+            dependencies: ["MaxAssistantLib"],
+            path: "macos/max-assistantTests"
         ),
         .testTarget(
-            name: "VellumAssistantSharedTests",
-            dependencies: ["VellumAssistantShared"],
+            name: "MaxAssistantSharedTests",
+            dependencies: ["MaxAssistantShared"],
             path: "shared/Tests"
         )
     ],

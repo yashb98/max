@@ -13,7 +13,7 @@
  * name) rather than mocking into `assistant/src/...` directly.
  */
 
-import type { SkillHost, Tool } from "@vellumai/skill-host-contracts";
+import type { SkillHost, Tool } from "@maxai/skill-host-contracts";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // ----- Mocks wired BEFORE importing the tool ---------------------------------
@@ -104,7 +104,7 @@ function makeHost(): SkillHost {
     },
     platform: {
       workspaceDir: () => "/tmp/meet-join-tool-test-workspace",
-      vellumRoot: () => "/tmp/meet-join-tool-test-vellum",
+      maxRoot: () => "/tmp/meet-join-tool-test-max",
       runtimeMode: () => "bare-metal" as never,
     },
     providers: throwingProxy("providers") as SkillHost["providers"],

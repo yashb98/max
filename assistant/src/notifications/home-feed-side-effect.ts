@@ -49,12 +49,12 @@ export async function writeHomeFeedItemForSignal(
 ): Promise<FeedItem | null> {
   if (!shouldMirrorToHomeFeed(signal)) return null;
 
-  const renderedCopy = decision.renderedCopy.vellum;
+  const renderedCopy = decision.renderedCopy.max;
   const payloadTitle = readPayloadString(signal.contextPayload, "title");
   const payloadBody = readPayloadString(signal.contextPayload, "body");
 
   const conversationId = deliveryResults.find(
-    (r) => r.channel === "vellum",
+    (r) => r.channel === "max",
   )?.conversationId;
   const urgency = FEED_ITEM_URGENCIES.has(signal.attentionHints.urgency)
     ? (signal.attentionHints.urgency as FeedItemUrgency)

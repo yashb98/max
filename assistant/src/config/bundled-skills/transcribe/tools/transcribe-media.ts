@@ -139,7 +139,7 @@ async function resolveSource(
 
 /** Convert source to 16kHz mono WAV for consistent processing. */
 async function toWav(inputPath: string, isVideo: boolean): Promise<string> {
-  const wavPath = join(tmpdir(), `vellum-transcribe-${randomUUID()}.wav`);
+  const wavPath = join(tmpdir(), `max-transcribe-${randomUUID()}.wav`);
   const args = ["ffmpeg", "-y", "-i", inputPath];
   if (isVideo) args.push("-vn");
   args.push("-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", wavPath);
@@ -174,7 +174,7 @@ async function transcribeWithProvider(
   }
 
   // Split into chunks for large files
-  const chunkDir = join(tmpdir(), `vellum-transcribe-chunks-${randomUUID()}`);
+  const chunkDir = join(tmpdir(), `max-transcribe-chunks-${randomUUID()}`);
   await mkdir(chunkDir, { recursive: true });
 
   try {

@@ -1,8 +1,8 @@
 /**
- * Cloud authentication for the Vellum Chrome extension.
+ * Cloud authentication for the Max Chrome extension.
  *
  * Handles WorkOS-based sign-in via `chrome.identity.launchWebAuthFlow`.
- * The flow opens a browser tab to the Vellum Chrome extension login
+ * The flow opens a browser tab to the Max Chrome extension login
  * endpoint; after the user authenticates, the platform redirects back
  * to a `chromiumapp.org` callback URL that Chrome intercepts, returning
  * the final URL (with token fragment) to the extension.
@@ -28,7 +28,7 @@ import { cloudUrlsForEnvironment } from './extension-environment.js';
 
 // ── Storage keys ────────────────────────────────────────────────────
 
-const SESSION_STORAGE_KEY = 'vellum.cloudSession';
+const SESSION_STORAGE_KEY = 'max.cloudSession';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -80,7 +80,7 @@ export async function clearSession(): Promise<void> {
 
 // ── Selected assistant persistence ──────────────────────────────────
 
-const SELECTED_ASSISTANT_KEY = 'vellum.selectedAssistant';
+const SELECTED_ASSISTANT_KEY = 'max.selectedAssistant';
 
 export interface SelectedAssistant {
   id: string;
@@ -142,7 +142,7 @@ export async function startCloudLogin(
   //       → redirect to chromiumapp.org callback URL.
   const loginUrl = new URL('/accounts/chrome-extension/start', apiBaseUrl);
   loginUrl.searchParams.set('redirect_uri', redirectUri);
-  loginUrl.searchParams.set('client_id', 'vellum-chrome-extension');
+  loginUrl.searchParams.set('client_id', 'max-chrome-extension');
 
   let resultUrl: string | undefined;
   try {

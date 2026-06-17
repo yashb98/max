@@ -57,7 +57,7 @@ let workspaceDir: string;
 function freshWorkspace(): string {
   const dir = join(
     tmpdir(),
-    `vellum-migration-down-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-down-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(dir, { recursive: true });
   return dir;
@@ -766,18 +766,18 @@ describe("016-extract-feature-flags-to-protected down()", () => {
   let savedWorkspaceDir: string | undefined;
 
   beforeEach(() => {
-    // getVellumRoot() resolves via dirname(VELLUM_WORKSPACE_DIR), so we set
-    // VELLUM_WORKSPACE_DIR to <mockRootDir>/workspace so dirname gives mockRootDir.
+    // getMaxRoot() resolves via dirname(MAX_WORKSPACE_DIR), so we set
+    // MAX_WORKSPACE_DIR to <mockRootDir>/workspace so dirname gives mockRootDir.
     const baseDir = freshWorkspace();
-    mockRootDir = join(baseDir, ".vellum");
+    mockRootDir = join(baseDir, ".max");
     mkdirSync(mockRootDir, { recursive: true });
-    savedWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-    process.env.VELLUM_WORKSPACE_DIR = join(mockRootDir, "workspace");
+    savedWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+    process.env.MAX_WORKSPACE_DIR = join(mockRootDir, "workspace");
   });
 
   afterEach(() => {
-    if (savedWorkspaceDir === undefined) delete process.env.VELLUM_WORKSPACE_DIR;
-    else process.env.VELLUM_WORKSPACE_DIR = savedWorkspaceDir;
+    if (savedWorkspaceDir === undefined) delete process.env.MAX_WORKSPACE_DIR;
+    else process.env.MAX_WORKSPACE_DIR = savedWorkspaceDir;
   });
 
   test("moves feature flags from protected dir back to config.json", () => {

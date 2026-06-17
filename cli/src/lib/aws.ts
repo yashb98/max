@@ -14,7 +14,7 @@ import { generateInstanceName } from "./random-name";
 import { exec, execOutput } from "./step-runner";
 import { emitProgress } from "./desktop-progress.js";
 
-const KEY_PAIR_NAME = "vellum-assistant";
+const KEY_PAIR_NAME = "max-assistant";
 const DEFAULT_SSH_USER = "admin";
 const AWS_INSTANCE_TYPE = "t3.xlarge";
 const AWS_DEFAULT_REGION = "us-east-1";
@@ -82,7 +82,7 @@ export async function ensureSecurityGroup(
     "--group-name",
     groupName,
     "--description",
-    "Security group for vellum-assistant instances",
+    "Security group for max-assistant instances",
     "--vpc-id",
     vpcId,
     "--query",
@@ -237,7 +237,7 @@ export async function launchInstance(
   ]);
   const tags = [
     { Key: "Name", Value: name },
-    { Key: "vellum-assistant", Value: "true" },
+    { Key: "max-assistant", Value: "true" },
     { Key: "species", Value: species },
   ];
   if (hatchedBy) {
@@ -423,7 +423,7 @@ export async function hatchAws(
       );
       process.exit(1);
     }
-    const hatchedBy = process.env.VELLUM_HATCHED_BY;
+    const hatchedBy = process.env.MAX_HATCHED_BY;
     const providerApiKeys: Record<string, string> = {};
     for (const [, envVar] of Object.entries(PROVIDER_ENV_VAR_NAMES)) {
       const value = process.env[envVar];
@@ -444,7 +444,7 @@ export async function hatchAws(
 
     console.log("\u{1F512} Ensuring security group...");
     const securityGroupId = await ensureSecurityGroup(
-      "vellum-assistant",
+      "max-assistant",
       vpcId,
       GATEWAY_PORT,
       region,

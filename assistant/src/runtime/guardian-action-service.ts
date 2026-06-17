@@ -43,7 +43,7 @@ export interface ProcessGuardianDecisionParams {
   requestId: string;
   action: string;
   conversationId?: string;
-  channel: string; // e.g. "vellum"
+  channel: string; // e.g. "max"
   actorContext: {
     actorPrincipalId: string | undefined;
     guardianPrincipalId: string | undefined;

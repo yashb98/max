@@ -1,10 +1,10 @@
 ---
 name: mcp-setup
 description: Add, authenticate, list, and remove MCP (Model Context Protocol) servers
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔌"
-  vellum:
+  max:
     display-name: "MCP Setup"
 ---
 
@@ -66,9 +66,9 @@ Removes the server config and cleans up any stored OAuth credentials.
 
 ## After Changes
 
-After adding, removing, or authenticating a server, the user must **quit and relaunch the Vellum app** for changes to take effect. The app runs its own assistant process - `assistant daemon restart` only restarts the CLI assistant, which is a separate process.
+After adding, removing, or authenticating a server, the user must **quit and relaunch the Max app** for changes to take effect. The app runs its own assistant process - `assistant daemon restart` only restarts the CLI assistant, which is a separate process.
 
-Tell the user: "Please quit and relaunch the Vellum app, then start a new conversation."
+Tell the user: "Please quit and relaunch the Max app, then start a new conversation."
 
 ## When to Use
 

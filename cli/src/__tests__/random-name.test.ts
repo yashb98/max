@@ -23,12 +23,12 @@ describe("generateRandomSuffix", () => {
 
 describe("generateInstanceName", () => {
   test("returns explicit name when provided", () => {
-    expect(generateInstanceName("vellum", "my-custom")).toBe("my-custom");
+    expect(generateInstanceName("max", "my-custom")).toBe("my-custom");
   });
 
   test("generates species-prefixed name when no explicit name", () => {
-    const result = generateInstanceName("vellum");
-    expect(result).toMatch(/^vellum-[a-z]+-[a-z]+-[a-z0-9]{6}$/);
+    const result = generateInstanceName("max");
+    expect(result).toMatch(/^max-[a-z]+-[a-z]+-[a-z0-9]{6}$/);
   });
 
   test("treats null as no explicit name", () => {

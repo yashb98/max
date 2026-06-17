@@ -29,7 +29,7 @@ describe("/schema route", () => {
 
     // AND the response is an OpenAPI 3.1 document
     expect(body.openapi).toBe("3.1.0");
-    expect(body.info.title).toBe("Vellum Gateway");
+    expect(body.info.title).toBe("Max Gateway");
     expect(typeof body.info.version).toBe("string");
 
     // AND it contains the expected top-level sections

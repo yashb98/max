@@ -31,7 +31,7 @@ public enum VRemoteImageCache {
         let cacheDir = FileManager.default
             .urls(for: .cachesDirectory, in: .userDomainMask)
             .first?
-            .appendingPathComponent("VellumRemoteImages", isDirectory: true)
+            .appendingPathComponent("MaxRemoteImages", isDirectory: true)
         let cache = URLCache(
             memoryCapacity: memoryCapacity,
             diskCapacity: diskCapacity,

@@ -3,7 +3,7 @@
  *
  * Covers the default terminal behavior, timeout handling, and custom-plugin
  * substitution. Uses `mock.module` to stub the workspace PKB/NOW readers
- * so the test doesn't touch the developer's real `~/.vellum`. The memory
+ * so the test doesn't touch the developer's real `~/.max`. The memory
  * graph handle is a hand-rolled fake passed as a dependency — the default
  * retriever only needs `prepareMemory`.
  */
@@ -47,7 +47,7 @@ import {
 import type { Message } from "../providers/types.js";
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

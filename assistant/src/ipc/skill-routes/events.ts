@@ -4,7 +4,7 @@
  * Exposes the daemon's `assistantEventHub` to out-of-process skills so they
  * can publish, subscribe to, and construct `AssistantEvent` envelopes
  * without linking against `assistant/` directly. Mirrors the in-process
- * `EventsFacet` surface defined in `@vellumai/skill-host-contracts` and
+ * `EventsFacet` surface defined in `@maxai/skill-host-contracts` and
  * implemented for in-process callers by `DaemonSkillHost`.
  *
  * ### Routes

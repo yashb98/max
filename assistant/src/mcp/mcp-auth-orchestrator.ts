@@ -90,7 +90,7 @@ export async function orchestrateMcpOAuthConnect(args: {
     authProvider: provider,
     requestInit: transport.headers ? { headers: transport.headers } : undefined,
   });
-  const client = new Client({ name: "vellum-assistant", version: "1.0.0" });
+  const client = new Client({ name: "max-assistant", version: "1.0.0" });
 
   try {
     await client.connect(mcpTransport);

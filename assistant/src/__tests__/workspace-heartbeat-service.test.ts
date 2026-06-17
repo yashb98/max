@@ -37,7 +37,7 @@ describe("WorkspaceHeartbeatService", () => {
   beforeEach(async () => {
     testDir = join(
       tmpdir(),
-      `vellum-heartbeat-test-${Date.now()}-${Math.random()
+      `max-heartbeat-test-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`,
     );
@@ -263,7 +263,7 @@ describe("WorkspaceHeartbeatService", () => {
     test("shutdown commits multiple workspaces", async () => {
       const testDir2 = join(
         tmpdir(),
-        `vellum-heartbeat-test2-${Date.now()}-${Math.random()
+        `max-heartbeat-test2-${Date.now()}-${Math.random()
           .toString(36)
           .slice(2)}`,
       );
@@ -293,7 +293,7 @@ describe("WorkspaceHeartbeatService", () => {
     test("skips uninitialized workspaces", async () => {
       const uninitDir = join(
         tmpdir(),
-        `vellum-uninit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        `max-uninit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       );
       mkdirSync(uninitDir, { recursive: true });
 

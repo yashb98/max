@@ -3,7 +3,7 @@ import SwiftUI
 /// A pill badge indicating the source of a skill.
 public struct VSkillTypePill: View {
     public enum SkillType {
-        case vellum
+        case max
         case clawhub
         case skillssh
         case custom
@@ -11,7 +11,7 @@ public struct VSkillTypePill: View {
 
         var label: String {
             switch self {
-            case .vellum: return "Vellum"
+            case .max: return "Max"
             case .clawhub: return "Clawhub"
             case .skillssh: return "skills.sh"
             case .custom: return "Custom"
@@ -21,7 +21,7 @@ public struct VSkillTypePill: View {
 
         var vIcon: VIcon {
             switch self {
-            case .vellum: return .package
+            case .max: return .package
             case .clawhub: return .globe
             case .skillssh: return .terminal
             case .custom: return .user
@@ -31,7 +31,7 @@ public struct VSkillTypePill: View {
 
         var foregroundColor: Color {
             switch self {
-            case .vellum: return VColor.primaryBase
+            case .max: return VColor.primaryBase
             case .clawhub: return VColor.funTeal
             case .skillssh: return VColor.funCoral
             case .custom: return VColor.funPurple
@@ -41,7 +41,7 @@ public struct VSkillTypePill: View {
 
         var backgroundColor: Color {
             switch self {
-            case .vellum: return VColor.primaryBase.opacity(0.12)
+            case .max: return VColor.primaryBase.opacity(0.12)
             case .clawhub: return VColor.funTeal.opacity(0.12)
             case .skillssh: return VColor.funCoral.opacity(0.12)
             case .custom: return VColor.funPurple.opacity(0.12)
@@ -59,8 +59,8 @@ public struct VSkillTypePill: View {
     /// Convenience initializer from a skill origin string.
     public init(origin: String) {
         switch origin {
-        case "vellum":
-            self.type = .vellum
+        case "max":
+            self.type = .max
         case "clawhub":
             self.type = .clawhub
         case "skillssh":

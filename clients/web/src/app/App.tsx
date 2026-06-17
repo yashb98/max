@@ -41,7 +41,7 @@ export function App({ config }: AppProps): React.ReactElement {
             letterSpacing: "-0.02em",
           }}
         >
-          Vellum web client
+          Max web client
         </h1>
         <p
           style={{

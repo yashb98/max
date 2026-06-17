@@ -118,7 +118,7 @@ mock.module("../oauth/connection-resolver.js", () => ({
 }));
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => {
       if (!platformAvailable) return null;
       return {
@@ -765,7 +765,7 @@ describe("POST oauth/managed-connect/start", () => {
     mockFetchImpl = async () => ({
       ok: true,
       status: 200,
-      json: async () => ({ connect_url: "https://app.vellum.ai/connect/abc" }),
+      json: async () => ({ connect_url: "https://app.max.ai/connect/abc" }),
       text: async () => "",
     });
     const result = (await getRoute(
@@ -774,7 +774,7 @@ describe("POST oauth/managed-connect/start", () => {
     ).handler(
       makeArgs({ body: { provider: "google", scopes: ["email"] } }),
     )) as { ok: boolean; connect_url: string };
-    expect(result.connect_url).toBe("https://app.vellum.ai/connect/abc");
+    expect(result.connect_url).toBe("https://app.max.ai/connect/abc");
   });
 
   test("raises InternalError when platform returns 401", async () => {

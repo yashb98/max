@@ -3,7 +3,7 @@
  *
  * In local mode, CES runs as a child process of the assistant on the same
  * machine as the same user and can read/write the assistant's encrypted key
- * store file at `<vellumRoot>/protected/keys.enc`.
+ * store file at `<maxRoot>/protected/keys.enc`.
  *
  * This implementation replicates the encryption/decryption logic from the
  * assistant's `encrypted-store.ts` without importing assistant-internal
@@ -15,7 +15,7 @@
  * Two store formats are supported:
  *
  * - **v2 (primary):** AES-256-GCM with a random 32-byte key stored at
- *   `<vellumRoot>/protected/store.key`. The key is machine-independent —
+ *   `<maxRoot>/protected/store.key`. The key is machine-independent —
  *   any process that can read the key file can decrypt the store.
  *
  * - **v1 (legacy):** AES-256-GCM with a key derived from machine-specific
@@ -45,7 +45,7 @@ import { dirname, join } from "node:path";
 import type {
   SecureKeyBackend,
   SecureKeyDeleteResult,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Constants (must match assistant/src/security/encrypted-store.ts)
@@ -99,11 +99,11 @@ const KEYS_ENC_FILENAME = "keys.enc";
  * that directory directly. This allows Docker deployments to mount a separate
  * CES-only security volume.
  *
- * When the env var is unset, falls back to `<vellumRoot>/protected/` for
+ * When the env var is unset, falls back to `<maxRoot>/protected/` for
  * backwards compatibility.
  */
-function resolveSecurityDir(vellumRoot: string): string {
-  return process.env.CREDENTIAL_SECURITY_DIR || join(vellumRoot, "protected");
+function resolveSecurityDir(maxRoot: string): string {
+  return process.env.CREDENTIAL_SECURITY_DIR || join(maxRoot, "protected");
 }
 
 /**
@@ -111,9 +111,9 @@ function resolveSecurityDir(vellumRoot: string): string {
  * Returns the raw 32-byte key buffer, or null if the file is missing,
  * wrong size, or unreadable.
  */
-function readStoreKey(vellumRoot: string): Buffer | null {
+function readStoreKey(maxRoot: string): Buffer | null {
   try {
-    const keyPath = join(resolveSecurityDir(vellumRoot), STORE_KEY_FILENAME);
+    const keyPath = join(resolveSecurityDir(maxRoot), STORE_KEY_FILENAME);
     if (!existsSync(keyPath)) return null;
     const buf = readFileSync(keyPath);
     if (buf.length !== KEY_LENGTH) return null;
@@ -131,11 +131,11 @@ function readStoreKey(vellumRoot: string): Buffer | null {
  * Read or generate the v2 store key. If the key file does not exist,
  * creates a new 32-byte random key and writes it atomically.
  */
-function getOrReadStoreKey(vellumRoot: string): Buffer {
-  const existing = readStoreKey(vellumRoot);
+function getOrReadStoreKey(maxRoot: string): Buffer {
+  const existing = readStoreKey(maxRoot);
   if (existing) return existing;
 
-  const securityDir = resolveSecurityDir(vellumRoot);
+  const securityDir = resolveSecurityDir(maxRoot);
   mkdirSync(securityDir, { recursive: true });
 
   const key = randomBytes(KEY_LENGTH);
@@ -157,14 +157,14 @@ function getOrReadStoreKey(vellumRoot: string): Buffer {
  */
 function getOrCreateStore(
   storePath: string,
-  vellumRoot: string,
+  maxRoot: string,
 ): { store: StoreFile; aesKey: Buffer } {
   const existing = readStore(storePath);
   if (existing) {
     if (existing.version === 1) {
       throw new Error("v1 store cannot be auto-initialized");
     }
-    const storeKey = readStoreKey(vellumRoot);
+    const storeKey = readStoreKey(maxRoot);
     if (!storeKey) {
       throw new Error("v2 store exists but store.key is missing or corrupt");
     }
@@ -172,7 +172,7 @@ function getOrCreateStore(
   }
 
   // No store exists — create a new empty v2 store
-  const aesKey = getOrReadStoreKey(vellumRoot);
+  const aesKey = getOrReadStoreKey(maxRoot);
   const store: StoreFileV2 = { version: 2, entries: {} };
   writeStore(store, storePath);
   return { store, aesKey };
@@ -289,7 +289,7 @@ function readStore(storePath: string): StoreFile | null {
  * persisting refreshed OAuth tokens. `delete` removes a key from the
  * encrypted store.
  *
- * @param vellumRoot - The Vellum root directory (e.g. `~/.vellum`).
+ * @param maxRoot - The Max root directory (e.g. `~/.max`).
  * @param options.entropyOverride - If provided, used instead of local
  *   machine entropy for key derivation. In managed mode the CES sidecar
  *   runs in a different container with a different hostname/user, so it
@@ -301,10 +301,10 @@ function readStore(storePath: string): StoreFile | null {
  *   Takes precedence over `entropyOverride`.
  */
 export function createLocalSecureKeyBackend(
-  vellumRoot: string,
+  maxRoot: string,
   options?: { entropyOverride?: string; entropyGetter?: () => string | undefined },
 ): SecureKeyBackend {
-  const storePath = join(resolveSecurityDir(vellumRoot), KEYS_ENC_FILENAME);
+  const storePath = join(resolveSecurityDir(maxRoot), KEYS_ENC_FILENAME);
   const staticEntropy = options?.entropyOverride;
   const entropyGetter = options?.entropyGetter;
 
@@ -319,7 +319,7 @@ export function createLocalSecureKeyBackend(
 
         let aesKey: Buffer;
         if (store.version === 2) {
-          const storeKey = readStoreKey(vellumRoot);
+          const storeKey = readStoreKey(maxRoot);
           if (!storeKey) return undefined;
           aesKey = storeKey;
         } else {
@@ -346,7 +346,7 @@ export function createLocalSecureKeyBackend(
         let aesKey: Buffer;
 
         try {
-          const result = getOrCreateStore(storePath, vellumRoot);
+          const result = getOrCreateStore(storePath, maxRoot);
           store = result.store;
           aesKey = result.aesKey;
         } catch {

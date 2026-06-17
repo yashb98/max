@@ -21,7 +21,7 @@ const { reconcileTelegramWebhook } =
 afterEach(() => {
   fetchMock = mock(async () => new Response());
   delete process.env.IS_CONTAINERIZED;
-  delete process.env.VELLUM_PLATFORM_URL;
+  delete process.env.MAX_PLATFORM_URL;
   delete process.env.ASSISTANT_API_KEY;
 });
 
@@ -65,9 +65,9 @@ function makeCaches(
   const credentialMap: Record<string, string | undefined> = {
     [credentialKey("telegram", "bot_token")]: botToken,
     [credentialKey("telegram", "webhook_secret")]: webhookSecret,
-    [credentialKey("vellum", "platform_base_url")]: platformBaseUrl,
-    [credentialKey("vellum", "assistant_api_key")]: assistantApiKey,
-    [credentialKey("vellum", "platform_assistant_id")]: platformAssistantId,
+    [credentialKey("max", "platform_base_url")]: platformBaseUrl,
+    [credentialKey("max", "assistant_api_key")]: assistantApiKey,
+    [credentialKey("max", "platform_assistant_id")]: platformAssistantId,
   };
   const credentials = {
     get: async (key: string) => credentialMap[key],
@@ -302,7 +302,7 @@ describe("reconcileTelegramWebhook", () => {
       headers?: Record<string, string>;
     }[] = [];
     process.env.IS_CONTAINERIZED = "true";
-    process.env.VELLUM_PLATFORM_URL = "https://env-platform.example.com";
+    process.env.MAX_PLATFORM_URL = "https://env-platform.example.com";
     process.env.ASSISTANT_API_KEY = "env-key";
 
     const caches = makeCaches({
@@ -375,7 +375,7 @@ describe("reconcileTelegramWebhook", () => {
       headers?: Record<string, string>;
     }[] = [];
     process.env.IS_CONTAINERIZED = "true";
-    process.env.VELLUM_PLATFORM_URL = "https://env-platform.example.com";
+    process.env.MAX_PLATFORM_URL = "https://env-platform.example.com";
 
     const caches = makeCaches({
       ingressUrl: undefined,

@@ -34,7 +34,7 @@
  * is the logger facet, used for handler-error / drop telemetry.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "@maxai/skill-host-contracts";
 
 import type { MeetBotEvent } from "../contracts/index.js";
 

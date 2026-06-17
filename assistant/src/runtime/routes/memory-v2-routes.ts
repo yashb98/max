@@ -113,7 +113,7 @@ async function handleValidate({
   // Intentionally NOT gated on `memory.v2.enabled`. Validate is a read-only
   // diagnostic walk over the on-disk concept-page workspace and must be
   // runnable before flipping the flag — operators (and the
-  // vellum-memory-v2-migration skill) use it as the final dry-run check
+  // max-memory-v2-migration skill) use it as the final dry-run check
   // immediately before enabling v2.
   MemoryV2ValidateParams.parse(body);
 

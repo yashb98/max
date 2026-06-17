@@ -43,13 +43,13 @@ interface ParsedArgs {
   assistantId: string;
   assistantName?: string;
   species: Species;
-  /** "vellum" for platform-hosted assistants, undefined for local. */
+  /** "max" for platform-hosted assistants, undefined for local. */
   cloud?: string;
-  /** Platform session token (X-Session-Token), set when cloud === "vellum". */
+  /** Platform session token (X-Session-Token), set when cloud === "max". */
   platformToken?: string;
   /** Guardian JWT (Authorization: Bearer), set for local assistants. */
   bearerToken?: string;
-  /** Interface identifier sent as X-Vellum-Interface-Id on all requests. */
+  /** Interface identifier sent as X-Max-Interface-Id on all requests. */
   interfaceId: SupportedInterface;
   project?: string;
   zone?: string;
@@ -106,7 +106,7 @@ function parseArgs(): ParsedArgs {
       entry = findAssistantByName(active);
       if (!entry && !hasExplicitUrl) {
         console.error(
-          `Active assistant '${active}' not found in lockfile. Set an active assistant with 'vellum use <name>'.`,
+          `Active assistant '${active}' not found in lockfile. Set an active assistant with 'max use <name>'.`,
         );
         process.exit(1);
       }
@@ -116,7 +116,7 @@ function parseArgs(): ParsedArgs {
       entry = resolveAssistant();
     } else if (!entry) {
       console.error(
-        "No active assistant set. Set one with 'vellum use <name>' or specify a name: 'vellum client <name>'.",
+        "No active assistant set. Set one with 'max use <name>' or specify a name: 'max client <name>'.",
       );
       process.exit(1);
     }
@@ -126,13 +126,13 @@ function parseArgs(): ParsedArgs {
   let assistantId = entry?.assistantId || DAEMON_INTERNAL_ASSISTANT_ID;
   let assistantName = readAssistantName(entry);
   const cloud = entry?.cloud;
-  const species: Species = (entry?.species as Species) ?? "vellum";
+  const species: Species = (entry?.species as Species) ?? "max";
 
   // Platform-hosted assistants use a session token; local assistants use a guardian JWT.
   const platformToken =
-    cloud === "vellum" ? (readPlatformToken() ?? undefined) : undefined;
+    cloud === "max" ? (readPlatformToken() ?? undefined) : undefined;
   const bearerToken =
-    cloud === "vellum"
+    cloud === "max"
       ? undefined
       : (loadGuardianToken(entry?.assistantId ?? "")?.accessToken ?? undefined);
 
@@ -214,10 +214,10 @@ function maybeSwapToLocalhost(url: string): string {
 }
 
 function printUsage(): void {
-  console.log(`${ANSI.bold}vellum client${ANSI.reset} - Connect to a hatched assistant
+  console.log(`${ANSI.bold}max client${ANSI.reset} - Connect to a hatched assistant
 
 ${ANSI.bold}USAGE:${ANSI.reset}
-    vellum client [name] [options]
+    max client [name] [options]
 
 ${ANSI.bold}ARGUMENTS:${ANSI.reset}
     [name]                     Instance name (default: active)
@@ -229,14 +229,14 @@ ${ANSI.bold}OPTIONS:${ANSI.reset}
     -h, --help                 Show this help message
 
 ${ANSI.bold}DEFAULTS:${ANSI.reset}
-    Reads from ~/.vellum.lock.json (created by vellum hatch).
+    Reads from ~/.max.lock.json (created by max hatch).
     Override with flags above.
 
 ${ANSI.bold}EXAMPLES:${ANSI.reset}
-    vellum client
-    vellum client vellum-assistant-foo
-    vellum client --url http://34.56.78.90:${GATEWAY_PORT}
-    vellum client vellum-assistant-foo --url http://localhost:${GATEWAY_PORT}
+    max client
+    max client max-assistant-foo
+    max client --url http://34.56.78.90:${GATEWAY_PORT}
+    max client max-assistant-foo --url http://localhost:${GATEWAY_PORT}
 `);
 }
 
@@ -246,7 +246,7 @@ async function maybeHydratePlatformAssistantName(
   cloud: string | undefined,
   platformToken: string | undefined,
 ): Promise<string | undefined> {
-  if (cloud !== "vellum" || assistantName || !platformToken) {
+  if (cloud !== "max" || assistantName || !platformToken) {
     return assistantName;
   }
 
@@ -278,7 +278,7 @@ async function maybeHydratePlatformAssistantName(
  *
  * Returns the absolute path to its directory, or null when not found —
  * e.g. when the CLI is installed via npm/bunx, where the `clients/web`
- * source isn't shipped alongside `@vellumai/cli`. For now we treat the
+ * source isn't shipped alongside `@maxai/cli`. For now we treat the
  * `--interface web` path as source-checkout-only.
  */
 function findClientsWebDir(): string | null {
@@ -298,7 +298,7 @@ function findClientsWebDir(): string | null {
 /**
  * Spawn the `clients/web` package's `local` script and proxy its lifecycle.
  *
- * The web client is deliberately not declared as a dependency of `@vellumai/cli`:
+ * The web client is deliberately not declared as a dependency of `@maxai/cli`:
  * the CLI is published, the web package is not. Locating it on disk and
  * shelling out keeps the two packages independent.
  */
@@ -308,7 +308,7 @@ async function runWebInterface(): Promise<void> {
     console.error(
       `${ANSI.bold}--interface web${ANSI.reset}: unable to locate ` +
         `clients/web. This interface currently requires running ` +
-        `vellum from a source checkout of vellum-assistant.`,
+        `max from a source checkout of max-assistant.`,
     );
     process.exit(1);
   }
@@ -371,14 +371,14 @@ export async function client(): Promise<void> {
   // Build pre-constructed request headers merged from auth + client registration.
   // Spreading into every fetch site ensures consistency across REST and SSE endpoints.
   let auth: Record<string, string> | undefined;
-  if (cloud === "vellum" && platformToken) {
+  if (cloud === "max" && platformToken) {
     const orgId = await fetchOrganizationId(platformToken).catch((err) => {
       tuiLog.warn("failed to fetch organization id", { err: String(err) });
       return undefined;
     });
     auth = {
       "X-Session-Token": platformToken,
-      ...(orgId ? { "Vellum-Organization-Id": orgId } : {}),
+      ...(orgId ? { "Max-Organization-Id": orgId } : {}),
       ...getClientRegistrationHeaders(interfaceId),
     };
   } else {

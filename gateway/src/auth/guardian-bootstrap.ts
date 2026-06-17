@@ -81,7 +81,7 @@ function uuid(): string {
 
 export function getExternalAssistantId(): string {
   return (
-    process.env.VELLUM_ASSISTANT_NAME?.trim() || DAEMON_INTERNAL_ASSISTANT_ID
+    process.env.MAX_ASSISTANT_NAME?.trim() || DAEMON_INTERNAL_ASSISTANT_ID
   );
 }
 
@@ -100,10 +100,10 @@ interface ExistingChannelRow {
 }
 
 /**
- * Find the existing guardian contact for the "vellum" channel.
- * Mirrors assistant's `findGuardianForChannel("vellum")`.
+ * Find the existing guardian contact for the "max" channel.
+ * Mirrors assistant's `findGuardianForChannel("max")`.
  */
-export async function findVellumGuardian(): Promise<{
+export async function findMaxGuardian(): Promise<{
   principalId: string;
 } | null> {
   const rows = await assistantDbQuery<GuardianLookupRow>(
@@ -111,7 +111,7 @@ export async function findVellumGuardian(): Promise<{
      FROM contacts c
      INNER JOIN contact_channels cc ON cc.contact_id = c.id
      WHERE c.role = 'guardian'
-       AND cc.type = 'vellum'
+       AND cc.type = 'max'
        AND cc.status = 'active'
      ORDER BY cc.verified_at DESC
      LIMIT 1`,
@@ -159,7 +159,7 @@ export async function findGuardianForChannelActor(
 // ---------------------------------------------------------------------------
 
 export interface CreateGuardianBindingParams {
-  /** Channel type (e.g. "vellum", "telegram", "slack", "phone", "whatsapp"). */
+  /** Channel type (e.g. "max", "telegram", "slack", "phone", "whatsapp"). */
   channel: string;
   /** Canonical external user ID for this channel (pre-canonicalized by caller). */
   externalUserId: string;
@@ -454,7 +454,7 @@ function mintAccessToken(
   const sub = `actor:${externalAssistantId}:${guardianPrincipalId}`;
 
   const token = mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub,
     scope_profile: "actor_client_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -550,8 +550,8 @@ async function fetchPlatformOwnerDisplayName(): Promise<string | null> {
   if (!isPlatform) return null;
 
   const [platformBaseUrl, assistantApiKey] = await Promise.all([
-    readCredential(credentialKey("vellum", "platform_base_url")),
-    readCredential(credentialKey("vellum", "assistant_api_key")),
+    readCredential(credentialKey("max", "platform_base_url")),
+    readCredential(credentialKey("max", "assistant_api_key")),
   ]);
 
   if (!platformBaseUrl || !assistantApiKey) {
@@ -580,26 +580,26 @@ async function fetchPlatformOwnerDisplayName(): Promise<string | null> {
 }
 
 /**
- * Ensure a vellum guardian binding exists. If one already exists, returns
+ * Ensure a max guardian binding exists. If one already exists, returns
  * its principalId. Otherwise creates a new binding with a fresh principal
  * and dual-writes to both the assistant and gateway DBs.
  *
  * Called during gateway startup to backfill existing installations.
  */
-export async function ensureVellumGuardianBinding(): Promise<string> {
-  const existing = await findVellumGuardian();
+export async function ensureMaxGuardianBinding(): Promise<string> {
+  const existing = await findMaxGuardian();
   if (existing) {
     log.debug(
       { guardianPrincipalId: existing.principalId },
-      "Vellum guardian binding already exists",
+      "Max guardian binding already exists",
     );
     return existing.principalId;
   }
 
   const displayName = await fetchPlatformOwnerDisplayName();
-  const guardianPrincipalId = `vellum-principal-${uuid()}`;
+  const guardianPrincipalId = `max-principal-${uuid()}`;
   await createGuardianBinding({
-    channel: "vellum",
+    channel: "max",
     externalUserId: guardianPrincipalId,
     deliveryChatId: "local",
     guardianPrincipalId,
@@ -611,7 +611,7 @@ export async function ensureVellumGuardianBinding(): Promise<string> {
 
 /**
  * Execute the full guardian bootstrap flow:
- *   1. Ensure a guardian principal exists for the vellum channel
+ *   1. Ensure a guardian principal exists for the max channel
  *   2. Revoke existing credentials for this device
  *   3. Mint new JWT access token + opaque refresh token
  *   4. Persist token hashes
@@ -628,13 +628,13 @@ export async function bootstrapGuardian(params: {
   let isNew = false;
   let guardianPrincipalId: string;
 
-  const existing = await findVellumGuardian();
+  const existing = await findMaxGuardian();
   if (existing) {
     guardianPrincipalId = existing.principalId;
   } else {
-    guardianPrincipalId = `vellum-principal-${uuid()}`;
+    guardianPrincipalId = `max-principal-${uuid()}`;
     await createGuardianBinding({
-      channel: "vellum",
+      channel: "max",
       externalUserId: guardianPrincipalId,
       deliveryChatId: "local",
       guardianPrincipalId,

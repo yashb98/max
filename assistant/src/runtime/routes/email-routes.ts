@@ -1,14 +1,14 @@
 /**
  * Route handlers for the email management API.
  *
- * Delegates to the Vellum platform API for register/unregister/send/list/status/download.
+ * Delegates to the Max platform API for register/unregister/send/list/status/download.
  * All handlers require a valid platform client (UnauthorizedError if not).
  */
 
 import { z } from "zod";
 
 import { markdownToEmailHtml } from "../../email/html-renderer.js";
-import { VellumPlatformClient } from "../../platform/client.js";
+import { MaxPlatformClient } from "../../platform/client.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -19,8 +19,8 @@ import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-async function requireClient(): Promise<VellumPlatformClient> {
-  const client = await VellumPlatformClient.create();
+async function requireClient(): Promise<MaxPlatformClient> {
+  const client = await MaxPlatformClient.create();
   if (!client) {
     throw new UnauthorizedError(
       "Platform credentials not configured. Run: assistant platform connect",
@@ -300,7 +300,7 @@ async function handleEmailSend({ body = {} }: RouteHandlerArgs) {
   if (!response.ok) {
     if (response.status === 402) {
       throw new RouteError(
-        "Insufficient balance to send email. Add credits at https://platform.vellum.ai/billing",
+        "Insufficient balance to send email. Add credits at https://platform.max.ai/billing",
         "PAYMENT_REQUIRED",
         402,
       );
@@ -419,7 +419,7 @@ export const ROUTES: RouteDefinition[] = [
     handler: handleEmailRegister,
     summary: "Register an email address",
     description:
-      "Register a new email address on the Vellum platform for the current assistant.",
+      "Register a new email address on the Max platform for the current assistant.",
     tags: ["email"],
     requestBody: z.object({
       username: z
@@ -527,7 +527,7 @@ export const ROUTES: RouteDefinition[] = [
     handler: handleEmailSend,
     summary: "Send an email",
     description:
-      "Send an email from the assistant's registered email address via the Vellum runtime proxy.",
+      "Send an email from the assistant's registered email address via the Max runtime proxy.",
     tags: ["email"],
     requestBody: z.object({
       to: z.array(z.string()).min(1).describe("Recipient email address(es)"),

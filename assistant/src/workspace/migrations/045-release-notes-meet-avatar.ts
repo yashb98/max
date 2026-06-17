@@ -37,7 +37,7 @@ the Linux host that runs the assistant:
 
 \`\`\`bash
 sudo apt-get install v4l2loopback-dkms
-sudo modprobe v4l2loopback video_nr=10 card_label="VellumAvatar" exclusive_caps=1
+sudo modprobe v4l2loopback video_nr=10 card_label="MaxAvatar" exclusive_caps=1
 \`\`\`
 
 macOS bare-metal is **not supported** for the avatar in v1 — the virtual
@@ -57,7 +57,7 @@ In your Meet service config, set:
 }
 \`\`\`
 
-**Docker mode:** the CLI automatically passes \`VELLUM_AVATAR_DEVICE\`
+**Docker mode:** the CLI automatically passes \`MAX_AVATAR_DEVICE\`
 (default \`/dev/video10\`) to the assistant container and bind-mounts
 the device node when it exists on the host.
 

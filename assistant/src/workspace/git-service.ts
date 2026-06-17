@@ -66,7 +66,7 @@ const WORKSPACE_GITIGNORE_RULES = [
   "*.db-journal",
   "*.db-wal",
   "*.db-shm",
-  "vellum.pid",
+  "max.pid",
   "session-token",
 ];
 
@@ -738,7 +738,7 @@ export class WorkspaceGitService {
             updated += "\n";
           }
           updated +=
-            "# Vellum runtime state (auto-added)\n" +
+            "# Max runtime state (auto-added)\n" +
             missingRules.join("\n") +
             "\n";
         }
@@ -759,9 +759,9 @@ export class WorkspaceGitService {
    * Must be called with the mutex lock held.
    */
   private async ensureCommitIdentityLocked(): Promise<void> {
-    const gitName = process.env.ASSISTANT_GIT_USER_NAME || "Vellum Assistant";
+    const gitName = process.env.ASSISTANT_GIT_USER_NAME || "Max Assistant";
     const gitEmail =
-      process.env.ASSISTANT_GIT_USER_EMAIL || "assistant@vellum.ai";
+      process.env.ASSISTANT_GIT_USER_EMAIL || "assistant@max.ai";
     await this.execGit(["config", "user.name", gitName]);
     await this.execGit(["config", "user.email", gitEmail]);
   }
@@ -933,7 +933,7 @@ export class WorkspaceGitService {
 
   /**
    * Write a git note to a specific commit.
-   * Uses the 'vellum' notes ref to avoid conflicts with default notes.
+   * Uses the 'max' notes ref to avoid conflicts with default notes.
    *
    * Retries once on `index.lock` errors — `git notes add` briefly holds
    * a ref lock that can collide with concurrent git operations (e.g. a
@@ -947,7 +947,7 @@ export class WorkspaceGitService {
     await this.mutex.withLock(async () => {
       const args = [
         "notes",
-        "--ref=vellum",
+        "--ref=max",
         "add",
         "-f",
         "-m",

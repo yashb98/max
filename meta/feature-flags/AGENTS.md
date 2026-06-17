@@ -42,7 +42,7 @@ The `id` and `key` fields in `feature-flag-registry.json` **must match** and bot
    bun run meta/feature-flags/sync-bundled-copies.ts
    ```
 
-3. **Create the flag via Terraform in `vellum-assistant-platform`** so it exists on the platform for remote sync.
+3. **Create the flag via Terraform in `max-assistant-platform`** so it exists on the platform for remote sync.
 
 ## Creating a Feature Gate
 

@@ -31,7 +31,7 @@ const ALLOWED_PREFIXES = {
     "../../lib/",
     "../utils/",
     "../../utils/",
-    // Environment access for commands that need to read VELLUM_* env vars
+    // Environment access for commands that need to read MAX_* env vars
     // before issuing IPC calls (e.g. email, domain).
     "../../config/env",
     // Browser command's operation metadata (drives subcommand generation).
@@ -64,7 +64,7 @@ const ALLOWED_PREFIXES = {
     // CES bridge (credential-execution.ts) speaks to the CES sidecar via
     // service-contracts RPC; daemon is not involved.
     "../../credential-execution/",
-    "@vellumai/service-contracts",
+    "@maxai/service-contracts",
   ],
   bootstrap: [
     "node:",

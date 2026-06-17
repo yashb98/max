@@ -1,4 +1,4 @@
-import type { VellumPlatformClient } from "../platform/client.js";
+import type { MaxPlatformClient } from "../platform/client.js";
 import { BackendError } from "../util/errors.js";
 import { getHttpRetryDelay, isRetryableStatus, sleep } from "../util/retry.js";
 import type {
@@ -25,7 +25,7 @@ export class ProviderUnreachableError extends BackendError {
 
 export class InsufficientBalanceError extends BackendError {
   constructor(
-    message = "Your Vellum account balance is too low to use this managed OAuth connection. " +
+    message = "Your Max account balance is too low to use this managed OAuth connection. " +
       "You can add funds or switch to using your own OAuth app.",
   ) {
     super(message);
@@ -38,7 +38,7 @@ export interface PlatformOAuthConnectionOptions {
   provider: string;
   externalId: string;
   accountInfo: string | null;
-  client: VellumPlatformClient;
+  client: MaxPlatformClient;
   /** Platform-side connection ID used in the proxy URL path. */
   connectionId: string;
   /** Provider API base URL (e.g. "https://gmail.googleapis.com/gmail/v1/users/me").
@@ -52,7 +52,7 @@ export class PlatformOAuthConnection implements OAuthConnection {
   readonly externalId: string;
   readonly accountInfo: string | null;
 
-  private readonly client: VellumPlatformClient;
+  private readonly client: MaxPlatformClient;
   private readonly connectionId: string;
   private readonly baseUrl: string | undefined;
 
@@ -60,7 +60,7 @@ export class PlatformOAuthConnection implements OAuthConnection {
     if (!options.connectionId) {
       throw new BackendError(
         `Platform-managed connection for "${options.provider}" cannot be created: missing connection ID. ` +
-          `Log in to the Vellum platform or switch to using your own OAuth app.`,
+          `Log in to the Max platform or switch to using your own OAuth app.`,
       );
     }
 

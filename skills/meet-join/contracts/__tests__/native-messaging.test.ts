@@ -524,7 +524,7 @@ describe("BotJoinCommandSchema", () => {
     const input = {
       type: "join" as const,
       meetingUrl: "https://meet.google.com/abc-defg-hij",
-      displayName: "Vellum Bot",
+      displayName: "Max Bot",
       consentMessage:
         "Hi, I'm here on behalf of Alice to take notes. Reply STOP to have me leave.",
     };
@@ -537,7 +537,7 @@ describe("BotJoinCommandSchema", () => {
       BotJoinCommandSchema.parse({
         type: "join",
         meetingUrl: "",
-        displayName: "Vellum Bot",
+        displayName: "Max Bot",
         consentMessage: "Hi",
       }),
     ).toThrow();
@@ -713,7 +713,7 @@ describe("BotToExtensionMessageSchema", () => {
       {
         type: "join",
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
+        displayName: "Max Bot",
         consentMessage: "Hi, I'm here to take notes.",
       },
       { type: "leave", reason: "user requested" },

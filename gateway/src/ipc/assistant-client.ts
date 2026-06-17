@@ -8,7 +8,7 @@
  * - Request:  `{ "id": string, "method": string, "params"?: object }`
  * - Response: `{ "id": string, "result"?: unknown, "error"?: string }`
  *
- * The gateway does not depend on @vellumai/gateway-client, so the one-shot
+ * The gateway does not depend on @maxai/gateway-client, so the one-shot
  * IPC client is implemented inline here following the same pattern as
  * packages/gateway-client/src/ipc-client.ts.
  */

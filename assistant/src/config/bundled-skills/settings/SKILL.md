@@ -1,10 +1,10 @@
 ---
 name: settings
 description: Manage assistant voice and system settings
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "\u2699\uFE0F"
-  vellum:
+  max:
     display-name: "Settings"
     activation-hints:
       - "User wants to change the assistant's voice, TTS provider, or speech output"

@@ -1,6 +1,6 @@
 # Clients Directory
 
-This directory contains native client applications for the Vellum Assistant.
+This directory contains native client applications for the Max Assistant.
 
 For client architecture details, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
@@ -14,7 +14,7 @@ For client architecture details, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 ```
 clients/
 ├── Package.swift              # macOS Swift Package Manager manifest
-├── shared/                    # VellumAssistantShared - shared library code
+├── shared/                    # MaxAssistantShared - shared library code
 │   ├── Network/                # Network communication (GatewayHTTPClient, EventStreamClient, MessageTypes)
 │   ├── Features/Chat/         # Shared chat UI (ChatViewModel, MessageBubbleView, InputBarView, etc.)
 │   ├── Features/Skills/       # SkillsStore — skills data operations
@@ -29,15 +29,15 @@ clients/
 │   ├── Utilities/             # Shared utilities (APIKeyManager, FeatureFlagRegistry, etc.)
 │   └── App/                   # Shared app utilities (SigningIdentityManager)
 ├── macos/                     # macOS-specific code
-│   ├── vellum-assistant/      # VellumAssistantLib - macOS app logic
-│   ├── vellum-assistant-app/  # Executable entry point
+│   ├── max-assistant/      # MaxAssistantLib - macOS app logic
+│   ├── max-assistant-app/  # Executable entry point
 │   ├── build.sh               # Build script (wraps SPM → .app → codesign)
 │   └── AGENTS.md              # Agent development guidance (macOS-specific)
 └── chrome-extension/          # Chrome browser extension
 ```
 
 The iOS app is a Capacitor shell that lives in
-[`vellum-assistant-platform/web/ios/`](https://github.com/vellum-ai/vellum-assistant-platform);
+[`max-assistant-platform/web/ios/`](https://github.com/max-ai/max-assistant-platform);
 it loads the web app over HTTPS and does not consume any Swift code from this
 repo.
 
@@ -47,7 +47,7 @@ repo.
 
 ## Targets
 
-### VellumAssistantShared (Library)
+### MaxAssistantShared (Library)
 **Platforms**: macOS 15+
 **Purpose**: Shared library code consumed by the macOS app
 
@@ -64,7 +64,7 @@ repo.
 
 **Dependencies**: None (only system frameworks: AuthenticationServices, Network, Security)
 
-### VellumAssistantLib (Library)
+### MaxAssistantLib (Library)
 **Platforms**: macOS 15+
 **Purpose**: macOS application logic
 
@@ -73,15 +73,15 @@ repo.
 - Computer-use features (accessibility, screen capture, input injection)
 - macOS-specific integrations (menu bar, hotkeys, voice input)
 
-**Dependencies**: VellumAssistantShared, Apple Containerization, Sentry, Sparkle
+**Dependencies**: MaxAssistantShared, Apple Containerization, Sentry, Sparkle
 **Frameworks**: AppKit, ApplicationServices, AuthenticationServices, AVKit, CoreGraphics, Network, ScreenCaptureKit, Security, Speech, SpriteKit, Vision
 
-### vellum-assistant (Executable)
+### max-assistant (Executable)
 **Platforms**: macOS 15+
 **Purpose**: Thin entry point for macOS app
 
 **Contains**: Just `@main` app delegate setup
-**Dependencies**: VellumAssistantLib
+**Dependencies**: MaxAssistantLib
 
 ---
 
@@ -99,8 +99,8 @@ cd clients/macos
 
 The build script:
 1. Runs `swift build` from `clients/macos/` (SPM finds `../Package.swift` automatically)
-2. Downloads and caches the Kata 3.17.0 ARM64 kernel into `clients/macos/.container-cache/` on the first app build, then bundles it into `dist/Vellum.app/Contents/Resources/DeveloperVM/`
-3. Packages binary into `dist/Vellum.app` bundle
+2. Downloads and caches the Kata 3.17.0 ARM64 kernel into `clients/macos/.container-cache/` on the first app build, then bundles it into `dist/Max.app/Contents/Resources/DeveloperVM/`
+3. Packages binary into `dist/Max.app` bundle
 4. Codesigns with ad-hoc signature (or release identity)
 
 ---
@@ -113,8 +113,8 @@ The build script:
 3. Add explicit `public init()` to all structs (memberwise inits are internal)
 
 ### Adding macOS-Only Code
-1. Place in `clients/macos/vellum-assistant/`
-2. Import `VellumAssistantShared` for access to network types
+1. Place in `clients/macos/max-assistant/`
+2. Import `MaxAssistantShared` for access to network types
 3. Can use AppKit, ScreenCaptureKit, etc. freely
 
 ---
@@ -129,12 +129,12 @@ The build script:
 
 ```bash
 cd clients/macos
-./build.sh test     # macOS SPM tests (runs swift test --filter vellum_assistantTests)
+./build.sh test     # macOS SPM tests (runs swift test --filter max_assistantTests)
 ```
 
 Shared-package unit tests live alongside the library and run via:
 
 ```bash
 cd clients
-swift test --filter VellumAssistantSharedTests
+swift test --filter MaxAssistantSharedTests
 ```

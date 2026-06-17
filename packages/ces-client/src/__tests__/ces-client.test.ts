@@ -1,5 +1,5 @@
 /**
- * Tests for @vellumai/ces-client
+ * Tests for @maxai/ces-client
  *
  * Validates:
  * 1. Package independence — no imports from assistant/ or credential-executor/.
@@ -12,7 +12,7 @@ import { describe, expect, test, beforeEach, mock } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { CES_PROTOCOL_VERSION } from "@vellumai/service-contracts/credential-rpc";
+import { CES_PROTOCOL_VERSION } from "@maxai/service-contracts/credential-rpc";
 
 import { createCesHttpCredentialClient } from "../http-credentials.js";
 import type { CesHttpLogger, CesHttpCredentialConfig } from "../http-credentials.js";

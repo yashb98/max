@@ -34,7 +34,7 @@ import {
   type DeleteCredentialResponse,
   type ListCredentialsResponse,
   type RpcEnvelope,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import { PersistentGrantStore } from "../grants/persistent-store.js";
 import { TemporaryGrantStore } from "../grants/temporary-store.js";
@@ -119,8 +119,8 @@ function buildMinimalHandlers(dataDir: string): RpcHandlerRegistry {
  *
  * Mirrors the handler registration in managed-main.ts.
  */
-function buildCredentialHandlers(vellumRoot: string): RpcHandlerRegistry {
-  const secureKeyBackend = createLocalSecureKeyBackend(vellumRoot);
+function buildCredentialHandlers(maxRoot: string): RpcHandlerRegistry {
+  const secureKeyBackend = createLocalSecureKeyBackend(maxRoot);
   const handlers: RpcHandlerRegistry = {};
 
   handlers[CesRpcMethod.GetCredential] = (async (req: { account: string }) => {
@@ -703,7 +703,7 @@ describe("credential CRUD RPC", () => {
     clientSocket = await connectToSocket(socketPath);
     const conn = await connectionPromise;
 
-    // vellumRoot is unused when CREDENTIAL_SECURITY_DIR is set,
+    // maxRoot is unused when CREDENTIAL_SECURITY_DIR is set,
     // but we pass dataDir for consistency with the backend API.
     const handlers = buildCredentialHandlers(dataDir);
 

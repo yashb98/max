@@ -6,7 +6,7 @@ import { describe, expect, mock, test } from "bun:test";
 // Mocks - declared before imports that depend on platform/logger/ipc
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 function ensureTestDir(): void {
   const dirs = [

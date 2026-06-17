@@ -45,7 +45,7 @@ public final class MemoryPressureMonitor: @unchecked Sendable {
 
     /// Serial queue that owns the underlying `DispatchSourceMemoryPressure`
     /// and all internal mutable state (listeners dictionary, cached level).
-    private let queue = DispatchQueue(label: "com.vellum.memory-pressure-monitor", qos: .utility)
+    private let queue = DispatchQueue(label: "com.max.memory-pressure-monitor", qos: .utility)
 
     private let stateLock = NSLock()
     private var _current: MemoryPressureLevel = .normal

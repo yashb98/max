@@ -16,7 +16,7 @@ import {
   test,
 } from "bun:test";
 
-const checkerTestDir = process.env.VELLUM_WORKSPACE_DIR!;
+const checkerTestDir = process.env.MAX_WORKSPACE_DIR!;
 
 // Point the file-based trust backend at the test temp dir.
 process.env.GATEWAY_SECURITY_DIR = join(checkerTestDir, "protected");

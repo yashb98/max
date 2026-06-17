@@ -67,7 +67,7 @@ function getSharedAppsDir(): string {
     homedir(),
     "Library",
     "Application Support",
-    "vellum-assistant",
+    "max-assistant",
     "shared-apps",
   );
 }
@@ -420,7 +420,7 @@ async function importBundle(
   // Write to temp file for scanning and signature verification
   const tempPath = join(
     tmpdir(),
-    `vellum-import-${randomBytes(8).toString("hex")}.vbundle`,
+    `max-import-${randomBytes(8).toString("hex")}.vbundle`,
   );
   writeFileSync(tempPath, bundleBytes);
 

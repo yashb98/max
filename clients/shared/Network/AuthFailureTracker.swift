@@ -42,7 +42,7 @@ public final class AuthFailureTracker {
     public let windowSeconds: TimeInterval
     public let minFailures: Int
     private let now: () -> TimeInterval
-    private let queue = DispatchQueue(label: "ai.vellum.AuthFailureTracker")
+    private let queue = DispatchQueue(label: "ai.max.AuthFailureTracker")
 
     private var entries: [Entry] = []
     private var _lastStatusCode: Int?

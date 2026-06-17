@@ -1,5 +1,5 @@
 /**
- * External plugin runtime — `globalThis.__vellumPluginRuntime` bridge.
+ * External plugin runtime — `globalThis.__maxPluginRuntime` bridge.
  *
  * Workspace-local plugins (`<workspaceDir>/plugins/*`) get dynamic-imported by
  * {@link loadUserPlugins}. They need to call `registerPlugin()` from their
@@ -22,8 +22,8 @@
  *
  * Plugins use the bridge like this:
  *
- *   const runtime = (globalThis as { __vellumPluginRuntime?: ... })
- *     .__vellumPluginRuntime;
+ *   const runtime = (globalThis as { __maxPluginRuntime?: ... })
+ *     .__maxPluginRuntime;
  *   if (!runtime || runtime.version !== 1) throw new Error("...");
  *   const { registerPlugin, assistantEventHub, getSecureKeyAsync } = runtime;
  *
@@ -40,7 +40,7 @@ import { getSecureKeyAsync } from "../security/secure-keys.js";
 import { registerPlugin } from "./registry.js";
 
 /**
- * The handle plugins read from `globalThis.__vellumPluginRuntime`.
+ * The handle plugins read from `globalThis.__maxPluginRuntime`.
  *
  * `version` is the contract version. Plugins should assert against the
  * version they were authored against and refuse to register if they see a
@@ -51,7 +51,7 @@ import { registerPlugin } from "./registry.js";
  * lifecycle. Plugins that need richer runtime state can still receive it
  * through {@link PluginInitContext} during `init()`.
  */
-export interface VellumPluginRuntime {
+export interface MaxPluginRuntime {
   readonly version: 1;
   readonly registerPlugin: typeof registerPlugin;
   readonly assistantEventHub: typeof assistantEventHub;
@@ -59,10 +59,10 @@ export interface VellumPluginRuntime {
 }
 
 /** Stable globalThis key. Don't rename — plugins reference it by string. */
-const RUNTIME_GLOBAL_KEY = "__vellumPluginRuntime" as const;
+const RUNTIME_GLOBAL_KEY = "__maxPluginRuntime" as const;
 
 interface GlobalWithRuntime {
-  [RUNTIME_GLOBAL_KEY]?: VellumPluginRuntime;
+  [RUNTIME_GLOBAL_KEY]?: MaxPluginRuntime;
 }
 
 /**
@@ -71,7 +71,7 @@ interface GlobalWithRuntime {
  * lifecycle path.
  *
  * Must be called BEFORE {@link loadUserPlugins} runs, otherwise plugins that
- * touch `globalThis.__vellumPluginRuntime` in their module body will throw.
+ * touch `globalThis.__maxPluginRuntime` in their module body will throw.
  */
 export function installPluginRuntime(): void {
   const g = globalThis as GlobalWithRuntime;
@@ -91,7 +91,7 @@ export function installPluginRuntime(): void {
  * Exposed mainly for tests and for the rare in-process consumer that wants
  * to read the bridge from the same module graph that installed it.
  */
-export function getPluginRuntime(): VellumPluginRuntime | undefined {
+export function getPluginRuntime(): MaxPluginRuntime | undefined {
   return (globalThis as GlobalWithRuntime)[RUNTIME_GLOBAL_KEY];
 }
 

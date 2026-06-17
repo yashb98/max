@@ -48,7 +48,7 @@ describe("resolveImageGenCredentials", () => {
       });
     });
 
-    test("returns errorHint mentioning 'log in to Vellum' when platform URL is missing", async () => {
+    test("returns errorHint mentioning 'log in to Max' when platform URL is missing", async () => {
       mockPlatformBaseUrl = "";
       mockAssistantApiKey = "sk-assistant-key";
 
@@ -59,7 +59,7 @@ describe("resolveImageGenCredentials", () => {
 
       expect(result.credentials).toBeUndefined();
       expect(result.errorHint).toBeDefined();
-      expect(result.errorHint).toContain("log in to Vellum");
+      expect(result.errorHint).toContain("log in to Max");
     });
 
     test("returns errorHint when assistant API key is empty (TOCTOU-safe)", async () => {
@@ -73,7 +73,7 @@ describe("resolveImageGenCredentials", () => {
 
       expect(result.credentials).toBeUndefined();
       expect(result.errorHint).toBeDefined();
-      expect(result.errorHint).toContain("log in to Vellum");
+      expect(result.errorHint).toContain("log in to Max");
     });
   });
 

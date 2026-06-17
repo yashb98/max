@@ -40,7 +40,7 @@ describe("conversation-launcher skill regression", () => {
       // Assembled from parts so this literal does not appear in repo grep
       // results — the forbidden-tokens check would otherwise match this file.
       ["launch", "conversation."].join("-"),
-      "VELLUM_WORKSPACE_DIR",
+      "MAX_WORKSPACE_DIR",
       "INTERNAL_GATEWAY_BASE_URL",
       "emit-event",
     ];

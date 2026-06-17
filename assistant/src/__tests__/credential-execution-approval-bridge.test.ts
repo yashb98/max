@@ -15,7 +15,7 @@ import type {
   PersistentGrantRecord,
   RecordGrant,
   RecordGrantResponse,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import { bridgeCesApproval } from "../credential-execution/approval-bridge.js";
 import type { CesClient } from "../credential-execution/client.js";

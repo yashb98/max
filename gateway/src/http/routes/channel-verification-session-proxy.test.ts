@@ -27,7 +27,7 @@ mock.module("../../paths.js", () => ({
 
 mock.module("../../auth/guardian-bootstrap.js", () => ({
   bootstrapGuardian: () => ({
-    guardianPrincipalId: "vellum-principal-test",
+    guardianPrincipalId: "max-principal-test",
     accessToken: "test-at",
     accessTokenExpiresAt: Date.now() + 86400_000,
     refreshToken: "test-rt",
@@ -50,7 +50,7 @@ mock.module("../../auth/guardian-refresh.js", () => ({
   rotateCredentials: () => ({
     ok: true,
     result: {
-      guardianPrincipalId: "vellum-principal-test",
+      guardianPrincipalId: "max-principal-test",
       accessToken: "test-new-at",
       accessTokenExpiresAt: Date.now() + 86400_000,
       refreshToken: "test-new-rt",

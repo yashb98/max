@@ -11,8 +11,8 @@
 import type {
   ChannelDeliveryResult,
   ChannelReplyPayload,
-} from "@vellumai/gateway-client";
-import { ChannelDeliveryError } from "@vellumai/gateway-client/http-delivery";
+} from "@maxai/gateway-client";
+import { ChannelDeliveryError } from "@maxai/gateway-client/http-delivery";
 
 import { getLogger } from "../../util/logger.js";
 import {

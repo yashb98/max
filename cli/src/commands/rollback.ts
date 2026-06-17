@@ -45,7 +45,7 @@ function parseArgs(): { name: string | null; version: string | null } {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--help" || arg === "-h") {
-      console.log("Usage: vellum rollback [<name>] [--version <version>]");
+      console.log("Usage: max rollback [<name>] [--version <version>]");
       console.log("");
       console.log(
         "Roll back a Docker or managed assistant to a previous version.",
@@ -63,10 +63,10 @@ function parseArgs(): { name: string | null; version: string | null } {
       console.log("");
       console.log("Examples:");
       console.log(
-        "  vellum rollback my-assistant                  # Roll back to previous version (Docker or managed)",
+        "  max rollback my-assistant                  # Roll back to previous version (Docker or managed)",
       );
       console.log(
-        "  vellum rollback my-assistant --version v1.2.3 # Roll back to a specific version",
+        "  max rollback my-assistant --version v1.2.3 # Roll back to a specific version",
       );
       process.exit(0);
     } else if (arg === "--version") {
@@ -106,7 +106,7 @@ function resolveCloud(entry: AssistantEntry): string {
 /**
  * Resolve which assistant to target for the rollback command. Priority:
  * 1. Explicit name argument
- * 2. Active assistant set via `vellum use`
+ * 2. Active assistant set via `max use`
  * 3. Sole assistant (when exactly one exists)
  */
 function resolveTargetAssistant(nameArg: string | null): AssistantEntry {
@@ -133,12 +133,12 @@ function resolveTargetAssistant(nameArg: string | null): AssistantEntry {
   if (all.length === 1) return all[0];
 
   if (all.length === 0) {
-    const msg = "No assistants found. Run 'vellum hatch' first.";
+    const msg = "No assistants found. Run 'max hatch' first.";
     console.error(msg);
     emitCliError("ASSISTANT_NOT_FOUND", msg);
   } else {
     const msg =
-      "Multiple assistants found. Specify a name or set an active assistant with 'vellum use <name>'.";
+      "Multiple assistants found. Specify a name or set an active assistant with 'max use <name>'.";
     console.error(msg);
     emitCliError("ASSISTANT_NOT_FOUND", msg);
   }
@@ -153,7 +153,7 @@ async function rollbackPlatformViaEndpoint(
   const token = readPlatformToken();
   if (!token) {
     const msg =
-      "Error: Not logged in. Run `vellum login --token <token>` first.";
+      "Error: Not logged in. Run `max login --token <token>` first.";
     console.error(msg);
     emitCliError("AUTH_FAILED", msg);
     process.exit(1);
@@ -182,7 +182,7 @@ async function rollbackPlatformViaEndpoint(
       );
     } else if (detail.includes("not older")) {
       console.error(
-        `Target version is not older than the current version. Use 'vellum upgrade --version' instead.`,
+        `Target version is not older than the current version. Use 'max upgrade --version' instead.`,
       );
     } else if (detail.includes("not found")) {
       console.error(
@@ -196,7 +196,7 @@ async function rollbackPlatformViaEndpoint(
       detail.includes("ECONNREFUSED")
     ) {
       console.error(
-        `Connection error: ${detail}\nIs the platform reachable? Try 'vellum wake' if the assistant is asleep.`,
+        `Connection error: ${detail}\nIs the platform reachable? Try 'max wake' if the assistant is asleep.`,
       );
     } else {
       console.error(`Error: ${detail}`);
@@ -216,7 +216,7 @@ async function rollbackPlatformViaEndpoint(
   // Step 4 — Print success
   console.log(`Rolled back to version ${rolledBackVersion}.`);
   if (!version) {
-    console.log("Tip: Run 'vellum rollback' again to undo.");
+    console.log("Tip: Run 'max rollback' again to undo.");
   }
 }
 
@@ -232,8 +232,8 @@ export async function rollback(): Promise<void> {
     process.exit(1);
   }
 
-  // ---------- Managed (Vellum platform) rollback ----------
-  if (cloud === "vellum") {
+  // ---------- Managed (Max platform) rollback ----------
+  if (cloud === "max") {
     await rollbackPlatformViaEndpoint(entry, version ?? undefined);
     return;
   }
@@ -275,7 +275,7 @@ export async function rollback(): Promise<void> {
   // Verify rollback state exists
   if (!entry.previousContainerInfo) {
     const msg =
-      "No rollback state available. Run `vellum upgrade` first to create a rollback point.";
+      "No rollback state available. Run `max upgrade` first to create a rollback point.";
     console.error(msg);
     emitCliError("ROLLBACK_NO_STATE", msg);
     process.exit(1);
@@ -342,7 +342,7 @@ export async function rollback(): Promise<void> {
 
     // Build extra env vars, excluding keys managed by buildServiceRunArgs
     const envKeysSetByRunArgs = new Set(CONTAINER_ENV_EXCLUDE_KEYS);
-    for (const envVar of ["ANTHROPIC_API_KEY", "VELLUM_PLATFORM_URL"]) {
+    for (const envVar of ["ANTHROPIC_API_KEY", "MAX_PLATFORM_URL"]) {
       if (process.env[envVar]) {
         envKeysSetByRunArgs.add(envVar);
       }
@@ -475,7 +475,7 @@ export async function rollback(): Promise<void> {
         `\n✅ Docker assistant '${instanceName}' rolled back to ${previousVersion}.`,
       );
       console.log(
-        "\nTip: To also restore data from before the upgrade, use `vellum restore --from <backup-path>`.",
+        "\nTip: To also restore data from before the upgrade, use `max restore --from <backup-path>`.",
       );
     } else {
       console.error(

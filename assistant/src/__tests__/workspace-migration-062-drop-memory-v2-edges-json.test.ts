@@ -23,7 +23,7 @@ import { dropMemoryV2EdgesJsonMigration } from "../workspace/migrations/062-drop
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-migration-062-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-migration-062-test-"));
 });
 
 afterEach(() => {

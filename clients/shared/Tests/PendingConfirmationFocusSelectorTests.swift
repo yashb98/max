@@ -1,5 +1,5 @@
 import Testing
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 @Suite("PendingConfirmationFocusSelector")
 struct PendingConfirmationFocusSelectorTests {

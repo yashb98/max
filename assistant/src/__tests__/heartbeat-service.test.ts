@@ -2,7 +2,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-const testWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testWorkspaceDir = process.env.MAX_WORKSPACE_DIR!;
 
 // Default the warm-pool gate to OPEN for existing tests — they predate
 // the gate and expect heartbeat/filing/etc. to run on every tick. Tests
@@ -257,8 +257,8 @@ mock.module("../daemon/process-message.js", () => ({
     return { messageId: `mock-msg-${Date.now()}` };
   },
   processMessageInBackground: async () => ({ messageId: "mock-bg" }),
-  resolveTurnChannel: () => "vellum",
-  resolveTurnInterface: () => "vellum",
+  resolveTurnChannel: () => "max",
+  resolveTurnInterface: () => "max",
   prepareConversationForMessage: async () => ({}),
 }));
 
@@ -746,7 +746,7 @@ describe("HeartbeatService", () => {
     expect(processMessageCalls).toHaveLength(1);
     expect(processMessageCalls[0].options).toMatchObject({
       callSite: "heartbeatAgent",
-      trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+      trustContext: { sourceChannel: "max", trustClass: "guardian" },
     });
   });
 
@@ -794,7 +794,7 @@ describe("HeartbeatService", () => {
         isAsyncBackground: true,
         visibleInSourceNow: false,
       },
-      conversationAffinityHint: { vellum: "conv-1" },
+      conversationAffinityHint: { max: "conv-1" },
       conversationMetadata: {
         source: "heartbeat",
         groupId: "system:background",

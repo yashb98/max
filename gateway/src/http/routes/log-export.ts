@@ -25,7 +25,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
 
-import { fetchCesLogExport } from "@vellumai/ces-client/http-log-export";
+import { fetchCesLogExport } from "@maxai/ces-client/http-log-export";
 
 import { mintServiceToken } from "../../auth/token-exchange.js";
 import type { GatewayConfig } from "../../config.js";
@@ -100,7 +100,7 @@ export function createLogExportHandler(config: GatewayConfig) {
     // Create a temporary staging directory
     const stagingDir = join(
       tmpdir(),
-      `vellum-log-export-${randomBytes(8).toString("hex")}`,
+      `max-log-export-${randomBytes(8).toString("hex")}`,
     );
     mkdirSync(stagingDir, { recursive: true });
 
@@ -185,7 +185,7 @@ export function createLogExportHandler(config: GatewayConfig) {
         headers: {
           "Content-Type": "application/gzip",
           "Content-Disposition":
-            "attachment; filename=vellum-logs-export.tar.gz",
+            "attachment; filename=max-logs-export.tar.gz",
         },
       });
     } finally {

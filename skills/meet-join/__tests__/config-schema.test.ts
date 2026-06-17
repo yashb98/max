@@ -31,7 +31,7 @@ describe("MeetServiceSchema", () => {
     const parsed = MeetServiceSchema.parse({});
     expect(parsed).toEqual({
       enabled: false,
-      containerImage: "vellum-meet-bot:dev",
+      containerImage: "max-meet-bot:dev",
       joinName: null,
       consentMessage:
         "Hi, I'm {assistantName}, an AI assistant joining to take notes. Let me know if you'd prefer I leave.",
@@ -66,7 +66,7 @@ describe("MeetServiceSchema", () => {
         "Hi — I'll be taking notes. Say the word and I'll step out.",
       autoLeaveOnObjection: false,
       objectionKeywords: ["leave please", "go away bot"],
-      dockerNetwork: "vellum-meet",
+      dockerNetwork: "max-meet",
       maxMeetingMinutes: 60,
     };
     const parsed = MeetServiceSchema.parse(input);
@@ -128,7 +128,7 @@ describe("MeetServiceSchema", () => {
 
   test("empty containerImage falls back to default", () => {
     const parsed = MeetServiceSchema.parse({ containerImage: "" });
-    expect(parsed.containerImage).toBe("vellum-meet-bot:dev");
+    expect(parsed.containerImage).toBe("max-meet-bot:dev");
   });
 
   test("empty dockerNetwork falls back to default", () => {
@@ -214,7 +214,7 @@ describe("MeetServiceSchema", () => {
   test("partial config with only enabled: true fills in remaining defaults", () => {
     const parsed = MeetServiceSchema.parse({ enabled: true });
     expect(parsed.enabled).toBe(true);
-    expect(parsed.containerImage).toBe("vellum-meet-bot:dev");
+    expect(parsed.containerImage).toBe("max-meet-bot:dev");
     expect(parsed.joinName).toBe(null);
     expect(parsed.autoLeaveOnObjection).toBe(true);
     expect(parsed.maxMeetingMinutes).toBe(240);

@@ -1,10 +1,10 @@
 ---
 name: document
 description: Write, draft, or compose long-form text (blog posts, articles, essays, reports, guides)
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📄"
-  vellum:
+  max:
     display-name: "Document"
     activation-hints:
       - "User asks to write, draft, or collaborate on long-form content — use the document editor for a better editing experience"

@@ -5,7 +5,7 @@
  * filters, enforces the workspace cap, ignores malformed conversation
  * directory names, and never throws.
  *
- * The shared `test-preload.ts` sets `VELLUM_WORKSPACE_DIR` to a per-file
+ * The shared `test-preload.ts` sets `MAX_WORKSPACE_DIR` to a per-file
  * temp directory before any test code runs, so `getConversationsDir()`
  * already resolves under our temp workspace. We just seed the
  * `conversations/` subdirectory before each test and tear it down

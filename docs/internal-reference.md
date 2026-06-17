@@ -1,6 +1,6 @@
 # Internal Reference
 
-Detailed reference documentation for the Vellum Assistant platform. For an overview and quick start, see the [README](../README.md).
+Detailed reference documentation for the Max Assistant platform. For an overview and quick start, see the [README](../README.md).
 
 ## Table of Contents
 
@@ -56,15 +56,15 @@ See [.githooks/README.md](../.githooks/README.md) for more details about availab
 
 ### Assistant Runtime
 
-The assistant runtime lives in `/assistant`. The recommended way to start it is via the `vellum` CLI:
+The assistant runtime lives in `/assistant`. The recommended way to start it is via the `max` CLI:
 
 ```bash
-vellum wake    # starts assistant + gateway from current checkout
-vellum ps      # check process status
-vellum sleep   # stop assistant + gateway
+max wake    # starts assistant + gateway from current checkout
+max ps      # check process status
+max sleep   # stop assistant + gateway
 ```
 
-> **Note:** `vellum wake` requires a hatched assistant. Run `vellum hatch` first, or launch the macOS app which handles hatching automatically. Alternatively, the macOS app supports **managed sign-in** during onboarding — authenticating via the platform and connecting to a platform-hosted assistant without running a local assistant.
+> **Note:** `max wake` requires a hatched assistant. Run `max hatch` first, or launch the macOS app which handles hatching automatically. Alternatively, the macOS app supports **managed sign-in** during onboarding — authenticating via the platform and connecting to a platform-hosted assistant without running a local assistant.
 
 #### Development: raw bun commands
 
@@ -82,7 +82,7 @@ bun run src/index.ts assistant start
 
 ### Sandbox and Host Access Model
 
-- Default tool workspace: `~/.vellum/workspace` (persistent global sandbox filesystem).
+- Default tool workspace: `~/.max/workspace` (persistent global sandbox filesystem).
 - Sandbox-scoped tools: `file_read`, `file_write`, `file_edit`, and `bash`.
 - Explicit host tools: `host_file_read`, `host_file_write`, `host_file_edit`, and `host_bash` (absolute host paths only for host file tools).
 - Host/computer-use prompts: `host_*` and `computer_use_*` tools default to `ask` unless allowlisted/denylisted in trust rules.
@@ -107,14 +107,14 @@ Host tools (`host_bash`, `host_file_read`, `host_file_write`, `host_file_edit`) 
 | `Docker CLI is not installed or not in PATH` | Docker is not installed | Install Docker: https://docs.docker.com/get-docker/ |
 | `Docker daemon is not running` | Docker Desktop is not started or systemd service is stopped | Start Docker Desktop, or run `sudo systemctl start docker` on Linux |
 | `Docker image "..." is not available locally` | The configured image has not been pulled | Run `docker pull <image>` with the full image reference including the sha256 digest |
-| `Cannot bind-mount the sandbox root into a Docker container` | Docker Desktop file sharing does not include the sandbox data directory | Open Docker Desktop > Settings > Resources > File Sharing and add the `~/.vellum/workspace` path (or your custom `dataDir` path) |
+| `Cannot bind-mount the sandbox root into a Docker container` | Docker Desktop file sharing does not include the sandbox data directory | Open Docker Desktop > Settings > Resources > File Sharing and add the `~/.max/workspace` path (or your custom `dataDir` path) |
 | `bwrap is not available or cannot create namespaces` (native backend, Linux) | bubblewrap is not installed or user namespaces are disabled | Install bubblewrap: `apt install bubblewrap` (Debian/Ubuntu) or `dnf install bubblewrap` (Fedora) |
 
 ### Credential Storage and Secret Security
 
 The assistant can store and use credentials (API keys, tokens, passwords) without exposing secret values to the LLM or logs.
 
-- **Storage**: Secret values are stored via the Credential Execution Service (CES) or the encrypted file store (`~/.vellum/protected/keys.enc`). The daemon resolves credential storage via CES RPC (primary), CES HTTP (containerized/Docker), or encrypted file store (fallback). Metadata (service, field, label, usage policy) is stored in a JSON file at `~/.vellum/workspace/data/credentials/metadata.json`.
+- **Storage**: Secret values are stored via the Credential Execution Service (CES) or the encrypted file store (`~/.max/protected/keys.enc`). The daemon resolves credential storage via CES RPC (primary), CES HTTP (containerized/Docker), or encrypted file store (fallback). Metadata (service, field, label, usage policy) is stored in a JSON file at `~/.max/workspace/data/credentials/metadata.json`.
 - **Secret prompt**: When a credential is needed, a floating `SecretPromptView` panel appears. The user enters the value in a `SecureField` — the LLM never sees it.
 - **Usage policy**: Each credential can specify `allowedTools` and `allowedDomains`. The `CredentialBroker` enforces these policies at use time.
 - **One-time send**: When `secretDetection.allowOneTimeSend` is enabled (default: `false`), a "Send Once" button lets users provide a value for immediate use without persisting it.
@@ -174,7 +174,7 @@ Users control thresholds via the **Settings UI** (Permissions & Privacy tab) or 
 
 #### Trust rules
 
-User approval decisions are persisted as trust rules in `~/.vellum/protected/trust.json`. Rules support:
+User approval decisions are persisted as trust rules in `~/.max/protected/trust.json`. Rules support:
 
 - **Pattern matching**: Minimatch glob patterns for tool commands and file paths.
 - **Execution target binding**: Rules can be scoped to `sandbox` or `host` execution contexts.
@@ -215,7 +215,7 @@ See [`assistant/docs/architecture/security.md`](../assistant/docs/architecture/s
 
 ### Integrations
 
-Vellum integrates with third-party services via OAuth2. Each integration is exposed as a bundled skill with its own set of tools.
+Max integrates with third-party services via OAuth2. Each integration is exposed as a bundled skill with its own set of tools.
 
 #### Messaging (Gmail, Telegram)
 
@@ -232,7 +232,7 @@ The assistant can create, test, and persist new skills at runtime. This is usefu
 #### Workflow
 
 1. **Evaluate**: The assistant drafts a TypeScript snippet and tests it in a sandbox via `evaluate_typescript_code`. Iterates until it passes.
-2. **Persist**: After successful evaluation and explicit user consent, the assistant calls `scaffold_managed_skill` to write the skill to `~/.vellum/workspace/skills/<id>/`.
+2. **Persist**: After successful evaluation and explicit user consent, the assistant calls `scaffold_managed_skill` to write the skill to `~/.max/workspace/skills/<id>/`.
 3. **Load**: The assistant calls `skill_load` with the new skill ID to load its instructions.
 4. **Delete**: To remove a managed skill, use `delete_managed_skill`.
 
@@ -241,7 +241,7 @@ The assistant can create, test, and persist new skills at runtime. This is usefu
 | Tool | Risk Level | Description |
 |------|-----------|-------------|
 | `evaluate_typescript_code` | High | Run a TypeScript snippet in a sandbox. Returns structured JSON with `ok`, `exitCode`, `result`, `stdout`, `stderr`. |
-| `scaffold_managed_skill` | High | Write a managed skill to `~/.vellum/workspace/skills/<id>/`. Creates `SKILL.md` with frontmatter (including optional `includes` for child skills) and updates `SKILLS.md` index. |
+| `scaffold_managed_skill` | High | Write a managed skill to `~/.max/workspace/skills/<id>/`. Creates `SKILL.md` with frontmatter (including optional `includes` for child skills) and updates `SKILLS.md` index. |
 | `delete_managed_skill` | High | Remove a managed skill directory and its index entry. |
 
 All three tools require explicit user approval before execution (Risk Level = High).
@@ -353,7 +353,7 @@ The gateway downloads attachments from the runtime API and delivers them via Tel
 
 The assistant creates attachments from two sources:
 
-1. **Directives**: `<vellum-attachment source="sandbox|host" path="..." />` tags in response text. Sandbox paths are relative to the working directory; host paths require user approval.
+1. **Directives**: `<max-attachment source="sandbox|host" path="..." />` tags in response text. Sandbox paths are relative to the working directory; host paths require user approval.
 2. **Tool output**: Image and file content blocks from tool results are automatically converted into attachments.
 
 Limits: 100 MB per attachment (20 MB for Telegram).
@@ -371,7 +371,7 @@ URLs inside code blocks and code spans are never converted to embeds.
 
 #### Settings
 
-Media embeds are controlled by settings under `ui.mediaEmbeds` in `~/.vellum/workspace/config.json`. These settings are also accessible from the standalone Settings window and the main-window settings panel.
+Media embeds are controlled by settings under `ui.mediaEmbeds` in `~/.max/workspace/config.json`. These settings are also accessible from the standalone Settings window and the main-window settings panel.
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -398,7 +398,7 @@ The runtime HTTP server exposes a Server-Sent Events (SSE) endpoint that streams
 GET /v1/events?conversationKey=<key>
 ```
 
-**Auth**: JWT bearer token (same rules as other runtime HTTP endpoints). The SSE endpoint requires a valid JWT with the `chat.read` scope, passed as `Authorization: Bearer <jwt>`. JWTs are issued by the assistant's auth system (see Vellum Guardian Identity for the bootstrap flow). The route policy in `route-policy.ts` enforces scope requirements per endpoint.
+**Auth**: JWT bearer token (same rules as other runtime HTTP endpoints). The SSE endpoint requires a valid JWT with the `chat.read` scope, passed as `Authorization: Bearer <jwt>`. JWTs are issued by the assistant's auth system (see Max Guardian Identity for the bootstrap flow). The route policy in `route-policy.ts` enforces scope requirements per endpoint.
 
 **Query params**:
 
@@ -505,10 +505,10 @@ The CLI connects via HTTP. Forward the assistant's HTTP port with SSH:
 
 ```bash
 ssh -L 8741:localhost:8741 user@remote-host -N &
-VELLUM_DAEMON_URL=http://localhost:8741 vellum
+MAX_DAEMON_URL=http://localhost:8741 max
 ```
 
-When connecting to a remote assistant, autostart is disabled by default. Set `VELLUM_DAEMON_AUTOSTART=1` to override.
+When connecting to a remote assistant, autostart is disabled by default. Set `MAX_DAEMON_AUTOSTART=1` to override.
 
 #### macOS app (SSH port forwarding)
 
@@ -516,17 +516,17 @@ The macOS app also supports remote connections. Launch it from the terminal:
 
 ```bash
 ssh -L 8741:localhost:8741 user@remote-host -N &
-VELLUM_DAEMON_URL=http://localhost:8741 open -a Vellum
+MAX_DAEMON_URL=http://localhost:8741 open -a Max
 ```
 
 #### Troubleshooting
 
 | Symptom | Check |
 |---|---|
-| CLI: "could not connect to assistant" | Is the SSH port tunnel active? Check `VELLUM_DAEMON_URL` |
-| CLI: assistant starts locally despite remote override | Check that `VELLUM_DAEMON_AUTOSTART` is not set to `1` |
+| CLI: "could not connect to assistant" | Is the SSH port tunnel active? Check `MAX_DAEMON_URL` |
+| CLI: assistant starts locally despite remote override | Check that `MAX_DAEMON_AUTOSTART` is not set to `1` |
 | macOS: not connecting | Verify the assistant URL is reachable |
-| Any: "connection refused" | Is the remote assistant running? (`vellum ps` on remote) |
+| Any: "connection refused" | Is the remote assistant running? (`max ps` on remote) |
 
 ## Development Workflow
 
@@ -582,7 +582,7 @@ Multiple plans can run in parallel — just specify the plan name to disambiguat
 |---------|---------|
 | `/plan-html <topic\|plan-name>` | Create or refresh a rollout plan in `.private/plans/` with both markdown and a polished, review-friendly HTML view (including per-PR file lists). |
 | `/release [version]` | Cut a release: pull main, determine/create version tag, generate release notes, publish GitHub Release, and verify CI trigger. |
-| `/triage [user\|assistant\|device]` | Search Sentry for recent errors and log reports by user, assistant, or device across both `vellum-assistant-brain` and `vellum-assistant-macos` projects, then cross-reference with Linear issues to produce a triage summary. |
+| `/triage [user\|assistant\|device]` | Search Sentry for recent errors and log reports by user, assistant, or device across both `max-assistant-brain` and `max-assistant-macos` projects, then cross-reference with Linear issues to produce a triage summary. |
 | `/update` | Pull latest from `main`, kill stale processes, rebuild and launch the macOS app. The app manages its own assistant and gateway lifecycle (hatching on first launch). Prints a startup summary. |
 
 #### Review
@@ -623,7 +623,7 @@ Run `/release [version]` in Claude Code. If no version is provided, the patch ve
 
 Creating the GitHub Release triggers three workflows in parallel:
 
-- **Build and Release macOS App** (`build-and-release-macos.yml`): Builds the macOS `.app` from source, compiles the Bun assistant binary, code-signs it with a Developer ID certificate, notarizes it with Apple, creates a DMG installer, and publishes both the DMG and a Sparkle-compatible ZIP + `appcast.xml` to the releases on [vellum-ai/vellum-assistant](https://github.com/vellum-ai/vellum-assistant). This takes ~15-20 minutes.
+- **Build and Release macOS App** (`build-and-release-macos.yml`): Builds the macOS `.app` from source, compiles the Bun assistant binary, code-signs it with a Developer ID certificate, notarizes it with Apple, creates a DMG installer, and publishes both the DMG and a Sparkle-compatible ZIP + `appcast.xml` to the releases on [max-ai/max-assistant](https://github.com/max-ai/max-assistant). This takes ~15-20 minutes.
 - **Publish velly to npm** (`publish-velly.yml`): Publishes the `velly` CLI package to npm with provenance.
 - **Slack Release Notification** (`slack-release-notification.yml`): Posts a summary message to the releases Slack channel with a threaded changelog.
 
@@ -633,7 +633,7 @@ The macOS app uses [Sparkle](https://sparkle-project.org/) for automatic updates
 
 #### First-time installation
 
-New users download the latest DMG from the [releases page](https://github.com/vellum-ai/vellum-assistant/releases/latest), open it, and drag the app to their Applications folder. All subsequent updates are handled automatically by Sparkle.
+New users download the latest DMG from the [releases page](https://github.com/max-ai/max-assistant/releases/latest), open it, and drag the app to their Applications folder. All subsequent updates are handled automatically by Sparkle.
 
 ---
 

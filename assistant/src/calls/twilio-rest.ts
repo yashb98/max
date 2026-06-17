@@ -13,7 +13,7 @@ import {
   TwilioRestError,
   type TwilioWebhookUrls,
   updatePhoneNumberWebhooks as updateTwilioPhoneNumberWebhooks,
-} from "@vellumai/twilio-client";
+} from "@maxai/twilio-client";
 
 import { loadConfig } from "../config/loader.js";
 import { credentialKey } from "../security/credential-key.js";

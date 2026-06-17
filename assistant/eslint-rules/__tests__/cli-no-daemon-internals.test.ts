@@ -251,7 +251,7 @@ tester.run("cli/no-daemon-internals", rule, {
     {
       code: `
         import type { Command } from "commander";
-        import { credentialRpc } from "@vellumai/service-contracts/credential-rpc";
+        import { credentialRpc } from "@maxai/service-contracts/credential-rpc";
         import { connect } from "../../credential-execution/client.js";
 
         registerCommand(program, {

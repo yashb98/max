@@ -66,7 +66,7 @@ function makeTurnContext(): TurnContext {
     conversationId: "conv-test-1",
     turnIndex: 0,
     trust: {
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     },
   };

@@ -56,10 +56,10 @@ function handleTransferContentGet({
   if (targetClientId != null) {
     const headerMap = headers as Record<string, string | undefined>;
     const submittingClientId =
-      headerMap["x-vellum-client-id"]?.trim() || undefined;
+      headerMap["x-max-client-id"]?.trim() || undefined;
     if (!submittingClientId)
       throw new BadRequestError(
-        "x-vellum-client-id header required for targeted transfer",
+        "x-max-client-id header required for targeted transfer",
       );
     if (submittingClientId !== targetClientId)
       throw new ForbiddenError(
@@ -72,7 +72,7 @@ function handleTransferContentGet({
     // not 403 a legitimate fetch.
     enforceSameActorOrThrow({
       sourceActorPrincipalId: resolveActorPrincipalIdForLocalGuardian(
-        headerMap["x-vellum-actor-principal-id"]?.trim() || undefined,
+        headerMap["x-max-actor-principal-id"]?.trim() || undefined,
       ),
       targetActorPrincipalId:
         match.proxy.getTargetActorPrincipalIdForTransfer(transferId),
@@ -139,10 +139,10 @@ async function handleTransferContentPut({
   if (targetClientId != null) {
     const headerMap = headers as Record<string, string | undefined>;
     const submittingClientId =
-      headerMap["x-vellum-client-id"]?.trim() || undefined;
+      headerMap["x-max-client-id"]?.trim() || undefined;
     if (!submittingClientId)
       throw new BadRequestError(
-        "x-vellum-client-id header required for targeted transfer",
+        "x-max-client-id header required for targeted transfer",
       );
     if (submittingClientId !== targetClientId)
       throw new ForbiddenError(
@@ -151,7 +151,7 @@ async function handleTransferContentPut({
 
     enforceSameActorOrThrow({
       sourceActorPrincipalId: resolveActorPrincipalIdForLocalGuardian(
-        headerMap["x-vellum-actor-principal-id"]?.trim() || undefined,
+        headerMap["x-max-actor-principal-id"]?.trim() || undefined,
       ),
       targetActorPrincipalId:
         match.proxy.getTargetActorPrincipalIdForTransfer(transferId),
@@ -209,11 +209,11 @@ function handleTransferResult({ body, headers }: RouteHandlerArgs) {
 
   if (peeked.targetClientId != null) {
     const headerMap = (headers as Record<string, string | undefined>) ?? {};
-    const rawClientId = headerMap["x-vellum-client-id"];
+    const rawClientId = headerMap["x-max-client-id"];
     const submittingClientId = rawClientId?.trim() || undefined;
     if (!submittingClientId)
       throw new BadRequestError(
-        "x-vellum-client-id header is missing for a targeted host transfer request.",
+        "x-max-client-id header is missing for a targeted host transfer request.",
       );
     if (submittingClientId !== peeked.targetClientId)
       throw new ForbiddenError(
@@ -222,7 +222,7 @@ function handleTransferResult({ body, headers }: RouteHandlerArgs) {
 
     enforceSameActorOrThrow({
       sourceActorPrincipalId: resolveActorPrincipalIdForLocalGuardian(
-        headerMap["x-vellum-actor-principal-id"]?.trim() || undefined,
+        headerMap["x-max-actor-principal-id"]?.trim() || undefined,
       ),
       targetActorPrincipalId: peeked.targetActorPrincipalId,
       targetClientId: peeked.targetClientId,
@@ -258,7 +258,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted transfer.",
+          "x-max-client-id header is missing for a targeted transfer.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,
@@ -279,7 +279,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted transfer.",
+          "x-max-client-id header is missing for a targeted transfer.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,
@@ -308,7 +308,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted host transfer request.",
+          "x-max-client-id header is missing for a targeted host transfer request.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,

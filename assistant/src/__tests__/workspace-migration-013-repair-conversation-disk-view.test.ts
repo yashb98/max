@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 // Mocks — must come before any imports that depend on them
 // ---------------------------------------------------------------------------
 
-const testDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDir = process.env.MAX_WORKSPACE_DIR!;
 const workspaceDir = testDir;
 const conversationsDir = join(workspaceDir, "conversations");
 mkdirSync(conversationsDir, { recursive: true });

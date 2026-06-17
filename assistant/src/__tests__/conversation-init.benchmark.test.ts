@@ -30,7 +30,7 @@ function median(sorted: number[]): number {
     : sorted[mid];
 }
 
-const testDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDir = process.env.MAX_WORKSPACE_DIR!;
 
 // Create subdirectories expected by platform helpers
 mkdirSync(join(testDir, "data"), { recursive: true });

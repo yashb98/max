@@ -38,7 +38,7 @@ const localOwnerTurn = {
   conversationType: "standard",
   callSite: "mainAgent",
   isInteractive: true,
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   sourceInterface: "macos",
 } satisfies DiskPressureTurnMetadata;
 

@@ -3,7 +3,7 @@
  *
  * `@moonshot-ai/kimi-agent-sdk` surfaces failures through generic `Error` /
  * `CliError` objects whose message (and occasionally a `code` property) is the
- * only place to recover discriminating signal. Vellum wants those failures to
+ * only place to recover discriminating signal. Max wants those failures to
  * reach the UI with actionable copy ("renew your Kimi membership", "run
  * `kimi /login`") rather than a stack trace, so this module classifies each
  * known failure mode into a discriminator (`kind`) paired with a friendly

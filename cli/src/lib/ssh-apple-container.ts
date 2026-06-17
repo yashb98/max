@@ -24,7 +24,7 @@ export async function sshAppleContainer(
   if (!existsSync(mgmtSocket)) {
     console.error(
       `Management socket not found at ${mgmtSocket}.\n` +
-        "The assistant may have been stopped. Run 'vellum hatch' to start it.",
+        "The assistant may have been stopped. Run 'max hatch' to start it.",
     );
     process.exit(1);
   }
@@ -39,7 +39,7 @@ export async function sshAppleContainer(
   const handshake =
     JSON.stringify({
       command: command && command.length > 0 ? command : ["/bin/bash"],
-      service: service || "vellum-assistant",
+      service: service || "max-assistant",
       cols,
       rows,
     }) + "\n";

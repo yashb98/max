@@ -18,13 +18,13 @@ interface PlatformCallbackRouteResponse {
 }
 
 /**
- * Register a callback route with the Vellum platform so that inbound email
+ * Register a callback route with the Max platform so that inbound email
  * webhooks are forwarded to this gateway instance.
  *
  * Follows the same pattern as Telegram's managed callback route registration
  * in `telegram/webhook-manager.ts`. Requires platform credentials (base URL,
  * assistant API key, assistant ID). The base URL can fall back to
- * `VELLUM_PLATFORM_URL`; the key can fall back to `ASSISTANT_API_KEY`.
+ * `MAX_PLATFORM_URL`; the key can fall back to `ASSISTANT_API_KEY`.
  *
  * Self-hosted assistants with a configured ``ingress.publicBaseUrl`` send
  * their own base URL so the callback route points directly at the gateway
@@ -40,10 +40,10 @@ export async function registerEmailCallbackRoute(caches?: {
   const [platformBaseUrlRaw, assistantApiKeyRaw, assistantIdRaw] =
     caches?.credentials
       ? await Promise.all([
-          caches.credentials.get(credentialKey("vellum", "platform_base_url")),
-          caches.credentials.get(credentialKey("vellum", "assistant_api_key")),
+          caches.credentials.get(credentialKey("max", "platform_base_url")),
+          caches.credentials.get(credentialKey("max", "assistant_api_key")),
           caches.credentials.get(
-            credentialKey("vellum", "platform_assistant_id"),
+            credentialKey("max", "platform_assistant_id"),
           ),
         ])
       : [undefined, undefined, undefined];
@@ -52,7 +52,7 @@ export async function registerEmailCallbackRoute(caches?: {
   // matching the daemon's resolvePlatformCallbackRegistrationContext().
   const platformBaseUrl = (
     platformBaseUrlRaw?.trim() ||
-    process.env.VELLUM_PLATFORM_URL?.trim() ||
+    process.env.MAX_PLATFORM_URL?.trim() ||
     ""
   ).replace(/\/+$/, "");
 

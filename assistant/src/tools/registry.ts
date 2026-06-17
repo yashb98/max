@@ -386,7 +386,7 @@ export function unregisterAllMcpTools(): void {
 /**
  * Return tool definitions for all currently registered MCP-origin tools.
  * Used by the session resolver to dynamically pick up MCP tools that
- * were registered after session creation (e.g. via `vellum mcp reload`).
+ * were registered after session creation (e.g. via `max mcp reload`).
  */
 export function getMcpToolDefinitions(): ToolDefinition[] {
   return Array.from(tools.values())

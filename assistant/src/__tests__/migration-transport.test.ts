@@ -92,7 +92,7 @@ function runtimeConfig(overrides?: Partial<TransportConfig>): TransportConfig {
 
 function managedConfig(overrides?: Partial<TransportConfig>): TransportConfig {
   return {
-    baseURL: "https://platform.vellum.ai",
+    baseURL: "https://platform.max.ai",
     target: "managed",
     authHeader: "test-session-token",
     fetchFn: mockFetch(200, {}),
@@ -127,7 +127,7 @@ describe("URL construction", () => {
     });
     await validateBundle(managedConfig({ fetchFn }), sampleFileData);
     expect(captured[0].url).toBe(
-      "https://platform.vellum.ai/v1/migrations/validate/",
+      "https://platform.max.ai/v1/migrations/validate/",
     );
   });
 
@@ -191,7 +191,7 @@ describe("Auth headers", () => {
     expect(headers["Authorization"]).toBeUndefined();
   });
 
-  test("managed request includes Vellum-Organization-Id from defaultHeaders", async () => {
+  test("managed request includes Max-Organization-Id from defaultHeaders", async () => {
     const { fetchFn, captured } = capturingFetch(200, {
       is_valid: true,
       errors: [],
@@ -200,12 +200,12 @@ describe("Auth headers", () => {
     await validateBundle(
       managedConfig({
         fetchFn,
-        defaultHeaders: { "Vellum-Organization-Id": "org-123" },
+        defaultHeaders: { "Max-Organization-Id": "org-123" },
       }),
       sampleFileData,
     );
     const headers = captured[0].init.headers as Record<string, string>;
-    expect(headers["Vellum-Organization-Id"]).toBe("org-123");
+    expect(headers["Max-Organization-Id"]).toBe("org-123");
     // Managed auth header should still be present
     expect(headers["X-Session-Token"]).toBe("test-session-token");
   });
@@ -219,7 +219,7 @@ describe("Auth headers", () => {
     await validateBundle(runtimeConfig({ fetchFn }), sampleFileData);
     const headers = captured[0].init.headers as Record<string, string>;
     expect(headers["Authorization"]).toBe("Bearer test-jwt");
-    expect(headers["Vellum-Organization-Id"]).toBeUndefined();
+    expect(headers["Max-Organization-Id"]).toBeUndefined();
   });
 
   test("auth header wins over same-named entry in defaultHeaders", async () => {
@@ -543,11 +543,11 @@ describe("importCommit", () => {
       files: [
         {
           path: "data/db/assistant.db",
-          disk_path: "/home/.vellum/data/db/assistant.db",
+          disk_path: "/home/.max/data/db/assistant.db",
           action: "overwritten",
           size: 1024,
           sha256: "abc",
-          backup_path: "/home/.vellum/data/db/assistant.db.bak",
+          backup_path: "/home/.max/data/db/assistant.db.bak",
         },
       ],
       manifest: {
@@ -684,7 +684,7 @@ describe("pollExportStatus", () => {
     const config = managedConfig({ fetchFn });
     await pollExportStatus(config, "job/special");
     expect(captured[0].url).toBe(
-      "https://platform.vellum.ai/v1/migrations/export/job%2Fspecial/status/",
+      "https://platform.max.ai/v1/migrations/export/job%2Fspecial/status/",
     );
     expect(captured[0].init.method).toBe("GET");
   });

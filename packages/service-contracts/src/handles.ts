@@ -79,7 +79,7 @@ export type ParsedHandle =
  * Build a local static credential handle from service and field.
  *
  * Accepts the same service/field values used in `credentialKey()` from
- * `@vellumai/credential-storage`.
+ * `@maxai/credential-storage`.
  */
 export function localStaticHandle(service: string, field: string): string {
   return `${HandleType.LocalStatic}:${service}/${field}`;

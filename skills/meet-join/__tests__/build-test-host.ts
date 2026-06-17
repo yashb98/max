@@ -52,7 +52,7 @@
  *
  * ## Zero assistant/ imports
  *
- * Every type in this file comes from `@vellumai/skill-host-contracts`.
+ * Every type in this file comes from `@maxai/skill-host-contracts`.
  * The helper does not import from `assistant/` directly or transitively —
  * that is the whole point: tests that use it stay on the skill side of
  * the isolation boundary.
@@ -88,8 +88,8 @@ import type {
   TtsProvider,
   TtsProvidersFacet,
   UserMessage,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+import { buildAssistantEvent } from "@maxai/skill-host-contracts";
 import { mock } from "bun:test";
 
 /**
@@ -133,7 +133,7 @@ function defaultIdentityFacet(): IdentityFacet {
 function defaultPlatformFacet(): PlatformFacet {
   return {
     workspaceDir: () => "/tmp/test-workspace",
-    vellumRoot: () => "/tmp/test-vellum-root",
+    maxRoot: () => "/tmp/test-max-root",
     runtimeMode: () => "bare-metal",
   };
 }
@@ -267,7 +267,7 @@ export function buildTestHost(overrides: Partial<SkillHost> = {}): SkillHost {
 // helper from a single source:
 //   `import { buildTestHost, type SkillHost } from "./build-test-host.js";`
 // Other host-contract types remain importable directly from
-// `@vellumai/skill-host-contracts` if a test needs one.
+// `@maxai/skill-host-contracts` if a test needs one.
 export type { SkillHost };
 
 // ---------------------------------------------------------------------------

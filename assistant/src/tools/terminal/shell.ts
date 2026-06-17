@@ -317,10 +317,10 @@ class ShellTool implements Tool {
       Object.assign(env, proxyEnv);
     }
 
-    // Inject VELLUM_UNTRUSTED_SHELL=1 so assistant CLI commands can self-deny
+    // Inject MAX_UNTRUSTED_SHELL=1 so assistant CLI commands can self-deny
     // raw-token/secret reveal flows when invoked from an untrusted shell.
     if (shellLockdownActive) {
-      env.VELLUM_UNTRUSTED_SHELL = "1";
+      env.MAX_UNTRUSTED_SHELL = "1";
     }
 
     const wrapped = { command: "bash", args: ["-c", "--", command] };

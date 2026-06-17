@@ -1,7 +1,7 @@
 import Foundation
 
 enum SharedUserDefaults {
-    private static let legacySuiteName = "com.vellum.vellum-assistant.swiftpackage"
+    private static let legacySuiteName = "com.max.max-assistant.swiftpackage"
     private static let lock = NSLock()
     private static var didMigrateLegacySuite = false
 

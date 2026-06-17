@@ -1,10 +1,10 @@
 ---
 name: typescript-eval
 description: Test TypeScript code snippets before persisting as skills
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🧪"
-  vellum:
+  max:
     display-name: "TypeScript Evaluation"
 ---
 
@@ -17,7 +17,7 @@ When you need to test a TypeScript snippet before persisting it as a managed ski
 ### 1. Write the snippet to a temp file
 
 ```
-bash command="mkdir -p /tmp/vellum-eval && cat > /tmp/vellum-eval/snippet.ts << 'SNIPPET_EOF'
+bash command="mkdir -p /tmp/max-eval && cat > /tmp/max-eval/snippet.ts << 'SNIPPET_EOF'
 <your code here>
 SNIPPET_EOF"
 ```
@@ -25,7 +25,7 @@ SNIPPET_EOF"
 ### 2. Run it with bun
 
 ```
-bash command="bun run /tmp/vellum-eval/snippet.ts" timeout_seconds=10
+bash command="bun run /tmp/max-eval/snippet.ts" timeout_seconds=10
 ```
 
 ### 3. For function-based testing
@@ -33,7 +33,7 @@ bash command="bun run /tmp/vellum-eval/snippet.ts" timeout_seconds=10
 If the snippet exports a `default` or `run` function, write a runner script:
 
 ```
-bash command="cat > /tmp/vellum-eval/runner.ts << 'RUNNER_EOF'
+bash command="cat > /tmp/max-eval/runner.ts << 'RUNNER_EOF'
 import * as mod from './snippet.ts';
 const fn = (mod as any).default ?? (mod as any).run;
 const input = {}; // mock input
@@ -45,13 +45,13 @@ RUNNER_EOF"
 Then run the runner:
 
 ```
-bash command="bun run /tmp/vellum-eval/runner.ts" timeout_seconds=10
+bash command="bun run /tmp/max-eval/runner.ts" timeout_seconds=10
 ```
 
 ### 4. Clean up
 
 ```
-bash command="rm -rf /tmp/vellum-eval/"
+bash command="rm -rf /tmp/max-eval/"
 ```
 
 ## Guidelines

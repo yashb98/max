@@ -1,10 +1,10 @@
 ---
 name: sequences
 description: Create and manage automated email drip sequences
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📧"
-  vellum:
+  max:
     display-name: "Email Sequences"
 ---
 

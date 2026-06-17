@@ -171,7 +171,7 @@ describe("analyzeConversation", () => {
     // Sets trust context to unknown.
     expect(currentConversation.setTrustContext).toHaveBeenCalledWith({
       trustClass: "unknown",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
     });
 
     // Strips all tools.
@@ -325,7 +325,7 @@ describe("analyzeConversation", () => {
 
     expect(currentConversation.setTrustContext).toHaveBeenCalledWith({
       trustClass: "guardian",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
     });
   });
 

@@ -11,7 +11,7 @@ import { GatewayIpcServer, type IpcRoute } from "../ipc/server.js";
 
 // Integration tests for GatewayIpcServer's watchdog wiring. The watchdog's
 // own unit tests (race guards, timer error handling, etc.) live in
-// `@vellumai/ipc-server-utils`. These tests verify that the gateway server
+// `@maxai/ipc-server-utils`. These tests verify that the gateway server
 // correctly wires the watchdog into its own lifecycle and legacy-server
 // bookkeeping.
 

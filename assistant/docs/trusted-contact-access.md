@@ -1,6 +1,6 @@
 # Trusted Contact Access Flow
 
-Design doc defining how unknown users gain access to a Vellum assistant via channel-mediated trusted contact onboarding.
+Design doc defining how unknown users gain access to a Max assistant via channel-mediated trusted contact onboarding.
 
 ## Roles
 
@@ -8,13 +8,13 @@ Design doc defining how unknown users gain access to a Vellum assistant via chan
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `guardian`        | The verified owner/administrator of the assistant on a given channel. Has a record in the `contacts` table with `role: 'guardian'` and an active `contact_channels` entry. Approves or denies access requests. |
 | `trusted_contact` | An external user who has completed the verification flow and holds a `contact_channels` record with `status: 'active'` and `policy: 'allow'`.                                                                  |
-| `assistant`       | The Vellum assistant daemon. Mediates the flow, enforces ACL, generates verification codes, and activates trusted contacts upon successful verification.                                                       |
+| `assistant`       | The Max assistant daemon. Mediates the flow, enforces ACL, generates verification codes, and activates trusted contacts upon successful verification.                                                       |
 
 ## User Journey
 
 1. **Unknown user messages the assistant** on Telegram (or any channel).
 2. **Assistant rejects the message** via the ingress ACL in `inbound-message-handler.ts`. The user has no matching `contact_channels` record, so the handler replies: _"Hmm looks like you don't have access to talk to me. I'll let them know you tried talking to me and get back to you."_ and returns `{ denied: true, reason: 'not_a_member' }`.
-3. **Notification pipeline alerts the guardian.** The rejection triggers `notifyGuardianOfAccessRequest()` which creates a canonical access request and calls `emitNotificationSignal()` with `sourceEventName: 'ingress.access_request'`. The notification routes through the decision engine to all connected channels (vellum macOS app, Telegram, etc.). The guardian sees who is requesting access, including a request code for approve/reject and an `open invite flow` option to start the Trusted Contacts invite flow.
+3. **Notification pipeline alerts the guardian.** The rejection triggers `notifyGuardianOfAccessRequest()` which creates a canonical access request and calls `emitNotificationSignal()` with `sourceEventName: 'ingress.access_request'`. The notification routes through the decision engine to all connected channels (max macOS app, Telegram, etc.). The guardian sees who is requesting access, including a request code for approve/reject and an `open invite flow` option to start the Trusted Contacts invite flow.
 
    **Access-request copy contract:** Every guardian-facing access-request notification must contain:
    1. **Requester context** — best-available identity (display name, username, external ID, source channel), sanitized to prevent control-character injection.
@@ -27,7 +27,7 @@ Design doc defining how unknown users gain access to a Vellum assistant via chan
    **Guardian binding resolution for access requests** uses a fallback strategy:
    1. Source-channel active binding first (e.g., Telegram binding for a Telegram access request).
    2. Any active binding for the assistant on another channel (deterministic: most recently verified first, then alphabetical by channel).
-   3. No guardian identity — the notification pipeline delivers via trusted/vellum channels even when no channel binding exists.
+   3. No guardian identity — the notification pipeline delivers via trusted/max channels even when no channel binding exists.
 
    This ensures unknown inbound access attempts always trigger guardian notification, even when the requester's source channel has no guardian binding.
 
@@ -80,7 +80,7 @@ Identity binding ensures the verification code can only be consumed by the inten
 | `guardian-approvals.ts` / `channel-verification-sessions.ts` | `channel_guardian_approval_requests` | `status: 'pending'`, `toolName: 'ingress_access_request'`, `requesterExternalUserId`, `requesterChatId`, `guardianExternalUserId`, `guardianChatId` (resolved from the `contacts`/`contact_channels` tables where `role = 'guardian'`), `expiresAt` (GUARDIAN_APPROVAL_TTL_MS from now). |
 | `notification_events`                                        | `notification_events`                | Event with `sourceEventName: 'ingress.access_request'`, links to the conversation.                                                                                                                                                                                                       |
 | `notification_decisions`                                     | `notification_decisions`             | Decision engine output: which channels to notify, confidence, reasoning.                                                                                                                                                                                                                 |
-| `notification_deliveries`                                    | `notification_deliveries`            | Per-channel delivery records (Telegram, vellum, etc.).                                                                                                                                                                                                                                   |
+| `notification_deliveries`                                    | `notification_deliveries`            | Per-channel delivery records (Telegram, max, etc.).                                                                                                                                                                                                                                   |
 
 ### Stage: `verification_pending` (guardian approved, code issued)
 
@@ -156,7 +156,7 @@ sequenceDiagram
 
     A->>N: emitNotificationSignal('ingress.access_request')
     N->>N: evaluateSignal() → shouldNotify: true
-    N->>G: Deliver notification (Telegram/vellum)
+    N->>G: Deliver notification (Telegram/max)
 
     Note over G: Guardian sees access request<br/>with requester identity
 

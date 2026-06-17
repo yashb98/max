@@ -9,9 +9,9 @@
  * and non-secret metadata (provider, account info, scopes, status).
  */
 
-import { platformOAuthHandle } from "@vellumai/service-contracts/credential-rpc";
+import { platformOAuthHandle } from "@maxai/service-contracts/credential-rpc";
 
-import { VellumPlatformClient } from "../platform/client.js";
+import { MaxPlatformClient } from "../platform/client.js";
 import { getLogger } from "../util/logger.js";
 
 const log = getLogger("managed-catalog");
@@ -78,7 +78,7 @@ export interface FetchManagedCatalogResult {
  * error message that never contains secret material.
  */
 export async function fetchManagedCatalog(): Promise<FetchManagedCatalogResult> {
-  const client = await VellumPlatformClient.create();
+  const client = await MaxPlatformClient.create();
 
   if (!client || !client.platformAssistantId) {
     return { ok: true, descriptors: [] };

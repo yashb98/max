@@ -62,12 +62,12 @@ function makeConversationCtx(
     consecutiveCompactionFailures: 0,
     compactionCircuitOpenUntil: null,
     turnCount: 0,
-    trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+    trustContext: { sourceChannel: "max", trustClass: "guardian" },
   };
 }
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

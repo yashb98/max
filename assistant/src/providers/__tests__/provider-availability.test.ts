@@ -1,12 +1,17 @@
 /**
  * Unit tests for the typed `ProviderAvailabilityStatus` API in
  * `provider-availability.ts`. Covers the basic contract, the back-compat
- * wrapper, the feature-flag-aware claude-subscription branch, and the
- * all-providers map.
+ * wrapper, the feature-flag-aware claude-subscription branch, the
+ * kimi-agent 4-state matrix, and the all-providers map.
  *
  * Mocks `isAssistantFeatureFlagEnabled` at the module boundary so flag-off
  * scenarios can be asserted without touching the on-disk feature-flag
  * registry.
+ *
+ * Kimi-agent tests use injectable `probes` (KimiAgentProbes.loginPresent)
+ * to control the "vault key or config.toml" check without mocking
+ * secure-keys — the production default checks both paths via the
+ * `isKimiLoginPresent` helper; tests inject a synchronous probe instead.
  */
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
@@ -17,6 +22,7 @@ mock.module("../../config/assistant-feature-flags.js", () => ({
 
 const {
   clearClaudeSubscriptionAvailabilityCache,
+  clearKimiAgentAvailabilityCache,
   getAllProviderAvailability,
   getProviderAvailabilityStatus,
   isProviderAvailable,
@@ -29,6 +35,7 @@ type ProviderAvailabilityStatus = Awaited<
 describe("getProviderAvailabilityStatus — contract", () => {
   beforeEach(() => {
     clearClaudeSubscriptionAvailabilityCache();
+    clearKimiAgentAvailabilityCache();
     featureFlagReturn = true;
   });
 
@@ -49,6 +56,7 @@ describe("getProviderAvailabilityStatus — contract", () => {
 describe("claude-subscription feature-flag matrix", () => {
   beforeEach(() => {
     clearClaudeSubscriptionAvailabilityCache();
+    clearKimiAgentAvailabilityCache();
     featureFlagReturn = true;
   });
 
@@ -179,9 +187,71 @@ describe("claude-subscription feature-flag matrix", () => {
   });
 });
 
+describe("kimi-agent feature-flag matrix", () => {
+  beforeEach(() => {
+    clearKimiAgentAvailabilityCache();
+    featureFlagReturn = true;
+  });
+
+  test("flag off → { available: false, reason: 'not-enabled' }", async () => {
+    featureFlagReturn = false;
+    const status = await getProviderAvailabilityStatus("kimi-agent");
+    expect(status.available).toBe(false);
+    expect(status.reason).toBe("not-enabled");
+  });
+
+  test("flag on + cli absent → { available: false, reason: 'missing-cli' }", async () => {
+    featureFlagReturn = true;
+    const probes = {
+      cliPresent: async () => false,
+      loginPresent: async () => true,
+    };
+    const status = await getProviderAvailabilityStatus("kimi-agent", probes);
+    expect(status.available).toBe(false);
+    expect(status.reason).toBe("missing-cli");
+  });
+
+  test("flag on + cli present + no key + no config.toml → { available: false, reason: 'no-api-key' }", async () => {
+    featureFlagReturn = true;
+    const probes = {
+      cliPresent: async () => true,
+      loginPresent: async () => false,
+    };
+    const status = await getProviderAvailabilityStatus("kimi-agent", probes);
+    expect(status.available).toBe(false);
+    expect(status.reason).toBe("no-api-key");
+  });
+
+  test("flag on + cli present + config.toml present → { available: true }", async () => {
+    featureFlagReturn = true;
+    const probes = {
+      cliPresent: async () => true,
+      loginPresent: async () => true,
+    };
+    const status = await getProviderAvailabilityStatus("kimi-agent", probes);
+    expect(status.available).toBe(true);
+    expect(status.reason).toBeUndefined();
+  });
+
+  test("isProviderAvailable wrapper matches getProviderAvailabilityStatus(...).available", async () => {
+    featureFlagReturn = true;
+    const probes = {
+      cliPresent: async () => true,
+      loginPresent: async () => true,
+    };
+    clearKimiAgentAvailabilityCache();
+    const bool = await isProviderAvailable("kimi-agent", probes);
+    clearKimiAgentAvailabilityCache();
+    const status = await getProviderAvailabilityStatus("kimi-agent", probes);
+    expect(bool).toBe(status.available);
+    expect(bool).toBe(true);
+  });
+});
+
 describe("getAllProviderAvailability", () => {
   beforeEach(() => {
     clearClaudeSubscriptionAvailabilityCache();
+    clearKimiAgentAvailabilityCache();
     featureFlagReturn = true;
   });
 

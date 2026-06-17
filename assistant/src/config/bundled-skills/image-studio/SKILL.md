@@ -1,10 +1,10 @@
 ---
 name: image-studio
 description: Generate and edit images using AI
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎨"
-  vellum:
+  max:
     display-name: "Image Studio"
     activation-hints:
       - "User asks to generate, draw, or create an image from a text prompt"

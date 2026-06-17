@@ -2,7 +2,7 @@
  * End-to-end test for `assistant clients list` over IPC.
  *
  * Regression test for the gap where the same-user filter on
- * `GET /v1/clients` (which reads `headers["x-vellum-actor-principal-id"]`)
+ * `GET /v1/clients` (which reads `headers["x-max-actor-principal-id"]`)
  * silently returned an empty list over IPC because the IPC adapter did
  * not inject the synthetic actor-principal header that the HTTP adapter
  * populates from the verified `AuthContext`.

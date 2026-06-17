@@ -6,7 +6,7 @@
  *
  * All guardian action endpoints require a valid JWT bearer token.
  * Auth is verified upstream by JWT middleware; the adapter injects the
- * actor principal ID via the `x-vellum-actor-principal-id` header.
+ * actor principal ID via the `x-max-actor-principal-id` header.
  *
  * Guardian decisions additionally verify the actor is the bound guardian
  * via the `requireGuardian` route flag.
@@ -38,7 +38,7 @@ function handleGuardianActionsPending({ queryParams = {} }: RouteHandlerArgs) {
 
   const prompts = listGuardianDecisionPrompts({
     conversationId,
-    channel: "vellum",
+    channel: "max",
   });
   return { conversationId, prompts };
 }
@@ -70,17 +70,17 @@ async function handleGuardianActionDecision({
   }
 
   // Resolve the actor's guardian principal ID. The HTTP adapter injects it
-  // from the AuthContext via the x-vellum-actor-principal-id header.
+  // from the AuthContext via the x-max-actor-principal-id header.
   // For dev bypass (HTTP auth disabled) the synthetic "dev-bypass" principal
   // won't match the real guardian binding, so fall back to the local guardian
   // binding to avoid identity_mismatch.
   let guardianPrincipalId: string | undefined =
-    headers["x-vellum-actor-principal-id"] ?? undefined;
+    headers["x-max-actor-principal-id"] ?? undefined;
   if (
     isHttpAuthDisabled() &&
-    headers["x-vellum-actor-principal-id"] === "dev-bypass"
+    headers["x-max-actor-principal-id"] === "dev-bypass"
   ) {
-    const binding = findGuardianForChannel("vellum");
+    const binding = findGuardianForChannel("max");
     guardianPrincipalId = binding?.contact.principalId ?? undefined;
   }
 
@@ -88,7 +88,7 @@ async function handleGuardianActionDecision({
     requestId,
     action,
     conversationId,
-    channel: "vellum",
+    channel: "max",
     actorContext: {
       actorPrincipalId: guardianPrincipalId,
       guardianPrincipalId,
@@ -129,7 +129,7 @@ async function handleGuardianActionDecision({
  *
  * Uses the conversation scope helper to union requests whose source
  * `conversationId` matches AND requests delivered to this conversation.
- * This allows guardian destination conversations (including macOS Vellum conversations)
+ * This allows guardian destination conversations (including macOS Max conversations)
  * to surface prompts for all canonical kinds.
  *
  * The returned prompts normalize `conversationId` to the queried conversation ID

@@ -98,7 +98,7 @@ describe("POST /v1/conversations/:id/analyze", () => {
     );
     expect(mockConversation.setTrustContext).toHaveBeenCalledWith({
       trustClass: "unknown",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
     });
     expect(mockConversation.ensureActorScopedHistory).toHaveBeenCalledTimes(1);
     expect(mockConversation.setSubagentAllowedTools).toHaveBeenCalledTimes(1);

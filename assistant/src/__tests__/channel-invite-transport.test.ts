@@ -54,11 +54,11 @@ describe("resolveAdapterHandle", () => {
   test("returns async handle when only resolveChannelHandleAsync is defined", async () => {
     const adapter: ChannelInviteAdapter = {
       channel: "email",
-      resolveChannelHandleAsync: async () => "hello@vellum.me",
+      resolveChannelHandleAsync: async () => "hello@max.me",
     };
 
     const handle = await resolveAdapterHandle(adapter);
-    expect(handle).toBe("hello@vellum.me");
+    expect(handle).toBe("hello@max.me");
   });
 
   test("prefers async over sync when both are defined", async () => {

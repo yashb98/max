@@ -1,6 +1,6 @@
 /**
  * `DaemonSkillHost` — in-process concretion of the neutral `SkillHost`
- * interface defined in `@vellumai/skill-host-contracts`.
+ * interface defined in `@maxai/skill-host-contracts`.
  *
  * `createDaemonSkillHost(skillId)` returns a plain object whose nine facets
  * (`logger`, `config`, `identity`, `platform`, `providers`, `memory`,
@@ -48,7 +48,7 @@ import type {
   TtsProvider,
   TtsProvidersFacet,
   UserMessage,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 import { SpeakerIdentityTracker } from "../calls/speaker-identification.js";
 import { isAssistantFeatureFlagEnabled } from "../config/assistant-feature-flags.js";
@@ -76,7 +76,7 @@ import { registerExternalTools } from "../tools/registry.js";
 import { getTtsProvider } from "../tts/provider-registry.js";
 import { resolveTtsConfig } from "../tts/tts-config-resolver.js";
 import { getLogger } from "../util/logger.js";
-import { getWorkspaceDir, vellumRoot } from "../util/platform.js";
+import { getWorkspaceDir, maxRoot } from "../util/platform.js";
 import { getAssistantName } from "./identity-helpers.js";
 import { registerShutdownHook } from "./shutdown-registry.js";
 
@@ -123,7 +123,7 @@ function buildIdentityFacet(): IdentityFacet {
 function buildPlatformFacet(): PlatformFacet {
   return {
     workspaceDir: () => getWorkspaceDir(),
-    vellumRoot: () => vellumRoot(),
+    maxRoot: () => maxRoot(),
     runtimeMode: () => getDaemonRuntimeMode(),
   };
 }

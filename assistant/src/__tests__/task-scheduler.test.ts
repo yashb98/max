@@ -250,7 +250,7 @@ describe("scheduler run_task detection", () => {
     expect(runnerCalls.length).toBe(1);
     expect(runnerCalls[0].prompt).toBe("Do something normal");
     expect(runnerCalls[0].trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
   });

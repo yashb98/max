@@ -84,9 +84,9 @@ export interface ProviderCatalogEntry {
    * How the user authenticates this provider.
    *   - `"api-key"`: classic — store a secret key in secure storage.
    *   - `"keyless"`: literally no setup (e.g. Ollama running locally).
-   *   - `"cli-login"`: a third-party CLI (currently only Claude Code) holds
-   *      an OAuth token in the OS keychain after a one-time `<cli> login`
-   *      flow. UI surfaces install/login hints instead of an API-key field.
+   *   - `"cli-login"`: a third-party CLI (Claude Code, or the kimi Code CLI)
+   *      holds an OAuth token after a one-time `<cli> login` flow. UI surfaces
+   *      install/login hints instead of an API-key field; no connection needed.
    */
   setupMode?: "api-key" | "keyless" | "cli-login";
   setupHint?: string;
@@ -97,10 +97,10 @@ export interface ProviderCatalogEntry {
     linkLabel: string;
   };
   /**
-   * Whether this provider supports the `platform` auth type (Vellum-managed
+   * Whether this provider supports the `platform` auth type (Max-managed
    * keys routed through the platform proxy). Derived from
    * `PLATFORM_PROVIDER_META` at catalog build time so the two stay in lock
-   * step. Clients use this field to hide the "Platform (managed by Vellum)"
+   * step. Clients use this field to hide the "Platform (managed by Max)"
    * option from the auth-type dropdown for providers like Fireworks or
    * OpenRouter where managed keys are not available.
    */
@@ -226,7 +226,7 @@ const RAW_PROVIDER_CATALOG: ProviderCatalogEntry[] = [
     id: "claude-subscription",
     displayName: "Claude (Max Subscription)",
     subtitle:
-      "Reuses your Claude Code login (Max plan). No API key needed. Tool calls route through an in-process MCP bridge to Vellum's skill runner.",
+      "Reuses your Claude Code login (Max plan). No API key needed. Tool calls route through an in-process MCP bridge to Max's skill runner.",
     setupMode: "cli-login",
     subscriptionBacked: true,
     setupHint:
@@ -238,6 +238,17 @@ const RAW_PROVIDER_CATALOG: ProviderCatalogEntry[] = [
       linkLabel: "Install Claude Code",
     },
     models: [
+      {
+        id: "claude-opus-4-8",
+        displayName: "Claude Opus 4.8 (subscription)",
+        contextWindowTokens: 1000000,
+        maxOutputTokens: 128000,
+        longContextPricingThresholdTokens: 200000,
+        supportsThinking: true,
+        supportsCaching: true,
+        supportsVision: true,
+        supportsToolUse: true,
+      },
       {
         id: "claude-opus-4-7",
         displayName: "Claude Opus 4.7 (subscription)",
@@ -527,6 +538,62 @@ const RAW_PROVIDER_CATALOG: ProviderCatalogEntry[] = [
     defaultModel: "kimi-k2.6",
     apiKeyUrl: "https://platform.kimi.ai",
     apiKeyPlaceholder: "sk-...",
+  },
+  {
+    id: "kimi-agent",
+    displayName: "Kimi (Agent SDK)",
+    subtitle:
+      "Kimi driven through the Kimi Code CLI's agentic runtime. Reuses your kimi CLI login (managed kimi-code plan) — no API key needed. Tool calls bridge to Max's skill runner.",
+    setupMode: "cli-login",
+    subscriptionBacked: true,
+    setupHint:
+      "Install the Kimi Code CLI, then run `kimi` and `/login` once to sign in. The assistant reuses the stored OAuth session from `~/.kimi`.",
+    credentialsGuide: {
+      description: "Install the Kimi Code CLI and sign in once.",
+      url: "https://platform.moonshot.ai/",
+      linkLabel: "Open Moonshot Platform",
+    },
+    models: [
+      // K2.6 mode presets (mirrors kimi.com's Instant/Thinking/Agent). The
+      // provider maps these ids to a real model + thinking flag + step budget
+      // in client.ts (KIMI_MODE_CONFIG). "Agent Swarm" is intentionally absent
+      // (needs subagents, which the provider disables for isolation; it is a
+      // kimi.com-hosted-only product with no CLI/SDK lever).
+      {
+        id: "kimi-k2.6-instant",
+        displayName: "K2.6 Instant",
+        contextWindowTokens: 256000,
+        maxOutputTokens: 32768,
+        supportsThinking: false,
+        supportsCaching: false,
+        supportsVision: true,
+        supportsToolUse: true,
+        pricing: { inputPer1mTokens: 0.6, outputPer1mTokens: 2.5 },
+      },
+      {
+        id: "kimi-k2.6-thinking",
+        displayName: "K2.6 Thinking",
+        contextWindowTokens: 256000,
+        maxOutputTokens: 32768,
+        supportsThinking: true,
+        supportsCaching: false,
+        supportsVision: true,
+        supportsToolUse: true,
+        pricing: { inputPer1mTokens: 0.6, outputPer1mTokens: 2.5 },
+      },
+      {
+        id: "kimi-k2.6-agent",
+        displayName: "K2.6 Agent",
+        contextWindowTokens: 256000,
+        maxOutputTokens: 32768,
+        supportsThinking: true,
+        supportsCaching: false,
+        supportsVision: true,
+        supportsToolUse: true,
+        pricing: { inputPer1mTokens: 0.6, outputPer1mTokens: 2.5 },
+      },
+    ],
+    defaultModel: "kimi-k2.6-instant",
   },
   {
     id: "gemini",

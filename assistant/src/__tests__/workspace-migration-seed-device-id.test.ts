@@ -35,11 +35,11 @@ import { seedDeviceIdMigration } from "../workspace/migrations/003-seed-device-i
 // ---------------------------------------------------------------------------
 
 const BASE = "/mock-home";
-const VELLUM_DIR = `${BASE}/.vellum`;
-const DEVICE_PATH = `${VELLUM_DIR}/device.json`;
-const LOCK_PATH = `${BASE}/.vellum.lock.json`;
-const LEGACY_LOCK_PATH = `${BASE}/.vellum.lockfile.json`;
-const WORKSPACE_DIR = `${VELLUM_DIR}/workspace`;
+const MAX_DIR = `${BASE}/.max`;
+const DEVICE_PATH = `${MAX_DIR}/device.json`;
+const LOCK_PATH = `${BASE}/.max.lock.json`;
+const LEGACY_LOCK_PATH = `${BASE}/.max.lockfile.json`;
+const WORKSPACE_DIR = `${MAX_DIR}/workspace`;
 
 function makeLockfile(assistants: Array<Record<string, unknown>>): string {
   return JSON.stringify({ assistants });
@@ -160,7 +160,7 @@ describe("003-seed-device-id migration", () => {
     expect(parsed.deviceId).toBe("install-new");
   });
 
-  test("reads from legacy .vellum.lockfile.json when primary is absent", () => {
+  test("reads from legacy .max.lockfile.json when primary is absent", () => {
     setupFs({
       [LEGACY_LOCK_PATH]: makeLockfile([
         {
@@ -270,7 +270,7 @@ describe("003-seed-device-id migration", () => {
     process.env.IS_CONTAINERIZED = "true";
     homedirFn.mockReturnValue("/mock-home");
 
-    const containerDevicePath = "/home/assistant/.vellum/device.json";
+    const containerDevicePath = "/home/assistant/.max/device.json";
 
     // Lockfile is at homedir, NOT under /home/assistant
     existsSyncFn.mockImplementation((path: string) => path === LOCK_PATH);
@@ -306,7 +306,7 @@ describe("003-seed-device-id migration", () => {
 
     // Only a lockfile under /home/assistant exists — should be ignored since
     // the migration always reads the lockfile from homedir().
-    const containerLockPath = "/home/assistant/.vellum.lock.json";
+    const containerLockPath = "/home/assistant/.max.lock.json";
     existsSyncFn.mockImplementation(
       (path: string) => path === containerLockPath,
     );

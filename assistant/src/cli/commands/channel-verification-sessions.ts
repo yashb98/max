@@ -11,7 +11,7 @@ import { writeOutput } from "../output.js";
 const VALID_CHANNEL_IDS = [
   "telegram",
   "phone",
-  "vellum",
+  "max",
   "whatsapp",
   "slack",
   "email",

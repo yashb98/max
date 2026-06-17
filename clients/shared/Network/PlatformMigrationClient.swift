@@ -48,7 +48,7 @@ public enum PlatformMigrationClient {
         public var errorDescription: String? {
             switch self {
             case .notAuthenticated:
-                return "Not authenticated — sign in to your Vellum account to continue."
+                return "Not authenticated — sign in to your Max account to continue."
             case .signedUrlsNotAvailable:
                 return "Signed URL uploads are not available — the platform may not support this feature yet."
             case .requestFailed(let statusCode, let detail):
@@ -88,7 +88,7 @@ public enum PlatformMigrationClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(token, forHTTPHeaderField: "X-Session-Token")
         if let orgId {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["operation": "upload"])
 
@@ -142,7 +142,7 @@ public enum PlatformMigrationClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(token, forHTTPHeaderField: "X-Session-Token")
         if let orgId {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "operation": "download",
@@ -362,7 +362,7 @@ public enum PlatformMigrationClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(token, forHTTPHeaderField: "X-Session-Token")
         if let orgId {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
         request.httpBody = try JSONSerialization.data(withJSONObject: ["bundle_key": bundleKey])
 
@@ -388,7 +388,7 @@ public enum PlatformMigrationClient {
         request.timeoutInterval = 30
         request.setValue(token, forHTTPHeaderField: "X-Session-Token")
         if let orgId {
-            request.setValue(orgId, forHTTPHeaderField: "Vellum-Organization-Id")
+            request.setValue(orgId, forHTTPHeaderField: "Max-Organization-Id")
         }
 
         let (data, statusCode) = try await executeWithRetry(request: request, label: "job-status")
@@ -554,7 +554,7 @@ public enum PlatformMigrationClient {
             throw PlatformMigrationError.notAuthenticated
         }
 
-        let baseURL = VellumEnvironment.resolvedPlatformURL
+        let baseURL = MaxEnvironment.resolvedPlatformURL
 
         let orgId: String? = {
             guard let id = UserDefaults.standard.string(forKey: "connectedOrganizationId"), !id.isEmpty else { return nil }

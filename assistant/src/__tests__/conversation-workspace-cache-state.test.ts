@@ -367,7 +367,7 @@ describe("Conversation workspace cache state", () => {
 
   test("applyHostEnvFromTransport populates fields for host-proxy transports", () => {
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -386,7 +386,7 @@ describe("Conversation workspace cache state", () => {
   test("applyHostEnvFromTransport clears fields for non-host-proxy transports", () => {
     // Seed with a host-proxy turn.
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -396,7 +396,7 @@ describe("Conversation workspace cache state", () => {
     // Apply a non-host-proxy transport — should clear the stored values so
     // the next render doesn't leak them from a cross-interface reuse.
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "ios",
     });
 
@@ -410,14 +410,14 @@ describe("Conversation workspace cache state", () => {
     // returns false for it, so the gate treats it as a non-host-proxy transport
     // for the purposes of host env (no local filesystem to address).
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
     });
 
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "chrome-extension",
     });
 
@@ -429,14 +429,14 @@ describe("Conversation workspace cache state", () => {
     // Seed and then apply a transport without an interfaceId (legacy/channel
     // paths may omit it). The gate should clear any stored host env.
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
     });
 
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
     });
 
     expect(conversation.hostHomeDir).toBeUndefined();
@@ -445,7 +445,7 @@ describe("Conversation workspace cache state", () => {
 
   test("applyHostEnvFromTransport does not mark dirty when values are unchanged", () => {
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -457,7 +457,7 @@ describe("Conversation workspace cache state", () => {
     // Re-apply the same values — dirty flag should remain false so we don't
     // thrash the cached workspace block on every message.
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -467,7 +467,7 @@ describe("Conversation workspace cache state", () => {
 
   test("applyHostEnvFromTransport marks dirty when macOS values change", () => {
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -477,7 +477,7 @@ describe("Conversation workspace cache state", () => {
 
     // New values — should mark dirty so the next render picks them up.
     conversation.applyHostEnvFromTransport({
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/bob",
       hostUsername: "bob",

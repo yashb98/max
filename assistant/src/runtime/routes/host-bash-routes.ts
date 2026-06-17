@@ -43,9 +43,9 @@ function handleHostBashResult({ body, headers }: RouteHandlerArgs) {
   }
 
   const submittingClientId =
-    headers?.["x-vellum-client-id"]?.trim() || undefined;
+    headers?.["x-max-client-id"]?.trim() || undefined;
   const submittingActorPrincipalId = resolveActorPrincipalIdForLocalGuardian(
-    headers?.["x-vellum-actor-principal-id"]?.trim() || undefined,
+    headers?.["x-max-actor-principal-id"]?.trim() || undefined,
   );
 
   const peeked = pendingInteractions.get(requestId);
@@ -63,7 +63,7 @@ function handleHostBashResult({ body, headers }: RouteHandlerArgs) {
   if (targetClientId) {
     if (!submittingClientId) {
       throw new BadRequestError(
-        "x-vellum-client-id header is required for targeted host bash requests",
+        "x-max-client-id header is required for targeted host bash requests",
       );
     }
     if (submittingClientId !== targetClientId) {
@@ -121,7 +121,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted host bash request.",
+          "x-max-client-id header is missing for a targeted host bash request.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,

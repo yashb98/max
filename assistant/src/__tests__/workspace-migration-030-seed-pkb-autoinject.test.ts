@@ -21,7 +21,7 @@ let pkbDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-030-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-030-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   pkbDir = join(workspaceDir, "pkb");
   mkdirSync(pkbDir, { recursive: true });

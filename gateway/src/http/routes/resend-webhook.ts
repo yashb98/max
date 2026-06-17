@@ -6,7 +6,7 @@ import type { CredentialCache } from "../../credential-cache.js";
 import { credentialKey } from "../../credential-key.js";
 import { recordDenialReplyIfAllowed } from "../../db/denial-reply-rate-limiter.js";
 import { StringDedupCache } from "../../dedup-cache.js";
-import type { VellumEmailPayload } from "../../email/normalize.js";
+import type { MaxEmailPayload } from "../../email/normalize.js";
 import { normalizeEmailWebhook } from "../../email/normalize.js";
 import { handleInbound } from "../../handlers/handle-inbound.js";
 import { getLogger } from "../../logger.js";
@@ -178,16 +178,16 @@ function parseEmailAddress(raw: string): {
 
 /**
  * Normalize a Resend `email.received` webhook event into a
- * `VellumEmailPayload` suitable for `normalizeEmailWebhook()`.
+ * `MaxEmailPayload` suitable for `normalizeEmailWebhook()`.
  */
-function normalizeResendToVellumPayload(
+function normalizeResendToMaxPayload(
   event: ResendReceivedEvent,
   content: {
     html: string | null;
     text: string | null;
     headers: Record<string, string>;
   } | null,
-): VellumEmailPayload | null {
+): MaxEmailPayload | null {
   const { data } = event;
   if (!data.from || !data.to?.length || !data.message_id) return null;
 
@@ -366,10 +366,10 @@ export function createResendWebhookHandler(
       );
     }
 
-    // ── Normalize to VellumEmailPayload ─────────────────────────────
+    // ── Normalize to MaxEmailPayload ─────────────────────────────
 
-    const vellumPayload = normalizeResendToVellumPayload(event, emailContent);
-    if (!vellumPayload) {
+    const maxPayload = normalizeResendToMaxPayload(event, emailContent);
+    if (!maxPayload) {
       tlog.debug("Resend event missing required fields, acknowledging");
       dedupCache.mark(messageId);
       return Response.json({ ok: true });
@@ -377,7 +377,7 @@ export function createResendWebhookHandler(
 
     // Feed into the standard email normalization pipeline
     const normalized = normalizeEmailWebhook(
-      vellumPayload as unknown as Record<string, unknown>,
+      maxPayload as unknown as Record<string, unknown>,
     );
     if (!normalized) {
       tlog.debug(
@@ -428,20 +428,20 @@ export function createResendWebhookHandler(
         transportMetadata: buildEmailTransportMetadata({
           senderAddress: gatewayEvent.actor.actorExternalId,
           recipientAddress,
-          subject: vellumPayload.subject,
-          inReplyTo: vellumPayload.inReplyTo,
+          subject: maxPayload.subject,
+          inReplyTo: maxPayload.inReplyTo,
         }),
         replyCallbackUrl: undefined,
         traceId,
         routingOverride: routing,
         sourceMetadata: {
-          emailSubject: vellumPayload.subject ?? undefined,
+          emailSubject: maxPayload.subject ?? undefined,
           emailRecipient: recipientAddress,
-          ...(vellumPayload.inReplyTo
-            ? { emailInReplyTo: vellumPayload.inReplyTo }
+          ...(maxPayload.inReplyTo
+            ? { emailInReplyTo: maxPayload.inReplyTo }
             : {}),
-          ...(vellumPayload.references
-            ? { emailReferences: vellumPayload.references }
+          ...(maxPayload.references
+            ? { emailReferences: maxPayload.references }
             : {}),
         },
       });
@@ -495,12 +495,12 @@ export function createResendWebhookHandler(
               body: JSON.stringify({
                 from: recipientAddress,
                 to: [senderAddress],
-                subject: `Re: ${vellumPayload.subject ?? "(no subject)"}`,
+                subject: `Re: ${maxPayload.subject ?? "(no subject)"}`,
                 text: result.runtimeResponse.replyText,
-                ...(vellumPayload.messageId
+                ...(maxPayload.messageId
                   ? {
                       headers: {
-                        "In-Reply-To": vellumPayload.messageId,
+                        "In-Reply-To": maxPayload.messageId,
                       },
                     }
                   : {}),

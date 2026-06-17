@@ -16,8 +16,8 @@
  * `graph_extract` debounce in `indexer.ts`. Those triggers are covered by
  * the separate trigger-path tests; this file owns only the cron entries.
  *
- * Tests use a temp workspace pinned via `VELLUM_WORKSPACE_DIR` so the DB
- * lives under `tmpdir()` and `~/.vellum/` is never touched.
+ * Tests use a temp workspace pinned via `MAX_WORKSPACE_DIR` so the DB
+ * lives under `tmpdir()` and `~/.max/` is never touched.
  */
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -48,15 +48,15 @@ let previousWorkspaceEnv: string | undefined;
 
 beforeAll(() => {
   tmpWorkspace = mkdtempSync(join(tmpdir(), "memory-v2-schedule-test-"));
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 });
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
 });

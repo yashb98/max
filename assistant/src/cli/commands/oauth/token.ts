@@ -13,7 +13,7 @@ import { shouldOutputJson, writeOutput } from "../../output.js";
  * check this and fail deterministically.
  */
 function isUntrustedShell(): boolean {
-  return process.env.VELLUM_UNTRUSTED_SHELL === "1";
+  return process.env.MAX_UNTRUSTED_SHELL === "1";
 }
 
 /** Error message for commands blocked by CES shell lockdown. */
@@ -58,7 +58,7 @@ Platform-managed providers handle tokens internally — use
 authenticated requests.
 
 Use 'assistant oauth status <provider>' to find account identifiers for
---account. Shell lockdown: blocked when VELLUM_UNTRUSTED_SHELL=1.
+--account. Shell lockdown: blocked when MAX_UNTRUSTED_SHELL=1.
 
 Examples:
   $ assistant oauth token google

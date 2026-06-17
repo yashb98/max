@@ -100,10 +100,10 @@ export function routeDefinitionsToHTTPRoutes(
         // Inject auth context fields so transport-agnostic handlers can
         // resolve trust context without importing auth internals.
         if (authContext?.actorPrincipalId) {
-          headers["x-vellum-actor-principal-id"] = authContext.actorPrincipalId;
+          headers["x-max-actor-principal-id"] = authContext.actorPrincipalId;
         }
         if (authContext?.principalType) {
-          headers["x-vellum-principal-type"] = authContext.principalType;
+          headers["x-max-principal-type"] = authContext.principalType;
         }
 
         const result = await r.handler({

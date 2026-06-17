@@ -29,7 +29,7 @@ import {
 // Mocks — declared before imports that depend on platform/logger
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_DIR = process.env.MAX_WORKSPACE_DIR!;
 const CONFIG_PATH = join(WORKSPACE_DIR, "config.json");
 
 function makeLoggerStub(): Record<string, unknown> {

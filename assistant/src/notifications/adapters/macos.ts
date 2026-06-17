@@ -1,8 +1,8 @@
 /**
- * Vellum channel adapter — delivers notifications to connected desktop
+ * Max channel adapter — delivers notifications to connected desktop
  * and mobile clients via the daemon's event broadcast mechanism.
  *
- * The adapter broadcasts a `notification_intent` message that the Vellum
+ * The adapter broadcasts a `notification_intent` message that the Max
  * client can use to display a native notification (e.g. NSUserNotification
  * or UNUserNotificationCenter).
  *
@@ -23,7 +23,7 @@ import type {
   NotificationChannel,
 } from "../types.js";
 
-const log = getLogger("notif-adapter-vellum");
+const log = getLogger("notif-adapter-max");
 
 export type BroadcastFn = (msg: ServerMessage) => void;
 
@@ -47,8 +47,8 @@ export function isGuardianSensitiveEvent(sourceEventName: string): boolean {
   );
 }
 
-export class VellumAdapter implements ChannelAdapter {
-  readonly channel: NotificationChannel = "vellum";
+export class MaxAdapter implements ChannelAdapter {
+  readonly channel: NotificationChannel = "max";
 
   private broadcast: BroadcastFn;
 
@@ -63,7 +63,7 @@ export class VellumAdapter implements ChannelAdapter {
     try {
       // For guardian-sensitive events, annotate the outbound message with
       // the target guardian identity so clients can filter. The
-      // guardianPrincipalId comes from the vellum binding resolved by
+      // guardianPrincipalId comes from the max binding resolved by
       // the destination resolver.
       const guardianPrincipalId =
         typeof destination.metadata?.guardianPrincipalId === "string"
@@ -91,7 +91,7 @@ export class VellumAdapter implements ChannelAdapter {
           title: payload.copy.title,
           guardianScoped: targetGuardianPrincipalId != null,
         },
-        "Vellum notification intent broadcast",
+        "Max notification intent broadcast",
       );
 
       return { success: true };
@@ -99,7 +99,7 @@ export class VellumAdapter implements ChannelAdapter {
       const message = err instanceof Error ? err.message : String(err);
       log.error(
         { err, sourceEventName: payload.sourceEventName },
-        "Failed to broadcast Vellum notification intent",
+        "Failed to broadcast Max notification intent",
       );
       return { success: false, error: message };
     }

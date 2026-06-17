@@ -44,12 +44,12 @@ import {
 } from "../security/encrypted-store.js";
 
 // ---------------------------------------------------------------------------
-// Use a temp directory so tests don't touch the real ~/.vellum
+// Use a temp directory so tests don't touch the real ~/.max
 // ---------------------------------------------------------------------------
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-enc-test-${randomBytes(4).toString("hex")}`,
+  `max-enc-test-${randomBytes(4).toString("hex")}`,
 );
 const STORE_PATH = join(TEST_DIR, "keys.enc");
 const STORE_KEY_PATH = join(TEST_DIR, "store.key");

@@ -11,7 +11,7 @@ import type { GuardianQuestionPayload } from "./guardian-question-mode.js";
 
 export const NOTIFICATION_SOURCE_CHANNELS = [
   { id: "assistant_tool", description: "Assistant skill/tool invocation" },
-  { id: "vellum", description: "Vellum native client (macOS/iOS)" },
+  { id: "max", description: "Max native client (macOS/iOS)" },
   { id: "phone", description: "Phone call pipeline" },
   { id: "telegram", description: "Telegram channel" },
   { id: "slack", description: "Slack channel" },
@@ -135,8 +135,8 @@ export type RoutingIntent = "single_channel" | "multi_channel" | "all_channels";
  *
  * - `"source-channel-contact"` — Guardian was found via the originating channel's
  *   contact store and their principalId matches the assistant's anchor.
- * - `"vellum-anchor"` — No same-channel guardian matched; fell back to the
- *   assistant's vellum guardian principal.
+ * - `"max-anchor"` — No same-channel guardian matched; fell back to the
+ *   assistant's max guardian principal.
  * - `"none"` — No guardian binding could be resolved at all.
  *
  * Downstream consumers (notification copy, routing) use this to decide whether
@@ -146,7 +146,7 @@ export type RoutingIntent = "single_channel" | "multi_channel" | "all_channels";
  */
 export type GuardianResolutionSource =
   | "source-channel-contact"
-  | "vellum-anchor"
+  | "max-anchor"
   | "none";
 
 export interface AccessRequestContextPayload {

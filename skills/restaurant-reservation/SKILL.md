@@ -1,12 +1,12 @@
 ---
 name: restaurant-reservation
 description: Book reservations on OpenTable or Resy with explicit confirmations
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🍽️"
-  vellum:
+  max:
     display-name: "Restaurant Reservation Booking"
-    includes: ["vellum-browser-use"]
+    includes: ["max-browser-use"]
 ---
 
 Book restaurant reservations on OpenTable or Resy using browser automation. All browser operations are executed through the `assistant browser` CLI, invoked via `host_bash`.

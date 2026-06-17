@@ -111,8 +111,8 @@ export async function runInlineCommand(
   // internal APIs, mutating workspace state, or accessing instance-scoped data.
   const env = buildSanitizedEnv();
   delete env.INTERNAL_GATEWAY_BASE_URL;
-  delete env.VELLUM_WORKSPACE_DIR;
-  delete env.VELLUM_DATA_DIR;
+  delete env.MAX_WORKSPACE_DIR;
+  delete env.MAX_DATA_DIR;
 
   return new Promise<InlineCommandResult>((resolve) => {
     let timedOut = false;

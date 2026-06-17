@@ -14,7 +14,7 @@ import {
 // Temp directory scaffold
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 // ---------------------------------------------------------------------------
 // Mock platform paths

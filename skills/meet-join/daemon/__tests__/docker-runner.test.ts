@@ -162,7 +162,7 @@ describe("DockerRunner.run", () => {
       workspaceDir: "/host",
     });
     const result = await runner.run({
-      image: "vellum-meet-bot:dev",
+      image: "max-meet-bot:dev",
       env: { FOO: "bar", BAZ: "qux" },
       workspaceMounts: [
         { target: "/sockets", subpath: "sockets" },
@@ -176,7 +176,7 @@ describe("DockerRunner.run", () => {
           protocol: "tcp",
         },
       ],
-      name: "vellum-meet-m1",
+      name: "max-meet-m1",
       network: "bridge",
     });
 
@@ -197,9 +197,9 @@ describe("DockerRunner.run", () => {
 
     expect(create.method).toBe("POST");
     expect(create.url).toContain("/containers/create");
-    expect(create.url).toContain("name=vellum-meet-m1");
+    expect(create.url).toContain("name=max-meet-m1");
     const createBody = JSON.parse(create.body);
-    expect(createBody.Image).toBe("vellum-meet-bot:dev");
+    expect(createBody.Image).toBe("max-meet-bot:dev");
     expect(createBody.Env).toContain("FOO=bar");
     expect(createBody.Env).toContain("BAZ=qux");
     // Bare-metal mode: workspaceMounts resolve to host-path binds.
@@ -628,7 +628,7 @@ describe("DockerRunner workspace-mount mode branching", () => {
     });
 
     await runner.run({
-      image: "vellum-meet-bot:dev",
+      image: "max-meet-bot:dev",
       workspaceMounts: [
         { target: "/sockets", subpath: "meets/m1/sockets" },
         { target: "/out", subpath: "meets/m1/out" },
@@ -674,7 +674,7 @@ describe("DockerRunner workspace-mount mode branching", () => {
     });
 
     const result = await runner.run({
-      image: "vellum-meet-bot:dev",
+      image: "max-meet-bot:dev",
       workspaceMounts: [
         { target: "/sockets", subpath: "meets/m1/sockets" },
         { target: "/out", subpath: "meets/m1/out", readOnly: true },
@@ -687,7 +687,7 @@ describe("DockerRunner workspace-mount mode branching", () => {
           protocol: "tcp",
         },
       ],
-      name: "vellum-meet-m1",
+      name: "max-meet-m1",
     });
 
     expect(result.containerId).toBe("dk-1");
@@ -726,7 +726,7 @@ describe("DockerRunner workspace-mount mode branching", () => {
 
     await expect(
       runner.run({
-        image: "vellum-meet-bot:dev",
+        image: "max-meet-bot:dev",
         workspaceMounts: [{ target: "/sockets", subpath: "meets/m1/sockets" }],
       }),
     ).rejects.toThrow(expected);
@@ -784,7 +784,7 @@ describe("buildCreateBody labels", () => {
 
   test("emits Labels payload when supplied (orphan-reaper label scheme)", () => {
     const body = buildCreateBody({
-      image: "vellum-meet-bot:dev",
+      image: "max-meet-bot:dev",
       labels: {
         [MEET_BOT_LABEL]: "true",
         [MEET_BOT_MEETING_ID_LABEL]: "meeting-a",
@@ -792,9 +792,9 @@ describe("buildCreateBody labels", () => {
       },
     });
     expect(body.Labels).toEqual({
-      "vellum.meet.bot": "true",
-      "vellum.meet.meetingId": "meeting-a",
-      "vellum.meet.instance": "abc1234567890def",
+      "max.meet.bot": "true",
+      "max.meet.meetingId": "meeting-a",
+      "max.meet.instance": "abc1234567890def",
     });
   });
 });
@@ -817,14 +817,14 @@ describe("DockerRunner.listContainers", () => {
       body: [
         {
           Id: "c1",
-          Labels: { "vellum.meet.bot": "true", "vellum.meet.meetingId": "a" },
+          Labels: { "max.meet.bot": "true", "max.meet.meetingId": "a" },
         },
       ],
     });
 
     const runner = new DockerRunner({ socketPath: mock.socketPath });
     const result = await runner.listContainers({
-      labels: { "vellum.meet.bot": "true" },
+      labels: { "max.meet.bot": "true" },
     });
 
     expect(result).toHaveLength(1);
@@ -839,7 +839,7 @@ describe("DockerRunner.listContainers", () => {
       "filters",
     );
     const parsed = JSON.parse(encoded ?? "{}");
-    expect(parsed.label).toEqual(["vellum.meet.bot=true"]);
+    expect(parsed.label).toEqual(["max.meet.bot=true"]);
   });
 });
 
@@ -1132,7 +1132,7 @@ describe("reapOrphanedMeetBots", () => {
   // Per-instance label scoping (regression: multi-instance cross-kill)
   // -------------------------------------------------------------------------
 
-  test("keeps containers from a different instance (different vellum.meet.instance label)", async () => {
+  test("keeps containers from a different instance (different max.meet.instance label)", async () => {
     const killCalls: Array<{ id: string; signal: string | undefined }> = [];
     const docker: FakeDocker = {
       listContainers: async () => [
@@ -1176,7 +1176,7 @@ describe("reapOrphanedMeetBots", () => {
     ]);
   });
 
-  test("skips containers with no vellum.meet.instance label (pre-upgrade fossils)", async () => {
+  test("skips containers with no max.meet.instance label (pre-upgrade fossils)", async () => {
     const killCalls: Array<{ id: string; signal: string | undefined }> = [];
     const docker: FakeDocker = {
       listContainers: async () => [
@@ -1278,17 +1278,17 @@ describe("getMeetBotInstanceHash", () => {
     expect(hash).toBe(getMeetBotInstanceHash());
   });
 
-  test("changes when VELLUM_WORKSPACE_DIR changes (per-instance scoping)", () => {
-    const prev = process.env.VELLUM_WORKSPACE_DIR;
+  test("changes when MAX_WORKSPACE_DIR changes (per-instance scoping)", () => {
+    const prev = process.env.MAX_WORKSPACE_DIR;
     try {
-      process.env.VELLUM_WORKSPACE_DIR = "/tmp/instance-one/workspace";
+      process.env.MAX_WORKSPACE_DIR = "/tmp/instance-one/workspace";
       const hashOne = getMeetBotInstanceHash();
-      process.env.VELLUM_WORKSPACE_DIR = "/tmp/instance-two/workspace";
+      process.env.MAX_WORKSPACE_DIR = "/tmp/instance-two/workspace";
       const hashTwo = getMeetBotInstanceHash();
       expect(hashOne).not.toBe(hashTwo);
     } finally {
-      if (prev === undefined) delete process.env.VELLUM_WORKSPACE_DIR;
-      else process.env.VELLUM_WORKSPACE_DIR = prev;
+      if (prev === undefined) delete process.env.MAX_WORKSPACE_DIR;
+      else process.env.MAX_WORKSPACE_DIR = prev;
     }
   });
 });

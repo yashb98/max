@@ -22,7 +22,7 @@ let appsDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-010-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-010-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   appsDir = join(workspaceDir, "data", "apps");
   mkdirSync(appsDir, { recursive: true });

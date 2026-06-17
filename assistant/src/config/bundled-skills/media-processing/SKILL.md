@@ -1,10 +1,10 @@
 ---
 name: media-processing
 description: "Ingest and process media files (video, audio, image)"
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎬"
-  vellum:
+  max:
     display-name: "Media Processing"
 ---
 

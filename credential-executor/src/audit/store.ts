@@ -3,7 +3,7 @@
  *
  * Persists token-free audit record summaries to `audit.jsonl` inside
  * the CES-private data root. Each line is a self-contained JSON object
- * conforming to the `AuditRecordSummary` schema from `@vellumai/service-contracts`.
+ * conforming to the `AuditRecordSummary` schema from `@maxai/service-contracts`.
  *
  * Design principles:
  * - **Append-only**: Records are appended one per line. The file is never
@@ -27,7 +27,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 
-import type { AuditRecordSummary } from "@vellumai/service-contracts/credential-rpc";
+import type { AuditRecordSummary } from "@maxai/service-contracts/credential-rpc";
 
 import { getCesAuditDir } from "../paths.js";
 

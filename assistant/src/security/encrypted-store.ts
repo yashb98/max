@@ -3,7 +3,7 @@
  *
  * v2 stores use a cryptographically random 32-byte `store.key` file as the
  * AES-256-GCM key directly (no key derivation). The key file lives alongside
- * `keys.enc` in `~/.vellum/protected/`.
+ * `keys.enc` in `~/.max/protected/`.
  *
  * v1 stores (legacy) derived the AES key from machine-specific entropy via
  * PBKDF2. Existing v1 stores are automatically migrated to v2 on first access.

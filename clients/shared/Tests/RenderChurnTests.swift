@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Regression tests for render-churn reduction and memory-retention fixes.
 /// Validates: SubagentDetailStore coalesced event recording, stripHeavyContent surface stripping,

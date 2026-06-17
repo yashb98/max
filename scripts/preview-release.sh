@@ -87,7 +87,7 @@ MAC_MINI_PASSWORD=${MAC_MINI_PASSWORD:-}
 MAC_MINI_SSH_KEY="${MAC_MINI_SSH_KEY:-}"
 
 # GitHub repository to fetch the artifact from.
-GITHUB_REPO="${GITHUB_REPO:-vellum-ai/vellum-assistant}"
+GITHUB_REPO="${GITHUB_REPO:-max-ai/max-assistant}"
 
 # ---------------------------------------------------------------------------
 # Derived values
@@ -99,8 +99,8 @@ else
   SCP_HOST="${MAC_MINI_HOST}"
 fi
 
-ARTIFACT_NAME="vellum-assistant-pr-${PR_NUMBER}.dmg"
-APP_DISPLAY_NAME="Vellum ${PR_NUMBER}"
+ARTIFACT_NAME="max-assistant-pr-${PR_NUMBER}.dmg"
+APP_DISPLAY_NAME="Max ${PR_NUMBER}"
 
 # If a password is configured, make sure sshpass is available.
 if [ -n "$MAC_MINI_PASSWORD" ] && ! command -v sshpass &>/dev/null; then
@@ -137,7 +137,7 @@ echo "Fetching artifact '${ARTIFACT_NAME}' for PR #${PR_NUMBER} from ${GITHUB_RE
 
 # Find the workflow run for the PR that produced the artifact.
 # The PR macOS Build Check workflow uploads artifacts named
-# "vellum-assistant-pr-<number>.dmg".
+# "max-assistant-pr-<number>.dmg".
 LOCAL_DMG_DIR="/tmp/preview-release-${PR_NUMBER}"
 LOCAL_DMG="${LOCAL_DMG_DIR}/${ARTIFACT_NAME}"
 rm -rf "$LOCAL_DMG_DIR"

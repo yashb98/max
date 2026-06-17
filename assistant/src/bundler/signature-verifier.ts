@@ -1,5 +1,5 @@
 /**
- * Signature verification for .vellum archives.
+ * Signature verification for .max archives.
  *
  * Checks bundle integrity and Ed25519 signature validity.
  */
@@ -39,9 +39,9 @@ function sortKeysDeep(obj: unknown): unknown {
 }
 
 /**
- * Verify the signature and integrity of a .vellum bundle.
+ * Verify the signature and integrity of a .max bundle.
  *
- * @param zipPath - Path to the .vellum zip archive.
+ * @param zipPath - Path to the .max zip archive.
  * @param trustedPublicKeys - Optional map of keyId -> base64-encoded public key for verification.
  *                            If not provided, signature is checked structurally but returns 'signed' at best.
  * @returns The verification result with trust tier and signer info.
@@ -178,7 +178,7 @@ export async function verifyBundleSignature(
     }
   }
 
-  // For MVP, we don't have Vellum account lookup, so best we can do is 'signed'
+  // For MVP, we don't have Max account lookup, so best we can do is 'signed'
   return {
     trustTier: "signed",
     signerKeyId: keyId,

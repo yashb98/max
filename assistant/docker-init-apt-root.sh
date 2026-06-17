@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
-DATA_ROOT="${VELLUM_APT_DATA_ROOT:-/data/system}"
+DATA_ROOT="${MAX_APT_DATA_ROOT:-/data/system}"
 SENTINEL="${DATA_ROOT}/.rootfs-initialized"
 HOST_PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 
-if [ "${VELLUM_SANDBOX_RUNTIME:-}" != "kata" ]; then
+if [ "${MAX_SANDBOX_RUNTIME:-}" != "kata" ]; then
   exit 0
 fi
 
@@ -74,7 +74,7 @@ if [ -x "${DATA_ROOT}/bin/sh" ] && [ -x "${DATA_ROOT}/usr/bin/apt-get" ]; then
   exit 0
 fi
 
-SUITE="${VELLUM_APT_DATA_SUITE:-}"
+SUITE="${MAX_APT_DATA_SUITE:-}"
 if [ -z "${SUITE}" ] && [ -r /etc/os-release ]; then
   # shellcheck disable=SC1091
   . /etc/os-release
@@ -84,7 +84,7 @@ if [ -z "${SUITE}" ]; then
   SUITE="trixie"
 fi
 
-MIRROR="${VELLUM_APT_DATA_MIRROR:-http://deb.debian.org/debian}"
+MIRROR="${MAX_APT_DATA_MIRROR:-http://deb.debian.org/debian}"
 ARCH="$(/usr/bin/dpkg --print-architecture)"
 
 mkdir -p "${DATA_ROOT}"

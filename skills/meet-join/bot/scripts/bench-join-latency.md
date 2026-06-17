@@ -9,7 +9,7 @@ single CSV.
 ## Usage
 
 ```bash
-BOT_IMAGE=vellum-meet-bot:latest \
+BOT_IMAGE=max-meet-bot:latest \
   ./bench-join-latency.sh https://meet.google.com/xxx-yyyy-zzz 5
 ```
 

@@ -10,7 +10,7 @@
  *
  * To mitigate risk, when CES shell lockdown is active for untrusted sessions:
  * - Persistent approvals are disabled (every invocation requires fresh approval).
- * - The VELLUM_UNTRUSTED_SHELL=1 env flag is set so CLI commands self-deny
+ * - The MAX_UNTRUSTED_SHELL=1 env flag is set so CLI commands self-deny
  *   raw-token/secret reveal flows.
  */
 import { spawn } from "node:child_process";
@@ -46,17 +46,17 @@ const HOST_BASH_PROXY_ENV_KEYS = [
   // Preserve per-instance routing so nested `assistant` CLI commands invoked
   // over host_bash proxy target the same daemon/socket as the origin turn.
 
-  "VELLUM_WORKSPACE_DIR",
+  "MAX_WORKSPACE_DIR",
   // Keep legacy/diagnostic workspace + environment context aligned.
-  "VELLUM_DATA_DIR",
-  "VELLUM_ENVIRONMENT",
+  "MAX_DATA_DIR",
+  "MAX_ENVIRONMENT",
   // Preserve local control-plane routing when nested commands call APIs.
   "INTERNAL_GATEWAY_BASE_URL",
 ] as const;
 
 function buildHostShellEnv(): Record<string, string> {
   const env = buildSanitizedEnv();
-  // Ensure ~/.local/bin and ~/.bun/bin are in PATH so `vellum` and `bun` are
+  // Ensure ~/.local/bin and ~/.bun/bin are in PATH so `max` and `bun` are
   // always reachable, even when the daemon is launched from a macOS app
   // bundle that inherits a minimal PATH.
   const home = homedir();
@@ -83,7 +83,7 @@ function buildHostBashProxyEnv(
   }
 
   if (hostLockdownActive) {
-    env.VELLUM_UNTRUSTED_SHELL = "1";
+    env.MAX_UNTRUSTED_SHELL = "1";
   }
 
   // Keep nested `assistant` CLI calls in host_bash aligned with the
@@ -199,7 +199,7 @@ class HostShellTool implements Tool {
     // CES shell lockdown: host_bash is the weaker-tier escape hatch. When
     // lockdown is active for untrusted actors, persistent approvals are
     // disabled (every invocation requires fresh guardian approval) and the
-    // VELLUM_UNTRUSTED_SHELL flag is injected to self-deny raw-secret CLI
+    // MAX_UNTRUSTED_SHELL flag is injected to self-deny raw-secret CLI
     // commands. This does NOT provide the strong CES secrecy guarantee -
     // the subprocess runs unsandboxed and could access protected paths.
     //
@@ -367,10 +367,10 @@ class HostShellTool implements Tool {
     );
 
     const hostEnv = buildHostShellEnv();
-    // Inject VELLUM_UNTRUSTED_SHELL=1 so assistant CLI commands self-deny
+    // Inject MAX_UNTRUSTED_SHELL=1 so assistant CLI commands self-deny
     // raw-token/secret reveal flows when invoked from an untrusted shell.
     if (hostLockdownActive) {
-      hostEnv.VELLUM_UNTRUSTED_SHELL = "1";
+      hostEnv.MAX_UNTRUSTED_SHELL = "1";
     }
     // Match `bash` tool behavior so nested assistant CLI calls can bind to
     // the active conversation when running through host_bash.

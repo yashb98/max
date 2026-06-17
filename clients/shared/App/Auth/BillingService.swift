@@ -19,7 +19,7 @@ public final class BillingService {
 
     /// Fetch the current organization's billing summary.
     public func getBillingSummary() async throws -> BillingSummaryResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/billing/summary/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/billing/summary/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -37,7 +37,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let data: Data
         let response: URLResponse
@@ -110,7 +110,7 @@ public final class BillingService {
 
     /// POST to the billing summary endpoint to create the BillingAccount with initial credit.
     private func postBootstrapBillingSummary() async throws -> BillingSummaryResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/billing/summary/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/billing/summary/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -130,7 +130,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let data: Data
         let response: URLResponse
@@ -164,7 +164,7 @@ public final class BillingService {
     /// Fetch the current user's referral code and stats.
     /// The backend lazily creates a referral code if one doesn't exist yet.
     public func getReferralCode() async throws -> ReferralCodeResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/referral-codes/me/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/referral-codes/me/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -182,7 +182,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let data: Data
         let response: URLResponse
@@ -215,7 +215,7 @@ public final class BillingService {
 
     /// Create a top-up checkout session and return the Stripe checkout URL.
     public func createTopUpCheckout(amount: String) async throws -> URL {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/billing/top-ups/checkout-session/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/billing/top-ups/checkout-session/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -234,7 +234,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let requestBody = TopUpCheckoutRequest(amount: amount, return_path: "/billing/top-up/success")
         let encoder = JSONEncoder()
@@ -278,7 +278,7 @@ public final class BillingService {
 
     /// Fetch the current organization's subscription state.
     public func getSubscription() async throws -> SubscriptionResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/billing/subscription/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/billing/subscription/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -296,7 +296,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let data: Data
         let response: URLResponse
@@ -329,7 +329,7 @@ public final class BillingService {
 
     /// Fetch the static plan catalog (Base + Pro).
     public func getPlanCatalog() async throws -> PlanCatalogResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/organizations/billing/plans/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/organizations/billing/plans/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -347,7 +347,7 @@ public final class BillingService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         let data: Data
         let response: URLResponse

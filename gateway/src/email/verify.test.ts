@@ -11,18 +11,18 @@ function computeSignature(body: string, secret: string): string {
 }
 
 describe("verifyEmailWebhookSignature", () => {
-  const body = '{"from":"sender@example.com","to":"bot@vellum.me"}';
+  const body = '{"from":"sender@example.com","to":"bot@max.me"}';
 
   it("accepts a valid HMAC signature", () => {
     const headers = new Headers({
-      "vellum-signature": computeSignature(body, SECRET),
+      "max-signature": computeSignature(body, SECRET),
     });
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(true);
   });
 
   it("rejects a wrong secret", () => {
     const headers = new Headers({
-      "vellum-signature": computeSignature(body, "wrong-secret"),
+      "max-signature": computeSignature(body, "wrong-secret"),
     });
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(false);
   });
@@ -34,14 +34,14 @@ describe("verifyEmailWebhookSignature", () => {
 
   it("rejects when secret is empty", () => {
     const headers = new Headers({
-      "vellum-signature": computeSignature(body, SECRET),
+      "max-signature": computeSignature(body, SECRET),
     });
     expect(verifyEmailWebhookSignature(headers, body, "")).toBe(false);
   });
 
   it("rejects when header value is empty", () => {
     const headers = new Headers({
-      "vellum-signature": "",
+      "max-signature": "",
     });
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(false);
   });
@@ -51,14 +51,14 @@ describe("verifyEmailWebhookSignature", () => {
       .update(body, "utf8")
       .digest("hex");
     const headers = new Headers({
-      "vellum-signature": digest,
+      "max-signature": digest,
     });
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(false);
   });
 
   it("rejects when body has been tampered with", () => {
     const headers = new Headers({
-      "vellum-signature": computeSignature(body, SECRET),
+      "max-signature": computeSignature(body, SECRET),
     });
     expect(verifyEmailWebhookSignature(headers, "tampered body", SECRET)).toBe(
       false,
@@ -70,14 +70,14 @@ describe("verifyEmailWebhookSignature", () => {
     const sig2 = computeSignature("body-b", SECRET);
     expect(sig1).not.toBe(sig2);
 
-    const headers1 = new Headers({ "vellum-signature": sig1 });
+    const headers1 = new Headers({ "max-signature": sig1 });
     expect(verifyEmailWebhookSignature(headers1, "body-a", SECRET)).toBe(true);
     expect(verifyEmailWebhookSignature(headers1, "body-b", SECRET)).toBe(false);
   });
 
   it("rejects a truncated hex digest", () => {
     const headers = new Headers({
-      "vellum-signature": "sha256=abcd1234",
+      "max-signature": "sha256=abcd1234",
     });
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(false);
   });
@@ -88,7 +88,7 @@ describe("verifyEmailWebhookSignature", () => {
     // timingSafeEqual to throw if we only compared string lengths.
     const nonAsciiHex = "\u00e9".repeat(64); // é is 2 bytes in UTF-8
     const headers = new Headers({
-      "vellum-signature": `sha256=${nonAsciiHex}`,
+      "max-signature": `sha256=${nonAsciiHex}`,
     });
     // Must return false cleanly — not throw
     expect(verifyEmailWebhookSignature(headers, body, SECRET)).toBe(false);

@@ -61,19 +61,19 @@ const commands = {
 type CommandName = keyof typeof commands;
 
 function printHelp(): void {
-  console.log("Usage: vellum <command> [options]");
+  console.log("Usage: max <command> [options]");
   console.log("");
   console.log("Commands:");
   console.log("  backup   Export a backup of a running assistant");
-  console.log("  clean    Kill orphaned vellum processes");
+  console.log("  clean    Kill orphaned max processes");
   console.log("  client   Connect to a hatched assistant");
   console.log("  env      Manage the default CLI environment");
   console.log("  events   Stream events from a running assistant");
   console.log("  exec     Execute a command inside an assistant's container");
   console.log("  hatch    Create a new assistant instance");
   console.log("  logs     View logs from an assistant instance");
-  console.log("  login    Log in to the Vellum platform");
-  console.log("  logout   Log out of the Vellum platform");
+  console.log("  login    Log in to the Max platform");
+  console.log("  logout   Log out of the Max platform");
   console.log("  message  Send a message to a running assistant");
   console.log(
     "  ps       List assistants (or processes for a specific assistant)",
@@ -156,7 +156,7 @@ async function main() {
   process.argv = [...process.argv.slice(0, 2), ...filteredArgs];
 
   if (commandName === "--version" || commandName === "-v") {
-    console.log(`@vellumai/cli v${cliPkg.version}`);
+    console.log(`@maxai/cli v${cliPkg.version}`);
     process.exit(0);
   }
 

@@ -4,21 +4,21 @@
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:vellum-assistant}/clients",
-            "name": "Debug vellum-assistant (clients)",
-            "target": "vellum-assistant",
+            "cwd": "${workspaceFolder:max-assistant}/clients",
+            "name": "Debug max-assistant (clients)",
+            "target": "max-assistant",
             "configuration": "debug",
-            "preLaunchTask": "swift: Build Debug vellum-assistant (clients)"
+            "preLaunchTask": "swift: Build Debug max-assistant (clients)"
         },
         {
             "type": "swift",
             "request": "launch",
             "args": [],
-            "cwd": "${workspaceFolder:vellum-assistant}/clients",
-            "name": "Release vellum-assistant (clients)",
-            "target": "vellum-assistant",
+            "cwd": "${workspaceFolder:max-assistant}/clients",
+            "name": "Release max-assistant (clients)",
+            "target": "max-assistant",
             "configuration": "release",
-            "preLaunchTask": "swift: Build Release vellum-assistant (clients)"
+            "preLaunchTask": "swift: Build Release max-assistant (clients)"
         }
     ]
 }

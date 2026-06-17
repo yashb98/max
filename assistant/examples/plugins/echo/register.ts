@@ -9,7 +9,7 @@
  *
  * ## Runtime bridge
  *
- * The plugin reads `registerPlugin` from `globalThis.__vellumPluginRuntime`,
+ * The plugin reads `registerPlugin` from `globalThis.__maxPluginRuntime`,
  * a stable handle the daemon attaches at startup. This lets the same plugin
  * file work whether the daemon is running from source (relative or absolute
  * imports would resolve to the daemon's modules) or as a `bun --compile`
@@ -19,7 +19,7 @@
  *
  * Type imports below still come from the in-repo source tree. Types are
  * erased at runtime, so they don't affect module identity — but they only
- * resolve while this file lives inside the vellum-assistant checkout. For a
+ * resolve while this file lives inside the max-assistant checkout. For a
  * standalone-copy install, rewrite the `import type` paths to absolute paths
  * inside a checkout (or vendor only the types you need).
  *
@@ -40,7 +40,7 @@
  * user-plugin-loader contract (see `assistant/src/plugins/user-loader.ts`).
  */
 
-import type { VellumPluginRuntime } from "../../../src/plugins/external-api.js";
+import type { MaxPluginRuntime } from "../../../src/plugins/external-api.js";
 import type {
   CircuitBreakerArgs,
   CircuitBreakerResult,
@@ -73,11 +73,11 @@ import type {
   TurnResult,
 } from "../../../src/plugins/types.js";
 
-const runtime = (globalThis as { __vellumPluginRuntime?: VellumPluginRuntime })
-  .__vellumPluginRuntime;
+const runtime = (globalThis as { __maxPluginRuntime?: MaxPluginRuntime })
+  .__maxPluginRuntime;
 if (!runtime || runtime.version !== 1) {
   throw new Error(
-    "echo plugin: globalThis.__vellumPluginRuntime is missing or has an unexpected version — install a recent assistant build",
+    "echo plugin: globalThis.__maxPluginRuntime is missing or has an unexpected version — install a recent assistant build",
   );
 }
 const { registerPlugin } = runtime;
@@ -138,7 +138,7 @@ function makeObserver<A, R>(
  *
  * Manifest:
  * - Host-compat range lives in `package.json` under
- *   `peerDependencies["@vellumai/plugin-api"]`. The external-plugin loader
+ *   `peerDependencies["@maxai/plugin-api"]`. The external-plugin loader
  *   validates it against the running assistant version via
  *   `semver.satisfies()` before this file is even imported.
  * - No `requiresCredential` or `requiresFlag` — the plugin needs no external

@@ -12,7 +12,7 @@ const log = getLogger("rate-limit");
  * Loopback peers (127.0.0.0/8, ::1, and IPv4-mapped IPv6 equivalents) are
  * exempt: a misbehaving local client that can't attach a bearer token must
  * not be able to rate-limit the whole gateway for everything else coming
- * from the same machine (the CLI's `vellum ps`, skill HTTP calls via
+ * from the same machine (the CLI's `max ps`, skill HTTP calls via
  * `$INTERNAL_GATEWAY_BASE_URL`, etc.). The auth middleware already bypasses
  * loopback for token validation; this keeps the rate limiter consistent
  * with that policy.

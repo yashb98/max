@@ -1,5 +1,5 @@
 {
-  "name": "@vellumai/ces-client",
+  "name": "@maxai/ces-client",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -16,7 +16,7 @@
     "test": "bun test src/"
   },
   "dependencies": {
-    "@vellumai/service-contracts": "file:../service-contracts"
+    "@maxai/service-contracts": "file:../service-contracts"
   },
   "devDependencies": {
     "@types/bun": "1.2.4",

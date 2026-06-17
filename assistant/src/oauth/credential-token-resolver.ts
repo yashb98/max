@@ -12,7 +12,7 @@
  * store, while standard OAuth providers use `oauth_connection/<id>/access_token`.
  */
 
-import { oauthConnectionAccessTokenPath } from "@vellumai/credential-storage";
+import { oauthConnectionAccessTokenPath } from "@maxai/credential-storage";
 
 import { credentialKey } from "../security/credential-key.js";
 import {

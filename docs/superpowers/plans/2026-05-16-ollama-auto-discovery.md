@@ -43,11 +43,11 @@
 - `assistant/src/daemon/main.ts` — start/stop the discovery service alongside other daemon services
 
 **Modified (Swift)**
-- `clients/macos/vellum-assistant/Features/Settings/InferenceProfile.swift` — surface `providerConnection: String?`
-- `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift` — `connectionReachability: [String: ConnectionReachability]`; `isConnectionReachable(_:)`
-- `clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift` — extend filter + bottom offline notice
-- `clients/macos/vellum-assistant/Features/Settings/InferenceProfileEditor.swift` — `(offline)` badge
-- `clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift` — extended
+- `clients/macos/max-assistant/Features/Settings/InferenceProfile.swift` — surface `providerConnection: String?`
+- `clients/macos/max-assistant/Features/Settings/SettingsStore.swift` — `connectionReachability: [String: ConnectionReachability]`; `isConnectionReachable(_:)`
+- `clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift` — extend filter + bottom offline notice
+- `clients/macos/max-assistant/Features/Settings/InferenceProfileEditor.swift` — `(offline)` badge
+- `clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift` — extended
 
 ---
 
@@ -1623,11 +1623,11 @@ git commit -m "feat(daemon): start the ollama discovery service alongside other 
 ## Task 14: Swift — surface providerConnection on InferenceProfile
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Settings/InferenceProfile.swift`
+- Modify: `clients/macos/max-assistant/Features/Settings/InferenceProfile.swift`
 
 - [ ] **Step 1: Check whether the struct already has the field**
 
-Run: `grep -n "providerConnection\|provider_connection" clients/macos/vellum-assistant/Features/Settings/InferenceProfile.swift`
+Run: `grep -n "providerConnection\|provider_connection" clients/macos/max-assistant/Features/Settings/InferenceProfile.swift`
 
 If absent, proceed. If present, skip to Task 15.
 
@@ -1653,7 +1653,7 @@ Expected: clean build.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add clients/macos/vellum-assistant/Features/Settings/InferenceProfile.swift
+git add clients/macos/max-assistant/Features/Settings/InferenceProfile.swift
 git commit -m "feat(macos): surface providerConnection on InferenceProfile"
 ```
 
@@ -1662,7 +1662,7 @@ git commit -m "feat(macos): surface providerConnection on InferenceProfile"
 ## Task 15: Swift — connection reachability in SettingsStore
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift`
+- Modify: `clients/macos/max-assistant/Features/Settings/SettingsStore.swift`
 
 - [ ] **Step 1: Define a small reachability type**
 
@@ -1728,7 +1728,7 @@ Expected: clean build.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift
+git add clients/macos/max-assistant/Features/Settings/SettingsStore.swift
 git commit -m "feat(macos): track per-connection reachability from daemon config push"
 ```
 
@@ -1737,7 +1737,7 @@ git commit -m "feat(macos): track per-connection reachability from daemon config
 ## Task 16: Swift — picker filter + offline notice
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift`
+- Modify: `clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift`
 
 - [ ] **Step 1: Inject SettingsStore into the picker**
 
@@ -1747,7 +1747,7 @@ The picker is currently a stateless struct. The caller (ComposerView) already ho
 let settingsStore: SettingsStore
 ```
 
-Update the call site in `ComposerView` to pass `settingsStore`. (Run `grep -n "ChatProfilePicker(" clients/macos/vellum-assistant/Features/Chat/` to find the call sites.)
+Update the call site in `ComposerView` to pass `settingsStore`. (Run `grep -n "ChatProfilePicker(" clients/macos/max-assistant/Features/Chat/` to find the call sites.)
 
 - [ ] **Step 2: Extend the body filter at line ~69**
 
@@ -1815,7 +1815,7 @@ Open the picker — confirm the auto-ollama profiles appear when Ollama is reach
 - [ ] **Step 5: Commit**
 
 ```bash
-git add clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift clients/macos/vellum-assistant/Features/Chat/ComposerView.swift
+git add clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift clients/macos/max-assistant/Features/Chat/ComposerView.swift
 git commit -m "feat(macos): hide unreachable-connection profiles + show ollama offline notice in picker"
 ```
 
@@ -1824,11 +1824,11 @@ git commit -m "feat(macos): hide unreachable-connection profiles + show ollama o
 ## Task 17: Swift — `(offline)` badge in Inference Profile editor
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Settings/InferenceProfileEditor.swift`
+- Modify: `clients/macos/max-assistant/Features/Settings/InferenceProfileEditor.swift`
 
 - [ ] **Step 1: Find where each profile row's label is rendered**
 
-Run: `grep -n "Text(profile\|profile\.displayName\|profile\.label" clients/macos/vellum-assistant/Features/Settings/InferenceProfileEditor.swift | head -10`
+Run: `grep -n "Text(profile\|profile\.displayName\|profile\.label" clients/macos/max-assistant/Features/Settings/InferenceProfileEditor.swift | head -10`
 
 - [ ] **Step 2: Append `(offline)` when the connection is unreachable**
 
@@ -1853,7 +1853,7 @@ Expected: clean build.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add clients/macos/vellum-assistant/Features/Settings/InferenceProfileEditor.swift
+git add clients/macos/max-assistant/Features/Settings/InferenceProfileEditor.swift
 git commit -m "feat(macos): (offline) badge in inference profile editor"
 ```
 
@@ -1976,8 +1976,8 @@ import { join } from "node:path";
 const ORIGINAL_HOME = process.env.HOME;
 
 function setupWorkspace(): string {
-  const dir = mkdtempSync(join(tmpdir(), "vellum-discovery-test-"));
-  process.env.VELLUM_WORKSPACE_DIR = join(dir, "workspace");
+  const dir = mkdtempSync(join(tmpdir(), "max-discovery-test-"));
+  process.env.MAX_WORKSPACE_DIR = join(dir, "workspace");
   return dir;
 }
 
@@ -1992,7 +1992,7 @@ describe("discovery-service integration", () => {
   });
   afterEach(() => {
     rmSync(workspaceDir, { recursive: true, force: true });
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
     if (ORIGINAL_HOME) process.env.HOME = ORIGINAL_HOME;
   });
 
@@ -2044,7 +2044,7 @@ git commit -m "test(ollama): integration tests for discovery service against stu
 ## Task 20: Swift — ChatProfilePicker tests
 
 **Files:**
-- Modify: `clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift`
+- Modify: `clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift`
 
 - [ ] **Step 1: Add filter tests**
 
@@ -2090,14 +2090,14 @@ func test_cloudProfileNotFilteredWhenConnectionLacksReachableField() {
 
 - [ ] **Step 2: Run the tests**
 
-Run: `xcodebuild test -scheme vellum-assistant -destination 'platform=macOS' -only-testing:vellum-assistantTests/ChatProfilePickerTests`
+Run: `xcodebuild test -scheme max-assistant -destination 'platform=macOS' -only-testing:max-assistantTests/ChatProfilePickerTests`
 (Or use the existing test-run command in the macOS project — check `clients/macos/build.sh` for a `test` subcommand.)
 Expected: both new tests pass.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift
+git add clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift
 git commit -m "test(macos): ChatProfilePicker filters unreachable-connection profiles"
 ```
 

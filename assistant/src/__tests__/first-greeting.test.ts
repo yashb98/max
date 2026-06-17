@@ -2,7 +2,7 @@ import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "bun:test";
 
-const tempDir = process.env.VELLUM_WORKSPACE_DIR!;
+const tempDir = process.env.MAX_WORKSPACE_DIR!;
 
 const { isWakeUpGreeting, getCannedFirstGreeting, CANNED_FIRST_GREETING } =
   await import("../daemon/first-greeting.js");

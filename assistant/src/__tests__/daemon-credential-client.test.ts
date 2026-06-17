@@ -68,7 +68,7 @@ describe("daemon credential client", () => {
 
       const result = await setSecureKeyViaDaemon(
         "credential",
-        "vellum:webhook_secret",
+        "max:webhook_secret",
         "some-value",
       );
       expect(result.ok).toBe(false);
@@ -105,7 +105,7 @@ describe("daemon credential client", () => {
 
       const result = await deleteSecureKeyViaDaemon(
         "credential",
-        "vellum:temp_cred",
+        "max:temp_cred",
       );
       expect(result.result).toBe("error");
       expect(result.error).toBe("Credential store is unreachable");
@@ -119,7 +119,7 @@ describe("daemon credential client", () => {
 
       const result = await deleteSecureKeyViaDaemon(
         "credential",
-        "vellum:missing",
+        "max:missing",
       );
       expect(result.result).toBe("not-found");
       expect(result.error).toBeUndefined();

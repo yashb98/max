@@ -144,9 +144,9 @@ COPY skills/meet-join/meet-controller-ext/manifest.json /tmp/ext-manifest.json
 
 RUN mkdir -p /etc/chromium/native-messaging-hosts \
   && bun scripts/render-nmh-manifest.ts \
-       /etc/chromium/native-messaging-hosts/com.vellum.meet.json \
+       /etc/chromium/native-messaging-hosts/com.max.meet.json \
        --ext-manifest /tmp/ext-manifest.json \
-       --template /app/bot/native-messaging/com.vellum.meet.json \
+       --template /app/bot/native-messaging/com.max.meet.json \
   && chmod +x /app/bot/src/native-messaging/nmh-shim.ts \
   && rm /tmp/ext-manifest.json
 

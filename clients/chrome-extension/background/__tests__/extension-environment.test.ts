@@ -73,38 +73,38 @@ describe('parseExtensionEnvironment', () => {
 // ── resolveBuildDefaultEnvironment ──────────────────────────────────
 
 describe('resolveBuildDefaultEnvironment', () => {
-  const savedEnv = process.env.VELLUM_ENVIRONMENT;
+  const savedEnv = process.env.MAX_ENVIRONMENT;
 
   afterEach(() => {
     if (savedEnv === undefined) {
-      delete process.env.VELLUM_ENVIRONMENT;
+      delete process.env.MAX_ENVIRONMENT;
     } else {
-      process.env.VELLUM_ENVIRONMENT = savedEnv;
+      process.env.MAX_ENVIRONMENT = savedEnv;
     }
   });
 
-  test('returns the environment when VELLUM_ENVIRONMENT is a valid value', () => {
-    process.env.VELLUM_ENVIRONMENT = 'staging';
+  test('returns the environment when MAX_ENVIRONMENT is a valid value', () => {
+    process.env.MAX_ENVIRONMENT = 'staging';
     expect(resolveBuildDefaultEnvironment()).toBe('staging');
   });
 
   test('resolves "prod" alias via build env', () => {
-    process.env.VELLUM_ENVIRONMENT = 'prod';
+    process.env.MAX_ENVIRONMENT = 'prod';
     expect(resolveBuildDefaultEnvironment()).toBe('production');
   });
 
-  test('falls back to "production" when VELLUM_ENVIRONMENT is unset', () => {
-    delete process.env.VELLUM_ENVIRONMENT;
+  test('falls back to "production" when MAX_ENVIRONMENT is unset', () => {
+    delete process.env.MAX_ENVIRONMENT;
     expect(resolveBuildDefaultEnvironment()).toBe('production');
   });
 
-  test('falls back to "production" when VELLUM_ENVIRONMENT is empty', () => {
-    process.env.VELLUM_ENVIRONMENT = '';
+  test('falls back to "production" when MAX_ENVIRONMENT is empty', () => {
+    process.env.MAX_ENVIRONMENT = '';
     expect(resolveBuildDefaultEnvironment()).toBe('production');
   });
 
-  test('falls back to "production" when VELLUM_ENVIRONMENT is invalid', () => {
-    process.env.VELLUM_ENVIRONMENT = 'bogus';
+  test('falls back to "production" when MAX_ENVIRONMENT is invalid', () => {
+    process.env.MAX_ENVIRONMENT = 'bogus';
     expect(resolveBuildDefaultEnvironment()).toBe('production');
   });
 });
@@ -119,18 +119,18 @@ describe('cloudUrlsForEnvironment', () => {
   }> = [
     {
       env: 'production',
-      expectedApiBaseUrl: 'https://platform.vellum.ai',
-      expectedWebBaseUrl: 'https://www.vellum.ai',
+      expectedApiBaseUrl: 'https://platform.max.ai',
+      expectedWebBaseUrl: 'https://www.max.ai',
     },
     {
       env: 'staging',
-      expectedApiBaseUrl: 'https://staging-platform.vellum.ai',
-      expectedWebBaseUrl: 'https://staging-assistant.vellum.ai',
+      expectedApiBaseUrl: 'https://staging-platform.max.ai',
+      expectedWebBaseUrl: 'https://staging-assistant.max.ai',
     },
     {
       env: 'dev',
-      expectedApiBaseUrl: 'https://dev-platform.vellum.ai',
-      expectedWebBaseUrl: 'https://dev-assistant.vellum.ai',
+      expectedApiBaseUrl: 'https://dev-platform.max.ai',
+      expectedWebBaseUrl: 'https://dev-assistant.max.ai',
     },
     {
       env: 'local',
@@ -153,7 +153,7 @@ describe('cloudUrlsForEnvironment', () => {
 
   test('production parity: "prod" alias and "production" resolve to same URLs', () => {
     const fromProd = cloudUrlsForEnvironment('production');
-    expect(fromProd.apiBaseUrl).toBe('https://platform.vellum.ai');
-    expect(fromProd.webBaseUrl).toBe('https://www.vellum.ai');
+    expect(fromProd.apiBaseUrl).toBe('https://platform.max.ai');
+    expect(fromProd.webBaseUrl).toBe('https://www.max.ai');
   });
 });

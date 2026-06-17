@@ -37,7 +37,7 @@ export async function updatePublishedAppDeployment(
     if (newHash === publishedPage.htmlHash) return; // No change
 
     // 4. Get Vercel token — don't prompt, just skip if unavailable
-    const slug = publishedPage.projectSlug ?? `vellum-app-${appId}`;
+    const slug = publishedPage.projectSlug ?? `max-app-${appId}`;
 
     const useResult = await credentialBroker.serverUse({
       service: "vercel",

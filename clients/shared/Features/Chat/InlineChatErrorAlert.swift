@@ -58,7 +58,7 @@ public struct InlineChatErrorAlert: View {
         switch category {
         case .providerNetwork: return "Network Error"
         case .rateLimit: return "Rate Limited"
-        case .managedUsageLimit: return "Vellum Usage Limit"
+        case .managedUsageLimit: return "Max Usage Limit"
         case .providerOverloaded: return "Provider Overloaded"
         case .providerApi: return "API Error"
         case .providerBilling: return "Billing Error"

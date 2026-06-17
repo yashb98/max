@@ -22,7 +22,7 @@ import {
 
 const ROOT = join(
   tmpdir(),
-  `vellum-external-plugin-loader-test-${process.pid}-${Date.now()}`,
+  `max-external-plugin-loader-test-${process.pid}-${Date.now()}`,
 );
 
 function freshPluginDir(name: string): string {
@@ -75,7 +75,7 @@ describe("loadExternalPlugin — manifest", () => {
   test("strips npm scope from name", async () => {
     const dir = freshPluginDir("scoped");
     writePackageJson(dir, {
-      name: "@vellumai/simple-memory",
+      name: "@maxai/simple-memory",
       version: "0.1.0",
     });
 
@@ -107,7 +107,7 @@ describe("loadExternalPlugin — plugin-api peerDependency", () => {
     writePackageJson(dir, {
       name: "compat-ok",
       version: "0.1.0",
-      peerDependencies: { "@vellumai/plugin-api": "*" },
+      peerDependencies: { "@maxai/plugin-api": "*" },
     });
 
     await loadExternalPlugin(dir);
@@ -125,7 +125,7 @@ describe("loadExternalPlugin — plugin-api peerDependency", () => {
       name: "compat-bad",
       version: "0.1.0",
       // A range that no real assistant version will satisfy.
-      peerDependencies: { "@vellumai/plugin-api": ">=999.0.0" },
+      peerDependencies: { "@maxai/plugin-api": ">=999.0.0" },
     });
 
     await loadExternalPlugin(dir);
@@ -139,7 +139,7 @@ describe("loadExternalPlugin — plugin-api peerDependency", () => {
     writePackageJson(dir, {
       name: "compat-bogus",
       version: "0.1.0",
-      peerDependencies: { "@vellumai/plugin-api": "not-a-real-range" },
+      peerDependencies: { "@maxai/plugin-api": "not-a-real-range" },
     });
 
     await loadExternalPlugin(dir);
@@ -449,7 +449,7 @@ export default async function init(_ctx: unknown): Promise<void> {}
   });
 });
 
-describe("loadExternalPlugin — end-to-end @vellumai/simple-memory", () => {
+describe("loadExternalPlugin — end-to-end @maxai/simple-memory", () => {
   test("loads the in-tree simple-memory plugin", async () => {
     // Resolve the real on-disk plugin from the worktree. This double-acts
     // as the loader's contract test against the canonical Phase 0 plugin

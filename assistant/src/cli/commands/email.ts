@@ -61,7 +61,7 @@ export function registerEmailCommand(program: Command): void {
       email.addHelpText(
         "after",
         `
-Set up and manage this assistant's native email address on the Vellum
+Set up and manage this assistant's native email address on the Max
 platform. No third-party email provider or browser sign-up needed.
 
 Examples:
@@ -84,7 +84,7 @@ Examples:
 Arguments:
   username   The local part of the email address (e.g. "mybot" → mybot@${domain})
 
-Registers a new email address on the Vellum platform for the current
+Registers a new email address on the Max platform for the current
 assistant. Each assistant can have one email address. The address is
 immediately active for receiving inbound email.
 
@@ -459,7 +459,7 @@ Arguments:
   to   Recipient email address(es) — one or more
 
 Sends an email from the assistant's registered email address via the
-Vellum runtime proxy. The "from" address is automatically resolved
+Max runtime proxy. The "from" address is automatically resolved
 from the assistant's registered email address.
 
 Body source priority: --body flag > --file flag > stdin (if not a TTY).

@@ -54,8 +54,8 @@ import type {
   Logger,
   ServerMessage,
   SkillHost,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+import { buildAssistantEvent } from "@maxai/skill-host-contracts";
 
 import type { MeetBotEvent } from "../contracts/index.js";
 
@@ -101,7 +101,7 @@ export type SubscribeToMeetingEventsFn = (
 
 /**
  * Build an {@link AssistantEvent} envelope. The default uses the neutral
- * `buildAssistantEvent` from `@vellumai/skill-host-contracts`; tests may
+ * `buildAssistantEvent` from `@maxai/skill-host-contracts`; tests may
  * inject a recorder.
  */
 export type BuildEventFn = (
@@ -142,7 +142,7 @@ export interface MeetConversationBridgeDeps {
   /**
    * Optional: override the `AssistantEvent` builder. Defaults to the
    * pure-function {@link buildAssistantEvent} in
-   * `@vellumai/skill-host-contracts`.
+   * `@maxai/skill-host-contracts`.
    */
   buildEvent?: BuildEventFn;
 }

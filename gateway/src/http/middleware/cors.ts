@@ -6,12 +6,12 @@ const log = getLogger("cors");
 /**
  * Pattern matching origins from the embedded WKWebView.
  *
- * The macOS app loads webview content from `https://{appId}.vellum.local/`,
+ * The macOS app loads webview content from `https://{appId}.max.local/`,
  * which is cross-origin relative to the local gateway at
  * `http://127.0.0.1:{port}`. Without CORS headers, the browser blocks
- * `window.vellum.fetch` requests from the webview to the gateway.
+ * `window.max.fetch` requests from the webview to the gateway.
  */
-const WEBVIEW_ORIGIN_RE = /^https:\/\/[a-z0-9-]+\.vellum\.local$/;
+const WEBVIEW_ORIGIN_RE = /^https:\/\/[a-z0-9-]+\.max\.local$/;
 
 /**
  * Methods the webview bridge may use when calling custom route handlers.
@@ -22,10 +22,10 @@ const ALLOWED_METHODS = "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS";
  * Headers the webview bridge sends (auth + content type + org id).
  */
 const ALLOWED_HEADERS =
-  "Authorization, Content-Type, X-Session-Token, Vellum-Organization-Id, X-Trace-Id";
+  "Authorization, Content-Type, X-Session-Token, Max-Organization-Id, X-Trace-Id";
 
 /**
- * Check whether the request `Origin` header matches a known Vellum Chrome
+ * Check whether the request `Origin` header matches a known Max Chrome
  * extension. Returns the validated origin string, or null if CORS headers
  * should not be added.
  *
@@ -50,7 +50,7 @@ export function resolveExtensionOrigin(req: Request): string | null {
 }
 
 /**
- * Build CORS response headers for a known Vellum Chrome extension origin,
+ * Build CORS response headers for a known Max Chrome extension origin,
  * including the Private Network Access header required for localhost fetches.
  */
 export function extensionCorsHeaders(origin: string): Record<string, string> {
@@ -59,11 +59,11 @@ export function extensionCorsHeaders(origin: string): Record<string, string> {
     // GET for SSE (/v1/events), POST for pair + host-browser callbacks
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     // All headers the extension service worker sends across these routes:
-    //   /v1/pair          → content-type, x-vellum-interface-id
-    //   /v1/events (SSE)  → accept, x-vellum-client-id, x-vellum-interface-id
+    //   /v1/pair          → content-type, x-max-interface-id
+    //   /v1/events (SSE)  → accept, x-max-client-id, x-max-interface-id
     //   /v1/host-browser-* → content-type, authorization
     "Access-Control-Allow-Headers":
-      "Accept, Authorization, Content-Type, X-Vellum-Client-Id, X-Vellum-Interface-Id",
+      "Accept, Authorization, Content-Type, X-Max-Client-Id, X-Max-Interface-Id",
     "Access-Control-Allow-Private-Network": "true",
     "Access-Control-Max-Age": "86400",
   };

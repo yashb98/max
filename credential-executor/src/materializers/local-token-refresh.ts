@@ -22,7 +22,7 @@ import {
   computeExpiresAt,
   type SecureKeyBackend,
   type TokenRefreshResult,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import type { TokenRefreshFn } from "./local.js";
 
@@ -244,7 +244,7 @@ async function performTokenRefresh(
  * Token persistence is handled by the `LocalMaterialiser` after this
  * function returns.
  *
- * @param vellumRoot - The Vellum root directory (e.g. `~/.vellum`).
+ * @param maxRoot - The Max root directory (e.g. `~/.max`).
  * @param secureKeyBackend - Backend for retrieving the OAuth client secret.
  */
 export function createLocalTokenRefreshFn(

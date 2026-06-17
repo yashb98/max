@@ -14,7 +14,7 @@
 
 import { describe, expect, test } from "bun:test";
 
-import { platformOAuthHandle } from "@vellumai/service-contracts/credential-rpc";
+import { platformOAuthHandle } from "@maxai/service-contracts/credential-rpc";
 
 import {
   type ManagedSubject,
@@ -33,7 +33,7 @@ import {
 // Test helpers
 // ---------------------------------------------------------------------------
 
-const TEST_PLATFORM_URL = "https://api.test-platform.vellum.ai";
+const TEST_PLATFORM_URL = "https://api.test-platform.max.ai";
 const TEST_API_KEY = "test-api-key-abc123";
 const TEST_ASSISTANT_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -943,7 +943,7 @@ describe("token non-persistence invariant", () => {
 
   test("materializer source code does not import credential-storage", async () => {
     // Static verification: the materializer must not import from
-    // @vellumai/credential-storage, which would indicate it might
+    // @maxai/credential-storage, which would indicate it might
     // persist tokens locally.
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");

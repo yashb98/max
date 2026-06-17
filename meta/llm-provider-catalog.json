@@ -97,7 +97,7 @@
     {
       "id": "claude-subscription",
       "displayName": "Claude (Max Subscription)",
-      "subtitle": "Reuses your Claude Code login (Max plan). No API key needed. Tool calls route through an in-process MCP bridge to Vellum's skill runner.",
+      "subtitle": "Reuses your Claude Code login (Max plan). No API key needed. Tool calls route through an in-process MCP bridge to Max's skill runner.",
       "setupMode": "cli-login",
       "setupHint": "Install Claude Code, then run `claude login` once to sign in with your Max subscription. The assistant reuses the stored OAuth token from your local keychain.",
       "credentialsGuide": {
@@ -108,6 +108,19 @@
       "supportsPlatformAuth": false,
       "defaultModel": "claude-sonnet-4-6",
       "models": [
+        {
+          "id": "claude-opus-4-8",
+          "displayName": "Claude Opus 4.8 (subscription)",
+          "contextWindowTokens": 1000000,
+          "maxOutputTokens": 128000,
+          "defaultContextWindowTokens": 200000,
+          "longContextPricingThresholdTokens": 200000,
+          "longContextMode": "native-model",
+          "supportsThinking": true,
+          "supportsCaching": true,
+          "supportsVision": true,
+          "supportsToolUse": true
+        },
         {
           "id": "claude-opus-4-7",
           "displayName": "Claude Opus 4.7 (subscription)",
@@ -419,6 +432,70 @@
           "pricing": {
             "inputPer1mTokens": 0.15,
             "outputPer1mTokens": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "kimi-agent",
+      "displayName": "Kimi (Agent SDK)",
+      "subtitle": "Kimi driven through the Kimi Code CLI's agentic runtime. Reuses your kimi CLI login (managed kimi-code plan) — no API key needed. Tool calls bridge to Max's skill runner.",
+      "setupMode": "cli-login",
+      "setupHint": "Install the Kimi Code CLI, then run `kimi` and `/login` once to sign in. The assistant reuses the stored OAuth session from `~/.kimi`.",
+      "credentialsGuide": {
+        "description": "Install the Kimi Code CLI and sign in once.",
+        "url": "https://platform.moonshot.ai/",
+        "linkLabel": "Open Moonshot Platform"
+      },
+      "supportsPlatformAuth": false,
+      "defaultModel": "kimi-k2.6-instant",
+      "models": [
+        {
+          "id": "kimi-k2.6-instant",
+          "displayName": "K2.6 Instant",
+          "contextWindowTokens": 256000,
+          "maxOutputTokens": 32768,
+          "defaultContextWindowTokens": 200000,
+          "longContextMode": "native-model",
+          "supportsThinking": false,
+          "supportsCaching": false,
+          "supportsVision": true,
+          "supportsToolUse": true,
+          "pricing": {
+            "inputPer1mTokens": 0.6,
+            "outputPer1mTokens": 2.5
+          }
+        },
+        {
+          "id": "kimi-k2.6-thinking",
+          "displayName": "K2.6 Thinking",
+          "contextWindowTokens": 256000,
+          "maxOutputTokens": 32768,
+          "defaultContextWindowTokens": 200000,
+          "longContextMode": "native-model",
+          "supportsThinking": true,
+          "supportsCaching": false,
+          "supportsVision": true,
+          "supportsToolUse": true,
+          "pricing": {
+            "inputPer1mTokens": 0.6,
+            "outputPer1mTokens": 2.5
+          }
+        },
+        {
+          "id": "kimi-k2.6-agent",
+          "displayName": "K2.6 Agent",
+          "contextWindowTokens": 256000,
+          "maxOutputTokens": 32768,
+          "defaultContextWindowTokens": 200000,
+          "longContextMode": "native-model",
+          "supportsThinking": true,
+          "supportsCaching": false,
+          "supportsVision": true,
+          "supportsToolUse": true,
+          "pricing": {
+            "inputPer1mTokens": 0.6,
+            "outputPer1mTokens": 2.5
           }
         }
       ]

@@ -48,8 +48,8 @@ let mockEmitResult: {
   reason: "ok",
   deliveryResults: [
     {
-      channel: "vellum",
-      destination: "vellum",
+      channel: "max",
+      destination: "max",
       status: "sent",
       conversationId: "conv-guardian-1",
     },
@@ -109,9 +109,9 @@ function resetTables(): void {
   db.run("DELETE FROM contact_channels");
   db.run("DELETE FROM contacts");
 
-  // Seed the vellum guardian binding (gateway does this at startup in production)
+  // Seed the max guardian binding (gateway does this at startup in production)
   createGuardianBinding({
-    channel: "vellum",
+    channel: "max",
     guardianExternalUserId: "test-principal-id",
     guardianDeliveryChatId: "local",
     guardianPrincipalId: "test-principal-id",
@@ -127,8 +127,8 @@ function resetTables(): void {
     reason: "ok",
     deliveryResults: [
       {
-        channel: "vellum",
-        destination: "vellum",
+        channel: "max",
+        destination: "max",
         status: "sent",
         conversationId: "conv-guardian-1",
       },
@@ -197,8 +197,8 @@ describe("ASK_GUARDIAN canonical notification path", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
         },
       ],
@@ -234,10 +234,10 @@ describe("ASK_GUARDIAN canonical notification path", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
-          conversationId: "conv-guardian-vellum",
+          conversationId: "conv-guardian-max",
         },
         {
           channel: "telegram",
@@ -285,16 +285,16 @@ describe("ASK_GUARDIAN canonical notification path", () => {
     const telegram = deliveries.find(
       (d) => d.destination_channel === "telegram",
     );
-    const vellum = deliveries.find((d) => d.destination_channel === "vellum");
+    const max = deliveries.find((d) => d.destination_channel === "max");
     expect(telegram).toBeDefined();
     expect(telegram!.destination_chat_id).toBe("tg-chat-abc");
     expect(telegram!.status).toBe("sent");
-    expect(vellum).toBeDefined();
-    expect(vellum!.destination_conversation_id).toBe("conv-guardian-vellum");
-    expect(vellum!.status).toBe("sent");
+    expect(max).toBeDefined();
+    expect(max!.destination_conversation_id).toBe("conv-guardian-max");
+    expect(max!.status).toBe("sent");
   });
 
-  test("creates a failed vellum delivery when pipeline emits no vellum result", async () => {
+  test("creates a failed max delivery when pipeline emits no max result", async () => {
     const convId = "conv-guardian-notif-4";
     ensureConversation(convId);
 
@@ -331,14 +331,14 @@ describe("ASK_GUARDIAN canonical notification path", () => {
         "SELECT * FROM canonical_guardian_requests WHERE call_session_id = ?",
       )
       .get(session.id) as { id: string } | undefined;
-    const vellumDelivery = raw
+    const maxDelivery = raw
       .query(
         "SELECT status FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
       )
-      .get(request!.id, "vellum") as { status: string } | undefined;
+      .get(request!.id, "max") as { status: string } | undefined;
 
-    expect(vellumDelivery).toBeDefined();
-    expect(vellumDelivery!.status).toBe("failed");
+    expect(maxDelivery).toBeDefined();
+    expect(maxDelivery!.status).toBe("failed");
   });
 
   test("context payload includes callSessionId and activeGuardianRequestCount for candidate-affinity", async () => {
@@ -396,8 +396,8 @@ describe("ASK_GUARDIAN canonical notification path", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConvId,
         },
@@ -421,8 +421,8 @@ describe("ASK_GUARDIAN canonical notification path", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConvId,
         },
@@ -511,7 +511,7 @@ describe("ASK_GUARDIAN canonical notification path", () => {
       .query(
         "SELECT status FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
       )
-      .get(request!.id, "vellum") as { status: string } | undefined;
+      .get(request!.id, "max") as { status: string } | undefined;
     expect(delivery).toBeDefined();
     expect(delivery!.status).toBe("failed");
   });

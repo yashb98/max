@@ -2,7 +2,7 @@
 
 > ## Status: scaffold in progress
 >
-> This directory is the future open-source home for the Vellum web
+> This directory is the future open-source home for the Max web
 > app. **No application code lives here yet** — only the Vite + React
 > Router v7 toolchain, an empty shell, and placeholder routes that
 > exist to validate the build.
@@ -14,7 +14,7 @@
 > product features or non-scaffold code will be redirected.
 
 Vite + [React Router v7](https://reactrouter.com/) SPA for the
-vellum-assistant web app surfaces (assistant + docs).
+max-assistant web app surfaces (assistant + docs).
 
 ## Stack
 
@@ -50,7 +50,7 @@ modes, so switching later is a restructure rather than a rewrite.
 
 [`src/runtime/auth-adapter.ts`](src/runtime/auth-adapter.ts) defines a
 typed `RuntimeAuthAdapter` interface (`ensureSession` +
-`getAuthHeader`) so the shell does not hard-code hosted Vellum login.
+`getAuthHeader`) so the shell does not hard-code hosted Max login.
 Hosted, local, self-hosted, and Electron runtimes plug in via the same
 interface from their respective hosts. No implementation is included
 in the scaffold.

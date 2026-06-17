@@ -2,7 +2,7 @@
  * Local snapshot writer + retention pruner.
  *
  * The "local" destination is the on-device backup directory (typically under
- * `~/.vellum/backups/local`). It always stores plaintext `.vbundle` files --
+ * `~/.max/backups/local`). It always stores plaintext `.vbundle` files --
  * the encrypted variant is reserved for offsite destinations where the user
  * cannot rely on filesystem-level access controls.
  *
@@ -111,7 +111,7 @@ export async function writeLocalSnapshot(
  * Apply retention policy to the local backup directory.
  *
  * Thin wrapper around the shared `pruneDir` helper in `list-snapshots.ts`.
- * Local backup directories live under `~/.vellum/backups/local` and are
+ * Local backup directories live under `~/.max/backups/local` and are
  * created on demand by `writeLocalSnapshot`, so the parent is effectively
  * always present — we strip the `skipped` flag from the returned shape to
  * match the original local-writer contract.

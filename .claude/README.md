@@ -4,21 +4,21 @@ This directory contains Claude Code slash commands, helper scripts, and document
 
 ## Shared Commands (claude-skills)
 
-Most commands, phases, and scripts are shared from the [`claude-skills`](https://github.com/vellum-ai/claude-skills) repo via symlinks. After cloning this repo, run:
+Most commands, phases, and scripts are shared from the [`claude-skills`](https://github.com/max-ai/max-claude-skills) repo via symlinks. After cloning this repo, run:
 
 ```bash
-path/to/claude-skills/setup
+path/to/max-claude-skills/setup
 ```
 
-This creates symlinks for 18 commands, 7 phase files, and 6 utility scripts. See the [claude-skills README](https://github.com/vellum-ai/claude-skills) for the full command reference.
+This creates symlinks for 18 commands, 7 phase files, and 6 utility scripts. See the [claude-skills README](https://github.com/max-ai/max-claude-skills) for the full command reference.
 
 Re-run `setup` after pulling updates to the claude-skills repo.
 
 ### Repo-local commands
 
-These commands are specific to vellum-assistant and live in `.claude/skills/<name>/` as local skill directories (NOT symlinks):
+These commands are specific to max-assistant and live in `.claude/skills/<name>/` as local skill directories (NOT symlinks):
 
-- **`/update`** — Pull latest from main, use `vellum ps/sleep/wake` to manage assistant/gateway lifecycle, rebuild/launch the macOS app (`.claude/skills/update/SKILL.md`)
+- **`/update`** — Pull latest from main, use `max ps/sleep/wake` to manage assistant/gateway lifecycle, rebuild/launch the macOS app (`.claude/skills/update/SKILL.md`)
 - **`/release`** — Cut a new release by triggering the GitHub Actions release workflow (`.claude/skills/release/SKILL.md`)
 
 The shared-vs-local model:
@@ -37,22 +37,22 @@ Creates and removes isolated git worktrees for parallel development. Used by `/s
 .claude/worktree list
 ```
 
-### `scripts/vellum-runtime-tunnel.sh` — SSH tunnel for remote runtime access
+### `scripts/max-runtime-tunnel.sh` — SSH tunnel for remote runtime access
 
-Forwards a local TCP port to a remote Vellum runtime HTTP server via SSH. Use this when running the web app in local mode against a remote assistant.
+Forwards a local TCP port to a remote Max runtime HTTP server via SSH. Use this when running the web app in local mode against a remote assistant.
 
 ```bash
 # Start a tunnel to a remote host
-scripts/vellum-runtime-tunnel.sh start user@remote-host
+scripts/max-runtime-tunnel.sh start user@remote-host
 
 # Check tunnel status
-scripts/vellum-runtime-tunnel.sh status
+scripts/max-runtime-tunnel.sh status
 
 # Print env vars for web local mode
-scripts/vellum-runtime-tunnel.sh print-env
+scripts/max-runtime-tunnel.sh print-env
 
 # Stop the tunnel
-scripts/vellum-runtime-tunnel.sh stop
+scripts/max-runtime-tunnel.sh stop
 ```
 
 Options: `--local-port PORT` and `--remote-port PORT` (both default to 7821).
@@ -62,11 +62,11 @@ Options: `--local-port PORT` and `--remote-port PORT` (both default to 7821).
 ### 1. Run setup
 
 ```bash
-# Clone claude-skills alongside this repo (if not already done)
-git clone git@github.com:vellum-ai/claude-skills.git
+# Clone max-claude-skills alongside this repo (if not already done)
+git clone git@github.com:max-ai/max-claude-skills.git
 
 # Create symlinks
-path/to/claude-skills/setup
+path/to/max-claude-skills/setup
 ```
 
 The `.private/` directory (for `TODO.md`, `UNREVIEWED_PRS.md`) is created automatically by the setup script.

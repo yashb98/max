@@ -11,7 +11,7 @@
  * no token refresh or recovery is attempted.
  */
 
-import { isTokenExpired } from "@vellumai/credential-storage";
+import { isTokenExpired } from "@maxai/credential-storage";
 
 import { getConnectionAccessTokenResult } from "../oauth/credential-token-resolver.js";
 import {

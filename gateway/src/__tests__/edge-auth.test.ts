@@ -5,8 +5,8 @@
  * Two auth modes (mirrors `requireEdgeGuardianAuth`):
  *
  *  1. Platform-managed (DISABLE_HTTP_AUTH=true + IS_PLATFORM=true): identity
- *     asserted via `X-Vellum-User-Id` header cross-referenced against the
- *     stored `vellum:platform_user_id` credential. Scope authorization is
+ *     asserted via `X-Max-User-Id` header cross-referenced against the
+ *     stored `max:platform_user_id` credential. Scope authorization is
  *     delegated to the upstream platform proxy.
  *  2. Default: edge JWT validated; scoped guard additionally checks the
  *     scope_profile claim.
@@ -79,7 +79,7 @@ describe("requireEdgeAuth — DISABLE_HTTP_AUTH + IS_PLATFORM", () => {
     process.env.IS_PLATFORM = "true";
   });
 
-  test("401 when X-Vellum-User-Id header is missing", async () => {
+  test("401 when X-Max-User-Id header is missing", async () => {
     const { requireEdgeAuth } = makeMiddleware();
     const res = await requireEdgeAuth(makeReq());
     expect(res?.status).toBe(401);
@@ -89,16 +89,16 @@ describe("requireEdgeAuth — DISABLE_HTTP_AUTH + IS_PLATFORM", () => {
     mockReadCredential = mock(async () => undefined);
     const { requireEdgeAuth } = makeMiddleware();
     const res = await requireEdgeAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res?.status).toBe(403);
   });
 
-  test("403 when X-Vellum-User-Id does not match stored credential", async () => {
+  test("403 when X-Max-User-Id does not match stored credential", async () => {
     mockReadCredential = mock(async () => PLATFORM_USER_ID);
     const { requireEdgeAuth } = makeMiddleware();
     const res = await requireEdgeAuth(
-      makeReq({ "x-vellum-user-id": "different-user" }),
+      makeReq({ "x-max-user-id": "different-user" }),
     );
     expect(res?.status).toBe(403);
   });
@@ -109,16 +109,16 @@ describe("requireEdgeAuth — DISABLE_HTTP_AUTH + IS_PLATFORM", () => {
     });
     const { requireEdgeAuth } = makeMiddleware();
     const res = await requireEdgeAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res?.status).toBe(503);
   });
 
-  test("null (auth ok) when X-Vellum-User-Id matches stored credential", async () => {
+  test("null (auth ok) when X-Max-User-Id matches stored credential", async () => {
     mockReadCredential = mock(async () => PLATFORM_USER_ID);
     const { requireEdgeAuth } = makeMiddleware();
     const res = await requireEdgeAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res).toBeNull();
   });
@@ -197,14 +197,14 @@ describe("requireEdgeAuthWithScope — DISABLE_HTTP_AUTH + IS_PLATFORM", () => {
     mockReadCredential = mock(async () => PLATFORM_USER_ID);
     const { requireEdgeAuthWithScope } = makeMiddleware();
     const res = await requireEdgeAuthWithScope(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
       // any scope — bypass path does not look at it
       "ingress.write",
     );
     expect(res).toBeNull();
   });
 
-  test("401 when X-Vellum-User-Id missing under bypass", async () => {
+  test("401 when X-Max-User-Id missing under bypass", async () => {
     const { requireEdgeAuthWithScope } = makeMiddleware();
     const res = await requireEdgeAuthWithScope(makeReq(), "ingress.write");
     expect(res?.status).toBe(401);

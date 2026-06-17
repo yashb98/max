@@ -47,16 +47,16 @@ let workspaceDir: string;
 let origWorkspaceDir: string | undefined;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-hsr-"));
-  origWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = workspaceDir;
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-hsr-"));
+  origWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = workspaceDir;
 });
 
 afterEach(() => {
   if (origWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = origWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = origWorkspaceDir;
   }
   try {
     rmSync(workspaceDir, { recursive: true, force: true });

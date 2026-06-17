@@ -1,6 +1,6 @@
 /**
  * Tests for the cross-process snapshot lock helper. Each test gets a fresh
- * temp directory so runs never collide with the real `~/.vellum/backups`
+ * temp directory so runs never collide with the real `~/.max/backups`
  * directory and so parallel test workers never see each other's lock files.
  *
  * The interesting corners covered here are:
@@ -39,7 +39,7 @@ let ROOT: string;
 let LOCK: string;
 
 beforeEach(() => {
-  ROOT = mkdtempSync(join(tmpdir(), "vellum-snapshot-lock-"));
+  ROOT = mkdtempSync(join(tmpdir(), "max-snapshot-lock-"));
   LOCK = join(ROOT, ".snapshot.lock");
 });
 

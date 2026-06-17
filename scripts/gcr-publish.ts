@@ -210,7 +210,7 @@ console.log("");
 
 console.log("==> Setting up Docker Buildx");
 
-const BUILDER_NAME = "vellum-gcr-multiarch";
+const BUILDER_NAME = "max-gcr-multiarch";
 try {
   run(`docker buildx inspect ${BUILDER_NAME}`);
   console.log(`  Using existing buildx builder: ${BUILDER_NAME}`);

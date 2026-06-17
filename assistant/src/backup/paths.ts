@@ -6,17 +6,17 @@ import type { BackupDestination } from "../config/schema.js";
 
 
 /**
- * Returns the backup root directory. Respects the `VELLUM_BACKUP_DIR`
+ * Returns the backup root directory. Respects the `MAX_BACKUP_DIR`
  * environment variable override (used in containerized deployments where
- * backups must be on a persistent volume); falls back to `~/.vellum/backups`.
+ * backups must be on a persistent volume); falls back to `~/.max/backups`.
  */
 export function getBackupRootDir(): string {
-  return getBackupDirOverride() ?? join(homedir(), ".vellum", "backups");
+  return getBackupDirOverride() ?? join(homedir(), ".max", "backups");
 }
 
 /**
  * Returns the directory for local (on-device) backups. By default this lives
- * under `~/.vellum/backups/local`; callers can pass an explicit override from
+ * under `~/.max/backups/local`; callers can pass an explicit override from
  * config to place backups elsewhere on disk.
  */
 export function getLocalBackupsDir(override?: string | null): string {
@@ -34,7 +34,7 @@ function safeUserInfoHomedir(): string {
 /**
  * Returns the iCloud Drive root on macOS. This is the "safe ancestor" we use
  * for bootstrapping the default offsite path: if this directory exists iCloud
- * Drive is enabled and we can safely `mkdir -p` the `VellumAssistant/backups`
+ * Drive is enabled and we can safely `mkdir -p` the `MaxAssistant/backups`
  * subtree below it.
  *
  * Fallback chain: `process.env.HOME` → `userInfo().homedir` → `homedir()`.
@@ -67,11 +67,11 @@ export function getICloudDriveRoot(): string {
 
 /**
  * Returns the default offsite backups directory — the iCloud Drive path under
- * the VellumAssistant namespace. Used when no explicit offsite destinations
+ * the MaxAssistant namespace. Used when no explicit offsite destinations
  * are configured.
  */
 export function getDefaultOffsiteBackupsDir(): string {
-  return join(getICloudDriveRoot(), "VellumAssistant", "backups");
+  return join(getICloudDriveRoot(), "MaxAssistant", "backups");
 }
 
 /**
@@ -84,8 +84,8 @@ export function getDefaultOffsiteBackupsDir(): string {
  * Derivation rules:
  *   - iCloud Drive subtrees (`~/Library/Mobile Documents/com~apple~CloudDocs/...`)
  *     anchor on the iCloud Drive root. This lets the default destination
- *     (`.../VellumAssistant/backups`) bootstrap on first run without the user
- *     having to pre-create the `VellumAssistant` folder.
+ *     (`.../MaxAssistant/backups`) bootstrap on first run without the user
+ *     having to pre-create the `MaxAssistant` folder.
  *   - `/Volumes/<name>/...` paths anchor on `/Volumes/<name>`, the macOS
  *     volume mount point. An unmounted drive has no entry in `/Volumes`, so
  *     its destination is correctly skipped rather than bootstrapped on the

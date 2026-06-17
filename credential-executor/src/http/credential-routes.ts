@@ -19,7 +19,7 @@
 
 import { timingSafeEqual } from "node:crypto";
 
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Account key normalization
@@ -27,15 +27,15 @@ import type { SecureKeyBackend } from "@vellumai/credential-storage";
 
 /**
  * Known internal key prefixes. Keys in the encrypted store use slash-separated
- * paths (e.g. `credential/vellum/platform_organization_id`), but callers
+ * paths (e.g. `credential/max/platform_organization_id`), but callers
  * (especially manual `curl` invocations) often use the colon-separated format
- * visible in the CLI (e.g. `vellum:platform_organization_id`).
+ * visible in the CLI (e.g. `max:platform_organization_id`).
  *
  * This normalizer transparently converts colon-separated credential names
  * to the internal format so writes land under the correct key. Without this,
- * a credential stored as `vellum:platform_organization_id` would silently
+ * a credential stored as `max:platform_organization_id` would silently
  * succeed but be invisible to the gateway and assistant, which look up
- * `credential/vellum/platform_organization_id`.
+ * `credential/max/platform_organization_id`.
  */
 const CREDENTIAL_PREFIX = "credential/";
 

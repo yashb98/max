@@ -12,7 +12,7 @@ import {
 let dataDir: string;
 
 beforeAll(async () => {
-  dataDir = await mkdtemp(join(tmpdir(), "vellum-certs-test-"));
+  dataDir = await mkdtemp(join(tmpdir(), "max-certs-test-"));
 });
 
 afterAll(async () => {

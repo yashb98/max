@@ -3,9 +3,9 @@
  *
  * Features:
  * - WYSIWYG and Markdown source modes
- * - Dark theme matching Vellum design
+ * - Dark theme matching Max design
  * - Real-time word count
- * - Auto-save via Vellum JS bridge
+ * - Auto-save via Max JS bridge
  * - Code syntax highlighting
  * - Tables, task lists, and rich formatting
  */
@@ -98,7 +98,7 @@ export function generateEditorHTML(
       height: 100%;
     }
 
-    /* Override Toast UI Editor theme colors to match Vellum */
+    /* Override Toast UI Editor theme colors to match Max */
     .toastui-editor-defaultUI { border: none !important; }
     .toastui-editor-toolbar { background: var(--v-surface) !important; border-bottom: 1px solid var(--v-surface-border) !important; }
     .toastui-editor-toolbar-icons { color: var(--v-text-secondary) !important; }
@@ -183,8 +183,8 @@ export function generateEditorHTML(
         const content = editor.getMarkdown();
         const title = titleInput.value.trim() || 'Untitled Document';
 
-        if (typeof window.vellum !== 'undefined' && typeof window.vellum.sendAction === 'function') {
-          window.vellum.sendAction('content_changed', {
+        if (typeof window.max !== 'undefined' && typeof window.max.sendAction === 'function') {
+          window.max.sendAction('content_changed', {
             title,
             content,
             wordCount
@@ -199,9 +199,9 @@ export function generateEditorHTML(
     editor.on('change', notifyContentChanged);
     titleInput.addEventListener('input', notifyContentChanged);
 
-    // Vellum bridge: handle content updates from daemon
-    if (typeof window.vellum !== 'undefined') {
-      window.vellum.onContentUpdate = function(data) {
+    // Max bridge: handle content updates from daemon
+    if (typeof window.max !== 'undefined') {
+      window.max.onContentUpdate = function(data) {
         if (data.markdown) {
           const mode = data.updateMode || 'append';
           const currentContent = editor.getMarkdown();

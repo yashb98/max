@@ -19,7 +19,7 @@ const mockConfig = {
     enabled: false,
     backend: "native" as const,
     docker: {
-      image: "vellum-sandbox:latest",
+      image: "max-sandbox:latest",
       cpus: 1,
       memoryMb: 512,
       pidsLimit: 256,
@@ -607,7 +607,7 @@ describe("ToolExecutor lifecycle events", () => {
     const result = await executor.execute(
       "file_edit",
       {
-        path: "/Users/alice/.vellum/workspace/users/alice.md",
+        path: "/Users/alice/.max/workspace/users/alice.md",
         old_string: "old",
         new_string: "new",
       },

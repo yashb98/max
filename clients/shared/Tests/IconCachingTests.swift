@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit

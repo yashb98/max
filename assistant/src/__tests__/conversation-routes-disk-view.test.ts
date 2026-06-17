@@ -26,7 +26,7 @@ import * as pendingInteractions from "../runtime/pending-interactions.js";
 import { handleSendMessage } from "../runtime/routes/conversation-routes.js";
 import { callHandler } from "./helpers/call-route-handler.js";
 
-const testDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDir = process.env.MAX_WORKSPACE_DIR!;
 const conversationsDir = join(testDir, "conversations");
 mkdirSync(conversationsDir, { recursive: true });
 
@@ -401,12 +401,12 @@ describe("macOS browser backend fallback (no extension, no cdp-inspect)", () => 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-vellum-principal-type": authContext.principalType,
+          "x-max-principal-type": authContext.principalType,
         },
         body: JSON.stringify({
           conversationKey,
           content,
-          sourceChannel: "vellum",
+          sourceChannel: "max",
           interface: "macos",
         }),
       }),
@@ -446,12 +446,12 @@ describe("macOS browser backend fallback (no extension, no cdp-inspect)", () => 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-vellum-principal-type": authContext.principalType,
+          "x-max-principal-type": authContext.principalType,
         },
         body: JSON.stringify({
           conversationKey,
           content,
-          sourceChannel: "vellum",
+          sourceChannel: "max",
           interface: "macos",
         }),
       }),
@@ -517,12 +517,12 @@ describe("conversationKey send path disk-view regression", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-vellum-principal-type": authContext.principalType,
+          "x-max-principal-type": authContext.principalType,
         },
         body: JSON.stringify({
           conversationKey,
           content,
-          sourceChannel: "vellum",
+          sourceChannel: "max",
           interface: "macos",
         }),
       }),

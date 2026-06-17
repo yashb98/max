@@ -88,7 +88,7 @@ describe("writeHomeFeedItemForSignal", () => {
     const signal = makeSignal();
     const decision = makeDecision({
       renderedCopy: {
-        vellum: {
+        max: {
           title: "Background job done",
           body: "Summary of what happened.",
         },
@@ -156,7 +156,7 @@ describe("writeHomeFeedItemForSignal", () => {
     expect(conversationLookups).toHaveLength(0);
   });
 
-  test("vellum delivery result conversationId propagates onto the feed item", async () => {
+  test("max delivery result conversationId propagates onto the feed item", async () => {
     conversationRow = { conversationType: "background" };
     const signal = makeSignal();
     const deliveryResults: NotificationDeliveryResult[] = [
@@ -167,10 +167,10 @@ describe("writeHomeFeedItemForSignal", () => {
         conversationId: "conv-telegram-1",
       },
       {
-        channel: "vellum",
-        destination: "vellum-client",
+        channel: "max",
+        destination: "max-client",
         status: "sent",
-        conversationId: "conv-vellum-1",
+        conversationId: "conv-max-1",
       },
     ];
 
@@ -180,8 +180,8 @@ describe("writeHomeFeedItemForSignal", () => {
       deliveryResults,
     );
 
-    expect(item?.conversationId).toBe("conv-vellum-1");
-    expect(appendCalls[0]!.conversationId).toBe("conv-vellum-1");
+    expect(item?.conversationId).toBe("conv-max-1");
+    expect(appendCalls[0]!.conversationId).toBe("conv-max-1");
   });
 
   test("falls back to sourceEventName when no rendered copy or payload title is present", async () => {

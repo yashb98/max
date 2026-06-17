@@ -20,7 +20,7 @@ import { log } from "../logger.js";
  * must check this and fail deterministically.
  */
 function isUntrustedShell(): boolean {
-  return process.env.VELLUM_UNTRUSTED_SHELL === "1";
+  return process.env.MAX_UNTRUSTED_SHELL === "1";
 }
 
 /** Error message for commands blocked by CES shell lockdown. */

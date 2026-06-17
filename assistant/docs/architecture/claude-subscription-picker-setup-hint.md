@@ -270,4 +270,4 @@ Per the bridge doc's stance on CI: the end-to-end picker state can't be CI-gated
 - [`claude-subscription-bridge.md`](./claude-subscription-bridge.md) — parent doc; priority queue task #2.
 - `assistant/src/runtime/CLAUDE.md` — GET handler idempotency rules; HTTP-only transport.
 - `assistant/CLAUDE.md` — shared `ROUTES` array architecture (HTTP+IPC dual exposure).
-- `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift` — `connectionReachability` reference pattern.
+- `clients/macos/max-assistant/Features/Settings/SettingsStore.swift` — `connectionReachability` reference pattern.

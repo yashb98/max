@@ -1,6 +1,6 @@
 # Live Voice Channel Integration Plan
 
-> **Implementation status:** V1 now uses `/v1/live-voice` as a gateway-authenticated WebSocket route. The gateway handler is `gateway/src/http/routes/live-voice-websocket.ts`; the assistant runtime upgrade and protocol shell live in `assistant/src/runtime/http-server.ts`; the assistant-side module boundaries are under `assistant/src/live-voice/`; and macOS voice mode is wired through `clients/shared/Network/LiveVoiceChannelClient.swift`, `clients/macos/vellum-assistant/Features/Voice/LiveVoiceChannelManager.swift`, `LiveVoiceAudioCapture.swift`, `LiveVoiceAudioPlayer.swift`, and `VoiceModeManager.swift`. Treat the proposal below as historical design context; the durable architecture references are `assistant/ARCHITECTURE.md` and `clients/ARCHITECTURE.md`.
+> **Implementation status:** V1 now uses `/v1/live-voice` as a gateway-authenticated WebSocket route. The gateway handler is `gateway/src/http/routes/live-voice-websocket.ts`; the assistant runtime upgrade and protocol shell live in `assistant/src/runtime/http-server.ts`; the assistant-side module boundaries are under `assistant/src/live-voice/`; and macOS voice mode is wired through `clients/shared/Network/LiveVoiceChannelClient.swift`, `clients/macos/max-assistant/Features/Voice/LiveVoiceChannelManager.swift`, `LiveVoiceAudioCapture.swift`, `LiveVoiceAudioPlayer.swift`, and `VoiceModeManager.swift`. Treat the proposal below as historical design context; the durable architecture references are `assistant/ARCHITECTURE.md` and `clients/ARCHITECTURE.md`.
 >
 > V1 requires a configured streaming STT provider for live partial/final transcripts and a streaming-capable TTS provider for streamed assistant audio. Managed/cloud WebSocket proxy support, cross-region routing, and hard p50/p95 latency guarantees are explicitly out of scope for this version.
 
@@ -260,13 +260,13 @@ The user-facing local mic and playback pieces live under `clients/macos/` and sh
 
 | Path | What it contains | Relevance to live voice channel |
 | --- | --- | --- |
-| `clients/macos/vellum-assistant/App/VoiceInputManager.swift` | Existing hotkey/hold-to-talk mic capture, partial transcript callbacks, streaming STT wiring, and recording state. | Strong reuse point for PTT capture behavior. |
-| `clients/macos/vellum-assistant/Features/Voice/AudioEngineController.swift` | `AVAudioEngine` wrapper for mic capture, prewarm, route changes, and tap lifecycle. | Reuse for local PCM capture. |
+| `clients/macos/max-assistant/App/VoiceInputManager.swift` | Existing hotkey/hold-to-talk mic capture, partial transcript callbacks, streaming STT wiring, and recording state. | Strong reuse point for PTT capture behavior. |
+| `clients/macos/max-assistant/Features/Voice/AudioEngineController.swift` | `AVAudioEngine` wrapper for mic capture, prewarm, route changes, and tap lifecycle. | Reuse for local PCM capture. |
 | `clients/shared/Network/STTStreamingClient.swift` | Swift WebSocket client for `/v1/stt/stream` with ready/partial/final/error/closed events. | Reuse protocol/event patterns; live voice likely needs a sibling client because it carries TTS audio and turn events too. |
 | `clients/shared/Network/STTClient.swift` | Batch STT client. | Fallback only; not sufficient for sub-300ms partials. |
 | `clients/shared/Network/TTSClient.swift` | Buffered TTS HTTP client. | Existing playback helper path; not sufficient for streaming TTS chunks. |
-| `clients/macos/vellum-assistant/Features/Voice/OpenAIVoiceService.swift` | Existing voice-mode service using service-first STT, Apple fallback, and gateway TTS playback. | Useful reference, but V1 live voice should not depend on OpenAI-specific naming or full-buffer playback. |
-| `clients/macos/vellum-assistant/Features/Voice/VoiceModeManager.swift` | State machine for current chat voice mode. | Reference for local state and UI integration. Live voice likely needs a new manager because its session is phone-call-shaped and long-lived. |
+| `clients/macos/max-assistant/Features/Voice/OpenAIVoiceService.swift` | Existing voice-mode service using service-first STT, Apple fallback, and gateway TTS playback. | Useful reference, but V1 live voice should not depend on OpenAI-specific naming or full-buffer playback. |
+| `clients/macos/max-assistant/Features/Voice/VoiceModeManager.swift` | State machine for current chat voice mode. | Reference for local state and UI integration. Live voice likely needs a new manager because its session is phone-call-shaped and long-lived. |
 
 ## 2. Reuse vs New
 
@@ -280,7 +280,7 @@ The user-facing local mic and playback pieces live under `clients/macos/` and sh
 | Streaming TTS | Partially covered. TTS provider registry and Fish Audio adapter support streaming capability, but public HTTP routes are buffered/message-playback oriented. | Reuse `services.tts`, provider registry, and Fish Audio adapter. Add a live voice streaming path that calls `TtsProvider.synthesizeStream()` and forwards chunks to macOS. |
 | Audio playback | Partially covered. macOS currently has buffered playback via `TTSClient` and `AVAudioPlayer`; that is not ideal for low-latency streamed chunks. | Add streaming playback on macOS, probably under the live voice feature, using the default output device. Reuse existing audio session/route handling where possible. |
 | Latency metrics | Partially covered by logging/tracing patterns, but no live voice p50/p95 metric object exists. The PoC has a useful turn-level metric model. | Add small live voice metrics types for STT final latency, first LLM delta, first TTS audio, total turn time, and rolling summaries. Keep them local to the live voice module first. |
-| Conversation archival | Partially covered. Conversations and phone-call summary messages exist, but phone finalization archives summaries, not full local audio plus transcript. | Add live voice archival that writes normal conversation messages plus durable local audio artifacts. Reuse message metadata for `userMessageChannel: "vellum"` and `userMessageInterface: "macos"` unless a new channel is proven necessary. |
+| Conversation archival | Partially covered. Conversations and phone-call summary messages exist, but phone finalization archives summaries, not full local audio plus transcript. | Add live voice archival that writes normal conversation messages plus durable local audio artifacts. Reuse message metadata for `userMessageChannel: "max"` and `userMessageInterface: "macos"` unless a new channel is proven necessary. |
 | Single-session lock | Partially covered. Phone calls have active call leases and active call lookup, but these are phone-call data model concepts. | Add an in-memory `LiveVoiceSessionManager` single active session lock for V1. Consider a workspace-backed lease only if crash recovery or cross-process ownership becomes required. |
 
 ## 3. Proposed Architecture
@@ -331,7 +331,7 @@ This keeps the Twilio/phone call path intact while still reusing its lower-level
 | Twilio Media Streams protocol, mu-law frames, stream SID, call SID. | PCM from local mic; no Twilio IDs or telephony codec requirements. |
 | Always-connected phone audio with speech start/end heuristics. | Push-to-talk with explicit press/release boundaries. |
 | Phone-specific call state, DTMF, ringing, pending questions, disclosures. | Local session states: idle, listening, transcribing, thinking, speaking, ending. |
-| Phone channel metadata. | Normal Vellum/macOS conversation metadata. |
+| Phone channel metadata. | Normal Max/macOS conversation metadata. |
 | Audio sent back through Twilio transport. | Audio chunks played through default macOS output. |
 
 ### Assistant-side module
@@ -457,7 +457,7 @@ The current `startVoiceTurn()` is close, but its type and implementation assume 
 | --- | --- |
 | `callSessionId?: string` and phone-call event sink naming. | `voiceSessionId` or a generic voice turn ID. |
 | Phone-call control prompt. | Local-live-voice control prompt, or no extra prompt if existing context is sufficient. |
-| Phone channel metadata. | `vellum` channel with `macos` interface metadata, unless a new channel is justified. |
+| Phone channel metadata. | `max` channel with `macos` interface metadata, unless a new channel is justified. |
 | Voice confirmation/guardian policy tuned for phone. | Confirm local host-computer and identity-boundary behavior with security rules before reuse. |
 
 The bridge should be generalized with the smallest surface needed, not forked into a separate inference adapter.
@@ -513,8 +513,8 @@ Recommended shape:
 
 - Store user and assistant transcript turns as normal conversation messages.
 - Mark local voice metadata with existing channel/interface fields:
-  - `userMessageChannel: "vellum"`
-  - `assistantMessageChannel: "vellum"`
+  - `userMessageChannel: "max"`
+  - `assistantMessageChannel: "max"`
   - `userMessageInterface: "macos"`
   - `assistantMessageInterface: "macos"`
 - Store captured user audio and synthesized assistant audio as durable local artifacts linked from message metadata or attachments.

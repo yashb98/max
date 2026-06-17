@@ -264,7 +264,7 @@ beforeEach(async () => {
     () => "Example Assistant",
   );
   server.register("host.platform.workspaceDir", () => "/tmp/workspace");
-  server.register("host.platform.vellumRoot", () => "/tmp/vellum");
+  server.register("host.platform.maxRoot", () => "/tmp/max");
   server.register("host.platform.runtimeMode", () => "bare-metal");
   server.register("host.log", () => ({ ok: true }));
   await server.start();
@@ -299,7 +299,7 @@ describe("SkillHostClient: bootstrap + sync accessors", () => {
     client = await openClient();
     expect(client.identity.getAssistantName()).toBe("Example Assistant");
     expect(client.platform.workspaceDir()).toBe("/tmp/workspace");
-    expect(client.platform.vellumRoot()).toBe("/tmp/vellum");
+    expect(client.platform.maxRoot()).toBe("/tmp/max");
     expect(client.platform.runtimeMode()).toBe("bare-metal");
   });
 

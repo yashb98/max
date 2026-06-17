@@ -251,7 +251,7 @@ export async function runWatchersOnce(
       // The seed lives in the sandwich messages; processMessage runs
       // with an empty prompt so we don't double-inject the action prompt.
       prompt: "",
-      trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+      trustContext: { sourceChannel: "max", trustClass: "guardian" },
       callSite: "mainAgent",
       timeoutMs: WATCHER_JOB_TIMEOUT_MS,
       origin: "watcher",

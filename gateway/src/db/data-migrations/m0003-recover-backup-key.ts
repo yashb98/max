@@ -4,12 +4,12 @@
  * The backup key may exist at either of two legacy locations depending on
  * which version of the assistant created it:
  *
- *   1. ~/.vellum/workspace/.backup.key  — migration 061 moved it here
- *   2. ~/.vellum/protected/backup.key   — original location (pre-061)
+ *   1. ~/.max/workspace/.backup.key  — migration 061 moved it here
+ *   2. ~/.max/protected/backup.key   — original location (pre-061)
  *
  * This migration copies the key from whichever location has it into the
  * canonical gateway security directory (GATEWAY_SECURITY_DIR), which in
- * local mode resolves to ~/.vellum/protected/ and in Docker mode to a
+ * local mode resolves to ~/.max/protected/ and in Docker mode to a
  * dedicated volume. If the key already exists at the target, we leave it
  * alone — the gateway's ensureBackupKey handles first-time generation.
  */
@@ -43,7 +43,7 @@ export function up(): MigrationResult {
 
   for (const source of sourceCandidates) {
     // Skip if source is the same file as target (local mode where
-    // GATEWAY_SECURITY_DIR == ~/.vellum/protected/)
+    // GATEWAY_SECURITY_DIR == ~/.max/protected/)
     if (resolve(source) === resolve(targetPath)) {
       log.info({ source }, "Source is the same as target — skipping");
       continue;

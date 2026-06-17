@@ -1,5 +1,5 @@
 /**
- * Core type definitions for @vellumai/egress-proxy.
+ * Core type definitions for @maxai/egress-proxy.
  *
  * These types define the portable primitives shared by the assistant
  * trusted-session proxy flows and the CES secure command egress

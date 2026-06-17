@@ -81,7 +81,7 @@ public struct WebSearchProviderEntry: Decodable {
 /// The JSON file is generated from
 /// `assistant/src/providers/search-provider-catalog.ts` by
 /// `bun run sync:web-search-catalog` and bundled into
-/// `VellumAssistantShared` as a SwiftPM resource. The bundled JSON is the
+/// `MaxAssistantShared` as a SwiftPM resource. The bundled JSON is the
 /// single source of truth; if it is missing, unreadable, or corrupt the
 /// registry traps at first access — a build/bundling bug, not a runtime
 /// fallback condition.
@@ -133,14 +133,14 @@ public enum WebSearchProviderRegistry {
 /// so reading it more than once is unnecessary I/O. Swift guarantees
 /// thread-safe lazy initialization of static properties.
 ///
-/// Lookup uses `Bundle.vellumShared` rather than SwiftPM's synthesized
+/// Lookup uses `Bundle.maxShared` rather than SwiftPM's synthesized
 /// `Bundle.module`: macOS codesigning requires resources inside
 /// `.app/Contents/Resources`, and `Bundle.module` resolves through
 /// `Bundle.main.bundleURL` (the `.app` root) which misses that path in
 /// shipping builds. The helper tries `.app/Contents/Resources/<bundle>`
 /// first, falls back to `swift run`-style adjacency, and handles the
 /// Xcode-framework + previews cases that already ship Lucide icons and
-/// integration logos. Tests link `VellumAssistantShared` directly so the
+/// integration logos. Tests link `MaxAssistantShared` directly so the
 /// helper still finds the bundle alongside the xctest binary — the
 /// catalog tests exercise the bundled JSON, not a hardcoded mirror.
 ///
@@ -150,9 +150,9 @@ public enum WebSearchProviderRegistry {
 /// SPM `.bundle` artifact into `Contents/Resources`. All build-time bugs
 /// — we trap loudly rather than silently degrade.
 private let _cachedWebSearchProviderCatalog: WebSearchProviderCatalog = {
-    guard let url = Bundle.vellumShared.url(forResource: "web-search-provider-catalog", withExtension: "json") else {
+    guard let url = Bundle.maxShared.url(forResource: "web-search-provider-catalog", withExtension: "json") else {
         preconditionFailure(
-            "web-search-provider-catalog.json missing from VellumAssistantShared resource bundle — "
+            "web-search-provider-catalog.json missing from MaxAssistantShared resource bundle — "
             + "check `.copy(\"Resources/web-search-provider-catalog.json\")` in clients/Package.swift, "
             + "that `bun run sync:web-search-catalog` has been run, and that "
             + "`clients/macos/build.sh` copies the SPM bundle into Contents/Resources."
@@ -181,7 +181,7 @@ private let _cachedWebSearchProviderCatalog: WebSearchProviderCatalog = {
     }
 }()
 
-/// Load the web-search provider catalog from the `VellumAssistantShared`
+/// Load the web-search provider catalog from the `MaxAssistantShared`
 /// bundle.
 ///
 /// Returns a cached result after the first call — the bundled JSON never

@@ -150,12 +150,12 @@ public struct LLMProviderEntry: Decodable {
     /// keyless providers.
     public let credentialsGuide: LLMCredentialsGuide?
     /// Whether this provider supports the `platform` auth type — i.e.
-    /// Vellum-managed keys routed through the platform proxy. Derived
+    /// Max-managed keys routed through the platform proxy. Derived
     /// upstream from `PLATFORM_PROVIDER_META` in
     /// `assistant/src/providers/platform-proxy/constants.ts`. When `false`
     /// (or absent in older catalog versions, in which case it defaults to
     /// `false`), the auth-type dropdown hides the "Platform (managed by
-    /// Vellum)" option for this provider — selecting it would have no
+    /// Max)" option for this provider — selecting it would have no
     /// effect since there's no managed proxy route for the provider.
     public let supportsPlatformAuth: Bool?
     /// The default model ID (must be present in `models`).
@@ -198,7 +198,7 @@ public struct LLMProviderEntry: Decodable {
 /// Top-level schema for `llm-provider-catalog.json`.
 ///
 /// The JSON file is generated from `assistant/src/providers/model-catalog.ts`
-/// by `bun run sync:llm-catalog` and bundled into `VellumAssistantShared`
+/// by `bun run sync:llm-catalog` and bundled into `MaxAssistantShared`
 /// as a SwiftPM resource. The bundled JSON is the single source of truth;
 /// if it is missing, unreadable, or corrupt the registry traps at first
 /// access — a build/bundling bug, not a runtime fallback condition.
@@ -258,14 +258,14 @@ public enum LLMProviderRegistry {
 /// reading it more than once is unnecessary I/O. Swift guarantees
 /// thread-safe lazy initialization of static properties.
 ///
-/// Lookup uses `Bundle.vellumShared` rather than SwiftPM's synthesized
+/// Lookup uses `Bundle.maxShared` rather than SwiftPM's synthesized
 /// `Bundle.module`: macOS codesigning requires resources inside
 /// `.app/Contents/Resources`, and `Bundle.module` resolves through
 /// `Bundle.main.bundleURL` (the `.app` root) which misses that path in
 /// shipping builds. The helper tries `.app/Contents/Resources/<bundle>`
 /// first, falls back to `swift run`-style adjacency, and handles the
 /// Xcode-framework + previews cases that already ship Lucide icons and
-/// integration logos. Tests link `VellumAssistantShared` directly so
+/// integration logos. Tests link `MaxAssistantShared` directly so
 /// the helper still finds the bundle alongside the xctest binary —
 /// the catalog tests exercise the bundled JSON, not a hardcoded mirror.
 ///
@@ -275,9 +275,9 @@ public enum LLMProviderRegistry {
 /// into `Contents/Resources`. All build-time bugs — we trap loudly
 /// rather than silently degrade.
 private let _cachedLLMProviderCatalog: LLMProviderCatalog = {
-    guard let url = Bundle.vellumShared.url(forResource: "llm-provider-catalog", withExtension: "json") else {
+    guard let url = Bundle.maxShared.url(forResource: "llm-provider-catalog", withExtension: "json") else {
         preconditionFailure(
-            "llm-provider-catalog.json missing from VellumAssistantShared resource bundle — "
+            "llm-provider-catalog.json missing from MaxAssistantShared resource bundle — "
             + "check `.copy(\"Resources/llm-provider-catalog.json\")` in clients/Package.swift, "
             + "that `bun run sync:llm-catalog` has been run, and that "
             + "`clients/macos/build.sh` copies the SPM bundle into Contents/Resources."
@@ -306,7 +306,7 @@ private let _cachedLLMProviderCatalog: LLMProviderCatalog = {
     }
 }()
 
-/// Load the LLM provider catalog from the `VellumAssistantShared` bundle.
+/// Load the LLM provider catalog from the `MaxAssistantShared` bundle.
 ///
 /// Returns a cached result after the first call — the bundled JSON never
 /// changes at runtime so re-reading from disk is unnecessary.

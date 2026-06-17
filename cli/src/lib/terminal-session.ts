@@ -44,24 +44,24 @@ export function resolveManagedAssistant(
     if (nameArg) {
       console.error(`No assistant instance found with name '${nameArg}'.`);
     } else {
-      console.error("No assistant instance found. Run `vellum hatch` first.");
+      console.error("No assistant instance found. Run `max hatch` first.");
     }
     process.exit(1);
   }
 
   const cloud = resolveCloud(entry);
-  if (cloud !== "vellum") {
+  if (cloud !== "max") {
     if (cloud === "local") {
       console.error(
         "This assistant runs locally on your machine. You can access it directly.",
       );
     } else if (cloud === "docker") {
       console.error(
-        `Use 'vellum exec -it -- /bin/bash' or 'vellum ssh' for ${cloud} instances.`,
+        `Use 'max exec -it -- /bin/bash' or 'max ssh' for ${cloud} instances.`,
       );
     } else {
       console.error(
-        `'vellum terminal' is for managed (cloud-hosted) assistants. This assistant uses '${cloud}'.`,
+        `'max terminal' is for managed (cloud-hosted) assistants. This assistant uses '${cloud}'.`,
       );
     }
     process.exit(1);
@@ -70,7 +70,7 @@ export function resolveManagedAssistant(
   const token = readPlatformToken();
   if (!token) {
     console.error(
-      "Not logged in. Run `vellum login` first to authenticate with the platform.",
+      "Not logged in. Run `max login` first to authenticate with the platform.",
     );
     process.exit(1);
   }
@@ -312,9 +312,9 @@ export async function nonInteractiveExec(
   let timedOut = false;
 
   // Unique sentinels to delimit command output
-  const startSentinel = `__VELLUM_EXEC_START_${Date.now()}__`;
-  const endSentinel = `__VELLUM_EXEC_END_${Date.now()}__`;
-  const exitCodeSentinel = `__VELLUM_EXIT_`;
+  const startSentinel = `__MAX_EXEC_START_${Date.now()}__`;
+  const endSentinel = `__MAX_EXEC_END_${Date.now()}__`;
+  const exitCodeSentinel = `__MAX_EXIT_`;
 
   dbg(`sentinels: start=${startSentinel} end=${endSentinel}`);
 
@@ -463,7 +463,7 @@ export async function nonInteractiveExec(
 // Exported helpers — pure functions extracted for testability
 // ---------------------------------------------------------------------------
 
-const EXIT_CODE_SENTINEL = "__VELLUM_EXIT_";
+const EXIT_CODE_SENTINEL = "__MAX_EXIT_";
 
 /**
  * Strip ANSI escape sequences and carriage returns from raw PTY output.
@@ -524,7 +524,7 @@ export function parseSentinelOutput(
   let exitCode = 0;
   for (let i = lines.length - 1; i >= 0; i--) {
     if (lines[i].includes(EXIT_CODE_SENTINEL)) {
-      const match = lines[i].match(/__VELLUM_EXIT_(\d+)/);
+      const match = lines[i].match(/__MAX_EXIT_(\d+)/);
       if (match) {
         exitCode = parseInt(match[1], 10);
       }

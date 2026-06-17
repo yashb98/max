@@ -37,6 +37,15 @@ function makeProvider(response: ProviderResponse): Provider {
   };
 }
 
+function makeNamedProvider(name: string, response: ProviderResponse): Provider {
+  return {
+    name,
+    async sendMessage() {
+      return response;
+    },
+  };
+}
+
 describe("UsageTrackingProvider", () => {
   beforeEach(() => {
     const db = getDb();
@@ -204,5 +213,74 @@ describe("UsageTrackingProvider", () => {
       provider: "openai",
       model: "gpt-5.4-mini",
     });
+  });
+
+  test("records a priced cost event for the API-billed kimi-agent provider", async () => {
+    const provider = new UsageTrackingProvider(
+      makeNamedProvider("kimi-agent", {
+        content: [{ type: "text", text: "ok" }],
+        model: "kimi-k2.6-instant",
+        usage: {
+          inputTokens: 1_000,
+          outputTokens: 2_000,
+        },
+        stopReason: "end_turn",
+      }),
+    );
+
+    await provider.sendMessage(
+      [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      undefined,
+      undefined,
+      {
+        config: {
+          callSite: "conversationTitle",
+        },
+      },
+    );
+
+    const events = listUsageEvents();
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      provider: "kimi-agent",
+      model: "kimi-k2.6-instant",
+      pricingStatus: "priced",
+    });
+    // 1000 in @ $0.6/1M + 2000 out @ $2.5/1M = 0.0006 + 0.005
+    expect(events[0].estimatedCostUsd ?? 0).toBeCloseTo(0.0056, 10);
+  });
+
+  test("leaves the subscription-billed claude-subscription provider unpriced", async () => {
+    const provider = new UsageTrackingProvider(
+      makeNamedProvider("claude-subscription", {
+        content: [{ type: "text", text: "ok" }],
+        model: "claude-opus-4-7",
+        usage: {
+          inputTokens: 1_000,
+          outputTokens: 2_000,
+        },
+        stopReason: "end_turn",
+      }),
+    );
+
+    await provider.sendMessage(
+      [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      undefined,
+      undefined,
+      {
+        config: {
+          callSite: "conversationTitle",
+        },
+      },
+    );
+
+    const events = listUsageEvents();
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      provider: "claude-subscription",
+      model: "claude-opus-4-7",
+      pricingStatus: "unpriced",
+    });
+    expect(events[0].estimatedCostUsd ?? 0).toBe(0);
   });
 });

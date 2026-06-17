@@ -267,9 +267,9 @@ public enum VIcon: String, CaseIterable, Sendable {
     private var pdfURL: URL? {
         if rawValue.hasPrefix("simpleicons-") {
             let providerKey = String(rawValue.dropFirst("simpleicons-".count))
-            return Bundle.vellumShared.url(forResource: providerKey, withExtension: "pdf", subdirectory: "IntegrationLogos")
+            return Bundle.maxShared.url(forResource: providerKey, withExtension: "pdf", subdirectory: "IntegrationLogos")
         }
-        return Bundle.vellumShared.url(forResource: rawValue, withExtension: "pdf", subdirectory: "LucideIcons")
+        return Bundle.maxShared.url(forResource: rawValue, withExtension: "pdf", subdirectory: "LucideIcons")
     }
 
     /// SwiftUI `Image` resolved from the vendored PDF.

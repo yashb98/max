@@ -46,7 +46,7 @@ describe("Workspace git lifecycle (integration)", () => {
   beforeEach(() => {
     testDir = join(
       tmpdir(),
-      `vellum-lifecycle-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `max-lifecycle-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(testDir, { recursive: true });
     _resetGitServiceRegistry();

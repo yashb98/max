@@ -304,7 +304,7 @@ export async function selectEmbeddingBackend(
 
   // When the managed-gemini-embeddings-enabled flag is on AND managed proxy
   // prerequisites are satisfied, insert managed-proxy Gemini at the front of
-  // the auto chain so platform assistants use Vellum-managed Gemini embeddings.
+  // the auto chain so platform assistants use Max-managed Gemini embeddings.
   if (
     (requested === "auto" || requested === "gemini") &&
     isAssistantFeatureFlagEnabled("managed-gemini-embeddings-enabled", config)

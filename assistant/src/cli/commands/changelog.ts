@@ -2,7 +2,7 @@
  * `assistant changelog`
  *
  * Lazy, fetched-on-demand release-notes surface. Pulls release bodies from
- * the public GitHub Releases API for `vellum-ai/vellum-assistant` and caches
+ * the public GitHub Releases API for `max-ai/max-assistant` and caches
  * them locally so repeat invocations don't hit the network.
  *
  * Subcommands:
@@ -61,7 +61,7 @@ interface CacheStore {
 
 // ── Config ───────────────────────────────────────────────────────────
 
-const REPO = "vellum-ai/vellum-assistant";
+const REPO = "max-ai/max-assistant";
 const LIST_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_LIST_LIMIT = 30;
 const MAX_LIST_LIMIT = 100;
@@ -79,7 +79,7 @@ const CACHE_STABLE_LIMIT = 5;
 const STABLE_BUFFER = 5;
 const MIN_FETCH_PAGE_SIZE = 30;
 const FETCH_TIMEOUT_MS = 10_000;
-const USER_AGENT = "vellum-assistant-cli";
+const USER_AGENT = "max-assistant-cli";
 
 // ── Cache plumbing ───────────────────────────────────────────────────
 
@@ -419,7 +419,7 @@ export function registerChangelogCommand(program: Command): void {
     name: "changelog",
     transport: "local",
     description:
-      "Show release notes of the Vellum Assistant to see what new capabilities you have!",
+      "Show release notes of the Max Assistant to see what new capabilities you have!",
     build: (cmd) => {
       cmd.addHelpText(
         "after",

@@ -11,7 +11,7 @@
  * drive it.
  */
 
-import type { SkillHost, Tool } from "@vellumai/skill-host-contracts";
+import type { SkillHost, Tool } from "@maxai/skill-host-contracts";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 let flagEnabled = true;

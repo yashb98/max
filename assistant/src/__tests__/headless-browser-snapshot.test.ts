@@ -283,7 +283,7 @@ describe("executeBrowserSnapshot (CDP Accessibility.getFullAXTree)", () => {
 
     await executeBrowserSnapshot({}, ctx);
 
-    // The legacy eid → data-vellum-eid bridge has been removed;
+    // The legacy eid → data-max-eid bridge has been removed;
     // interaction tools use the backendNodeId map directly.
     const methods = cdpCalls.map((c) => c.method);
     expect(methods).not.toContain("DOM.pushNodesByBackendIdsToFrontend");

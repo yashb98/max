@@ -1,6 +1,6 @@
 import Foundation
 
-/// Reads or creates a per-device UUID stored at ~/.vellum/device.json.
+/// Reads or creates a per-device UUID stored at ~/.max/device.json.
 /// This file is shared with the daemon (TypeScript), so both runtimes
 /// use the same device identifier for telemetry and platform registration.
 ///
@@ -13,9 +13,9 @@ import Foundation
 public enum DeviceIdStore {
     private static let lock = NSLock()
     private static var cached: String?
-    private static let legacyUserDefaultsKey = "vellum_local_installation_id"
+    private static let legacyUserDefaultsKey = "max_local_installation_id"
 
-    /// Returns the device ID, reading from ~/.vellum/device.json or creating it
+    /// Returns the device ID, reading from ~/.max/device.json or creating it
     /// if it doesn't exist. Thread-safe and cached after first access.
     ///
     /// Migration: if the file has no deviceId, checks UserDefaults for the
@@ -27,8 +27,8 @@ public enum DeviceIdStore {
 
         if let cached { return cached }
 
-        let deviceFile = VellumPaths.current.deviceIdFile
-        let vellumDir = deviceFile.deletingLastPathComponent()
+        let deviceFile = MaxPaths.current.deviceIdFile
+        let maxDir = deviceFile.deletingLastPathComponent()
 
         // 1. Try to read existing file (daemon or a previous run may have created it).
         if let data = try? Data(contentsOf: deviceFile),
@@ -66,7 +66,7 @@ public enum DeviceIdStore {
         }
         existing["deviceId"] = deviceId
 
-        try? FileManager.default.createDirectory(at: vellumDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: maxDir, withIntermediateDirectories: true)
         if let jsonData = try? JSONSerialization.data(withJSONObject: existing, options: [.prettyPrinted, .sortedKeys]) {
             var output = jsonData
             output.append(contentsOf: "\n".utf8)
@@ -94,7 +94,7 @@ public enum DeviceIdStore {
     /// legacy ID is preserved regardless of whether macOS or daemon starts first.
     private static func installationIdFromLockfile() -> String? {
         var lockJSON: [String: Any]?
-        for candidate in VellumPaths.current.lockfileCandidates {
+        for candidate in MaxPaths.current.lockfileCandidates {
             guard let data = try? Data(contentsOf: candidate),
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 continue

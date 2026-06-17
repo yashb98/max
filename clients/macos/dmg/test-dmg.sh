@@ -12,7 +12,7 @@ if ! command -v create-dmg &>/dev/null; then
 fi
 
 # Build the app if it doesn't exist
-APP_PATH="dist/Vellum.app"
+APP_PATH="dist/Max.app"
 if [ ! -d "$APP_PATH" ]; then
   echo "Building app..."
   ./build.sh release
@@ -42,15 +42,15 @@ rm -f "$DMG_PATH"
 # Create DMG
 echo "Creating DMG..."
 create-dmg \
-  --volname "Vellum" \
+  --volname "Max" \
   --background "build/dmg-background@2x.png" \
   --window-pos 200 120 \
   --window-size 660 500 \
   --icon-size 80 \
   --text-size 10 \
-  --icon "Vellum.app" 200 200 \
+  --icon "Max.app" 200 200 \
   --icon "Applications" 460 200 \
-  --hide-extension "Vellum.app" \
+  --hide-extension "Max.app" \
   --no-internet-enable \
   "$DMG_PATH" \
   "$DMG_STAGING/" \

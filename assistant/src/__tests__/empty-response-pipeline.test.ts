@@ -41,7 +41,7 @@ import type { ContentBlock } from "../providers/types.js";
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 
@@ -70,6 +70,7 @@ function makeArgs(
     responseContent: [],
     toolUseBlocksLength: 0,
     toolUseTurns: 1,
+    bridgedToolCalls: 0,
     emptyResponseRetries: 0,
     maxEmptyResponseRetries: 1,
     priorAssistantHadVisibleText: false,
@@ -172,6 +173,47 @@ describe("emptyResponse pipeline — default decisions", () => {
       makeArgs({
         responseContent: [],
         toolUseTurns: 0,
+      }),
+    );
+    expect(decision.action).toBe("accept");
+  });
+
+  test("bridged tool activity counts as prior tool use (toolUseTurns === 0, bridgedToolCalls > 0) → nudge", async () => {
+    // Agentic bridge providers (kimi-agent, claude-subscription) run their
+    // whole tool loop inside ONE sendMessage, so the outer toolUseTurns
+    // stays 0 forever. Bridged tool activity must open the nudge gate, or
+    // an inner-tool-work-then-no-text turn persists as a silent blank reply.
+    const decision = await runEmpty(
+      makeArgs({
+        responseContent: [],
+        toolUseTurns: 0,
+        bridgedToolCalls: 3,
+      }),
+    );
+    expect(decision.action).toBe("nudge");
+    expect(decision.nudgeText).toBe(CANONICAL_NUDGE_TEXT);
+  });
+
+  test("bridged tool activity + prior visible text → accept (no duplicate re-send)", async () => {
+    const decision = await runEmpty(
+      makeArgs({
+        responseContent: [],
+        toolUseTurns: 0,
+        bridgedToolCalls: 2,
+        priorAssistantHadVisibleText: true,
+      }),
+    );
+    expect(decision.action).toBe("accept");
+  });
+
+  test("bridged tool activity + retries exhausted → accept", async () => {
+    const decision = await runEmpty(
+      makeArgs({
+        responseContent: [],
+        toolUseTurns: 0,
+        bridgedToolCalls: 1,
+        emptyResponseRetries: 1,
+        maxEmptyResponseRetries: 1,
       }),
     );
     expect(decision.action).toBe("accept");

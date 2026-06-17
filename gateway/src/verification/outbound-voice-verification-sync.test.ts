@@ -111,7 +111,7 @@ async function setupTestDirs(): Promise<void> {
 
   testAssistantDb = db;
 
-  process.env.VELLUM_WORKSPACE_DIR = testRoot;
+  process.env.MAX_WORKSPACE_DIR = testRoot;
   process.env.GATEWAY_SECURITY_DIR = securityDir;
 
   await initGatewayDb();
@@ -423,7 +423,7 @@ describe("createPhoneGuardianBinding recency check", () => {
      * completes a fresh outbound verification for the same number. The
      * fresh session's updated_at is greater than the revoke timestamp,
      * so the binding is correctly recreated. The principal id matches
-     * what `resolveCanonicalPrincipal` falls back to when no vellum
+     * what `resolveCanonicalPrincipal` falls back to when no max
      * channel exists (the phone number itself), so the existing contact
      * is reused rather than duplicated.
      */

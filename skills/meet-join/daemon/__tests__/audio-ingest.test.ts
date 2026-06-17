@@ -8,7 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "@maxai/skill-host-contracts";
 
 import {
   AUDIO_INGEST_AUTH_PREFIX,
@@ -944,7 +944,7 @@ describe("createAudioIngest — default transcriber factory", () => {
       },
       platform: {
         workspaceDir: () => "",
-        vellumRoot: () => "",
+        maxRoot: () => "",
         runtimeMode: () => "baremetal" as never,
       },
       providers: {

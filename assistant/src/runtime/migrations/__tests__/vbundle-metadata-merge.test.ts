@@ -2,17 +2,17 @@
  * Unit tests for the credential metadata merge helper used by the bundle
  * importers. Covers the behaviour the two importers rely on:
  *
- * - Bundle without vellum + target with vellum → target's vellum entries
- *   survive and the bundle's non-vellum entries are kept.
- * - Bundle with mixed user services → non-vellum entries import, any
- *   rogue vellum entries in the bundle are dropped.
+ * - Bundle without max + target with max → target's max entries
+ *   survive and the bundle's non-max entries are kept.
+ * - Bundle with mixed user services → non-max entries import, any
+ *   rogue max entries in the bundle are dropped.
  * - Live metadata empty / missing → bundle lands as-is.
  * - Malformed inputs → no corruption (bundle returned verbatim).
  */
 
 import { describe, expect, test } from "bun:test";
 
-import { mergeMetadataPreservingVellum } from "../vbundle-metadata-merge.js";
+import { mergeMetadataPreservingMax } from "../vbundle-metadata-merge.js";
 
 interface Record {
   credentialId: string;
@@ -58,41 +58,41 @@ function keys(records: Record[]): Set<string> {
   return new Set(records.map(asKey));
 }
 
-const VELLUM_FIELDS = [
+const MAX_FIELDS = [
   "platform_base_url",
   "assistant_api_key",
   "platform_assistant_id",
   "webhook_secret",
 ] as const;
 
-function vellumRecords(): Record[] {
-  return VELLUM_FIELDS.map((field) =>
-    record({ service: "vellum", field, credentialId: `target-${field}` }),
+function maxRecords(): Record[] {
+  return MAX_FIELDS.map((field) =>
+    record({ service: "max", field, credentialId: `target-${field}` }),
   );
 }
 
-describe("mergeMetadataPreservingVellum", () => {
-  test("preserves all four target vellum:* entries when bundle has none", () => {
-    const target = vellumRecords();
+describe("mergeMetadataPreservingMax", () => {
+  test("preserves all four target max:* entries when bundle has none", () => {
+    const target = maxRecords();
     const bundle = [
       record({ service: "telegram", field: "bot_token" }),
       record({ service: "slack_channel", field: "app_token" }),
     ];
 
     const merged = parse(
-      mergeMetadataPreservingVellum(file(bundle), file(target)),
+      mergeMetadataPreservingMax(file(bundle), file(target)),
     );
 
     const mergedKeys = keys(merged.credentials);
-    for (const field of VELLUM_FIELDS) {
-      expect(mergedKeys.has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(mergedKeys.has(`max:${field}`)).toBe(true);
     }
     expect(mergedKeys.has("telegram:bot_token")).toBe(true);
     expect(mergedKeys.has("slack_channel:app_token")).toBe(true);
   });
 
-  test("bundle non-vellum entries still import alongside preserved vellum entries", () => {
-    const target = vellumRecords();
+  test("bundle non-max entries still import alongside preserved max entries", () => {
+    const target = maxRecords();
     const bundle = [
       record({ service: "telegram", field: "bot_token" }),
       record({ service: "telegram", field: "webhook_secret" }),
@@ -100,34 +100,34 @@ describe("mergeMetadataPreservingVellum", () => {
     ];
 
     const merged = parse(
-      mergeMetadataPreservingVellum(file(bundle), file(target)),
+      mergeMetadataPreservingMax(file(bundle), file(target)),
     );
 
-    // 4 vellum + 3 user = 7 total.
+    // 4 max + 3 user = 7 total.
     expect(merged.credentials.length).toBe(7);
     expect(keys(merged.credentials).size).toBe(7);
 
-    // Target's credentialIds for vellum are preserved (not the bundle's).
+    // Target's credentialIds for max are preserved (not the bundle's).
     for (const r of merged.credentials) {
-      if (r.service === "vellum") {
+      if (r.service === "max") {
         expect(r.credentialId.startsWith("target-")).toBe(true);
       }
     }
   });
 
-  test("drops bundle vellum:* entries and preserves target's identity", () => {
-    const target = vellumRecords();
-    // Bundle carries conflicting vellum entries — should be dropped even
+  test("drops bundle max:* entries and preserves target's identity", () => {
+    const target = maxRecords();
+    // Bundle carries conflicting max entries — should be dropped even
     // though the source would normally be filtered before this helper is
     // called.
     const bundle = [
       record({
-        service: "vellum",
+        service: "max",
         field: "assistant_api_key",
         credentialId: "source-rogue",
       }),
       record({
-        service: "vellum",
+        service: "max",
         field: "platform_base_url",
         credentialId: "source-rogue-url",
       }),
@@ -135,14 +135,14 @@ describe("mergeMetadataPreservingVellum", () => {
     ];
 
     const merged = parse(
-      mergeMetadataPreservingVellum(file(bundle), file(target)),
+      mergeMetadataPreservingMax(file(bundle), file(target)),
     );
 
-    const vellumRecordsOut = merged.credentials.filter(
-      (r) => r.service === "vellum",
+    const maxRecordsOut = merged.credentials.filter(
+      (r) => r.service === "max",
     );
-    expect(vellumRecordsOut.length).toBe(4);
-    for (const r of vellumRecordsOut) {
+    expect(maxRecordsOut.length).toBe(4);
+    for (const r of maxRecordsOut) {
       expect(r.credentialId.startsWith("target-")).toBe(true);
     }
     // Telegram entry still imports.
@@ -153,24 +153,24 @@ describe("mergeMetadataPreservingVellum", () => {
     ).toBe(true);
   });
 
-  test("no live metadata → bundle passes through unchanged (no vellum in bundle)", () => {
+  test("no live metadata → bundle passes through unchanged (no max in bundle)", () => {
     const bundle = [
       record({ service: "telegram", field: "bot_token" }),
       record({ service: "slack_channel", field: "app_token" }),
     ];
-    const merged = parse(mergeMetadataPreservingVellum(file(bundle), null));
+    const merged = parse(mergeMetadataPreservingMax(file(bundle), null));
     expect(keys(merged.credentials)).toEqual(
       new Set(["telegram:bot_token", "slack_channel:app_token"]),
     );
   });
 
-  test("no live metadata still strips bundle vellum:* entries", () => {
+  test("no live metadata still strips bundle max:* entries", () => {
     const bundle = [
-      record({ service: "vellum", field: "assistant_api_key" }),
+      record({ service: "max", field: "assistant_api_key" }),
       record({ service: "telegram", field: "bot_token" }),
     ];
-    const merged = parse(mergeMetadataPreservingVellum(file(bundle), null));
-    // Bundle's vellum entry is always filtered.
+    const merged = parse(mergeMetadataPreservingMax(file(bundle), null));
+    // Bundle's max entry is always filtered.
     expect(merged.credentials.length).toBe(1);
     expect(merged.credentials[0]?.service).toBe("telegram");
   });
@@ -178,27 +178,27 @@ describe("mergeMetadataPreservingVellum", () => {
   test("preserves bundle version field verbatim", () => {
     const bundle = file([record({ service: "telegram", field: "bot_token" })]);
     const merged = JSON.parse(
-      mergeMetadataPreservingVellum(bundle, file(vellumRecords())),
+      mergeMetadataPreservingMax(bundle, file(maxRecords())),
     );
     expect(merged.version).toBe(5);
   });
 
   test("malformed bundle JSON → returned unchanged (never corrupt the file)", () => {
     const bad = "{not valid json";
-    const live = file(vellumRecords());
-    const result = mergeMetadataPreservingVellum(bad, live);
+    const live = file(maxRecords());
+    const result = mergeMetadataPreservingMax(bad, live);
     expect(result).toBe(bad);
   });
 
   test("malformed live JSON → bundle returned as merged output without preservation", () => {
     const bundle = file([record({ service: "telegram", field: "bot_token" })]);
-    const merged = parse(mergeMetadataPreservingVellum(bundle, "{bad"));
+    const merged = parse(mergeMetadataPreservingMax(bundle, "{bad"));
     expect(keys(merged.credentials)).toEqual(new Set(["telegram:bot_token"]));
   });
 
-  test("live metadata with extra non-vellum entries does NOT smuggle them in", () => {
+  test("live metadata with extra non-max entries does NOT smuggle them in", () => {
     const live = file([
-      ...vellumRecords(),
+      ...maxRecords(),
       record({ service: "telegram", field: "bot_token" }),
       record({ service: "notion", field: "api_key" }),
     ]);
@@ -206,16 +206,16 @@ describe("mergeMetadataPreservingVellum", () => {
       record({ service: "slack_channel", field: "app_token" }),
     ]);
 
-    const merged = parse(mergeMetadataPreservingVellum(bundle, live));
+    const merged = parse(mergeMetadataPreservingMax(bundle, live));
 
-    // Only bundle's non-vellum + target's vellum. Target's user entries
+    // Only bundle's non-max + target's max. Target's user entries
     // must NOT carry over (they belong to source-style flows, handled by
     // the bundle).
     expect(keys(merged.credentials).has("slack_channel:app_token")).toBe(true);
     expect(keys(merged.credentials).has("telegram:bot_token")).toBe(false);
     expect(keys(merged.credentials).has("notion:api_key")).toBe(false);
-    for (const field of VELLUM_FIELDS) {
-      expect(keys(merged.credentials).has(`vellum:${field}`)).toBe(true);
+    for (const field of MAX_FIELDS) {
+      expect(keys(merged.credentials).has(`max:${field}`)).toBe(true);
     }
   });
 });

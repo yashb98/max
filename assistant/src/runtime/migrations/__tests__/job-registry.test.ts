@@ -20,7 +20,7 @@ import {
   MigrationJobRegistry,
 } from "../job-registry.js";
 
-const kFetchBodyError = Symbol.for("vellum.migrationImport.fetchBodyError");
+const kFetchBodyError = Symbol.for("max.migrationImport.fetchBodyError");
 
 /** Spin the microtask queue N times so `queueMicrotask`-scheduled work runs. */
 async function flushMicrotasks(n = 4): Promise<void> {

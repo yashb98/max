@@ -1,5 +1,5 @@
 /**
- * BundleScanner — Security validation and static analysis for .vellum bundles.
+ * BundleScanner — Security validation and static analysis for .max bundles.
  *
  * Validates zip bundles before they are opened, returning structured results
  * with block-level (reject) and warn-level (flag) findings.

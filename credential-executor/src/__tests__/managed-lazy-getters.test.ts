@@ -23,7 +23,7 @@ describe("managed lazy getters — before API key arrives", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedSubjectOptions } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
     });
@@ -36,7 +36,7 @@ describe("managed lazy getters — before API key arrives", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedMaterializerOptions } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
     });
@@ -48,7 +48,7 @@ describe("managed lazy getters — before API key arrives", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getAssistantApiKey } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
     });
@@ -66,7 +66,7 @@ describe("managed lazy getters — after API key arrives via handshake", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedSubjectOptions } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
     });
@@ -77,7 +77,7 @@ describe("managed lazy getters — after API key arrives via handshake", () => {
 
     const opts = getManagedSubjectOptions();
     expect(opts).toBeDefined();
-    expect(opts!.platformBaseUrl).toBe("https://api.vellum.ai");
+    expect(opts!.platformBaseUrl).toBe("https://api.max.ai");
     expect(opts!.assistantApiKey).toBe("vak_test_key_12345");
     expect(opts!.assistantId).toBe("ast_abc123");
   });
@@ -86,7 +86,7 @@ describe("managed lazy getters — after API key arrives via handshake", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedMaterializerOptions } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
     });
@@ -97,7 +97,7 @@ describe("managed lazy getters — after API key arrives via handshake", () => {
 
     const opts = getManagedMaterializerOptions();
     expect(opts).toBeDefined();
-    expect(opts!.platformBaseUrl).toBe("https://api.vellum.ai");
+    expect(opts!.platformBaseUrl).toBe("https://api.max.ai");
     expect(opts!.assistantApiKey).toBe("vak_test_key_12345");
     expect(opts!.assistantId).toBe("ast_abc123");
   });
@@ -107,7 +107,7 @@ describe("managed lazy getters — after API key arrives via handshake", () => {
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedSubjectOptions, getManagedMaterializerOptions } =
       buildLazyGetters({
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantIdRef,
         apiKeyRef,
       });
@@ -133,7 +133,7 @@ describe("managed lazy getters — lazy resolution timing", () => {
 
     const { getManagedSubjectOptions, getManagedMaterializerOptions } =
       buildLazyGetters({
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantIdRef,
         apiKeyRef,
       });
@@ -158,7 +158,7 @@ describe("managed lazy getters — lazy resolution timing", () => {
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getManagedSubjectOptions, getManagedMaterializerOptions } =
       buildLazyGetters({
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantIdRef,
         apiKeyRef,
       });
@@ -193,7 +193,7 @@ describe("managed lazy getters — lazy resolution timing", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getAssistantApiKey, getManagedSubjectOptions } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
       envApiKey: "vak_env_fallback",
@@ -210,7 +210,7 @@ describe("managed lazy getters — lazy resolution timing", () => {
     const apiKeyRef: ApiKeyRef = { current: "" };
     const assistantIdRef: AssistantIdRef = { current: "ast_abc123" };
     const { getAssistantApiKey } = buildLazyGetters({
-      platformBaseUrl: "https://api.vellum.ai",
+      platformBaseUrl: "https://api.max.ai",
       assistantIdRef,
       apiKeyRef,
       envApiKey: "vak_env_key",
@@ -247,7 +247,7 @@ describe("managed lazy getters — missing platform config fields", () => {
     const assistantIdRef: AssistantIdRef = { current: "" };
     const { getManagedSubjectOptions, getManagedMaterializerOptions } =
       buildLazyGetters({
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantIdRef,
         apiKeyRef,
       });
@@ -268,7 +268,7 @@ describe("managed lazy getters — missing platform config fields", () => {
     const assistantIdRef: AssistantIdRef = { current: "" };
     const { getManagedSubjectOptions, getManagedMaterializerOptions } =
       buildLazyGetters({
-        platformBaseUrl: "https://api.vellum.ai",
+        platformBaseUrl: "https://api.max.ai",
         assistantIdRef,
         apiKeyRef,
       });

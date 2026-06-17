@@ -73,28 +73,28 @@ function createRun(
 beforeEach(() => {
   testDir = join(
     tmpdir(),
-    `vellum-profiler-routes-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-profiler-routes-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   runsDir = join(testDir, "data", "profiler", "runs");
   mkdirSync(runsDir, { recursive: true });
 
   // Save and override env
   origEnv = {
-    VELLUM_WORKSPACE_DIR: process.env.VELLUM_WORKSPACE_DIR,
-    VELLUM_PROFILER_RUN_ID: process.env.VELLUM_PROFILER_RUN_ID,
-    VELLUM_PROFILER_MAX_BYTES: process.env.VELLUM_PROFILER_MAX_BYTES,
-    VELLUM_PROFILER_MAX_RUNS: process.env.VELLUM_PROFILER_MAX_RUNS,
-    VELLUM_PROFILER_MIN_FREE_MB: process.env.VELLUM_PROFILER_MIN_FREE_MB,
+    MAX_WORKSPACE_DIR: process.env.MAX_WORKSPACE_DIR,
+    MAX_PROFILER_RUN_ID: process.env.MAX_PROFILER_RUN_ID,
+    MAX_PROFILER_MAX_BYTES: process.env.MAX_PROFILER_MAX_BYTES,
+    MAX_PROFILER_MAX_RUNS: process.env.MAX_PROFILER_MAX_RUNS,
+    MAX_PROFILER_MIN_FREE_MB: process.env.MAX_PROFILER_MIN_FREE_MB,
   };
 
   // Point workspace dir to our temp directory
-  process.env.VELLUM_WORKSPACE_DIR = testDir;
+  process.env.MAX_WORKSPACE_DIR = testDir;
 
   // Clear profiler env vars
-  delete process.env.VELLUM_PROFILER_RUN_ID;
-  delete process.env.VELLUM_PROFILER_MAX_BYTES;
-  delete process.env.VELLUM_PROFILER_MAX_RUNS;
-  delete process.env.VELLUM_PROFILER_MIN_FREE_MB;
+  delete process.env.MAX_PROFILER_RUN_ID;
+  delete process.env.MAX_PROFILER_MAX_BYTES;
+  delete process.env.MAX_PROFILER_MAX_RUNS;
+  delete process.env.MAX_PROFILER_MIN_FREE_MB;
 });
 
 afterEach(() => {
@@ -158,7 +158,7 @@ describe("Profiler routes", () => {
     });
 
     test("reports active run ID when set", () => {
-      process.env.VELLUM_PROFILER_RUN_ID = "active-run";
+      process.env.MAX_PROFILER_RUN_ID = "active-run";
       createRun("active-run", { sizeBytes: 512 });
 
       const route = findRoute("profiler_runs_get")!;
@@ -254,7 +254,7 @@ describe("Profiler routes", () => {
     });
 
     test("marks active run correctly", () => {
-      process.env.VELLUM_PROFILER_RUN_ID = "live-run";
+      process.env.MAX_PROFILER_RUN_ID = "live-run";
       createRun("live-run", {
         sizeBytes: 1024,
         manifest: { status: "active" },
@@ -342,7 +342,7 @@ describe("Profiler routes", () => {
     });
 
     test("rejects deletion of the currently active run", () => {
-      process.env.VELLUM_PROFILER_RUN_ID = "active-run";
+      process.env.MAX_PROFILER_RUN_ID = "active-run";
       createRun("active-run", {
         sizeBytes: 1024,
         manifest: { status: "active" },
@@ -358,9 +358,9 @@ describe("Profiler routes", () => {
     });
 
     test("deletes a completed run and returns budget state", () => {
-      process.env.VELLUM_PROFILER_MAX_BYTES = "999999999";
-      process.env.VELLUM_PROFILER_MAX_RUNS = "100";
-      process.env.VELLUM_PROFILER_MIN_FREE_MB = "0";
+      process.env.MAX_PROFILER_MAX_BYTES = "999999999";
+      process.env.MAX_PROFILER_MAX_RUNS = "100";
+      process.env.MAX_PROFILER_MIN_FREE_MB = "0";
 
       createRun("completed-run", {
         sizeBytes: 2048,
@@ -399,9 +399,9 @@ describe("Profiler routes", () => {
     });
 
     test("post-delete budget recalculation reflects freed space", () => {
-      process.env.VELLUM_PROFILER_MAX_BYTES = "5000";
-      process.env.VELLUM_PROFILER_MAX_RUNS = "100";
-      process.env.VELLUM_PROFILER_MIN_FREE_MB = "0";
+      process.env.MAX_PROFILER_MAX_BYTES = "5000";
+      process.env.MAX_PROFILER_MAX_RUNS = "100";
+      process.env.MAX_PROFILER_MIN_FREE_MB = "0";
 
       // Create two runs that together exceed the 5000 byte budget
       createRun("over-budget-a", {

@@ -30,24 +30,24 @@ describe("input-history XDG paths", () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test("appendHistory writes to $XDG_STATE_HOME/vellum/input-history", () => {
+  test("appendHistory writes to $XDG_STATE_HOME/max/input-history", () => {
     appendHistory("hello world");
 
     const canonical = getInputHistoryPath();
     expect(canonical).toBe(
-      join(tempDir, ".local", "state", "vellum", "input-history"),
+      join(tempDir, ".local", "state", "max", "input-history"),
     );
     expect(existsSync(canonical)).toBe(true);
     expect(readFileSync(canonical, "utf-8")).toBe("hello world\n");
   });
 
-  test("appendHistory does NOT touch ~/.vellum/", () => {
-    // Crucially: the CLI must not create or write to ~/.vellum/ per the
-    // "No `.vellum/` directory access" boundary in cli/AGENTS.md. We snapshot
+  test("appendHistory does NOT touch ~/.max/", () => {
+    // Crucially: the CLI must not create or write to ~/.max/ per the
+    // "No `.max/` directory access" boundary in cli/AGENTS.md. We snapshot
     // the legacy path's existence before the call (some test machines already
-    // have a ~/.vellum/ for unrelated daemon state) and assert the file at
+    // have a ~/.max/ for unrelated daemon state) and assert the file at
     // that path is unchanged afterwards.
-    const legacyPath = join(homedir(), ".vellum", "input-history");
+    const legacyPath = join(homedir(), ".max", "input-history");
     const existedBefore = existsSync(legacyPath);
     const contentBefore: string = existedBefore
       ? readFileSync(legacyPath, "utf-8")
@@ -68,7 +68,7 @@ describe("input-history XDG paths", () => {
     // process.env.HOME mutations, so compute the expected path from the same
     // source the production helper uses.
     expect(getInputHistoryPath()).toBe(
-      join(homedir(), ".local", "state", "vellum", "input-history"),
+      join(homedir(), ".local", "state", "max", "input-history"),
     );
   });
 

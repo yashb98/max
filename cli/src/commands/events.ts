@@ -1,5 +1,5 @@
 /**
- * `vellum events [assistant]`
+ * `max events [assistant]`
  *
  * Subscribe to assistant events via the SSE endpoint and stream them
  * to stdout.  By default, events are rendered as human-readable
@@ -12,10 +12,10 @@ import { AssistantClient } from "../lib/assistant-client.js";
 import { getClientRegistrationHeaders } from "../lib/client-identity.js";
 
 function printUsage(): void {
-  console.log(`vellum events - Stream events from a running assistant
+  console.log(`max events - Stream events from a running assistant
 
 USAGE:
-    vellum events [assistant] [options]
+    max events [assistant] [options]
 
 ARGUMENTS:
     [assistant]    Instance name (default: active assistant)
@@ -26,10 +26,10 @@ OPTIONS:
     -h, --help                Show this help message
 
 EXAMPLES:
-    vellum events
-    vellum events my-assistant
-    vellum events --json
-    vellum events --conversation-key my-thread
+    max events
+    max events my-assistant
+    max events --json
+    max events --conversation-key my-thread
 `);
 }
 

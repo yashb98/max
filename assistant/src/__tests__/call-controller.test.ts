@@ -352,9 +352,9 @@ function resetTables() {
     "contact_channels",
     "contacts",
   );
-  // Seed the vellum guardian binding (gateway does this at startup in production)
+  // Seed the max guardian binding (gateway does this at startup in production)
   createGuardianBinding({
-    channel: "vellum",
+    channel: "max",
     guardianExternalUserId: "test-principal-id",
     guardianDeliveryChatId: "local",
     guardianPrincipalId: "test-principal-id",

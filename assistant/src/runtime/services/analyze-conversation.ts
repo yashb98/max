@@ -224,7 +224,7 @@ export async function analyzeConversation(
 
   analysisConversation.setTrustContext({
     trustClass,
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   });
   // Force a reload so the just-persisted user prompt lands in
   // `ctx.messages`. On a freshly created conversation this is a no-op

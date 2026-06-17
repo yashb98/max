@@ -4,10 +4,10 @@
  * The CLI sends the command over the IPC socket and receives a single
  * response containing stdout, stderr, and the exit code.
  *
- * **Security**: Gated behind VELLUM_DEBUG=1. When debug mode is off (the
+ * **Security**: Gated behind MAX_DEBUG=1. When debug mode is off (the
  * default), the handler returns an error immediately so the CLI surfaces a
  * clear rejection instead of hanging. The assistant must be restarted with
- * VELLUM_DEBUG=1 for this route to execute commands.
+ * MAX_DEBUG=1 for this route to execute commands.
  */
 
 import { spawn } from "node:child_process";
@@ -23,7 +23,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 
 function isDebugMode(): boolean {
   return (
-    process.env.VELLUM_DEBUG === "1" || process.env.VELLUM_DEBUG === "true"
+    process.env.MAX_DEBUG === "1" || process.env.MAX_DEBUG === "true"
   );
 }
 
@@ -53,7 +53,7 @@ function handleDebugBash({ body }: RouteHandlerArgs): Promise<DebugBashResult> {
       exitCode: null,
       timedOut: false,
       error:
-        "Bash debug execution is disabled. The running assistant process must have been started with VELLUM_DEBUG=1 (setting it on the CLI command alone is not enough). Restart the assistant with: vellum sleep && VELLUM_DEBUG=1 vellum wake",
+        "Bash debug execution is disabled. The running assistant process must have been started with MAX_DEBUG=1 (setting it on the CLI command alone is not enough). Restart the assistant with: max sleep && MAX_DEBUG=1 max wake",
     });
   }
 
@@ -144,7 +144,7 @@ export const ROUTES: RouteDefinition[] = [
     requireGuardian: false,
     summary: "Execute a shell command in the assistant process",
     description:
-      "Developer debugging tool. Requires the assistant to be running with VELLUM_DEBUG=1.",
+      "Developer debugging tool. Requires the assistant to be running with MAX_DEBUG=1.",
     tags: ["debug"],
     requestBody: z.object({
       command: z.string().describe("Shell command to execute via bash -c"),

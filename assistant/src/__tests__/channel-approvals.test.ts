@@ -358,8 +358,8 @@ describe("channelSupportsRichApprovalUI", () => {
     expect(channelSupportsRichApprovalUI("telegram")).toBe(true);
   });
 
-  test("returns false for vellum", () => {
-    expect(channelSupportsRichApprovalUI("vellum")).toBe(false);
+  test("returns false for max", () => {
+    expect(channelSupportsRichApprovalUI("max")).toBe(false);
   });
 
   test("returns false for voice", () => {

@@ -79,7 +79,7 @@ export function resetPointerMessageProcessor(): void {
  *
  * Trusted when:
  * - recent message provenance trust class is 'guardian' or 'trusted_contact'
- * - conversation origin channel is 'vellum' (desktop app)
+ * - conversation origin channel is 'max' (desktop app)
  *
  * Untrusted by default when insufficient evidence.
  */
@@ -94,7 +94,7 @@ function resolvePointerAudienceTrust(conversationId: string): boolean {
       return true;
 
     const originChannel = getConversationOriginChannel(conversationId);
-    if (originChannel === "vellum") return true;
+    if (originChannel === "max") return true;
   } catch {
     // Conversation may not exist or DB may be unavailable — default untrusted.
   }

@@ -119,7 +119,7 @@ mock.module("../skills/catalog-cache.js", () => ({
 
 mock.module("../skills/catalog-files.js", () => ({
   catalogSkillToSlim: () => ({}),
-  createVellumCatalogProvider: () => ({
+  createMaxCatalogProvider: () => ({
     canHandle: () => false,
     listFiles: async () => null,
     toSlimSkill: async () => null,

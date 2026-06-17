@@ -404,7 +404,7 @@ async function executeTavilySearch(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        "X-Client-Source": "vellum-assistant",
+        "X-Client-Source": "max-assistant",
       },
       body: JSON.stringify(body),
       signal,

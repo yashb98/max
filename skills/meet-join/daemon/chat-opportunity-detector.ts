@@ -55,7 +55,7 @@
  * via `deps.setTimer` / `deps.clearTimer` injections.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "@maxai/skill-host-contracts";
 
 import type {
   InboundChatEvent,

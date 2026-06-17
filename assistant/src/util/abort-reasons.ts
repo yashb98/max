@@ -25,7 +25,7 @@ export type AbortReasonKind =
   /** A scheduled work item run was cancelled or its conversation reset. */
   | "work_item_aborted";
 
-const ABORT_REASON_TAG = "__vellumAbortReason" as const;
+const ABORT_REASON_TAG = "__maxAbortReason" as const;
 
 export interface AbortReason {
   readonly [ABORT_REASON_TAG]: true;

@@ -37,16 +37,16 @@ import {
  *   - `null` → a directory
  *
  * The fixture answers GET requests against
- *  - `https://api.github.com/repos/vellum-ai/vellum-assistant/contents/...`
+ *  - `https://api.github.com/repos/max-ai/max-assistant/contents/...`
  *  - any other URL we hand out as `download_url`
  */
 function fixtureFetch(
   tree: Record<string, Uint8Array | string | null>,
 ): FetchLike {
   const PREFIX_API =
-    "https://api.github.com/repos/vellum-ai/vellum-assistant/contents/experimental/plugins/";
+    "https://api.github.com/repos/max-ai/max-assistant/contents/experimental/plugins/";
   const PREFIX_RAW =
-    "https://raw.githubusercontent.com/vellum-ai/vellum-assistant/main/experimental/plugins/";
+    "https://raw.githubusercontent.com/max-ai/max-assistant/main/experimental/plugins/";
 
   function listing(apiPath: string): unknown {
     const rel = apiPath.startsWith("experimental/plugins/")
@@ -119,7 +119,7 @@ describe("installPlugin", () => {
   let pluginsDir: string;
 
   beforeEach(() => {
-    ws = mkdtempSync(join(tmpdir(), "vellum-plugins-install-"));
+    ws = mkdtempSync(join(tmpdir(), "max-plugins-install-"));
     pluginsDir = join(ws, "plugins");
     mkdirSync(pluginsDir, { recursive: true });
   });
@@ -277,7 +277,7 @@ describe("installPlugin", () => {
                   type: "file",
                   size: 2,
                   download_url:
-                    "https://raw.githubusercontent.com/vellum-ai/vellum-assistant/feat-branch/experimental/plugins/demo/package.json",
+                    "https://raw.githubusercontent.com/max-ai/max-assistant/feat-branch/experimental/plugins/demo/package.json",
                 },
               ]),
               {
@@ -312,7 +312,7 @@ describe("installPlugin", () => {
               type: "file",
               size: 1,
               download_url:
-                "https://raw.githubusercontent.com/vellum-ai/vellum-assistant/main/experimental/plugins/demo/escape",
+                "https://raw.githubusercontent.com/max-ai/max-assistant/main/experimental/plugins/demo/escape",
             },
           ]),
           { status: 200, headers: { "content-type": "application/json" } },

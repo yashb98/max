@@ -196,11 +196,11 @@ describe("file classification", () => {
       path: "/workspace/.hooks/on-start.sh",
       workingDir: "/workspace",
       fileContext: {
-        protectedDir: "/workspace/.vellum/protected",
+        protectedDir: "/workspace/.max/protected",
         hooksDir: "/workspace/.hooks",
         actorTokenSigningKeyPath:
-          "/workspace/.vellum/protected/actor-token-signing-key",
-        skillSourceDirs: ["/workspace/.vellum/skills"],
+          "/workspace/.max/protected/actor-token-signing-key",
+        skillSourceDirs: ["/workspace/.max/skills"],
       },
     });
     expect(result.risk).toBe("high");
@@ -210,14 +210,14 @@ describe("file classification", () => {
   test("file context with skill source dirs escalates writes", async () => {
     const result = await classify({
       tool: "file_write",
-      path: "/workspace/.vellum/skills/my-skill/index.ts",
+      path: "/workspace/.max/skills/my-skill/index.ts",
       workingDir: "/workspace",
       fileContext: {
-        protectedDir: "/workspace/.vellum/protected",
+        protectedDir: "/workspace/.max/protected",
         hooksDir: "/workspace/.hooks",
         actorTokenSigningKeyPath:
-          "/workspace/.vellum/protected/actor-token-signing-key",
-        skillSourceDirs: ["/workspace/.vellum/skills"],
+          "/workspace/.max/protected/actor-token-signing-key",
+        skillSourceDirs: ["/workspace/.max/skills"],
       },
     });
     expect(result.risk).toBe("high");

@@ -59,9 +59,9 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("resolveLocalTrustContext", () => {
-  test("falls back to minimal trust context when no vellum binding exists", () => {
+  test("falls back to minimal trust context when no max binding exists", () => {
     const ctx = resolveLocalTrustContext();
-    expect(ctx.sourceChannel).toBe("vellum");
+    expect(ctx.sourceChannel).toBe("max");
   });
 });
 
@@ -91,7 +91,7 @@ describe("resolveLocalAuthContext", () => {
     expect(ctx.scopes.has("local.all")).toBe(true);
   });
 
-  test("actorPrincipalId is undefined when no vellum binding exists", () => {
+  test("actorPrincipalId is undefined when no max binding exists", () => {
     const db = getDb();
     db.run("DELETE FROM contact_channels");
     db.run("DELETE FROM contacts");

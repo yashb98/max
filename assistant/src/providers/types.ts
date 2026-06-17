@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "@vellumai/skill-host-contracts";
+import type { ToolDefinition } from "@maxai/skill-host-contracts";
 export type { ToolDefinition };
 
 import type { LLMCallSite } from "../config/schemas/llm.js";
@@ -153,8 +153,8 @@ export type ProviderEvent =
   /**
    * Incremental tool-output chunk emitted from a *bridged* tool — i.e. a
    * tool that ran inside an agentic provider's own loop (currently only
-   * `claude-subscription`) rather than via Vellum's outer
-   * `agent/loop.ts` dispatch. Vellum's normal tool dispatch surfaces
+   * `claude-subscription`) rather than via Max's outer
+   * `agent/loop.ts` dispatch. Max's normal tool dispatch surfaces
    * chunks at the outer loop and never round-trips through the provider
    * boundary — but bridged tools have no outer-loop tool_use block, so
    * the provider emits chunks here and the outer-loop adapter
@@ -222,7 +222,7 @@ export interface SendMessageConfig {
   /**
    * Internal per-request HTTP headers for managed-proxy usage attribution.
    * Provider clients may pass these through SDK request options only when the
-   * transport is Vellum-managed, and must never include this object in provider
+   * transport is Max-managed, and must never include this object in provider
    * JSON request bodies.
    */
   usageAttributionHeaders?: Record<string, string>;
@@ -241,7 +241,7 @@ export interface SendMessageConfig {
 /**
  * Invocation handed to a `ProviderToolBridge` when a provider that runs
  * its own agent loop (currently only `claude-subscription` via the Claude
- * Agent SDK) needs to execute one of Vellum's tools mid-loop.
+ * Agent SDK) needs to execute one of Max's tools mid-loop.
  */
 export interface ToolBridgeInvocation {
   toolName: string;
@@ -251,7 +251,7 @@ export interface ToolBridgeInvocation {
    * wants to surface chunks emitted by the tool (`context.onOutput(...)`
    * in production tools — e.g. the shell tool's stdout/stderr) back to its
    * `SendMessageOptions.onEvent` consumer as `tool_output_chunk` events.
-   * Bridges that delegate to Vellum's `ToolExecutor` should forward this
+   * Bridges that delegate to Max's `ToolExecutor` should forward this
    * into the executor's per-call `onOutput` argument (or, when calling
    * `ToolExecutor.execute` directly, into `ToolContext.onOutput`). Phase
    * 2.5 in `docs/architecture/claude-subscription-bridge.md`.
@@ -260,10 +260,10 @@ export interface ToolBridgeInvocation {
 }
 
 /**
- * Result returned to the in-provider agent loop after a Vellum tool runs.
+ * Result returned to the in-provider agent loop after a Max tool runs.
  * `content` and `isError` are the always-present fields the SDK needs to
  * continue. `yieldToUser` is propagated so an agentic provider can abort
- * its loop immediately when a Vellum tool requests a hard yield (e.g.
+ * its loop immediately when a Max tool requests a hard yield (e.g.
  * interactive tables or `remember(finish_turn=true)`); see D-2 in
  * `docs/architecture/claude-subscription-bridge.md`.
  *
@@ -279,7 +279,7 @@ export interface ToolBridgeResult {
   /**
    * When true, the provider's agentic loop must stop after this tool
    * returns. The subscription provider implements this by aborting the
-   * SDK's internal agent loop; Vellum's outer loop then sees the
+   * SDK's internal agent loop; Max's outer loop then sees the
    * accumulated assistant text with no further tool_use blocks and
    * breaks normally.
    */
@@ -298,11 +298,11 @@ export interface ToolBridgeResult {
   contentBlocks?: ContentBlock[];
   /**
    * Placeholder→value bindings the tool emitted via
-   * `<vellum-sensitive-output>` directives. Forwarded so the outer-loop
+   * `<max-sensitive-output>` directives. Forwarded so the outer-loop
    * bridge closure can merge them into the per-run `substitutionMap`,
    * matching what the non-bridge path does in
    * `loop.ts:992-998`. Without this, the model echoes literal
-   * `VELLUM_ASSISTANT_INVITE_CODE_<token>` placeholders to the user
+   * `MAX_ASSISTANT_INVITE_CODE_<token>` placeholders to the user
    * instead of the masked value (security invariant — the secret —
    * still holds; UX regression only). Phase 2.2 in
    * `docs/architecture/claude-subscription-bridge.md`.
@@ -312,13 +312,13 @@ export interface ToolBridgeResult {
 
 /**
  * Per-call callback the caller of `sendMessage` may supply to let an
- * agentic provider invoke Vellum tools without rebuilding the trust,
+ * agentic provider invoke Max tools without rebuilding the trust,
  * approval, CES, and audit pipeline. The implementation is expected to
- * delegate to Vellum's existing `ToolExecutor` (`assistant/src/tools/
+ * delegate to Max's existing `ToolExecutor` (`assistant/src/tools/
  * executor.ts`) so all security gates fire as on the normal path.
  *
  * Providers that do not run their own loop (anthropic, openai, gemini,
- * etc.) ignore this field — Vellum's outer loop handles tool execution
+ * etc.) ignore this field — Max's outer loop handles tool execution
  * after `sendMessage` returns.
  */
 export type ProviderToolBridge = (
@@ -331,10 +331,10 @@ export interface SendMessageOptions {
   signal?: AbortSignal;
   /**
    * Bridge that an agentic provider calls when its own loop wants to
-   * execute a Vellum tool. Only consumed by providers like
+   * execute a Max tool. Only consumed by providers like
    * `claude-subscription` whose underlying SDK runs the tool loop
    * internally. When unset, the provider falls back to its own
-   * registry (e.g. `setVellumToolExecutor`) or to a stub.
+   * registry (e.g. `setMaxToolExecutor`) or to a stub.
    */
   toolBridge?: ProviderToolBridge;
   /**
@@ -348,7 +348,7 @@ export interface SendMessageOptions {
   /**
    * Maximum characters for a single bridged tool result before it is
    * truncated with a clear suffix. Only consulted by agentic providers
-   * that route Vellum tool calls internally (currently
+   * that route Max tool calls internally (currently
    * `claude-subscription`). Computed by the outer loop from the
    * conversation's context-window size, matching what the outer-loop
    * `toolResultTruncate` pipeline would apply to a non-bridged tool

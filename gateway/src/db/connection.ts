@@ -94,7 +94,7 @@ function canonicalizePathThroughExistingParent(path: string): string {
 function assertTestDbIsIsolated(): void {
   if (
     process.env.NODE_ENV !== "test" ||
-    process.env.VELLUM_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS === "1"
+    process.env.MAX_ALLOW_REAL_GATEWAY_SECURITY_IN_TESTS === "1"
   ) {
     return;
   }
@@ -113,8 +113,8 @@ function assertTestDbIsIsolated(): void {
   const resolvedSecurityDir =
     canonicalizePathThroughExistingParent(securityDir);
   const realSecurityDir = canonicalizePathThroughExistingParent(
-    process.env.VELLUM_TEST_REAL_GATEWAY_SECURITY_DIR?.trim() ||
-      join(homedir(), ".vellum", "protected"),
+    process.env.MAX_TEST_REAL_GATEWAY_SECURITY_DIR?.trim() ||
+      join(homedir(), ".max", "protected"),
   );
   if (
     resolvedSecurityDir === realSecurityDir ||
@@ -132,7 +132,7 @@ function assertTestDbIsIsolated(): void {
 
 /**
  * One-time migration: move gateway.sqlite from the legacy path
- * (~/.vellum/data/gateway.sqlite) to the new PVC-backed path
+ * (~/.max/data/gateway.sqlite) to the new PVC-backed path
  * ({gatewaySecurityDir}/gateway.sqlite). Idempotent — skips if
  * the new path already exists or the old path doesn't.
  */

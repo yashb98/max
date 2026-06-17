@@ -133,7 +133,7 @@ describe("handleHostBrowserResult — same-actor guard", () => {
 
   // ── Targeted + correct headers → 200 ─────────────────────────────────
 
-  describe("targeted + correct x-vellum-client-id + actor-principal", () => {
+  describe("targeted + correct x-max-client-id + actor-principal", () => {
     test("returns { accepted: true } and resolves the interaction", async () => {
       const requestId = "browser-req-targeted-match";
       pendingInteractions.register(requestId, {
@@ -146,8 +146,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
       const result = await handleHostBrowserResult({
         body: { requestId, content: "ok", isError: false },
         headers: {
-          "x-vellum-client-id": "client-A",
-          "x-vellum-actor-principal-id": "user-1",
+          "x-max-client-id": "client-A",
+          "x-max-actor-principal-id": "user-1",
         },
       });
 
@@ -155,7 +155,7 @@ describe("handleHostBrowserResult — same-actor guard", () => {
       expect(pendingInteractions.get(requestId)).toBeUndefined();
     });
 
-    test("trims whitespace from x-vellum-client-id before comparing", async () => {
+    test("trims whitespace from x-max-client-id before comparing", async () => {
       const requestId = "browser-req-targeted-trim";
       pendingInteractions.register(requestId, {
         conversationId: "conv-1",
@@ -167,8 +167,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
       const result = await handleHostBrowserResult({
         body: { requestId, content: "ok", isError: false },
         headers: {
-          "x-vellum-client-id": "  client-A  ",
-          "x-vellum-actor-principal-id": "user-1",
+          "x-max-client-id": "  client-A  ",
+          "x-max-actor-principal-id": "user-1",
         },
       });
 
@@ -176,9 +176,9 @@ describe("handleHostBrowserResult — same-actor guard", () => {
     });
   });
 
-  // ── Targeted + missing x-vellum-client-id → 400 ──────────────────────
+  // ── Targeted + missing x-max-client-id → 400 ──────────────────────
 
-  describe("targeted + missing x-vellum-client-id", () => {
+  describe("targeted + missing x-max-client-id", () => {
     test("throws BadRequestError when header is absent", () => {
       const requestId = "browser-req-targeted-no-header";
       pendingInteractions.register(requestId, {
@@ -207,7 +207,7 @@ describe("handleHostBrowserResult — same-actor guard", () => {
       expect(() =>
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
-          headers: { "x-vellum-client-id": "   " },
+          headers: { "x-max-client-id": "   " },
         }),
       ).toThrow(BadRequestError);
     });
@@ -233,9 +233,9 @@ describe("handleHostBrowserResult — same-actor guard", () => {
     });
   });
 
-  // ── Targeted + wrong x-vellum-client-id → 403 ────────────────────────
+  // ── Targeted + wrong x-max-client-id → 403 ────────────────────────
 
-  describe("targeted + wrong x-vellum-client-id", () => {
+  describe("targeted + wrong x-max-client-id", () => {
     test("throws ForbiddenError when client id does not match target", () => {
       const requestId = "browser-req-targeted-client-mismatch";
       pendingInteractions.register(requestId, {
@@ -249,8 +249,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-B",
-            "x-vellum-actor-principal-id": "user-1",
+            "x-max-client-id": "client-B",
+            "x-max-actor-principal-id": "user-1",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -270,8 +270,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-B",
-            "x-vellum-actor-principal-id": "user-1",
+            "x-max-client-id": "client-B",
+            "x-max-actor-principal-id": "user-1",
           },
         });
       } catch (e) {
@@ -297,8 +297,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-B",
-            "x-vellum-actor-principal-id": "user-1",
+            "x-max-client-id": "client-B",
+            "x-max-actor-principal-id": "user-1",
           },
         });
       } catch {
@@ -325,8 +325,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-2",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-2",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -344,7 +344,7 @@ describe("handleHostBrowserResult — same-actor guard", () => {
       expect(() =>
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
-          headers: { "x-vellum-client-id": "client-A" },
+          headers: { "x-max-client-id": "client-A" },
         }),
       ).toThrow(ForbiddenError);
     });
@@ -362,8 +362,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-1",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-1",
           },
         }),
       ).toThrow(ForbiddenError);
@@ -382,8 +382,8 @@ describe("handleHostBrowserResult — same-actor guard", () => {
         handleHostBrowserResult({
           body: { requestId, content: "ok", isError: false },
           headers: {
-            "x-vellum-client-id": "client-A",
-            "x-vellum-actor-principal-id": "user-2",
+            "x-max-client-id": "client-A",
+            "x-max-actor-principal-id": "user-2",
           },
         });
       } catch {
@@ -421,7 +421,7 @@ describe("handleHostBrowserResult — same-actor guard", () => {
 
       const result = await handleHostBrowserResult({
         body: { requestId, content: "ok", isError: false },
-        headers: { "x-vellum-client-id": "anything" },
+        headers: { "x-max-client-id": "anything" },
       });
 
       expect(result).toEqual({ accepted: true });

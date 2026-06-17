@@ -44,7 +44,7 @@ function loadDesignSystemCss(): string {
   try {
     const cssPath = join(
       import.meta.dirname ?? __dirname,
-      "../../../../clients/macos/vellum-assistant/Resources/vellum-design-system.css",
+      "../../../../clients/macos/max-assistant/Resources/max-design-system.css",
     );
     designSystemCssCache = readFileSync(cssPath, "utf-8");
   } catch {
@@ -153,7 +153,7 @@ function serveMultifileApp(appId: string, appName: string): string {
 
   // Rewrite relative asset paths to absolute HTTP routes so browsers and
   // HTTP-based consumers (e.g. /pages/:appId) can resolve them. The macOS
-  // WebView uses the vellumapp:// scheme handler which resolves on disk,
+  // WebView uses the maxapp:// scheme handler which resolves on disk,
   // but HTTP clients need the /v1/apps/:appId/dist/ route.
   let html = readFileSync(indexPath, "utf-8");
   html = html.replace(
@@ -392,7 +392,7 @@ export const ROUTES: RouteDefinition[] = [
     tags: ["apps"],
     responseHeaders: {
       "Content-Type": "application/zip",
-      "Content-Disposition": 'attachment; filename="app.vellum"',
+      "Content-Disposition": 'attachment; filename="app.max"',
     },
     handler: handleDownloadSharedApp,
   },

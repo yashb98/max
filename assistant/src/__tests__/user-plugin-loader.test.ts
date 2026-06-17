@@ -2,7 +2,7 @@
  * Tests for the user plugin loader (PR 29).
  *
  * Redirects `getWorkspaceDir()` into a per-test temp directory via
- * `VELLUM_WORKSPACE_DIR` so `loadUserPlugins()` walks an isolated tree
+ * `MAX_WORKSPACE_DIR` so `loadUserPlugins()` walks an isolated tree
  * that we populate on demand.
  *
  * Covers:
@@ -29,9 +29,9 @@ import { loadUserPlugins } from "../plugins/user-loader.js";
 // Each describe-scope gets a fresh subdirectory.
 const TEST_WORKSPACE_DIR = join(
   tmpdir(),
-  `vellum-user-plugin-loader-test-${process.pid}-${Date.now()}`,
+  `max-user-plugin-loader-test-${process.pid}-${Date.now()}`,
 );
-process.env.VELLUM_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
+process.env.MAX_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
 
 /** The plugins directory the loader will walk. */
 const PLUGINS_DIR = join(TEST_WORKSPACE_DIR, "plugins");
@@ -275,7 +275,7 @@ registerPlugin({
 
     test("strips npm scope from package.json name", async () => {
       writeExperimentalPlugin("scoped", {
-        name: "@vellumai/cool-plugin",
+        name: "@maxai/cool-plugin",
         version: "0.1.0",
       });
 

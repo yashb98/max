@@ -145,7 +145,7 @@ ensure_bun() {
     success "bun installed ($(bun --version))"
 }
 
-# Ensure ~/.bun/bin is in the user's shell profile so bun and vellum are
+# Ensure ~/.bun/bin is in the user's shell profile so bun and max are
 # available in new terminal sessions. The bun installer sometimes skips
 # this (e.g. when stdin is piped via curl | bash).
 configure_shell_profile() {
@@ -224,16 +224,16 @@ symlink_cli() {
     return 0
 }
 
-symlink_vellum() {
-    symlink_cli "vellum"
+symlink_max() {
+    symlink_cli "max"
     symlink_cli "assistant"
 }
 
-# Append PATH setup to ~/.config/vellum/env so callers can pick up PATH
+# Append PATH setup to ~/.config/max/env so callers can pick up PATH
 # changes without restarting their shell:
-#   curl -fsSL https://vellum.ai/install.sh | bash && . ~/.config/vellum/env
+#   curl -fsSL https://max.ai/install.sh | bash && . ~/.config/max/env
 write_env_file() {
-    local env_dir="${XDG_CONFIG_HOME:-$HOME/.config}/vellum"
+    local env_dir="${XDG_CONFIG_HOME:-$HOME/.config}/max"
     local env_file="$env_dir/env"
     mkdir -p "$env_dir"
     cat >> "$env_file" <<'ENVEOF'
@@ -245,33 +245,33 @@ esac
 ENVEOF
 }
 
-install_vellum() {
-    if command -v vellum >/dev/null 2>&1; then
-        info "Updating vellum to latest..."
-        bun install -g vellum@latest
+install_max() {
+    if command -v max >/dev/null 2>&1; then
+        info "Updating max to latest..."
+        bun install -g max@latest
     else
-        info "Installing vellum globally..."
-        bun install -g vellum@latest
+        info "Installing max globally..."
+        bun install -g max@latest
     fi
 
-    if ! command -v vellum >/dev/null 2>&1; then
-        error "vellum installation failed. Please install manually: bun install -g vellum"
+    if ! command -v max >/dev/null 2>&1; then
+        error "max installation failed. Please install manually: bun install -g max"
         exit 1
     fi
 
-    success "vellum installed ($(vellum --version 2>/dev/null || echo 'unknown'))"
+    success "max installed ($(max --version 2>/dev/null || echo 'unknown'))"
 }
 
 main() {
     printf "\n"
-    printf '  %bVellum Installer%b\n' "$BOLD" "$RESET"
+    printf '  %bMax Installer%b\n' "$BOLD" "$RESET"
     printf "\n"
 
     ensure_git
     ensure_bun
     configure_shell_profile
-    install_vellum
-    symlink_vellum
+    install_max
+    symlink_max
 
     # Verify the assistant CLI is available
     if ! command -v assistant >/dev/null 2>&1; then
@@ -280,21 +280,21 @@ main() {
 
     # Append PATH config to the env file so the quickstart one-liner can
     # pick up PATH changes in the caller's shell:
-    #   curl ... | bash && . ~/.config/vellum/env
+    #   curl ... | bash && . ~/.config/max/env
     write_env_file
 
-    # Source the shell profile so vellum hatch runs with the correct PATH
+    # Source the shell profile so max hatch runs with the correct PATH
     # in this session (the profile changes only take effect in new shells
     # otherwise).
     export BUN_INSTALL="$HOME/.bun"
     export PATH="$BUN_INSTALL/bin:$PATH"
 
-    info "Running vellum hatch..."
+    info "Running max hatch..."
     printf "\n"
-    if [ -n "${VELLUM_SSH_USER:-}" ] && [ "$(id -u)" = "0" ]; then
-        su - "$VELLUM_SSH_USER" -c "set -a; [ -f \"\$HOME/.config/vellum/env\" ] && . \"\$HOME/.config/vellum/env\"; set +a; export PATH=\"$HOME/.bun/bin:\$PATH\"; vellum hatch"
+    if [ -n "${MAX_SSH_USER:-}" ] && [ "$(id -u)" = "0" ]; then
+        su - "$MAX_SSH_USER" -c "set -a; [ -f \"\$HOME/.config/max/env\" ] && . \"\$HOME/.config/max/env\"; set +a; export PATH=\"$HOME/.bun/bin:\$PATH\"; max hatch"
     else
-        vellum hatch
+        max hatch
     fi
 }
 

@@ -14,8 +14,8 @@ import { GATEWAY_PORT } from "./constants";
 
 function getDefaultWorkspaceDir(): string {
   return (
-    process.env.VELLUM_WORKSPACE_DIR?.trim() ||
-    join(homedir(), ".vellum", "workspace")
+    process.env.MAX_WORKSPACE_DIR?.trim() ||
+    join(homedir(), ".max", "workspace")
   );
 }
 
@@ -296,7 +296,7 @@ export async function maybeStartNgrokTunnel(
     return ngrokProcess;
   } catch {
     console.warn(
-      `   ⚠ Could not start ngrok tunnel. Webhook integrations may not work until you run \`vellum tunnel\`.`,
+      `   ⚠ Could not start ngrok tunnel. Webhook integrations may not work until you run \`max tunnel\`.`,
     );
     if (!ngrokProcess.killed) ngrokProcess.kill("SIGTERM");
     return null;

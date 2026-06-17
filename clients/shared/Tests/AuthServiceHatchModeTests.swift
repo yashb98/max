@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 private final class HatchModeURLProtocol: URLProtocol {
     static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
@@ -64,7 +64,7 @@ final class AuthServiceHatchModeTests: XCTestCase {
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.url?.path, "/v1/assistants/hatch")
             XCTAssertEqual(queryValue("mode", in: request), "create")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Vellum-Organization-Id"), "org-123")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Max-Organization-Id"), "org-123")
             XCTAssertEqual(request.value(forHTTPHeaderField: "X-Session-Token"), "test-session-token")
             return makeResponse(
                 for: request,

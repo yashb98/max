@@ -1,7 +1,7 @@
 /**
  * Local draft storage for messaging.
  *
- * Stores drafts at ~/.vellum/workspace/data/drafts/<platform>/<id>.json
+ * Stores drafts at ~/.max/workspace/data/drafts/<platform>/<id>.json
  * Works across all platforms — Slack, Gmail, Discord, etc.
  */
 

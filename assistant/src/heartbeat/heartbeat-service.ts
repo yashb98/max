@@ -716,7 +716,7 @@ export class HeartbeatService {
         messageId: params.messageId,
       },
       routingIntent: "single_channel",
-      conversationAffinityHint: { vellum: params.conversationId },
+      conversationAffinityHint: { max: params.conversationId },
       conversationMetadata: {
         source: "heartbeat",
         groupId: "system:background",
@@ -763,7 +763,7 @@ export class HeartbeatService {
       prompt,
       systemHint: "Heartbeat",
       trustContext: {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "guardian",
       },
       callSite: "heartbeatAgent",

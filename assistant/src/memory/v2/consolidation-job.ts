@@ -174,7 +174,7 @@ export async function memoryV2ConsolidateJob(
         config.memory.v2.consolidation_prompt_path,
         cutoff,
       ),
-      trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+      trustContext: { sourceChannel: "max", trustClass: "guardian" },
       callSite: "mainAgent",
       timeoutMs: CONSOLIDATION_TIMEOUT_MS,
       origin: "memory_consolidation",

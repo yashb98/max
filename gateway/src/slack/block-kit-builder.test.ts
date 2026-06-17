@@ -123,7 +123,7 @@ describe("BlockKitBuilder", () => {
       .section("Things are going well.")
       .divider()
       .actions([button({ actionId: "ack", text: "Acknowledge" })])
-      .contextMrkdwn("Sent by Vellum")
+      .contextMrkdwn("Sent by Max")
       .toBlocks();
 
     expect(blocks).toHaveLength(5);

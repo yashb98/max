@@ -24,7 +24,7 @@ export async function validateResendEmail(
     const response = await fetch("https://api.resend.com/domains", {
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "User-Agent": "vellum-gateway/1.0",
+        "User-Agent": "max-gateway/1.0",
       },
       signal: AbortSignal.timeout(10_000),
     });

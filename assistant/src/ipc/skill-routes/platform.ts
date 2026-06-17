@@ -1,5 +1,5 @@
 /**
- * Skill IPC routes: `host.platform.workspaceDir`, `host.platform.vellumRoot`,
+ * Skill IPC routes: `host.platform.workspaceDir`, `host.platform.maxRoot`,
  * and `host.platform.runtimeMode`.
  *
  * Surface the platform-path helpers and deployment mode so out-of-process
@@ -8,7 +8,7 @@
  */
 
 import { getDaemonRuntimeMode } from "../../runtime/runtime-mode.js";
-import { getWorkspaceDir, vellumRoot } from "../../util/platform.js";
+import { getWorkspaceDir, maxRoot } from "../../util/platform.js";
 import type { SkillIpcRoute } from "../skill-ipc-types.js";
 
 export const hostPlatformWorkspaceDirRoute: SkillIpcRoute = {
@@ -18,10 +18,10 @@ export const hostPlatformWorkspaceDirRoute: SkillIpcRoute = {
   },
 };
 
-export const hostPlatformVellumRootRoute: SkillIpcRoute = {
-  method: "host.platform.vellumRoot",
+export const hostPlatformMaxRootRoute: SkillIpcRoute = {
+  method: "host.platform.maxRoot",
   handler: () => {
-    return vellumRoot();
+    return maxRoot();
   },
 };
 
@@ -34,6 +34,6 @@ export const hostPlatformRuntimeModeRoute: SkillIpcRoute = {
 
 export const platformRoutes: SkillIpcRoute[] = [
   hostPlatformWorkspaceDirRoute,
-  hostPlatformVellumRootRoute,
+  hostPlatformMaxRootRoute,
   hostPlatformRuntimeModeRoute,
 ];

@@ -4,7 +4,7 @@ export function App() {
   return (
     <div>
       <header>
-        <h1>vellum-assistant · apps/web</h1>
+        <h1>max-assistant · apps/web</h1>
         <nav>
           <Link to="/conversations/new">New conversation</Link>
           {' · '}

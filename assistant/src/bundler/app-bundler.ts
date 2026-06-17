@@ -1,5 +1,5 @@
 /**
- * Core packaging logic for .vellum zip archives.
+ * Core packaging logic for .max zip archives.
  *
  * Reads an app from the app-store, generates a manifest, and produces a
  * zip archive written to a temp file.
@@ -77,12 +77,12 @@ function assertMultifileSourceReady(
 }
 
 /**
- * Package an app into a .vellum zip archive.
+ * Package an app into a .max zip archive.
  *
  * @param appId - The ID of the app to package (from the app-store).
  * @param requestSignature - Optional callback to request an Ed25519 signature from the Swift client.
  *                           If provided, the bundle will be signed and include a signature.json.
- * @returns The path to the created .vellum file and the manifest.
+ * @returns The path to the created .max file and the manifest.
  * @throws If the app is not found, or the bundle exceeds the size limit.
  */
 export async function packageApp(
@@ -95,7 +95,7 @@ export async function packageApp(
   }
 
   // Build manifest
-  const createdBy = `vellum-assistant/${PACKAGE_VERSION}`;
+  const createdBy = `max-assistant/${PACKAGE_VERSION}`;
   const version = app.version ?? "1.0.0";
   const contentId = computeContentId(app.name);
 
@@ -174,7 +174,7 @@ export async function packageApp(
     .update(`${appId}-${Date.now()}`)
     .digest("hex")
     .slice(0, 8);
-  const bundleFilename = `${safeName}-${uniqueSuffix}.vellum`;
+  const bundleFilename = `${safeName}-${uniqueSuffix}.max`;
   const bundlePath = join(tmpdir(), bundleFilename);
 
   await new Promise<void>((resolve, reject) => {

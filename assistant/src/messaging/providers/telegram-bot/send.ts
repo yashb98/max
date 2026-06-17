@@ -5,7 +5,7 @@
  * and typing indicators by calling the Telegram Bot API directly via ./api.ts.
  */
 
-import type { ApprovalUIMetadata } from "@vellumai/gateway-client";
+import type { ApprovalUIMetadata } from "@maxai/gateway-client";
 
 import { getAttachmentContent } from "../../../memory/attachments-store.js";
 import type { RuntimeAttachmentMetadata } from "../../../runtime/http-types.js";

@@ -30,17 +30,17 @@ interface MemoryInfo {
 }
 
 /**
- * Read the memory limit from the VELLUM_MEMORY_LIMIT env var (K8s resource format),
+ * Read the memory limit from the MAX_MEMORY_LIMIT env var (K8s resource format),
  * then fall back to cgroups, then to os.totalmem().
  *
  * In platform mode the container runs under gVisor where cgroup files may report
- * the node's memory rather than the container limit. VELLUM_MEMORY_LIMIT is set
+ * the node's memory rather than the container limit. MAX_MEMORY_LIMIT is set
  * by the StatefulSet template to the exact K8s memory limit (e.g. "3Gi").
  */
 function getContainerMemoryLimitBytes(): number | null {
   // 1. Prefer the explicit env var set by the platform StatefulSet template.
   try {
-    const envLimit = process.env.VELLUM_MEMORY_LIMIT;
+    const envLimit = process.env.MAX_MEMORY_LIMIT;
     if (envLimit) {
       const parsed = parseK8sMemoryBytes(envLimit);
       if (parsed !== null) return parsed;
@@ -84,7 +84,7 @@ function getContainerMemoryLimitBytes(): number | null {
  * or readable.
  *
  * Unlike the limit lookup, no env-var override is needed: the gVisor issue
- * that motivates VELLUM_MEMORY_LIMIT is specifically about the *limit* files
+ * that motivates MAX_MEMORY_LIMIT is specifically about the *limit* files
  * exposing the host node's memory instead of the sandbox limit. The *usage*
  * files (memory.current / memory.usage_in_bytes) reflect the sandbox's own
  * accounting and are accurate under gVisor.
@@ -156,7 +156,7 @@ function parseK8sCpuCores(value: string): number | null {
  * Read the container's CPU core limit.
  *
  * Resolution order:
- * 1. VELLUM_CPU_LIMIT env var (K8s resource format, e.g. "2000m" or "2").
+ * 1. MAX_CPU_LIMIT env var (K8s resource format, e.g. "2000m" or "2").
  *    In platform mode the container runs under gVisor where cgroup files may
  *    report the node's CPU count rather than the sandbox limit.
  * 2. cgroups v2 cpu.max (quota / period → fractional cores).

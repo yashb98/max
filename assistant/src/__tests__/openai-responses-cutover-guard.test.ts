@@ -90,21 +90,20 @@ describe("OpenAI Responses API cutover guard", () => {
       ].join("\n"),
     ).toBe(true);
 
-    // The factory must NOT instantiate OpenAIChatCompletionsProvider or
-    // OpenAIProvider (the backward-compatible alias) for the "openai" key.
-    // Chat-completions classes may appear in imports but should not be
-    // instantiated in the openai factory entry.
-    const chatCompletionsInstantiations = [
-      ...source.matchAll(/new\s+OpenAIChatCompletionsProvider\s*\(/g),
-      ...source.matchAll(/new\s+OpenAIProvider\s*\(/g),
-    ];
+    // The "openai" entry must NOT instantiate OpenAIChatCompletionsProvider or
+    // OpenAIProvider (the backward-compatible alias). The ban is scoped to the
+    // openai entry (mirroring the positive openaiEntryWiring check below) — other
+    // entries legitimately use OpenAIChatCompletionsProvider (e.g. kimi/Moonshot,
+    // which exposes an OpenAI-compatible chat-completions API).
+    const openaiChatCompletionsWiring =
+      /openai\s*:\s*\([^)]*\)\s*=>\s*[\s\S]{0,400}?new\s+(OpenAIChatCompletionsProvider|OpenAIProvider)\s*\(/;
     expect(
-      chatCompletionsInstantiations.length,
+      openaiChatCompletionsWiring.test(source),
       [
-        "adapter-factory.ts must NOT instantiate OpenAIChatCompletionsProvider or",
-        "OpenAIProvider (legacy alias). Use OpenAIResponsesProvider for openai.",
+        "adapter-factory.ts's 'openai' entry must NOT instantiate OpenAIChatCompletionsProvider",
+        "or OpenAIProvider (legacy alias). Use OpenAIResponsesProvider for openai.",
       ].join("\n"),
-    ).toBe(0);
+    ).toBe(false);
 
     // The factory's "openai" entry must specifically map to OpenAIResponsesProvider.
     // Match `openai:` followed (within ~400 chars) by `new OpenAIResponsesProvider(`

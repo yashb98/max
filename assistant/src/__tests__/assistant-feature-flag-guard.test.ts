@@ -62,7 +62,7 @@ const CANONICAL_KEY_RE = /^[a-z0-9][a-z0-9-]*$/;
  */
 const LEGACY_KEY_ALLOWLIST = new Set([
   // macOS client: fallback reads from legacy config section
-  "clients/macos/vellum-assistant/Features/Settings/SettingsAccountTab.swift",
+  "clients/macos/max-assistant/Features/Settings/SettingsAccountTab.swift",
 ]);
 
 function isTestFile(filePath: string): boolean {

@@ -77,10 +77,10 @@ function handleHostCuResult({ body, headers }: RouteHandlerArgs) {
   if (peeked.targetClientId != null) {
     const headerMap = (headers as Record<string, string | undefined>) ?? {};
     const submittingClientId =
-      headerMap["x-vellum-client-id"]?.trim() || undefined;
+      headerMap["x-max-client-id"]?.trim() || undefined;
     if (!submittingClientId) {
       throw new BadRequestError(
-        "x-vellum-client-id header is missing for a targeted host CU request.",
+        "x-max-client-id header is missing for a targeted host CU request.",
       );
     }
     if (submittingClientId !== peeked.targetClientId) {
@@ -95,7 +95,7 @@ function handleHostCuResult({ body, headers }: RouteHandlerArgs) {
     // both the requestId and target clientId from submitting a result on
     // behalf of the targeted client.
     const submittingActorPrincipalId = resolveActorPrincipalIdForLocalGuardian(
-      headerMap["x-vellum-actor-principal-id"]?.trim() || undefined,
+      headerMap["x-max-actor-principal-id"]?.trim() || undefined,
     );
     enforceSameActorOrThrow({
       sourceActorPrincipalId: submittingActorPrincipalId,
@@ -166,7 +166,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted host CU request.",
+          "x-max-client-id header is missing for a targeted host CU request.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,

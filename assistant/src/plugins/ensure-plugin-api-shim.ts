@@ -1,12 +1,12 @@
 /**
- * Materializes the workspace-level `@vellumai/plugin-api` shim so that
+ * Materializes the workspace-level `@maxai/plugin-api` shim so that
  * user plugins under `<workspaceDir>/plugins/<name>/` can resolve a
  * standard bare import:
  *
- *     import { ... } from "@vellumai/plugin-api";
+ *     import { ... } from "@maxai/plugin-api";
  *
  * Bun's Node-style resolution walks up from the plugin directory and
- * finds `<workspaceDir>/node_modules/@vellumai/plugin-api/` — a tiny
+ * finds `<workspaceDir>/node_modules/@maxai/plugin-api/` — a tiny
  * shim package whose `index.js` re-binds the plugin-api namespace that
  * the assistant already loaded into its module graph (and parked on
  * `globalThis` under {@link PLUGIN_API_REGISTRY_KEY}).
@@ -26,7 +26,7 @@
  *
  * Called from {@link loadUserPlugins} at the top of its body so the
  * ordering constraint (shim exists before any plugin's
- * `import "@vellumai/plugin-api"` is parsed) is enforced by code, not
+ * `import "@maxai/plugin-api"` is parsed) is enforced by code, not
  * by a docstring in `lifecycle.ts`.
  */
 
@@ -43,7 +43,7 @@ import { getWorkspaceDir } from "../util/platform.js";
 
 const log = getLogger("plugin-api-shim");
 
-const PACKAGE_NAME = "@vellumai/plugin-api";
+const PACKAGE_NAME = "@maxai/plugin-api";
 
 /**
  * Build the body of the workspace shim's `index.js`. Exported so the

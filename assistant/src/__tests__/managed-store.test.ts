@@ -20,7 +20,7 @@ import {
 
 import { parse as parseYaml } from "yaml";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 mock.module("../util/logger.js", () => ({
   getLogger: () =>
@@ -90,7 +90,7 @@ describe("buildSkillMarkdown", () => {
     expect(result.endsWith("\n")).toBe(true);
   });
 
-  test("includes optional emoji in metadata.vellum", () => {
+  test("includes optional emoji in metadata.max", () => {
     const result = buildSkillMarkdown({
       name: "Emoji Skill",
       description: "Has an emoji",
@@ -100,7 +100,7 @@ describe("buildSkillMarkdown", () => {
     expect(result).toContain("metadata:");
     const fmMatch = result.match(/^---\n([\s\S]*?)\n---/);
     const parsed = parseYaml(fmMatch![1]);
-    expect(parsed.metadata.vellum.emoji).toBe("🧪");
+    expect(parsed.metadata.max.emoji).toBe("🧪");
   });
 
   test("escapes double quotes in name and description", () => {
@@ -165,7 +165,7 @@ describe("buildSkillMarkdown", () => {
     expect(skill!.name).toBe("path\\name");
   });
 
-  test("includes field emits YAML list in metadata.vellum", () => {
+  test("includes field emits YAML list in metadata.max", () => {
     const result = buildSkillMarkdown({
       name: "Parent",
       description: "Has children",
@@ -174,10 +174,10 @@ describe("buildSkillMarkdown", () => {
     });
     const fmMatch = result.match(/^---\n([\s\S]*?)\n---/);
     const parsed = parseYaml(fmMatch![1]);
-    expect(parsed.metadata.vellum.includes).toEqual(["child-a", "child-b"]);
+    expect(parsed.metadata.max.includes).toEqual(["child-a", "child-b"]);
   });
 
-  test("omits metadata when no vellum fields provided", () => {
+  test("omits metadata when no max fields provided", () => {
     const result = buildSkillMarkdown({
       name: "Solo",
       description: "No children",
@@ -186,7 +186,7 @@ describe("buildSkillMarkdown", () => {
     expect(result).not.toContain("metadata:");
   });
 
-  test("omits metadata when includes is empty array and no other vellum fields", () => {
+  test("omits metadata when includes is empty array and no other max fields", () => {
     const result = buildSkillMarkdown({
       name: "Empty",
       description: "Empty array",
@@ -779,12 +779,12 @@ describe("validateManagedSkillId edge cases", () => {
 });
 
 describe("YAML metadata round-trip", () => {
-  test("all vellum fields round-trip through write and load", () => {
-    // Create a managed skill with every vellum metadata field populated
+  test("all max fields round-trip through write and load", () => {
+    // Create a managed skill with every max metadata field populated
     createManagedSkill({
       id: "yaml-roundtrip-all",
       name: "Full Metadata Skill",
-      description: "Tests all vellum fields round-trip correctly",
+      description: "Tests all max fields round-trip correctly",
       bodyMarkdown: "Full metadata body.",
       emoji: "🔬",
       includes: ["child-a", "child-b"],
@@ -798,7 +798,7 @@ describe("YAML metadata round-trip", () => {
     // Verify all fields are correctly preserved
     expect(skill!.name).toBe("Full Metadata Skill");
     expect(skill!.description).toBe(
-      "Tests all vellum fields round-trip correctly",
+      "Tests all max fields round-trip correctly",
     );
     expect(skill!.emoji).toBe("🔬");
     expect(skill!.includes).toEqual(["child-a", "child-b"]);
@@ -815,10 +815,10 @@ describe("YAML metadata round-trip", () => {
         "---",
         "name: yaml-nested-skill",
         "description: Hand-authored YAML nested metadata test",
-        'compatibility: "Designed for Vellum personal assistants"',
+        'compatibility: "Designed for Max personal assistants"',
         "metadata:",
         '  emoji: "🧪"',
-        "  vellum:",
+        "  max:",
         '    display-name: "YAML Nested Skill"',
         "    includes:",
         '      - "child-a"',
@@ -834,7 +834,7 @@ describe("YAML metadata round-trip", () => {
     const skill = catalog.find((s) => s.id === "yaml-nested-test");
     expect(skill).toBeDefined();
 
-    // Verify all nested vellum fields are correctly parsed
+    // Verify all nested max fields are correctly parsed
     expect(skill!.name).toBe("yaml-nested-skill");
     expect(skill!.description).toBe("Hand-authored YAML nested metadata test");
     expect(skill!.displayName).toBe("YAML Nested Skill");

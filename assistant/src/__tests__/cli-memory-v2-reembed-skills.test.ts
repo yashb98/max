@@ -239,7 +239,7 @@ describe("all memory v2 routes — MEMORY_V2_DISABLED gate", () => {
 
   // memory_v2_validate is the one read-only diagnostic that must work
   // before the operator flips memory.v2.enabled — the
-  // vellum-memory-v2-migration skill's pre-flip dry-run depends on it.
+  // max-memory-v2-migration skill's pre-flip dry-run depends on it.
   test("memory_v2_validate runs when memory.v2.enabled is false", async () => {
     writeWorkspaceConfig({ memory: { v2: { enabled: false } } });
     const route = memoryV2Routes.find(

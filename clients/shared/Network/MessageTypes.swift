@@ -284,7 +284,7 @@ public typealias UserMessageMessage = UserMessage
 extension UserMessage {
     /// Platform-derived default channel identifier.
     private static var defaultChannel: String {
-        return "vellum"
+        return "max"
     }
 
     /// Platform-derived default interface identifier.
@@ -467,7 +467,7 @@ extension BundleAppRequest {
     }
 }
 
-/// Sent to open and scan a .vellum bundle.
+/// Sent to open and scan a .max bundle.
 /// Backed by generated `OpenBundleRequest`.
 public typealias OpenBundleMessage = OpenBundleRequest
 
@@ -1199,7 +1199,7 @@ public struct SkillsshOriginMeta: Codable, Sendable, Equatable {
 /// Discriminated union over the `origin` field of a skill.
 /// Constructed via the `originMeta` computed property, which dispatches on origin.
 public enum SkillOriginMeta: Sendable, Equatable {
-    case vellum
+    case max
     case clawhub(ClawhubOriginMeta)
     case skillssh(SkillsshOriginMeta)
     case custom
@@ -1226,8 +1226,8 @@ extension SkillsListResponseSkill {
                 installs: installs ?? 0,
                 audit: audit
             ))
-        case "vellum":
-            return .vellum
+        case "max":
+            return .max
         default:
             return .custom
         }
@@ -1255,8 +1255,8 @@ extension SkillDetailHTTPResponse {
                 installs: installs ?? 0,
                 audit: audit
             ))
-        case "vellum":
-            return .vellum
+        case "max":
+            return .max
         default:
             return .custom
         }
@@ -1610,7 +1610,7 @@ public struct HostBashRequest: Decodable, Sendable {
     public let command: String
     public let workingDir: String?
     public let timeoutSeconds: Double?
-    /// Extra environment variables to inject into the subprocess (e.g. VELLUM_UNTRUSTED_SHELL).
+    /// Extra environment variables to inject into the subprocess (e.g. MAX_UNTRUSTED_SHELL).
     public let env: [String: String]?
     /// When set, this request is targeted at a specific client ID. Non-nil only for
     /// cross-client proxy requests routed through HostBashProxy.
@@ -2513,7 +2513,7 @@ extension ToolNamesListRequest {
 /// Backed by generated `ToolNamesListResponse`.
 public typealias ToolNamesListResponseMessage = ToolNamesListResponse
 
-/// Response from opening and scanning a .vellum bundle.
+/// Response from opening and scanning a .max bundle.
 /// Backed by generated `OpenBundleResponse`.
 public typealias OpenBundleResponseMessage = OpenBundleResponse
 

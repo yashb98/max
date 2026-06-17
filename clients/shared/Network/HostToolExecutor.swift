@@ -79,7 +79,7 @@ public enum HostToolExecutor {
                 process.currentDirectoryURL = FileManager.default.homeDirectoryForCurrentUser
             }
 
-            // Inject extra environment variables from the daemon (e.g. VELLUM_UNTRUSTED_SHELL)
+            // Inject extra environment variables from the daemon (e.g. MAX_UNTRUSTED_SHELL)
             // into the subprocess. Merge with the inherited environment so existing vars are preserved.
             if let extraEnv = request.env, !extraEnv.isEmpty {
                 var env = ProcessInfo.processInfo.environment

@@ -1,10 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
- * Verify the Vellum-Signature header sent by the Vellum platform.
+ * Verify the Max-Signature header sent by the Max platform.
  *
  * The platform computes: HMAC-SHA256(webhookSecret, rawBody) and sends it as
- *   Vellum-Signature: sha256=<hex-digest>
+ *   Max-Signature: sha256=<hex-digest>
  *
  * We must compare with a constant-time comparison to avoid timing attacks.
  *
@@ -12,7 +12,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * (`X-Hub-Signature-256` header).
  */
 
-const HEADER_NAME = "vellum-signature";
+const HEADER_NAME = "max-signature";
 
 export function verifyEmailWebhookSignature(
   headers: Headers,

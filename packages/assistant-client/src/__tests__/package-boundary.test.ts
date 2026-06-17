@@ -1,14 +1,14 @@
 /**
- * Package boundary tests for @vellumai/assistant-client.
+ * Package boundary tests for @maxai/assistant-client.
  *
  * Ensures the package:
  * 1. Does NOT import from assistant, gateway, or credential-executor service
  *    runtime modules.
- * 2. Does NOT import from runtime shared packages (@vellumai/credential-storage,
- *    @vellumai/egress-proxy).
+ * 2. Does NOT import from runtime shared packages (@maxai/credential-storage,
+ *    @maxai/egress-proxy).
  * 3. Remains a lightweight client package with no runtime service dependencies.
  *
- * @vellumai/assistant-client is a typed HTTP client for gateway-to-assistant
+ * @maxai/assistant-client is a typed HTTP client for gateway-to-assistant
  * calls. It must not pull in assistant runtime internals or CES infrastructure.
  */
 
@@ -49,26 +49,26 @@ const FORBIDDEN_IMPORT_PATTERNS = [
   // Assistant runtime internals
   /from\s+["'](?:\.\.\/)+assistant\/src/,
   /require\s*\(\s*["'](?:\.\.\/)+assistant\/src/,
-  /from\s+["']@vellumai\/assistant(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/assistant(?:\/|["'])/,
+  /from\s+["']@maxai\/assistant(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/assistant(?:\/|["'])/,
 
   // Gateway runtime internals
   /from\s+["'](?:\.\.\/)+gateway\/src/,
   /require\s*\(\s*["'](?:\.\.\/)+gateway\/src/,
-  /from\s+["']@vellumai\/(?:vellum-)?gateway(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/(?:vellum-)?gateway(?:\/|["'])/,
+  /from\s+["']@maxai\/(?:max-)?gateway(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/(?:max-)?gateway(?:\/|["'])/,
 
   // Credential executor runtime internals
   /from\s+["'](?:\.\.\/)+credential-executor\/src/,
   /require\s*\(\s*["'](?:\.\.\/)+credential-executor\/src/,
-  /from\s+["']@vellumai\/credential-executor(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/credential-executor(?:\/|["'])/,
+  /from\s+["']@maxai\/credential-executor(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/credential-executor(?:\/|["'])/,
 
   // Runtime shared packages
-  /from\s+["']@vellumai\/credential-storage(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/credential-storage(?:\/|["'])/,
-  /from\s+["']@vellumai\/egress-proxy(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/egress-proxy(?:\/|["'])/,
+  /from\s+["']@maxai\/credential-storage(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/credential-storage(?:\/|["'])/,
+  /from\s+["']@maxai\/egress-proxy(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/egress-proxy(?:\/|["'])/,
 ];
 
 describe("package boundary", () => {
@@ -101,7 +101,7 @@ describe("package boundary", () => {
         `Found ${violations.length} forbidden import(s) in assistant-client package:\n` +
           violations.map((v) => `  - ${v}`).join("\n") +
           "\n\n" +
-          "@vellumai/assistant-client must not import from service runtime modules\n" +
+          "@maxai/assistant-client must not import from service runtime modules\n" +
           "or runtime shared packages (credential-storage, egress-proxy).",
       );
     }
@@ -126,9 +126,9 @@ describe("package boundary", () => {
 
     const forbidden = Object.keys(allDeps).filter((dep) =>
       [
-        "@vellumai/assistant",
-        "@vellumai/credential-storage",
-        "@vellumai/egress-proxy",
+        "@maxai/assistant",
+        "@maxai/credential-storage",
+        "@maxai/egress-proxy",
       ].includes(dep),
     );
 

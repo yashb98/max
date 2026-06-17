@@ -15,7 +15,7 @@
 
 import type { Database } from "bun:sqlite";
 
-import { ensureVellumGuardianBinding } from "./auth/guardian-bootstrap.js";
+import { ensureMaxGuardianBinding } from "./auth/guardian-bootstrap.js";
 import { getGatewayDb, type GatewayDb } from "./db/connection.js";
 import { runDataMigrations } from "./db/data-migrations/index.js";
 import {
@@ -73,7 +73,7 @@ export async function runPostAssistantReady(): Promise<void> {
 
   // 2. Guardian binding backfill
   try {
-    await ensureVellumGuardianBinding();
+    await ensureMaxGuardianBinding();
   } catch (err) {
     log.warn({ err }, "Post-ready guardian binding backfill failed");
   }

@@ -2,7 +2,7 @@
  * Workspace migration 023: Move config/state JSON files from root to workspace.
  *
  * Previously, dictation-profiles.json, email-guardrails.json, and
- * active-call-leases.json lived directly under the Vellum root (~/.vellum/).
+ * active-call-leases.json lived directly under the Max root (~/.max/).
  * This migration moves them into the workspace directory so they follow
  * the workspace convention for organizational consistency.
  */
@@ -11,7 +11,7 @@ import { existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 
 import type { WorkspaceMigration } from "./types.js";
-import { getVellumRoot } from "./utils.js";
+import { getMaxRoot } from "./utils.js";
 /** Files to move from root → workspace. */
 const CONFIG_FILES = [
   "dictation-profiles.json",
@@ -25,7 +25,7 @@ export const moveConfigFilesToWorkspaceMigration: WorkspaceMigration = {
     "Move dictation-profiles, email-guardrails, and active-call-leases from root to workspace",
 
   run(workspaceDir: string): void {
-    const rootDir = getVellumRoot();
+    const rootDir = getMaxRoot();
 
     for (const file of CONFIG_FILES) {
       const oldPath = join(rootDir, file);
@@ -53,7 +53,7 @@ export const moveConfigFilesToWorkspaceMigration: WorkspaceMigration = {
   },
 
   down(workspaceDir: string): void {
-    const rootDir = getVellumRoot();
+    const rootDir = getMaxRoot();
 
     for (const file of CONFIG_FILES) {
       const newPath = join(workspaceDir, file);

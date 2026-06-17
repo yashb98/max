@@ -13,9 +13,9 @@ criteria, and what to capture when something goes wrong.
 
 ### Prerequisites
 
-- A running Vellum assistant on the machine under test (bare-metal or Docker).
+- A running Max assistant on the machine under test (bare-metal or Docker).
 - The `meet` feature flag enabled — default on. Check with
-  `cat ~/.vellum/protected/feature-flags.json 2>/dev/null` and
+  `cat ~/.max/protected/feature-flags.json 2>/dev/null` and
   `rg '"meet"' meta/feature-flags/feature-flag-registry.json`.
 - A configured STT provider under `services.stt.provider` (`deepgram`,
   `google-gemini`, or `openai-whisper`) with credentials in the credential
@@ -31,7 +31,7 @@ criteria, and what to capture when something goes wrong.
 1. Create or open a Meet meeting: `https://meet.google.com/xxx-yyyy-zzz`.
 2. Keep the meeting open on your host so you can admit the bot from the
    "Asking to join" lobby. The bot's display name is configurable via
-   `services.meet.botDisplayName` — the default shows up as "Vellum".
+   `services.meet.botDisplayName` — the default shows up as "Max".
 3. From the assistant UI (or a conversation thread), ask:
    `"Join this Meet: https://meet.google.com/xxx-yyyy-zzz"`. The skill's
    `SKILL.md` requires an explicit request verb and a valid Meet URL.
@@ -42,23 +42,23 @@ criteria, and what to capture when something goes wrong.
 ### Where the logs live
 
 - **Daemon logs** (pino JSON, one object per line):
-  `~/.vellum/workspace/logs/daemon-stderr.log`.
+  `~/.max/workspace/logs/daemon-stderr.log`.
   See `assistant/src/util/platform.ts` — `getDaemonStderrLogPath()`.
   In Docker mode the workspace is mounted at `/workspace`, so the path
   inside the container is `/workspace/logs/daemon-stderr.log`.
-  Tail with `tail -F ~/.vellum/workspace/logs/daemon-stderr.log`.
-- **Bot container logs**: `docker logs vellum-meet-<meetingId>`. In
+  Tail with `tail -F ~/.max/workspace/logs/daemon-stderr.log`.
+- **Bot container logs**: `docker logs max-meet-<meetingId>`. In
   Docker-in-Docker mode (assistant itself running in a container) the bot
   containers are nested — run `docker logs` from _inside_ the assistant
   container:
-  `docker exec <assistant-container> docker logs vellum-meet-<id>`.
+  `docker exec <assistant-container> docker logs max-meet-<id>`.
   The meeting id is a freshly generated UUID — `meet_join` calls
   `randomUUID()` (see `skills/meet-join/tools/meet-join-tool.ts`), and the
-  session manager names the container `vellum-meet-${meetingId}` (see
+  session manager names the container `max-meet-${meetingId}` (see
   `skills/meet-join/daemon/session-manager.ts`). It is NOT derived from
-  the Meet URL. `docker ps --format '{{.Names}}' | rg vellum-meet` to
+  the Meet URL. `docker ps --format '{{.Names}}' | rg max-meet` to
   list.
-- **Per-meeting artifacts**: `$VELLUM_WORKSPACE_DIR/meets/<meetingId>/`.
+- **Per-meeting artifacts**: `$MAX_WORKSPACE_DIR/meets/<meetingId>/`.
   See `skills/meet-join/daemon/storage-writer.ts`. Files:
   `audio.opus`, `segments.jsonl`, `transcript.jsonl`, `participants.json`,
   `meta.json`.
@@ -69,16 +69,16 @@ All log lines below are pino JSON — use `rg` with JSON-aware patterns.
 
 ```bash
 # Meet session lifecycle
-rg '"MeetAudioIngest: bot connected"' ~/.vellum/workspace/logs/daemon-stderr.log
-rg '"Meet barge-in: cancelling in-flight TTS"' ~/.vellum/workspace/logs/daemon-stderr.log
-rg '"MeetConsentMonitor: objection detected"' ~/.vellum/workspace/logs/daemon-stderr.log
+rg '"MeetAudioIngest: bot connected"' ~/.max/workspace/logs/daemon-stderr.log
+rg '"Meet barge-in: cancelling in-flight TTS"' ~/.max/workspace/logs/daemon-stderr.log
+rg '"MeetConsentMonitor: objection detected"' ~/.max/workspace/logs/daemon-stderr.log
 ```
 
 ---
 
 ## Test 1: Multi-party scraper accuracy
 
-**Goal**: a 3-person meeting (the Vellum bot + 2 humans) produces correct
+**Goal**: a 3-person meeting (the Max bot + 2 humans) produces correct
 `participant.change` and `speaker.change` events as humans join, leave, and
 take turns speaking.
 
@@ -113,7 +113,7 @@ persisted artifacts.
   `storage-writer.ts` `writeParticipantsJson` removes entries on leave.
   Verify:
   ```bash
-  jq 'length' ~/.vellum/workspace/meets/<id>/participants.json
+  jq 'length' ~/.max/workspace/meets/<id>/participants.json
   ```
   Expected: matches the number of non-bot humans still present when the
   bot left (step 7 leaves Alice only → `1`).
@@ -123,7 +123,7 @@ persisted artifacts.
   on the _next_ change (see `closeOpenSegmentAt`), so the first
   `speaker.change` after join opens segment #1.
   ```bash
-  jq -r '.speakerName' ~/.vellum/workspace/meets/<id>/segments.jsonl | sort -u
+  jq -r '.speakerName' ~/.max/workspace/meets/<id>/segments.jsonl | sort -u
   ```
   Expected: two distinct human names (bot is silent, should never appear).
 - SSE event stream, observed via the desktop app's meeting view or by
@@ -131,7 +131,7 @@ persisted artifacts.
   `meet.participant_changed` events (bot-self join, Bob join, Bob leave,
   bot leave) and at least three `meet.speaker_changed` events (one per
   human utterance).
-- `docker logs vellum-meet-<id>` shows the extension's in-page
+- `docker logs max-meet-<id>` shows the extension's in-page
   `participants.ts` feature emitting participant deltas — grep for
   `"participant.change"`.
 
@@ -148,11 +148,11 @@ persisted artifacts.
 
 ### Capture on failure
 
-- `docker logs vellum-meet-<id> > /tmp/vellum-meet-<id>.log`.
-- `cp -r ~/.vellum/workspace/meets/<id> /tmp/meet-artifact-<id>`.
+- `docker logs max-meet-<id> > /tmp/max-meet-<id>.log`.
+- `cp -r ~/.max/workspace/meets/<id> /tmp/meet-artifact-<id>`.
 - Screen recording of the Meet DOM showing the speaker tile transitions
   (helps correlate against log timestamps).
-- `rg meet ~/.vellum/workspace/logs/daemon-stderr.log > /tmp/daemon-meet-<id>.log`.
+- `rg meet ~/.max/workspace/logs/daemon-stderr.log > /tmp/daemon-meet-<id>.log`.
 
 ---
 
@@ -197,7 +197,7 @@ stable string to grep against.
 - **Transcript written**. In `transcript.jsonl`:
   ```bash
   jq -c 'select(.text | test("quick brown fox"; "i"))' \
-    ~/.vellum/workspace/meets/<id>/transcript.jsonl
+    ~/.max/workspace/meets/<id>/transcript.jsonl
   ```
   Expected: at least one line with `text` containing the phrase. Each
   line also carries `timestamp`, optional `speakerId`, optional
@@ -219,7 +219,7 @@ stable string to grep against.
   ```bash
   jq 'select(.text | test("quick brown fox"; "i"))
       | {speakerLabel, speakerId}' \
-    ~/.vellum/workspace/meets/<id>/transcript.jsonl
+    ~/.max/workspace/meets/<id>/transcript.jsonl
   ```
   Expected: both fields present and non-null.
 - **Confidence reasonable**: `confidence > 0.8` for the scripted phrase
@@ -239,11 +239,11 @@ stable string to grep against.
 
 ### Capture on failure
 
-- `cp ~/.vellum/workspace/meets/<id>/transcript.jsonl /tmp/`.
-- `cp ~/.vellum/workspace/meets/<id>/participants.json /tmp/`.
-- `cp ~/.vellum/workspace/meets/<id>/audio.opus /tmp/` (play it back to
+- `cp ~/.max/workspace/meets/<id>/transcript.jsonl /tmp/`.
+- `cp ~/.max/workspace/meets/<id>/participants.json /tmp/`.
+- `cp ~/.max/workspace/meets/<id>/audio.opus /tmp/` (play it back to
   verify audio actually landed in ingest).
-- `rg -i 'MeetAudioIngest|speaker-resolver|transcript' ~/.vellum/workspace/logs/daemon-stderr.log > /tmp/stt-<id>.log`.
+- `rg -i 'MeetAudioIngest|speaker-resolver|transcript' ~/.max/workspace/logs/daemon-stderr.log > /tmp/stt-<id>.log`.
 
 ---
 
@@ -277,7 +277,7 @@ and the bot's HTTP server receives `DELETE /play_audio/:streamId`.
      The handler is in
      `skills/meet-join/bot/src/control/http-server.ts:461`.
      ```bash
-     docker logs vellum-meet-<id> 2>&1 | rg 'DELETE /play_audio/'
+     docker logs max-meet-<id> 2>&1 | rg 'DELETE /play_audio/'
      ```
 
 ### Pass criteria
@@ -322,8 +322,8 @@ and the bot's HTTP server receives `DELETE /play_audio/:streamId`.
 
 - Screen/audio recording of the bot's voice trailing off (phone camera
   aimed at speakers is fine — we just need the timing).
-- `docker logs vellum-meet-<id> 2>&1 > /tmp/vellum-meet-bargein-<id>.log`.
-- `rg -i 'barge-in|tts|speaking_started|speaking_ended|play_audio' ~/.vellum/workspace/logs/daemon-stderr.log > /tmp/daemon-bargein-<id>.log`.
+- `docker logs max-meet-<id> 2>&1 > /tmp/max-meet-bargein-<id>.log`.
+- `rg -i 'barge-in|tts|speaking_started|speaking_ended|play_audio' ~/.max/workspace/logs/daemon-stderr.log > /tmp/daemon-bargein-<id>.log`.
 
 ---
 
@@ -360,12 +360,12 @@ LLM should return `{ "objected": true, ... }`.
 4. Watch for:
    - Within 3s: a bot chat message appears (configurable goodbye — by
      default "Thanks, I'm stepping out now" or similar).
-   - Within 5s: `docker ps` no longer lists `vellum-meet-<id>` (container
+   - Within 5s: `docker ps` no longer lists `max-meet-<id>` (container
      exited).
 5. Daemon log checks:
    ```bash
    rg '"MeetConsentMonitor: objection detected"' \
-     ~/.vellum/workspace/logs/daemon-stderr.log
+     ~/.max/workspace/logs/daemon-stderr.log
    ```
    Exactly one line with fields:
    `meetingId`, `trigger: "keyword:chat"`, `reason: "<non-empty>"`,
@@ -393,9 +393,9 @@ Exact phrase to speak aloud, clearly:
 
 - Bot posts a goodbye chat message before disappearing from the
   meeting — captured in the Meet chat panel and in
-  `docker logs vellum-meet-<id>` as a `POST /send_chat` request from
+  `docker logs max-meet-<id>` as a `POST /send_chat` request from
   the daemon.
-- `docker ps | rg vellum-meet-<id>` returns empty within 5s of the
+- `docker ps | rg max-meet-<id>` returns empty within 5s of the
   objection landing.
 - `meta.json` in the meeting's artifact dir has `endedAt` populated.
 - `meet.left` SSE event fired with `reason` starting with
@@ -423,9 +423,9 @@ Exact phrase to speak aloud, clearly:
 ### Capture on failure
 
 - Full daemon log slice for the meeting:
-  `rg -i 'consent|objection|leave' ~/.vellum/workspace/logs/daemon-stderr.log > /tmp/consent-<id>.log`.
-- `docker logs vellum-meet-<id> 2>&1 > /tmp/vellum-meet-consent-<id>.log`.
-- `cp -r ~/.vellum/workspace/meets/<id> /tmp/meet-consent-<id>`.
+  `rg -i 'consent|objection|leave' ~/.max/workspace/logs/daemon-stderr.log > /tmp/consent-<id>.log`.
+- `docker logs max-meet-<id> 2>&1 > /tmp/max-meet-consent-<id>.log`.
+- `cp -r ~/.max/workspace/meets/<id> /tmp/meet-consent-<id>`.
 - Screen recording of the Meet chat panel timing the Send → bot-goodbye
   → container-exit sequence.
 

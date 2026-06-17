@@ -62,7 +62,7 @@ export interface PluginManifest {
   name: string;
   /**
    * Plugin version (semver). Informational. Host-compat negotiation lives
-   * in the plugin's `package.json` `peerDependencies["@vellumai/plugin-api"]`
+   * in the plugin's `package.json` `peerDependencies["@maxai/plugin-api"]`
    * range — checked by the external-plugin loader against the assistant's
    * own version at load time.
    */
@@ -87,7 +87,7 @@ export interface PluginManifest {
 // ─── Init / Shutdown context ─────────────────────────────────────────────────
 // Public types — defined in `assistant/src/plugin-api/types.ts` and re-exported
 // here so existing internal call sites keep working. Plugin authors will
-// import these from `@vellumai/plugin-api` once that package is published.
+// import these from `@maxai/plugin-api` once that package is published.
 export type {
   PluginInitContext,
   PluginShutdownContext,
@@ -600,6 +600,14 @@ export interface EmptyResponseArgs {
   readonly toolUseBlocksLength: number;
   /** 0-based index of the tool-use turn being evaluated. */
   readonly toolUseTurns: number;
+  /**
+   * Number of bridged tool calls observed this `run()` invocation. Agentic
+   * bridge providers (kimi-agent, claude-subscription) execute their entire
+   * tool loop inside a single provider call, so their tool activity never
+   * increments `toolUseTurns` — this counter is how the empty-response gate
+   * sees that inner work happened.
+   */
+  readonly bridgedToolCalls: number;
   /** How many empty-response nudges the loop has already issued this run. */
   readonly emptyResponseRetries: number;
   /** Upper bound for `emptyResponseRetries`. The default is 1. */

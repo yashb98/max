@@ -12,7 +12,7 @@
  *   - activation-recompute: walks conversations with rows, runs the pipeline
  *     end-to-end against the real activation module, persists fresh state.
  *
- * Tests use temp workspaces (mkdtemp) — never `~/.vellum/`. Sample content
+ * Tests use temp workspaces (mkdtemp) — never `~/.max/`. Sample content
  * uses generic placeholders (Alice, Bob, user@example.com).
  */
 
@@ -189,15 +189,15 @@ beforeAll(() => {
   mkdirSync(join(tmpWorkspace, "memory", "concepts"), { recursive: true });
   mkdirSync(join(tmpWorkspace, "memory", "archive"), { recursive: true });
   mkdirSync(join(tmpWorkspace, "memory", ".v2-state"), { recursive: true });
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 });
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
 });

@@ -34,7 +34,7 @@ mock.module("../util/logger.js", () => ({
 
 mock.module("../util/platform.js", () => ({
   AVATAR_IMAGE_FILENAME: "avatar-image.png",
-  getAvatarDir: () => "/tmp/vellum-test-avatar-never-written",
+  getAvatarDir: () => "/tmp/max-test-avatar-never-written",
 }));
 
 // Install a throwing @resvg/resvg-js mock at module scope. Bun only calls

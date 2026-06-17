@@ -540,7 +540,7 @@ const SAFE_ENV_VAR_PREFIXES = [
   "npm_",
   "LC_",
   "XDG_",
-  "VELLUM_",
+  "MAX_",
 ];
 
 function isEnvVarSafe(key: string): boolean {

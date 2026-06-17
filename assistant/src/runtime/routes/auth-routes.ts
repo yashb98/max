@@ -44,7 +44,7 @@ async function handleAuthInfo(_args: RouteHandlerArgs): Promise<AuthInfoResult> 
   if (!authenticated) {
     result.message = !platformUrl
       ? "Platform URL not configured. Run assistant config set platform.baseUrl <url>"
-      : "Assistant API key not found. Store one with: assistant keys set credential/vellum/assistant_api_key <key>";
+      : "Assistant API key not found. Store one with: assistant keys set credential/max/assistant_api_key <key>";
   }
 
   return result;

@@ -25,7 +25,7 @@ const queryCalls: { sql: string; params: unknown[] }[] = [];
 const runCalls: { sql: string; params: unknown[] }[] = [];
 const TEST_SOCKET_PATH = join(
   tmpdir(),
-  `vellum-upsert-contact-channel-test-${process.pid}.sock`,
+  `max-upsert-contact-channel-test-${process.pid}.sock`,
 );
 
 mock.module("../db/assistant-db-proxy.js", () => ({

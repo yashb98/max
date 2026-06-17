@@ -53,8 +53,8 @@ function makeCopy(
 // ── resolveVerbosity ───────────────────────────────────────────────────
 
 describe("resolveVerbosity", () => {
-  test("vellum channel defaults to rich", () => {
-    expect(resolveVerbosity("vellum" as NotificationChannel, {})).toBe("rich");
+  test("max channel defaults to rich", () => {
+    expect(resolveVerbosity("max" as NotificationChannel, {})).toBe("rich");
   });
 
   test("telegram channel defaults to compact", () => {
@@ -73,7 +73,7 @@ describe("resolveVerbosity", () => {
 
   test("explicit interfaceHint=telegram overrides to compact", () => {
     expect(
-      resolveVerbosity("vellum" as NotificationChannel, {
+      resolveVerbosity("max" as NotificationChannel, {
         interfaceHint: "telegram",
       }),
     ).toBe("compact");
@@ -106,7 +106,7 @@ describe("resolveVerbosity", () => {
 
   test("invalid interfaceHint is ignored, falls through to channel default", () => {
     expect(
-      resolveVerbosity("vellum" as NotificationChannel, {
+      resolveVerbosity("max" as NotificationChannel, {
         interfaceHint: "not_a_real_interface",
       }),
     ).toBe("rich");
@@ -174,13 +174,13 @@ describe("isConversationSeedSane", () => {
 // ── composeConversationSeed — copy-based composition ─────────────────────────
 
 describe("composeConversationSeed", () => {
-  describe("rich verbosity (vellum/macos)", () => {
+  describe("rich verbosity (max/macos)", () => {
     test("combines title and body into flowing prose", () => {
       const signal = makeSignal();
       const copy = makeCopy({ title: "Reminder", body: "Take out the trash" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toContain("Reminder");
@@ -201,7 +201,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "Reminder", body: "Call the doctor" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toContain("Action required");
@@ -222,7 +222,7 @@ describe("composeConversationSeed", () => {
       });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       const markerCount = (seed.match(/action required/gi) ?? []).length;
@@ -234,7 +234,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "Notification", body: "Something new." });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).not.toMatch(/^Notification/);
@@ -274,7 +274,7 @@ describe("composeConversationSeed", () => {
   });
 
   describe("localization preservation", () => {
-    test("preserves localized LLM copy on vellum (rich)", () => {
+    test("preserves localized LLM copy on max (rich)", () => {
       const signal = makeSignal();
       const copy = makeCopy({
         title: "リマインダー",
@@ -282,7 +282,7 @@ describe("composeConversationSeed", () => {
       });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toContain("リマインダー");
@@ -319,7 +319,7 @@ describe("composeConversationSeed", () => {
       });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toContain("ガーディアンの質問");
@@ -330,7 +330,7 @@ describe("composeConversationSeed", () => {
   });
 
   describe("surface-aware verbosity", () => {
-    test("vellum seeds are formatted differently than telegram seeds", () => {
+    test("max seeds are formatted differently than telegram seeds", () => {
       const signal = makeSignal({
         attentionHints: {
           requiresAction: true,
@@ -345,7 +345,7 @@ describe("composeConversationSeed", () => {
       });
       const richSeed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       const compactSeed = composeConversationSeed(
@@ -363,10 +363,10 @@ describe("composeConversationSeed", () => {
         contextPayload: { interfaceHint: "telegram" },
       });
       const copy = makeCopy({ title: "Alert", body: "Details." });
-      // Channel is vellum but interfaceHint says telegram → compact format
+      // Channel is max but interfaceHint says telegram → compact format
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Alert\n\nDetails.");
@@ -379,7 +379,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "Alert", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed.length).toBeGreaterThan(0);
@@ -390,7 +390,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "Alert", body: "Check the results." });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).not.toMatch(/^\{/);
@@ -404,7 +404,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Schedule notify");
@@ -415,7 +415,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "Notification", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Watcher notification");
@@ -429,7 +429,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Schedule notify: Take out the trash");
@@ -457,7 +457,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Guardian question: What is the gate code?");
@@ -471,7 +471,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const richSeed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       const compactSeed = composeConversationSeed(
@@ -488,7 +488,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "   ", body: "  " });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Watcher notification");
@@ -502,7 +502,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed.trim().length).toBeGreaterThan(0);
@@ -516,7 +516,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Ingress escalation: Alice");
@@ -533,7 +533,7 @@ describe("composeConversationSeed", () => {
       const copy = makeCopy({ title: "", body: "" });
       const seed = composeConversationSeed(
         signal,
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         copy,
       );
       expect(seed).toBe("Test event: Primary message");

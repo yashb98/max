@@ -1,5 +1,5 @@
 /**
- * Allowlist of known Vellum Chrome extension origins.
+ * Allowlist of known Max Chrome extension origins.
  *
  * Chrome extension IDs are deterministic per environment: non-production
  * builds embed a fixed public key in the manifest (injected at build time by

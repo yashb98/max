@@ -30,6 +30,6 @@ export const APP_VERSION: string = resolveVersion();
  * Header name for the assistant version returned in every gateway response.
  * Allows the platform to trace which build handled a request.
  */
-export const VERSION_HEADER_NAME = "X-Vellum-Assistant-Version";
+export const VERSION_HEADER_NAME = "X-Max-Assistant-Version";
 
 export const VERSION_HEADER_VALUE: string = APP_VERSION;

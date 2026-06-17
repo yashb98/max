@@ -56,7 +56,7 @@ describe("ces", () => {
   });
 
   test("set + get round-trip", () => {
-    const account = "credential/vellum/platform_organization_id";
+    const account = "credential/max/platform_organization_id";
     const value = "test-org-uuid-1234";
 
     const set = runCli(["set", account, value], env);
@@ -69,13 +69,13 @@ describe("ces", () => {
   });
 
   test("list shows stored credentials", () => {
-    runCli(["set", "credential/vellum/org_id", "org-1"], env);
-    runCli(["set", "credential/vellum/user_id", "user-1"], env);
+    runCli(["set", "credential/max/org_id", "org-1"], env);
+    runCli(["set", "credential/max/user_id", "user-1"], env);
 
     const { exitCode, stdout } = runCli(["list"], env);
     expect(exitCode).toBe(0);
-    expect(stdout).toContain("credential/vellum/org_id");
-    expect(stdout).toContain("credential/vellum/user_id");
+    expect(stdout).toContain("credential/max/org_id");
+    expect(stdout).toContain("credential/max/user_id");
   });
 
   test("get on missing key exits 1", () => {
@@ -129,7 +129,7 @@ describe("ces", () => {
   });
 
   test("overwrite existing credential", () => {
-    const account = "credential/vellum/overwrite_test";
+    const account = "credential/max/overwrite_test";
     runCli(["set", account, "first"], env);
     runCli(["set", account, "second"], env);
 

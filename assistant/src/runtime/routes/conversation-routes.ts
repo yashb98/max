@@ -104,7 +104,7 @@ import { silentlyWithLog } from "../../util/silently.js";
 import { assistantEventHub, broadcastMessage } from "../assistant-event-hub.js";
 import { DAEMON_INTERNAL_ASSISTANT_ID } from "../assistant-scope.js";
 import { routeGuardianReply } from "../guardian-reply-router.js";
-import { healGuardianBindingDrift } from "../guardian-vellum-migration.js";
+import { healGuardianBindingDrift } from "../guardian-max-migration.js";
 import type {
   ApprovalConversationGenerator,
   RuntimeAttachmentMetadata,
@@ -1124,8 +1124,8 @@ export async function handleSendMessage(
     };
   };
 
-  const actorPrincipalId = headers?.["x-vellum-actor-principal-id"];
-  const principalType = headers?.["x-vellum-principal-type"];
+  const actorPrincipalId = headers?.["x-max-actor-principal-id"];
+  const principalType = headers?.["x-max-principal-type"];
 
   const { conversationKey, content, attachmentIds } = body;
   const clientMessageId =
@@ -1360,20 +1360,20 @@ export async function handleSendMessage(
       const assistantId = DAEMON_INTERNAL_ASSISTANT_ID;
       let trustCtx = resolveTrustContext({
         assistantId,
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         conversationExternalId: "local",
         actorExternalId: actorPrincipalId,
       });
       if (trustCtx.trustClass === "unknown") {
         // Attempt to heal guardian binding drift: after a DB reset the
-        // guardian binding gets a new vellum-principal-* UUID while the
+        // guardian binding gets a new max-principal-* UUID while the
         // client still holds a valid JWT with the old one. The signing
         // key survives the reset, so the JWT is authentic — just stale.
         const healed = healGuardianBindingDrift(actorPrincipalId);
         if (healed) {
           trustCtx = resolveTrustContext({
             assistantId,
-            sourceChannel: "vellum",
+            sourceChannel: "max",
             conversationExternalId: "local",
             actorExternalId: actorPrincipalId,
           });
@@ -1578,7 +1578,7 @@ export async function handleSendMessage(
       // messages while a tool confirmation is pending. Deterministic code-prefix
       // and callback parsing remain active. Mirrors conversation-process.ts behavior.
       approvalConversationGenerator:
-        sourceChannel === "vellum"
+        sourceChannel === "max"
           ? undefined
           : deps.approvalConversationGenerator,
       verifiedActorExternalUserId,

@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Vellum Assistant",
+  "name": "Max Assistant",
   "version": "0.8.1",
   "minimum_chrome_version": "120",
-  "description": "Bridges the Vellum assistant to your live browser session via Chrome DevTools Protocol (CDP) through chrome.debugger.",
-  "homepage_url": "https://www.vellum.ai",
+  "description": "Bridges the Max assistant to your live browser session via Chrome DevTools Protocol (CDP) through chrome.debugger.",
+  "homepage_url": "https://www.max.ai",
   "permissions": [
     "alarms",
     "debugger",
@@ -21,7 +21,7 @@
   },
   "action": {
     "default_popup": "popup/index.html",
-    "default_title": "Vellum Assistant"
+    "default_title": "Max Assistant"
   },
   "icons": {
     "16": "icons/production/icon16.png",

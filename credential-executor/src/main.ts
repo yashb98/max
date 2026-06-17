@@ -26,8 +26,8 @@ import { dirname, join } from "node:path";
 import {
   CES_PROTOCOL_VERSION,
   CesRpcMethod,
-} from "@vellumai/service-contracts/credential-rpc";
-import { StaticCredentialMetadataStore } from "@vellumai/credential-storage";
+} from "@maxai/service-contracts/credential-rpc";
+import { StaticCredentialMetadataStore } from "@maxai/credential-storage";
 
 import { AuditStore } from "./audit/store.js";
 import { PersistentGrantStore } from "./grants/persistent-store.js";
@@ -39,7 +39,7 @@ import {
 } from "./grants/rpc-handlers.js";
 import { TemporaryGrantStore } from "./grants/temporary-store.js";
 import { LocalMaterialiser } from "./materializers/local.js";
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 import { createLocalSecureKeyBackend } from "./materializers/local-secure-key-backend.js";
 import { createLocalOAuthLookup } from "./materializers/local-oauth-lookup.js";
 import { createLocalTokenRefreshFn } from "./materializers/local-token-refresh.js";
@@ -94,13 +94,13 @@ function ensureDataDirs(): void {
  * Resolve the workspace directory.
  *
  * Priority:
- * 1. `VELLUM_WORKSPACE_DIR` env var (set by the platform template)
- * 2. Default: `~/.vellum/workspace`
+ * 1. `MAX_WORKSPACE_DIR` env var (set by the platform template)
+ * 2. Default: `~/.max/workspace`
  */
 function getWorkspaceDir(): string {
   return (
-    process.env["VELLUM_WORKSPACE_DIR"]?.trim() ||
-    join(homedir(), ".vellum", "workspace")
+    process.env["MAX_WORKSPACE_DIR"]?.trim() ||
+    join(homedir(), ".max", "workspace")
   );
 }
 
@@ -110,12 +110,12 @@ function getWorkspaceDir(): string {
  * Priority:
  * 1. `CREDENTIAL_SECURITY_DIR` env var (set by the platform template for
  *    the CES container — `/ces-security` in managed mode)
- * 2. Default: `~/.vellum/protected` (local mode)
+ * 2. Default: `~/.max/protected` (local mode)
  */
 function getSecurityDir(): string {
   return (
     process.env["CREDENTIAL_SECURITY_DIR"]?.trim() ||
-    join(homedir(), ".vellum", "protected")
+    join(homedir(), ".max", "protected")
   );
 }
 

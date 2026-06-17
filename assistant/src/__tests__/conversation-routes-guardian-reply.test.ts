@@ -88,14 +88,14 @@ mock.module("../memory/conversation-crud.js", () => ({
 mock.module("../runtime/local-actor-identity.js", () => ({
   resolveLocalTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
 }));
 
 mock.module("../runtime/trust-context-resolver.js", () => ({
   resolveTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
   withSourceChannel: (sourceChannel: unknown, ctx: unknown) => ({
     ...(ctx as Record<string, unknown>),
@@ -181,13 +181,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "05BECB approve",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -265,13 +265,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "hello there",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -345,13 +345,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "approve",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -429,13 +429,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "A1B2C3 approve",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -509,13 +509,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "reject",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -583,13 +583,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "tell me more about this request",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -659,13 +659,13 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",
         content: "no sorry, beats 0 and 3 should be new threads",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "macos",
       }),
     });
@@ -688,7 +688,7 @@ describe("handleSendMessage canonical guardian reply interception", () => {
     expect(routeGuardianReplyMock).toHaveBeenCalledTimes(1);
     const routerCall = (routeGuardianReplyMock as any).mock
       .calls[0][0] as Record<string, unknown>;
-    // Desktop (vellum) should suppress the NL engine
+    // Desktop (max) should suppress the NL engine
     expect(routerCall.approvalConversationGenerator).toBeUndefined();
   });
 
@@ -736,8 +736,8 @@ describe("handleSendMessage canonical guardian reply interception", () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-vellum-actor-principal-id": "test-user",
-        "x-vellum-principal-type": "actor",
+        "x-max-actor-principal-id": "test-user",
+        "x-max-principal-type": "actor",
       },
       body: JSON.stringify({
         conversationKey: "guardian-conversation-key",

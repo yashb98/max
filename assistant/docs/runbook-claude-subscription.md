@@ -2,7 +2,7 @@
 
 Operational runbook for the `claude-subscription` LLM provider (Phase 3.6 in [`architecture/claude-subscription-bridge.md`](./architecture/claude-subscription-bridge.md)). Covers the common failure modes the on-call engineer will see and the actions that resolve them.
 
-The provider runs Claude on the user's Max subscription via the local `claude` CLI subprocess (spawned by `@anthropic-ai/claude-agent-sdk`). Bridge tool execution is routed back into Vellum's `ToolExecutor` through an in-process MCP server — so every gate (allowlist, trust, approval, CES, sandbox, audit) still fires on tool calls.
+The provider runs Claude on the user's Max subscription via the local `claude` CLI subprocess (spawned by `@anthropic-ai/claude-agent-sdk`). Bridge tool execution is routed back into Max's `ToolExecutor` through an in-process MCP server — so every gate (allowlist, trust, approval, CES, sandbox, audit) still fires on tool calls.
 
 ---
 
@@ -11,7 +11,7 @@ The provider runs Claude on the user's Max subscription via the local `claude` C
 When a user reports "claude-subscription doesn't work", walk this list top-to-bottom:
 
 1. **Is the row greyed out in the picker?** If so, the daemon's `provider-availability` check has already classified the failure. Read the trailing hint:
-   - **"Install Claude Code"** → CLI is not on PATH. Install from [claude.com/code](https://claude.com/code), then **fully quit and reopen the Vellum app** (the daemon caches the probe result; reopening clears it).
+   - **"Install Claude Code"** → CLI is not on PATH. Install from [claude.com/code](https://claude.com/code), then **fully quit and reopen the Max app** (the daemon caches the probe result; reopening clears it).
    - **"Run `claude login`"** → CLI installed but no OAuth credential on the host. Have the user run `claude login` in a terminal, then reopen the picker.
    - **"Feature flag off"** → `claude-subscription-provider` is disabled. See [Rollout & feature flag](#rollout--feature-flag) below.
 2. **Is it failing at call time with a banner?** The banner message is the `ClaudeSubscriptionBridgeError.message`. Map it to a kind from [Error kinds](#error-kinds) below and follow that section.
@@ -28,7 +28,7 @@ Each error surfaces as a `ClaudeSubscriptionBridgeError` with one of these `kind
 
 - **Trigger:** `spawn claude ENOENT` / `command not found` from the SDK's process spawn.
 - **What the user sees:** "Claude Code is not installed. Install it from claude.com/code, then retry."
-- **Fix:** Install the Claude Code CLI. After install, run `which claude` to confirm it's on PATH. Fully quit and reopen Vellum so the daemon re-probes availability.
+- **Fix:** Install the Claude Code CLI. After install, run `which claude` to confirm it's on PATH. Fully quit and reopen Max so the daemon re-probes availability.
 - **Why the picker setup-hint didn't catch this first:** the picker probes at app launch and on menu open. If the user uninstalled `claude` between picker-open and send, the picker's cached "available" state is stale and you only see this at send time.
 
 ### `not-logged-in`
@@ -70,7 +70,7 @@ If the user has both `claude-subscription` and an `anthropic` API-key provider c
 
 1. **Per conversation:** open the composer picker, select "Anthropic" or any `claude-*` model under the Anthropic group. The next send uses the API-key provider. No restart needed.
 2. **Default for new conversations:** Settings → Inference profile picker → set a default profile that uses Anthropic API.
-3. **If the user has NO API key yet:** Vellum's managed-proxy fallback (`managedFallbackEnabledFor`) may already give them access to Anthropic without configuring a key. Check `getProviderAvailabilityStatus("anthropic")` — if `available: true`, the picker will list it.
+3. **If the user has NO API key yet:** Max's managed-proxy fallback (`managedFallbackEnabledFor`) may already give them access to Anthropic without configuring a key. Check `getProviderAvailabilityStatus("anthropic")` — if `available: true`, the picker will list it.
 
 The `claude-subscription` row stays in the picker even after fallback so the user can switch back once they've fixed the underlying issue. There's no global "disable" toggle for a single user — disabling requires flipping the feature flag, which affects everyone.
 
@@ -85,7 +85,7 @@ If `claude login` succeeded but the daemon still reports `not-logged-in`:
    ```bash
    security find-generic-password -s "Claude Code-credentials"
    ```
-   If this returns "no such item", `claude login` did not write a credential — investigate at the CLI level. If it returns a record but Vellum still fails auth, the token may be malformed; try `claude logout && claude login` to write a fresh entry.
+   If this returns "no such item", `claude login` did not write a credential — investigate at the CLI level. If it returns a record but Max still fails auth, the token may be malformed; try `claude logout && claude login` to write a fresh entry.
 3. **Inspect the credentials file (Linux/Windows)**:
    ```bash
    ls -la ~/.claude/.credentials.json
@@ -98,7 +98,7 @@ If `claude login` succeeded but the daemon still reports `not-logged-in`:
    security delete-generic-password -s "Claude Code-credentials"  # macOS only
    claude login
    ```
-   Then reopen Vellum.
+   Then reopen Max.
 
 ---
 
@@ -106,20 +106,20 @@ If `claude login` succeeded but the daemon still reports `not-logged-in`:
 
 ### Real-time logs
 
-The daemon log lives at `~/.vellum/workspace/data/logs/vellum.log` (or, if `logFile.dir` is configured, `assistant-YYYY-MM-DD.log` in that directory). Useful filters:
+The daemon log lives at `~/.max/workspace/data/logs/max.log` (or, if `logFile.dir` is configured, `assistant-YYYY-MM-DD.log` in that directory). Useful filters:
 
 ```bash
 # All bridge tool calls (Phase 3.1 structured logs)
-tail -f ~/.vellum/workspace/data/logs/vellum.log | grep claude_subscription.tool_call
+tail -f ~/.max/workspace/data/logs/max.log | grep claude_subscription.tool_call
 
 # Auth retries (the D-5 path that swallows transient 401s)
-tail -f ~/.vellum/workspace/data/logs/vellum.log | grep 'Auth error from Agent SDK'
+tail -f ~/.max/workspace/data/logs/max.log | grep 'Auth error from Agent SDK'
 
 # canUseTool denials (account-MCP tools the SDK tried to surface)
-tail -f ~/.vellum/workspace/data/logs/vellum.log | grep 'canUseTool denied'
+tail -f ~/.max/workspace/data/logs/max.log | grep 'canUseTool denied'
 
 # All claude-subscription-client module logs
-tail -f ~/.vellum/workspace/data/logs/vellum.log | grep claude-subscription-client
+tail -f ~/.max/workspace/data/logs/max.log | grep claude-subscription-client
 ```
 
 ### Local telemetry table
@@ -155,10 +155,10 @@ To roll back the rollout per-user: there is no per-user override today. If you n
 
 ## Known operational quirks
 
-- **Picker shows "available" but call fails with `cli-not-installed`.** The picker cache is process-lifetime. If the user uninstalled the CLI between picker-open and send, you'll see this. Reopening Vellum re-probes. Not a bug.
+- **Picker shows "available" but call fails with `cli-not-installed`.** The picker cache is process-lifetime. If the user uninstalled the CLI between picker-open and send, you'll see this. Reopening Max re-probes. Not a bug.
 - **First call after `claude login` may fail once with a token error, then succeed on retry.** The D-5 auth-retry path handles this silently — if you're seeing it surface to the user, it's because partial output streamed before the failure (so retry would double-apply side effects).
 - **`maxTurns: 25` cap can produce `error_max_turns` on legitimately complex flows.** This is intentional — without it, sub-agent recursion ran for 20+ minutes empirically (see §I-19 in the bridge doc). If a user hits this regularly, lower the recursion depth in their request rather than raising the cap.
-- **Account-level Anthropic MCP integrations (Gmail, Drive, Notion, etc.) are denied at the SDK boundary.** The `canUseTool` callback rejects every tool not on Vellum's allowlist — this is load-bearing security, not a bug. If a user expects to use a Gmail action that's only in their Anthropic-account MCP config, they need to install the equivalent Vellum skill instead.
+- **Account-level Anthropic MCP integrations (Gmail, Drive, Notion, etc.) are denied at the SDK boundary.** The `canUseTool` callback rejects every tool not on Max's allowlist — this is load-bearing security, not a bug. If a user expects to use a Gmail action that's only in their Anthropic-account MCP config, they need to install the equivalent Max skill instead.
 
 ---
 
@@ -168,4 +168,4 @@ If after this runbook the issue is unresolved:
 
 1. **Repro on a known-good host.** Have the user copy their conversation id; spin up a fresh `claude login`-authenticated dev box; reproduce.
 2. **Check the SDK version.** `npm ls @anthropic-ai/claude-agent-sdk` in `assistant/`. Compare against `0.3.144` (the version locked at the time of the bridge build). Newer SDKs may have changed error shapes.
-3. **Open an issue** with: the user's `claude --version`, the daemon's `vellum.log` excerpt around the failure, the `kind` from the error class, and the `bridged_tool_call_events` row(s) from the failing turn.
+3. **Open an issue** with: the user's `claude --version`, the daemon's `max.log` excerpt around the failure, the `kind` from the error class, and the `bridged_tool_call_events` row(s) from the failing turn.

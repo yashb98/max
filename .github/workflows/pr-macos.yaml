@@ -97,7 +97,7 @@ jobs:
       run:
         working-directory: clients/macos
     env:
-      APP_DISPLAY_NAME: Vellum
+      APP_DISPLAY_NAME: Max
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -130,14 +130,14 @@ jobs:
       run:
         working-directory: clients/macos
     env:
-      APP_DISPLAY_NAME: Vellum
+      APP_DISPLAY_NAME: Max
     steps:
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -171,7 +171,7 @@ jobs:
 
       - name: Build executable
         working-directory: clients
-        run: swift build --product vellum-assistant
+        run: swift build --product max-assistant
 
       - name: Configure GitHub auth for SPM binary downloads
         env:
@@ -227,16 +227,16 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           hdiutil create \
-            -volname "Vellum ${PR_NUMBER}" \
+            -volname "Max ${PR_NUMBER}" \
             -srcfolder "dist/${APP_DISPLAY_NAME}.app" \
             -ov -format UDZO \
-            "vellum-assistant-pr-${PR_NUMBER}.dmg"
+            "max-assistant-pr-${PR_NUMBER}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: vellum-assistant-pr-${{ github.event.pull_request.number }}.dmg
-          path: clients/macos/vellum-assistant-pr-${{ github.event.pull_request.number }}.dmg
+          name: max-assistant-pr-${{ github.event.pull_request.number }}.dmg
+          path: clients/macos/max-assistant-pr-${{ github.event.pull_request.number }}.dmg
           retention-days: 7
           if-no-files-found: error
 
@@ -255,15 +255,15 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Comment artifact link on PR
         if: github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          ARTIFACT_NAME="vellum-assistant-pr-${{ github.event.pull_request.number }}.dmg"
+          ARTIFACT_NAME="max-assistant-pr-${{ github.event.pull_request.number }}.dmg"
           ARTIFACT_ID=$(gh api "/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             --jq ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .id")
           ARTIFACT_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"

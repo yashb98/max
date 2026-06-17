@@ -18,7 +18,7 @@ const log = getLogger("video-thumbnail");
 
 /** Run ffmpeg to extract the first frame from a video file as a JPEG thumbnail. */
 async function extractThumbnail(inputPath: string): Promise<string | null> {
-  const outputPath = join(tmpdir(), `vellum-thumb-out-${randomUUID()}.jpg`);
+  const outputPath = join(tmpdir(), `max-thumb-out-${randomUUID()}.jpg`);
 
   try {
     const proc = Bun.spawn(
@@ -73,7 +73,7 @@ async function extractThumbnail(inputPath: string): Promise<string | null> {
 export async function generateVideoThumbnail(
   dataBase64: string,
 ): Promise<string | null> {
-  const inputPath = join(tmpdir(), `vellum-thumb-in-${randomUUID()}`);
+  const inputPath = join(tmpdir(), `max-thumb-in-${randomUUID()}`);
 
   try {
     const videoBuffer = Buffer.from(dataBase64, "base64");

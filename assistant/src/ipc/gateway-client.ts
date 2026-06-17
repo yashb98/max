@@ -1,7 +1,7 @@
 /**
  * Assistant-side IPC client for communicating with the gateway.
  *
- * Thin wrapper over `@vellumai/gateway-client/ipc-client` that resolves
+ * Thin wrapper over `@maxai/gateway-client/ipc-client` that resolves
  * the gateway socket path and injects the assistant logger. All transport
  * logic lives in the shared package; this module provides the same public
  * API the rest of the assistant codebase expects.
@@ -13,7 +13,7 @@
 import {
   ipcCall as packageIpcCall,
   PersistentIpcClient as PackagePersistentIpcClient,
-} from "@vellumai/gateway-client/ipc-client";
+} from "@maxai/gateway-client/ipc-client";
 
 import type {
   ClassificationResult,

@@ -148,7 +148,7 @@ describe("CDP failure scenarios", () => {
   it("findDoordashTab failure when CDP is unavailable", () => {
     // Simulates findDoordashTab at client.ts line 67
     const err = new SessionExpiredError(
-      "Chrome CDP not available. Run `vellum doordash refresh` first.",
+      "Chrome CDP not available. Run `max doordash refresh` first.",
     );
     expect(err).toBeInstanceOf(SessionExpiredError);
     expect(err.message).toContain("Chrome CDP not available");

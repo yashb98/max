@@ -158,6 +158,7 @@ import {
   migrateRenameSourceSessionIdColumn,
   migrateRenameThreadStartersCheckpoints,
   migrateRenameThreadStartersTable,
+  migrateRenameVellumChannelToMax,
   migrateRenameVerificationSessionIdColumn,
   migrateRenameVerificationTable,
   migrateRenameVoiceToPhone,
@@ -209,7 +210,7 @@ function getTemplateDbPath(): string {
   }
   return join(
     tmpdir(),
-    `vellum-test-db-template-${hash.digest("hex").slice(0, 12)}.db`,
+    `max-test-db-template-${hash.digest("hex").slice(0, 12)}.db`,
   );
 }
 
@@ -428,6 +429,9 @@ export function initializeDb(): void {
     migrateBackfillProviderConnectionLabel,
     migrateProviderConnectionReachability,
     migrateBridgedToolCallEvents,
+    // Runs last: rewrites the stored "vellum" desktop channel id to "max" after
+    // every earlier migration has settled the data into the "vellum" state.
+    migrateRenameVellumChannelToMax,
   ];
 
   // Run each migration step, catching and logging individual failures so one

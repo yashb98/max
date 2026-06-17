@@ -65,7 +65,7 @@ public final class PlatformOAuthService {
         guard let organizationId = UserDefaults.standard.string(forKey: "connectedOrganizationId") else {
             throw PlatformAPIError.authenticationRequired
         }
-        urlRequest.setValue(organizationId, forHTTPHeaderField: "Vellum-Organization-Id")
+        urlRequest.setValue(organizationId, forHTTPHeaderField: "Max-Organization-Id")
 
         return urlRequest
     }
@@ -74,7 +74,7 @@ public final class PlatformOAuthService {
 
     /// Start an OAuth flow for the given provider and assistant.
     public func startOAuthConnect(provider: String, assistantId: String, redirectAfterConnect: String? = nil) async throws -> OAuthStartResponse {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/\(provider)/start/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/\(provider)/start/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -125,7 +125,7 @@ public final class PlatformOAuthService {
 
     /// List OAuth connections for the given assistant.
     public func listConnections(assistantId: String) async throws -> [OAuthConnectionEntry] {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/connections/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/connections/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }
@@ -163,7 +163,7 @@ public final class PlatformOAuthService {
 
     /// Disconnect a specific OAuth connection for the given assistant.
     public func disconnectConnection(assistantId: String, connectionId: String) async throws {
-        let urlString = "\(VellumEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/connections/\(connectionId)/disconnect/"
+        let urlString = "\(MaxEnvironment.resolvedPlatformURL)/v1/assistants/\(assistantId)/oauth/connections/\(connectionId)/disconnect/"
         guard let url = URL(string: urlString) else {
             throw PlatformAPIError.invalidURL
         }

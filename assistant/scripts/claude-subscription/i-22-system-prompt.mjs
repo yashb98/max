@@ -12,7 +12,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 const mcp = new McpServer(
-  { name: "vellum-skills", version: "1.0.0" },
+  { name: "max-skills", version: "1.0.0" },
   { capabilities: { tools: {} } }
 );
 mcp.server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [] }));
@@ -21,7 +21,7 @@ mcp.server.setRequestHandler(CallToolRequestSchema, async () => ({
   isError: false,
 }));
 
-const VELLUM_PROMPT = `You are "Pyxis", a personal assistant built by Vellum. You are NOT a coding assistant. You do not write code, fix bugs, or help with software engineering. If asked about coding, politely redirect: "I'm a personal assistant — for coding help, use a different tool." Always introduce yourself as Pyxis when asked who you are.`;
+const MAX_PROMPT = `You are "Pyxis", a personal assistant built by Max. You are NOT a coding assistant. You do not write code, fix bugs, or help with software engineering. If asked about coding, politely redirect: "I'm a personal assistant — for coding help, use a different tool." Always introduce yourself as Pyxis when asked who you are.`;
 
 const probes = [
   { name: "identity",  prompt: "Who are you? Reply in one sentence." },
@@ -33,7 +33,7 @@ console.log("[i-22] customSystemPrompt replace-vs-append test");
 console.log("[i-22] Custom prompt sets identity as 'Pyxis, a personal assistant (NOT coding)'");
 console.log();
 
-const ALLOW = new Set(["mcp__vellum-skills__noop"]);
+const ALLOW = new Set(["mcp__max-skills__noop"]);
 
 for (const probe of probes) {
   let assistantText = "";
@@ -45,13 +45,13 @@ for (const probe of probes) {
         permissionMode: "default",
         settingSources: [],
         tools: ["Task"],
-        allowedTools: ["mcp__vellum-skills__noop", "Task"],
+        allowedTools: ["mcp__max-skills__noop", "Task"],
         canUseTool: async (toolName) =>
           ALLOW.has(toolName) || toolName === "Task"
             ? { behavior: "allow" }
             : { behavior: "deny", message: "n/a" },
-        mcpServers: { "vellum-skills": { type: "sdk", name: "vellum-skills", instance: mcp } },
-        systemPrompt: VELLUM_PROMPT, // ← correct SDK option (string = replace default)
+        mcpServers: { "max-skills": { type: "sdk", name: "max-skills", instance: mcp } },
+        systemPrompt: MAX_PROMPT, // ← correct SDK option (string = replace default)
       },
     });
     for await (const msg of stream) {

@@ -1,5 +1,5 @@
 /**
- * Local HTTP server for `vellum client --interface web`.
+ * Local HTTP server for `max client --interface web`.
  *
  * Serves a SPA shell at `/` and the React bundle at `/bundle.js`. The bundle
  * is built lazily via `Bun.build` on first request and cached in memory.
@@ -40,11 +40,11 @@ async function buildBundle(): Promise<BundleCache> {
   });
   if (!result.success) {
     const messages = result.logs.map((log) => String(log)).join("\n");
-    throw new Error(`@vellumai/web: bundle build failed\n${messages}`);
+    throw new Error(`@maxai/web: bundle build failed\n${messages}`);
   }
   const output = result.outputs[0];
   if (!output) {
-    throw new Error("@vellumai/web: bundle build produced no outputs");
+    throw new Error("@maxai/web: bundle build produced no outputs");
   }
   const js = await output.text();
   bundleCache = { js, builtAt: Date.now() };
@@ -104,6 +104,6 @@ export async function startWebServer(
 if (import.meta.main) {
   const server = await startWebServer();
   console.log(
-    `@vellumai/web listening on http://${server.hostname}:${server.port}`,
+    `@maxai/web listening on http://${server.hostname}:${server.port}`,
   );
 }

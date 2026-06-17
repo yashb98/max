@@ -315,7 +315,7 @@ describe("wakeAgentForOpportunity", () => {
         conversationId: target.conversationId,
         hint: "background shell completed",
         source: "background-tool",
-        trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+        trustContext: { sourceChannel: "max", trustClass: "guardian" },
       },
       { resolveTarget: async () => target },
     );
@@ -389,7 +389,7 @@ describe("wakeAgentForOpportunity", () => {
         conversationId: target.conversationId,
         hint: "clean storage",
         source: "local-cleanup",
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         sourceInterface: "macos",
       },
       { resolveTarget: async () => target },
@@ -674,14 +674,14 @@ describe("wakeAgentForOpportunity", () => {
         conversationId: "conv-trust",
         hint: "consolidate memory",
         source: "memory_v2_consolidation",
-        trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+        trustContext: { sourceChannel: "max", trustClass: "guardian" },
       },
       { resolveTarget: async () => target },
     );
 
     expect(trustCalls).toHaveLength(1);
     expect(trustCalls[0]!.ctx).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     // setTrustContext fired strictly before agentLoop.run.

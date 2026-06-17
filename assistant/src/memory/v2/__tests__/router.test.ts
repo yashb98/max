@@ -16,7 +16,7 @@
  *     two text blocks; the NOW block has explicit `cache_control`; tool
  *     choice forces `select_pages_to_inject`.
  *
- * Workspace lives in a `mkdtemp` directory per test; `~/.vellum/` is never
+ * Workspace lives in a `mkdtemp` directory per test; `~/.max/` is never
  * touched. The provider is stubbed so no network calls fire.
  */
 

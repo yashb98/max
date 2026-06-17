@@ -15,7 +15,7 @@ import { exec } from "../lib/step-runner";
 export async function recover(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum recover <name>");
+    console.log("Usage: max recover <name>");
     console.log("");
     console.log(
       "Restore a previously retired local assistant from its archive.",
@@ -28,7 +28,7 @@ export async function recover(): Promise<void> {
 
   const name = process.argv[3];
   if (!name) {
-    console.error("Usage: vellum recover <name>");
+    console.error("Usage: max recover <name>");
     process.exit(1);
   }
 
@@ -47,12 +47,12 @@ export async function recover(): Promise<void> {
     throw new Error(
       `Retired assistant '${name}' is missing resource configuration. ` +
         `Fix the archive metadata at ${metadataPath} and retry, ` +
-        `or run 'vellum hatch' to re-provision with proper resource allocation.`,
+        `or run 'max hatch' to re-provision with proper resource allocation.`,
     );
   }
 
   // 3. Check that the recovering entry's own target directory is free.
-  const target = join(entry.resources.instanceDir, ".vellum");
+  const target = join(entry.resources.instanceDir, ".max");
   if (existsSync(target)) {
     console.error(
       `Error: ${target} already exists (owned by ${entry.assistantId}). ` +

@@ -22,7 +22,7 @@
 
 ## 2. ROOT CAUSE #1 (primary): the 25-step host cap counts the wrong unit
 
-- kimi-agent enforces the cap **host-side**: it counts every SDK `StepBegin` and force-`interrupt()`s at step 26 (`client.ts` StepBegin guard; `MAX_TURNS = 25` for Instant/Thinking and the default fallback; Agent mode = 50). kimi-cli's **own internal budget is 100 steps/turn** — Vellum cuts at a quarter of that.
+- kimi-agent enforces the cap **host-side**: it counts every SDK `StepBegin` and force-`interrupt()`s at step 26 (`client.ts` StepBegin guard; `MAX_TURNS = 25` for Instant/Thinking and the default fallback; Agent mode = 50). kimi-cli's **own internal budget is 100 steps/turn** — Max cuts at a quarter of that.
 - claude-subscription passes `maxTurns: 25` **into the SDK** (`claude-subscription/client.ts:425`), where it bounds agent-loop *recursion* (assistant↔tool round-trips incl. subagents). One claude turn can batch dozens of tool calls and never approach the bound.
 - **Quantified, same conversation (`2c689c41`, the JobPulse pipeline):** across the whole day claude cap-trips = **0**, kimi = **20**. kimi drove 264 bridged tool calls there and tripped its cap **7×**; claude later drove 157 bridged calls including a **single 138-tool-call turn (~30 min) that ended cleanly with `end_turn`** — possible under `maxTurns:25` because claude turns batch parallel tool calls and `Task` subagent child-loops don't count against the parent's turn budget (kimi has `subagents: {}`).
 - **All 20 kimi interrupts were genuinely long, denial-free, legitimate tasks** (jobpulse pipeline runs, Notion API debugging, bash-heavy ops; conversation-scoped bridged-call counts cluster 24–44, median 25). Adversarial re-keying by requestId proved **zero denials occurred inside any interrupted turn**.
@@ -43,7 +43,7 @@
 ## 4. ROOT CAUSE #3 (structural): "continue" cannot actually continue
 
 - On interrupt the client now appends *“Say "continue" and I'll pick up where I left off”* — but the promise is **structurally hollow**:
-  - Session resume is dead in production: `sessionId` is only set from `options.conversationKey`, which **nothing in the daemon ever sets** — every Vellum turn is a brand-new kimi session rebuilt from flattened history.
+  - Session resume is dead in production: `sessionId` is only set from `options.conversationKey`, which **nothing in the daemon ever sets** — every Max turn is a brand-new kimi session rebuilt from flattened history.
   - The persisted assistant message is **text-only** (no `tool_use` blocks); bridged `tool_result`s are persisted but **orphaned** (no matching `tool_use` anchor), and native read/search results vanish entirely (`ToolResult` events hit the `default: break`).
   - So "continue" forces a blind re-plan with no record of what the model already did — re-execution, not resumption. Claude has the same per-message session freshness but lands complete turns, so it rarely needs to resume mid-task.
 
@@ -64,14 +64,14 @@ Note: claude is **not** immune to truncation — it simply never got close (0 `e
 ## 6. Contributing causes & latent bugs (confirmed)
 
 1. **Mode mismatch** — heavy agentic ops ran under Instant/Thinking (25); Agent mode (50) never engaged.
-2. **No steering** — generated `system.md` is the Vellum prompt verbatim; never tells K2.6 which native/MCP tools are unavailable or that bridged `bash`/`web_fetch` are the sanctioned path; bridged tool descriptions forwarded verbatim, no browser-automation mention; kimi-webbridge skill never advertised as a callable tool (curl-over-bash convention is opaque).
+2. **No steering** — generated `system.md` is the Max prompt verbatim; never tells K2.6 which native/MCP tools are unavailable or that bridged `bash`/`web_fetch` are the sanctioned path; bridged tool descriptions forwarded verbatim, no browser-automation mention; kimi-webbridge skill never advertised as a callable tool (curl-over-bash convention is opaque).
 3. **Token usage undercount** — `StatusUpdate.token_usage` is per-step but treated as cumulative (last-write-wins).
 4. **stopReason mapping** — external abort / streamTimeout leave `stopReason:"end_turn"`, indistinguishable from clean completion.
 5. **Media-pointer truncation (latent)** — `truncateToolResultText` can cut the "You MUST call ReadMediaFile…" pointer off the end of a bridged result, silently dropping tool media.
 6. **Error mapping asymmetry** — SDK errors raised off the async-iterator path (e.g. 402 in a readline callback) can escape the catch boundary.
 7. **Per-turn overhead** — fresh SDK session + full-history reserialization every message (Gap D); observed up to ~113 s to first tool call, though mostly model latency (MCP npx spawn cost not proven dominant).
 8. **CLI age** — installed 1.12.0 vs latest 1.47.0; PreToolUse hooks landed in 1.28.0 (would enable pre-advertisement gating = Gap B).
-9. **Doc drift** — live agent-file posture is **SearchWeb-only native** (everything else, including reads, routes through Vellum) — memory/flag-registry still describe the older HYBRID read/search posture. The 20:17+ window confirms current working-tree code was live for evening failures.
+9. **Doc drift** — live agent-file posture is **SearchWeb-only native** (everything else, including reads, routes through Max) — memory/flag-registry still describe the older HYBRID read/search posture. The 20:17+ window confirms current working-tree code was live for evening failures.
 10. *(was-real, fixed 22:23)* StepBegin guard read `mode.maxTurns`, ignoring `maxTurnsOverride` (latent — override was never set by the factory).
 
 **Split/uncertain (verifiers disagreed):** whether the deny message's "rejected by the user" wording materially misleads the model; how much wasted steps from denied/media hops drain the *effective* budget; exact phrasing of the tool-visibility "PRIME" conjunct (the mechanism itself is confirmed via RC#2).
@@ -94,8 +94,8 @@ Note: claude is **not** immune to truncation — it simply never got close (0 `e
 3. ✅ **Steering**: `agent-file.ts` now appends a tool-environment block to every system.md — names the disabled built-ins and MCP families (`browser_*` etc.), says a rejected tool may end the turn, and points to the bridged tools. (With #2, MCP tools are also invisible — double cover.)
 4. ✅ **Cumulative token accounting**: per-step `StatusUpdate` usage is now summed (kimi emits one per kosong step; claude's SDK pre-aggregates — providers now report equivalent whole-call usage).
 5. ✅ **Truncation-safe media pointer**: media `file_read` refs are collected separately and appended AFTER truncation (`assembleHandlerOutput`) — an oversized tool result can no longer eat the pointer.
-6. ❌ **Make "continue" truthful** (RC#3 / Gap D): still open — thread `conversationKey` → `sessionId` AND fix `flattenForSdk` double-context before flipping `supportsEmptyTurnNudge`.
-7. ❌ **CLI upgrade to ≥1.28** for PreToolUse hooks (Gap B; re-run all three isolation probes after).
-8. ❌ Distinct stopReason for abort/timeout (deferred deliberately — needs a sweep of all `stopReason` consumers first); doc/flag drift (SearchWeb-only posture wording in flag registry).
+6. ✅ **"Continue" is now truthful** (RC#3 / Gap D, commit `55fa707d` 2026-06-06): `loop.ts` passes `conversationKey` → provider resumes ONE kimi session per conversation (`max-<key>-<bootEpoch>`); resume sends only NEW user text (no double-context — boot epoch + seed-once map); `share-dir.ts` seeds `kimi.json` as a real file (rename-proof, makes `Session.find` work under ephemeral staged dirs). **Live probe PASS**: recall code remembered across separate `createSession` calls. Empty-turn nudge now opens per-call via `ProviderResponse.supportsEmptyTurnNudge` (static flag impossible — the loop's provider is a routing wrapper).
+7. ✅ **CLI upgraded 1.12.0 → 1.47.0** (user-approved, probe-gated): wire 1.10 coexists with SDK 0.1.8's 1.7 (no enforcement, fail-soft parsing); all three probes re-run PASS on 1.47.0; hooks wiring (≥1.28) caused no disturbance (SDK registers no handlers). Rollback: `uv tool install --no-cache 'kimi-cli==1.12.0' --force` (`--no-cache` needed: root-owned uv cache dir).
+8. ✅ **Distinct stopReasons** `"aborted"` / `"timeout"` (consumer sweep done first — passthrough-safe; ACP wire union + Swift `StopReason` extended, aborted→cancelled in `ACPSessionStore`); ✅ flag-registry posture wording fixed + synced. Also shipped under Gap E: profile schema `maxTurns` (1..200) → resolver forwards to kimi-agent only; per-call `config.model` makes the Instant/Thinking/Agent presets work per pinned profile through the shared instance.
 
-**Verification:** 71/71 provider tests, 7/7 agent-file, 4/4 share-dir, all other kimi files green in isolation; `tsc` clean; live probes `isolation-agentfile.mjs` PASS + `sharedir-probe.mjs` PASS. **The running app is still the pre-fix bundle — a rebuild is required before any of this changes live behavior.**
+**Verification (final):** 131 kimi/retry tests + acp/config suites green in isolation; `tsc` clean; live probe gauntlet (isolation-agentfile, sharedir, resume) **PASS on both CLI 1.12.0 and 1.47.0**. Commits: `4bb0a8c9` (caps/MCP/steering/usage/media) + `55fa707d` (continuity/knobs/stopReasons). **A rebuild is required before the committed work changes app behavior** (the running bundle predates these commits; the CLI upgrade, however, is already live for every newly spawned kimi session).

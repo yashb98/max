@@ -1,5 +1,5 @@
 /**
- * @vellumai/service-contracts/credential-rpc
+ * @maxai/service-contracts/credential-rpc
  *
  * Domain entrypoint for the CES (Credential Execution Service) transport and
  * RPC surface. Re-exports the transport/RPC/handles/grants/rendering/error
@@ -8,11 +8,11 @@
  * Prefer this subpath over the root `.` import when you only need the
  * credential RPC surface:
  *
- *   import { CesRpcMethod, MakeAuthenticatedRequestSchema } from "@vellumai/service-contracts/credential-rpc";
+ *   import { CesRpcMethod, MakeAuthenticatedRequestSchema } from "@maxai/service-contracts/credential-rpc";
  *
  * For trust-rule types use the dedicated subpath:
  *
- *   import { TrustRule, parseTrustRule } from "@vellumai/service-contracts/trust-rules";
+ *   import { TrustRule, parseTrustRule } from "@maxai/service-contracts/trust-rules";
  */
 
 export * from "./transport.js";

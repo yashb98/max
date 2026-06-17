@@ -3,7 +3,7 @@
 # build-meet-bot-image.sh — Build the meet-bot container image locally.
 #
 # This is the dev-loop image build; CI has its own publishing pipeline. It
-# tags the image as `vellum-meet-bot:dev` so local smoke tests can reference
+# tags the image as `max-meet-bot:dev` so local smoke tests can reference
 # a stable tag without colliding with whatever CI produces.
 #
 # The build context is the REPO ROOT (not `skills/meet-join/bot/`) because
@@ -29,4 +29,4 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-docker build --platform linux/amd64 -t vellum-meet-bot:dev -f skills/meet-join/bot/Dockerfile .
+docker build --platform linux/amd64 -t max-meet-bot:dev -f skills/meet-join/bot/Dockerfile .

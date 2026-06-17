@@ -49,7 +49,7 @@ When set to `"none"`, every tool invocation requires explicit approval. Explicit
 
 ### Trust Rules (v3 Schema)
 
-Rules are stored in `~/.vellum/protected/trust.json` with version `3`. Each rule can include the following fields:
+Rules are stored in `~/.max/protected/trust.json` with version `3`. Each rule can include the following fields:
 
 | Field             | Type                   | Purpose                                                                  |
 | ----------------- | ---------------------- | ------------------------------------------------------------------------ |
@@ -281,8 +281,8 @@ The `allowOneTimeSend` config gate (default: `false`) enables a secondary "Send 
 | Component           | Location                                             | What it stores                                                                                                                                                   |
 | ------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Secret values       | CES credential store or encrypted file store         | Encrypted credential values keyed as `credential/{service}/{field}`. Stored via CES RPC (primary), CES HTTP (containerized), or encrypted file store (fallback). |
-| Credential metadata | `~/.vellum/workspace/data/credentials/metadata.json` | Service, field, label, policy (allowedTools, allowedDomains), timestamps                                                                                         |
-| Config              | `~/.vellum/workspace/config.*`                       | `secretDetection` settings: enabled, blockIngress, allowOneTimeSend                                                                                              |
+| Credential metadata | `~/.max/workspace/data/credentials/metadata.json` | Service, field, label, policy (allowedTools, allowedDomains), timestamps                                                                                         |
+| Config              | `~/.max/workspace/config.*`                       | `secretDetection` settings: enabled, blockIngress, allowOneTimeSend                                                                                              |
 
 ### Key Files
 

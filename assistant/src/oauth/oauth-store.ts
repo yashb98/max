@@ -15,7 +15,7 @@ import {
   oauthAppClientSecretPath,
   oauthConnectionAccessTokenPath,
   type SecureKeyBackend,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { v4 as uuid } from "uuid";
 

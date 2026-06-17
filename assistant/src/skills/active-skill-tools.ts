@@ -37,7 +37,7 @@ export function deriveActiveSkills(messages: Message[]): ActiveSkillEntry[] {
   const skillLoadUseIds = new Set<string>();
   for (const msg of messages) {
     for (const block of msg.content) {
-      if (block.type === "tool_use" && block.name === "skill_load") {
+      if (block.type === "tool_use" && (block.name === "skill_load" || block.name.endsWith("__skill_load"))) {
         skillLoadUseIds.add(block.id);
       }
     }

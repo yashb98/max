@@ -22,7 +22,7 @@ This Code of Conduct applies to all project spaces, including issues, pull reque
 
 ## Enforcement
 
-Instances of unacceptable behavior may be reported to **conduct@vellum.ai**. All reports will be reviewed and investigated promptly and confidentially. The project maintainers reserve the right to remove, edit, or reject contributions and to ban any contributor for behavior they deem inappropriate, threatening, or harmful.
+Instances of unacceptable behavior may be reported to **conduct@max.ai**. All reports will be reviewed and investigated promptly and confidentially. The project maintainers reserve the right to remove, edit, or reject contributions and to ban any contributor for behavior they deem inappropriate, threatening, or harmful.
 
 ## Attribution
 

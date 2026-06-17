@@ -22,7 +22,7 @@ import type {
   ListGrantsResponse,
   PersistentGrantRecord,
   RevokeGrantResponse,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 import { Command } from "commander";
 
 // ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ async function runCli(
     registerCredentialExecutionCommand(program);
     await program.parseAsync([
       "node",
-      "vellum",
+      "max",
       "credential-execution",
       ...args,
     ]);

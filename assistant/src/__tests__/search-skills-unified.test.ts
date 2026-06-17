@@ -226,7 +226,7 @@ describe("searchSkills (unified)", () => {
 
     // Verify ordering: catalog first, then clawhub, then skills.sh
     expect(result.skills[0]!.id).toBe("weather");
-    expect(result.skills[0]!.origin).toBe("vellum");
+    expect(result.skills[0]!.origin).toBe("max");
     expect(result.skills[0]!.kind).toBe("catalog");
     expect(result.skills[0]!.status).toBe("available");
     expect(result.skills[1]!.id).toBe("deploy");
@@ -286,7 +286,7 @@ describe("searchSkills (unified)", () => {
     // now uses the full id "org/repo/shared-skill" so it's a distinct entry.
     expect(result.skills).toHaveLength(2);
     expect(result.skills[0]!.id).toBe("shared-skill");
-    expect(result.skills[0]!.origin).toBe("vellum");
+    expect(result.skills[0]!.origin).toBe("max");
     expect(result.skills[1]!.id).toBe("org/repo/shared-skill");
     expect(result.skills[1]!.origin).toBe("skillssh");
   });
@@ -400,7 +400,7 @@ describe("searchSkills (unified)", () => {
 
     expect(result.skills).toHaveLength(1);
     expect(result.skills[0]!.id).toBe("my-skill");
-    expect(result.skills[0]!.origin).toBe("vellum");
+    expect(result.skills[0]!.origin).toBe("max");
   });
 
   test("skills.sh results have correct normalized fields", async () => {

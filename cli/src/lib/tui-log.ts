@@ -1,8 +1,8 @@
 /**
- * Structured logger for the `vellum client` TUI.
+ * Structured logger for the `max client` TUI.
  *
  * Writes timestamped log lines to `<xdg-log-dir>/client-cli.log`
- * (same directory used by `vellum logs` for hatch sessions).  The file is
+ * (same directory used by `max logs` for hatch sessions).  The file is
  * reset on each TUI session start so it always reflects the most recent run.
  *
  * Usage:

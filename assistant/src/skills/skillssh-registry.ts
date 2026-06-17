@@ -186,7 +186,7 @@ export interface GitHubContentsEntry {
 export function githubHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
-    "User-Agent": "vellum-assistant",
+    "User-Agent": "max-assistant",
   };
   const token = process.env.GITHUB_TOKEN;
   if (token) {

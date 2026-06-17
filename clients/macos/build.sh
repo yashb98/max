@@ -8,7 +8,7 @@ fi
 
 set -euo pipefail
 
-# Single-command build script for vellum-assistant.
+# Single-command build script for max-assistant.
 # Replaces XcodeGen + xcodebuild with: swift build → .app bundle → codesign.
 #
 # Usage:
@@ -29,13 +29,13 @@ set -euo pipefail
 #   DISPLAY_VERSION   Override CFBundleShortVersionString (default: 0.1.0)
 #   BUILD_VERSION     Override CFBundleVersion (default: 1)
 #   SIGN_IDENTITY     Override code signing identity
-#   VELLUM_DOCS_BASE_URL Override docs base URL for in-app docs links (e.g. staging)
+#   MAX_DOCS_BASE_URL Override docs base URL for in-app docs links (e.g. staging)
 #   SKIP_BUN_REBUILD    Set to 1 to skip Bun binary staleness checks (use pre-built binaries as-is)
-#   VELLUM_ENVIRONMENT   Runtime environment (local|dev|test|staging|production).
+#   MAX_ENVIRONMENT   Runtime environment (local|dev|test|staging|production).
 #                        Auto-set by build command if not provided. See AGENTS.md.
 #   SENTRY_DSN_MACOS     Sentry DSN for the macOS app project (omit to disable)
 #   SENTRY_DSN_ASSISTANT Sentry DSN for the assistant/daemon project (omit to disable)
-#   SU_FEED_URL          Sparkle appcast URL for auto-updates (default: Vellum GitHub releases)
+#   SU_FEED_URL          Sparkle appcast URL for auto-updates (default: Max GitHub releases)
 
 # ---------------------------------------------------------------------------
 # swift_with_retry — run a swift command with retries for transient SPM
@@ -217,8 +217,8 @@ _cache_slug="$(printf '%s' "$_repo_root" | md5 -q 2>/dev/null || printf '%s' "$_
 SPM_MODULE_CACHE="/tmp/spm-module-cache/${_cache_slug}"
 MODULE_CACHE_FLAGS="-Xswiftc -module-cache-path -Xswiftc $SPM_MODULE_CACHE -Xcc -fmodules-cache-path=$SPM_MODULE_CACHE -Xcxx -fmodules-cache-path=$SPM_MODULE_CACHE"
 
-BUNDLE_ID="com.vellum.vellum-assistant"
-APP_NAME="vellum-assistant"
+BUNDLE_ID="com.max.max-assistant"
+APP_NAME="max-assistant"
 KATA_KERNEL_VERSION="3.17.0"
 KATA_KERNEL_ARCHIVE_URL="${KATA_KERNEL_ARCHIVE_URL:-https://github.com/kata-containers/kata-containers/releases/download/$KATA_KERNEL_VERSION/kata-static-$KATA_KERNEL_VERSION-arm64.tar.xz}"
 # When bumping KATA_KERNEL_VERSION, update both SHAs:
@@ -303,7 +303,7 @@ if [ -z "${SIGN_IDENTITY:-}" ]; then
         # security-sensitive entitlements (virtualization, audio-input, etc.).
         # A self-signed cert satisfies this without Apple Developer enrollment.
         if [ -z "$SIGN_IDENTITY" ] && command -v openssl >/dev/null 2>&1; then
-            _CERT_CN="Vellum Local Development"
+            _CERT_CN="Max Local Development"
             # Check if we already created this cert in a previous build
             if ! _valid_codesign_identities | grep -q "$_CERT_CN"; then
                 echo ""
@@ -311,14 +311,14 @@ if [ -z "${SIGN_IDENTITY:-}" ]; then
                 echo "Creating self-signed certificate '$_CERT_CN' for local development..."
                 echo "(This is a one-time operation — the cert persists in your login keychain.)"
                 echo ""
-                _CERT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/vellum-cert.XXXXXX")
+                _CERT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/max-cert.XXXXXX")
                 cat > "$_CERT_DIR/cert.conf" << 'CERTEOF'
 [req]
 distinguished_name = req_dn
 x509_extensions = codesign_ext
 prompt = no
 [req_dn]
-CN = Vellum Local Development
+CN = Max Local Development
 [codesign_ext]
 keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, codeSigning
@@ -665,13 +665,13 @@ build_binaries() {
         cli_flags+=(--define "process.env.COMMIT_SHA='$COMMIT_SHA'")
     fi
 
-    # Embed VELLUM_ENVIRONMENT at compile time so all binaries know their
-    # runtime context without any filesystem lookup. VELLUM_ENVIRONMENT is
+    # Embed MAX_ENVIRONMENT at compile time so all binaries know their
+    # runtime context without any filesystem lookup. MAX_ENVIRONMENT is
     # exported by build.sh before calling build_binaries(), so it is always
     # set here (local|dev|test|staging|production).
     local env_flags=()
-    if [ -n "${VELLUM_ENVIRONMENT:-}" ]; then
-        env_flags=(--define "process.env.VELLUM_ENVIRONMENT='$VELLUM_ENVIRONMENT'")
+    if [ -n "${MAX_ENVIRONMENT:-}" ]; then
+        env_flags=(--define "process.env.MAX_ENVIRONMENT='$MAX_ENVIRONMENT'")
         daemon_flags+=("${env_flags[@]}")
         cli_flags+=("${env_flags[@]}")
     fi
@@ -683,19 +683,19 @@ build_binaries() {
     local pids=() failures=0
 
     SKIP_BUN_INSTALL=1 build_bun_binary "$ASSISTANT_SRC_DIR" "$ASSISTANT_SRC_DIR/src/daemon/main.ts" \
-        "$SCRIPT_DIR/daemon-bin" "vellum-daemon" "${daemon_flags[@]}" &
+        "$SCRIPT_DIR/daemon-bin" "max-daemon" "${daemon_flags[@]}" &
     pids+=($!)
 
     SKIP_BUN_INSTALL=1 build_bun_binary "$ASSISTANT_SRC_DIR" "$ASSISTANT_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/assistant-bin" "vellum-assistant" "${cli_flags[@]}" &
+        "$SCRIPT_DIR/assistant-bin" "max-assistant" "${cli_flags[@]}" &
     pids+=($!)
 
     SKIP_BUN_INSTALL=1 build_bun_binary "$CLI_SRC_DIR" "$CLI_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/cli-bin" "vellum-cli" "${env_flags[@]}" &
+        "$SCRIPT_DIR/cli-bin" "max-cli" "${env_flags[@]}" &
     pids+=($!)
 
     SKIP_BUN_INSTALL=1 build_bun_binary "$GATEWAY_SRC_DIR" "$GATEWAY_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/gateway-bin" "vellum-gateway" "${env_flags[@]}" &
+        "$SCRIPT_DIR/gateway-bin" "max-gateway" "${env_flags[@]}" &
     pids+=($!)
 
     SKIP_BUN_INSTALL=1 build_bun_binary "$CES_SRC_DIR" "$CES_SRC_DIR/src/main.ts" \
@@ -783,41 +783,41 @@ bundle_kata_kernel() {
     cp "$KATA_KERNEL_PATH" "$KATA_KERNEL_BUNDLE_DIR/vmlinux.container"
 }
 
-# Default VELLUM_ENVIRONMENT based on build command (overridable via env).
+# Default MAX_ENVIRONMENT based on build command (overridable via env).
 # See AGENTS.md "Build Environment" for the full matrix.
 # This must run before the early-exit commands (test, lint, clean, binaries)
 # so that swift test inherits the correct value.
-if [ -z "${VELLUM_ENVIRONMENT:-}" ]; then
+if [ -z "${MAX_ENVIRONMENT:-}" ]; then
     # Local web/platform overrides imply local full-stack development
-    # (`vel up`), even when VELLUM_ENVIRONMENT itself is not set.
-    _platform_override="${VELLUM_PLATFORM_URL:-}"
-    _web_override="${VELLUM_WEB_URL:-}"
+    # (`vel up`), even when MAX_ENVIRONMENT itself is not set.
+    _platform_override="${MAX_PLATFORM_URL:-}"
+    _web_override="${MAX_WEB_URL:-}"
     if [[ "$_platform_override" =~ ^http://(localhost|127\.0\.0\.1|[^/]+\.localhost)(:[0-9]+)?$ ]] || \
        [[ "$_web_override" =~ ^http://(localhost|127\.0\.0\.1|[^/]+\.localhost)(:[0-9]+)?$ ]]; then
-        VELLUM_ENVIRONMENT="local"
+        MAX_ENVIRONMENT="local"
     else
         case "$CMD" in
-            test)                          VELLUM_ENVIRONMENT="test" ;;
+            test)                          MAX_ENVIRONMENT="test" ;;
             release|release-application)
                 # Staging releases have a prerelease suffix in DISPLAY_VERSION
                 # (e.g. "0.6.0-staging.3"); clean semver means production.
                 if [[ "${DISPLAY_VERSION:-}" == *-staging* ]]; then
-                    VELLUM_ENVIRONMENT="staging"
+                    MAX_ENVIRONMENT="staging"
                 else
-                    VELLUM_ENVIRONMENT="production"
+                    MAX_ENVIRONMENT="production"
                 fi
                 ;;
-            *)                             VELLUM_ENVIRONMENT="dev" ;;
+            *)                             MAX_ENVIRONMENT="dev" ;;
         esac
     fi
 fi
-export VELLUM_ENVIRONMENT
-echo "VELLUM_ENVIRONMENT=$VELLUM_ENVIRONMENT"
+export MAX_ENVIRONMENT
+echo "MAX_ENVIRONMENT=$MAX_ENVIRONMENT"
 
 # For local builds, auto-generate a monotonically increasing BUILD_VERSION
 # from the timestamp so Sparkle can determine "newer" via numeric comparison.
 # CI-driven builds set BUILD_VERSION explicitly; this only affects the default.
-if [ "$BUILD_VERSION" = "1" ] && [ "$VELLUM_ENVIRONMENT" = "local" ]; then
+if [ "$BUILD_VERSION" = "1" ] && [ "$MAX_ENVIRONMENT" = "local" ]; then
     BUILD_VERSION=$(date +%Y%m%d%H%M%S)
 fi
 
@@ -825,7 +825,7 @@ case "$CMD" in
     test)
         echo "Running tests..."
         if [ ${#CMD_ARGS[@]} -eq 0 ]; then
-            SWIFT_TEST_ARGS=(--filter vellum_assistantTests)
+            SWIFT_TEST_ARGS=(--filter max_assistantTests)
         else
             SWIFT_TEST_ARGS=("${CMD_ARGS[@]}")
         fi
@@ -921,38 +921,38 @@ fi
 # Derive a per-environment bundle ID so that non-production builds are
 # isolated from each other (separate preferences, log stream filters, etc.).
 # Production keeps the bare identifier; everything else gets a suffix.
-case "$VELLUM_ENVIRONMENT" in
+case "$MAX_ENVIRONMENT" in
     production) ;; # keep default BUNDLE_ID
-    *)          BUNDLE_ID="com.vellum.vellum-assistant-${VELLUM_ENVIRONMENT}" ;;
+    *)          BUNDLE_ID="com.max.max-assistant-${MAX_ENVIRONMENT}" ;;
 esac
 echo "BUNDLE_ID=$BUNDLE_ID"
 
 # Derive a per-environment URL scheme for native auth callbacks.
-# Matches the iOS xcconfig pattern (App-Dev.xcconfig → vellum-assistant-dev,
-# App-Staging.xcconfig → vellum-assistant-staging, App.xcconfig → vellum-assistant).
-case "$VELLUM_ENVIRONMENT" in
-    production) BUNDLE_URL_SCHEME="vellum-assistant" ;;
-    *)          BUNDLE_URL_SCHEME="vellum-assistant-${VELLUM_ENVIRONMENT}" ;;
+# Matches the iOS xcconfig pattern (App-Dev.xcconfig → max-assistant-dev,
+# App-Staging.xcconfig → max-assistant-staging, App.xcconfig → max-assistant).
+case "$MAX_ENVIRONMENT" in
+    production) BUNDLE_URL_SCHEME="max-assistant" ;;
+    *)          BUNDLE_URL_SCHEME="max-assistant-${MAX_ENVIRONMENT}" ;;
 esac
 echo "BUNDLE_URL_SCHEME=$BUNDLE_URL_SCHEME"
 
 # ---------------------------------------------------------------------------
 # Resolve dock display name from the environment-scoped XDG config directory.
-# Mirrors VellumPaths.configDir (Swift) and getConfigDir() (TS):
-#   production  → $XDG_CONFIG_HOME/vellum/dock-display-name
-#   <env>       → $XDG_CONFIG_HOME/vellum-<env>/dock-display-name
+# Mirrors MaxPaths.configDir (Swift) and getConfigDir() (TS):
+#   production  → $XDG_CONFIG_HOME/max/dock-display-name
+#   <env>       → $XDG_CONFIG_HOME/max-<env>/dock-display-name
 # ---------------------------------------------------------------------------
 _XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-case "$VELLUM_ENVIRONMENT" in
-    production) _VELLUM_CONFIG_DIR="$_XDG_CONFIG_HOME/vellum" ;;
-    *)          _VELLUM_CONFIG_DIR="$_XDG_CONFIG_HOME/vellum-${VELLUM_ENVIRONMENT}" ;;
+case "$MAX_ENVIRONMENT" in
+    production) _MAX_CONFIG_DIR="$_XDG_CONFIG_HOME/max" ;;
+    *)          _MAX_CONFIG_DIR="$_XDG_CONFIG_HOME/max-${MAX_ENVIRONMENT}" ;;
 esac
-_DOCK_LABEL_FILE="$_VELLUM_CONFIG_DIR/dock-display-name"
-# Compute environment-aware default name: "Vellum" for production, "Vellum <Env>" otherwise.
-case "$VELLUM_ENVIRONMENT" in
-    production) _DEFAULT_DISPLAY_NAME="Vellum" ;;
-    *)          _ENV_LABEL="$(echo "${VELLUM_ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${VELLUM_ENVIRONMENT:1}"
-                _DEFAULT_DISPLAY_NAME="Vellum ${_ENV_LABEL}" ;;
+_DOCK_LABEL_FILE="$_MAX_CONFIG_DIR/dock-display-name"
+# Compute environment-aware default name: "Max" for production, "Max <Env>" otherwise.
+case "$MAX_ENVIRONMENT" in
+    production) _DEFAULT_DISPLAY_NAME="Max" ;;
+    *)          _ENV_LABEL="$(echo "${MAX_ENVIRONMENT:0:1}" | tr '[:lower:]' '[:upper:]')${MAX_ENVIRONMENT:1}"
+                _DEFAULT_DISPLAY_NAME="Max ${_ENV_LABEL}" ;;
 esac
 if [ -z "${BUNDLE_DISPLAY_NAME:-}" ] && [ -f "$_DOCK_LABEL_FILE" ]; then
     _SAVED_NAME="$(cat "$_DOCK_LABEL_FILE" 2>/dev/null | tr -d '\n')"
@@ -1024,13 +1024,13 @@ done
 # the Next.js web app and generate a local-only EdDSA keypair for signing.
 # This allows testing the full Sparkle upgrade flow without touching CI.
 # ---------------------------------------------------------------------------
-if [ "$VELLUM_ENVIRONMENT" = "local" ] && [ -z "${SU_FEED_URL:-}" ]; then
-    _SPARKLE_DIR="$_VELLUM_CONFIG_DIR/sparkle"
+if [ "$MAX_ENVIRONMENT" = "local" ] && [ -z "${SU_FEED_URL:-}" ]; then
+    _SPARKLE_DIR="$_MAX_CONFIG_DIR/sparkle"
     _SPARKLE_KEY_FILE="$_SPARKLE_DIR/ed25519-key.pem"
     _SPARKLE_PUB_FILE="$_SPARKLE_DIR/ed25519-public.pem"
 
     # Resolve the web app URL for the appcast feed.
-    _LOCAL_WEB_URL="${VELLUM_WEB_URL:-http://localhost:3000}"
+    _LOCAL_WEB_URL="${MAX_WEB_URL:-http://localhost:3000}"
     export SU_FEED_URL="${_LOCAL_WEB_URL}/api/local-builds/appcast.xml"
 
     # Generate a local-only EdDSA keypair if one doesn't exist yet.
@@ -1128,14 +1128,14 @@ fi
 # binaries with host-arch binaries.
 DAEMON_BIN_NEEDS_BUILD=false
 if [ "${SKIP_BUN_REBUILD:-}" != "1" ] && [ -d "$ASSISTANT_SRC_DIR/src" ] && command -v bun &>/dev/null; then
-    if [ ! -f "$SCRIPT_DIR/daemon-bin/vellum-daemon" ]; then
+    if [ ! -f "$SCRIPT_DIR/daemon-bin/max-daemon" ]; then
         DAEMON_BIN_NEEDS_BUILD=true
-    elif [ -n "$(find "$ASSISTANT_SRC_DIR/src" \( -name '*.ts' -o -name '*.json' \) -newer "$SCRIPT_DIR/daemon-bin/vellum-daemon" -print -quit 2>/dev/null)" ]; then
+    elif [ -n "$(find "$ASSISTANT_SRC_DIR/src" \( -name '*.ts' -o -name '*.json' \) -newer "$SCRIPT_DIR/daemon-bin/max-daemon" -print -quit 2>/dev/null)" ]; then
         DAEMON_BIN_NEEDS_BUILD=true
-    elif [ "$ASSISTANT_SRC_DIR/package.json" -nt "$SCRIPT_DIR/daemon-bin/vellum-daemon" ] || \
-         [ "$ASSISTANT_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/daemon-bin/vellum-daemon" ]; then
+    elif [ "$ASSISTANT_SRC_DIR/package.json" -nt "$SCRIPT_DIR/daemon-bin/max-daemon" ] || \
+         [ "$ASSISTANT_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/daemon-bin/max-daemon" ]; then
         DAEMON_BIN_NEEDS_BUILD=true
-    elif [ "$SCRIPT_DIR/build.sh" -nt "$SCRIPT_DIR/daemon-bin/vellum-daemon" ]; then
+    elif [ "$SCRIPT_DIR/build.sh" -nt "$SCRIPT_DIR/daemon-bin/max-daemon" ]; then
         DAEMON_BIN_NEEDS_BUILD=true
     fi
 fi
@@ -1148,7 +1148,7 @@ if [ "$DAEMON_BIN_NEEDS_BUILD" = true ]; then
         local_daemon_flags+=(--define "process.env.COMMIT_SHA='$COMMIT_SHA'")
     fi
     build_bun_binary "$ASSISTANT_SRC_DIR" "$ASSISTANT_SRC_DIR/src/daemon/main.ts" \
-        "$SCRIPT_DIR/daemon-bin" "vellum-daemon" "${local_daemon_flags[@]}"
+        "$SCRIPT_DIR/daemon-bin" "max-daemon" "${local_daemon_flags[@]}"
     # Embedding runtime (onnxruntime-node + @huggingface/transformers) is no longer
     # shipped with the app. It's downloaded post-hatch by EmbeddingRuntimeManager.
     rm -rf "$SCRIPT_DIR/daemon-bin/node_modules"
@@ -1197,8 +1197,8 @@ if [ -f "$ASSISTANT_SRC_DIR/src/runtime/routes/brain-graph/brain-graph.html" ]; 
     cp "$ASSISTANT_SRC_DIR/src/runtime/routes/brain-graph/brain-graph.html" "$SCRIPT_DIR/daemon-bin/brain-graph/"
 fi
 # Also rebuild if daemon binary changed or newly added
-if [ -f "$SCRIPT_DIR/daemon-bin/vellum-daemon" ]; then
-    if [ ! -f "$MACOS_DIR/vellum-daemon" ] || [ "$SCRIPT_DIR/daemon-bin/vellum-daemon" -nt "$MACOS_DIR/vellum-daemon" ]; then
+if [ -f "$SCRIPT_DIR/daemon-bin/max-daemon" ]; then
+    if [ ! -f "$MACOS_DIR/max-daemon" ] || [ "$SCRIPT_DIR/daemon-bin/max-daemon" -nt "$MACOS_DIR/max-daemon" ]; then
         NEEDS_REBUILD=true
     fi
 fi
@@ -1206,26 +1206,26 @@ fi
 # Auto-build assistant CLI binary if missing or stale (source changed) and bun is available
 ASSISTANT_CLI_BIN_NEEDS_BUILD=false
 if [ "${SKIP_BUN_REBUILD:-}" != "1" ] && [ -d "$ASSISTANT_SRC_DIR/src" ] && command -v bun &>/dev/null; then
-    if [ ! -f "$SCRIPT_DIR/assistant-bin/vellum-assistant" ]; then
+    if [ ! -f "$SCRIPT_DIR/assistant-bin/max-assistant" ]; then
         ASSISTANT_CLI_BIN_NEEDS_BUILD=true
-    elif [ -n "$(find "$ASSISTANT_SRC_DIR/src" \( -name '*.ts' -o -name '*.json' \) -newer "$SCRIPT_DIR/assistant-bin/vellum-assistant" -print -quit 2>/dev/null)" ]; then
+    elif [ -n "$(find "$ASSISTANT_SRC_DIR/src" \( -name '*.ts' -o -name '*.json' \) -newer "$SCRIPT_DIR/assistant-bin/max-assistant" -print -quit 2>/dev/null)" ]; then
         ASSISTANT_CLI_BIN_NEEDS_BUILD=true
-    elif [ "$ASSISTANT_SRC_DIR/package.json" -nt "$SCRIPT_DIR/assistant-bin/vellum-assistant" ] || \
-         [ "$ASSISTANT_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/assistant-bin/vellum-assistant" ]; then
+    elif [ "$ASSISTANT_SRC_DIR/package.json" -nt "$SCRIPT_DIR/assistant-bin/max-assistant" ] || \
+         [ "$ASSISTANT_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/assistant-bin/max-assistant" ]; then
         ASSISTANT_CLI_BIN_NEEDS_BUILD=true
-    elif [ "$SCRIPT_DIR/build.sh" -nt "$SCRIPT_DIR/assistant-bin/vellum-assistant" ]; then
+    elif [ "$SCRIPT_DIR/build.sh" -nt "$SCRIPT_DIR/assistant-bin/max-assistant" ]; then
         ASSISTANT_CLI_BIN_NEEDS_BUILD=true
     fi
 fi
 if [ "$ASSISTANT_CLI_BIN_NEEDS_BUILD" = true ]; then
     local_assistant_flags=("${BUN_EXTERNAL_FLAGS[@]}")
     build_bun_binary "$ASSISTANT_SRC_DIR" "$ASSISTANT_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/assistant-bin" "vellum-assistant" "${local_assistant_flags[@]}"
+        "$SCRIPT_DIR/assistant-bin" "max-assistant" "${local_assistant_flags[@]}"
 fi
 
 # Also rebuild if assistant CLI binary changed or newly added
-if [ -f "$SCRIPT_DIR/assistant-bin/vellum-assistant" ]; then
-    if [ ! -f "$MACOS_DIR/vellum-assistant" ] || [ "$SCRIPT_DIR/assistant-bin/vellum-assistant" -nt "$MACOS_DIR/vellum-assistant" ]; then
+if [ -f "$SCRIPT_DIR/assistant-bin/max-assistant" ]; then
+    if [ ! -f "$MACOS_DIR/max-assistant" ] || [ "$SCRIPT_DIR/assistant-bin/max-assistant" -nt "$MACOS_DIR/max-assistant" ]; then
         NEEDS_REBUILD=true
     fi
 fi
@@ -1233,23 +1233,23 @@ fi
 # Auto-build CLI binary if missing or stale (source changed) and bun is available
 CLI_BIN_NEEDS_BUILD=false
 if [ "${SKIP_BUN_REBUILD:-}" != "1" ] && [ -d "$CLI_SRC_DIR/src" ] && command -v bun &>/dev/null; then
-    if [ ! -f "$SCRIPT_DIR/cli-bin/vellum-cli" ]; then
+    if [ ! -f "$SCRIPT_DIR/cli-bin/max-cli" ]; then
         CLI_BIN_NEEDS_BUILD=true
-    elif [ -n "$(find "$CLI_SRC_DIR/src" -name '*.ts' -newer "$SCRIPT_DIR/cli-bin/vellum-cli" -print -quit 2>/dev/null)" ]; then
+    elif [ -n "$(find "$CLI_SRC_DIR/src" -name '*.ts' -newer "$SCRIPT_DIR/cli-bin/max-cli" -print -quit 2>/dev/null)" ]; then
         CLI_BIN_NEEDS_BUILD=true
-    elif [ "$CLI_SRC_DIR/package.json" -nt "$SCRIPT_DIR/cli-bin/vellum-cli" ] || \
-         [ "$CLI_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/cli-bin/vellum-cli" ]; then
+    elif [ "$CLI_SRC_DIR/package.json" -nt "$SCRIPT_DIR/cli-bin/max-cli" ] || \
+         [ "$CLI_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/cli-bin/max-cli" ]; then
         CLI_BIN_NEEDS_BUILD=true
     fi
 fi
 if [ "$CLI_BIN_NEEDS_BUILD" = true ]; then
     build_bun_binary "$CLI_SRC_DIR" "$CLI_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/cli-bin" "vellum-cli"
+        "$SCRIPT_DIR/cli-bin" "max-cli"
 fi
 
 # Also rebuild if CLI binary changed or newly added
-if [ -f "$SCRIPT_DIR/cli-bin/vellum-cli" ]; then
-    if [ ! -f "$MACOS_DIR/vellum-cli" ] || [ "$SCRIPT_DIR/cli-bin/vellum-cli" -nt "$MACOS_DIR/vellum-cli" ]; then
+if [ -f "$SCRIPT_DIR/cli-bin/max-cli" ]; then
+    if [ ! -f "$MACOS_DIR/max-cli" ] || [ "$SCRIPT_DIR/cli-bin/max-cli" -nt "$MACOS_DIR/max-cli" ]; then
         NEEDS_REBUILD=true
     fi
 fi
@@ -1257,18 +1257,18 @@ fi
 # Auto-build gateway binary if missing or stale (source changed) and bun is available
 GATEWAY_BIN_NEEDS_BUILD=false
 if [ "${SKIP_BUN_REBUILD:-}" != "1" ] && [ -d "$GATEWAY_SRC_DIR/src" ] && command -v bun &>/dev/null; then
-    if [ ! -f "$SCRIPT_DIR/gateway-bin/vellum-gateway" ]; then
+    if [ ! -f "$SCRIPT_DIR/gateway-bin/max-gateway" ]; then
         GATEWAY_BIN_NEEDS_BUILD=true
-    elif [ -n "$(find "$GATEWAY_SRC_DIR/src" -name '*.ts' -newer "$SCRIPT_DIR/gateway-bin/vellum-gateway" -print -quit 2>/dev/null)" ]; then
+    elif [ -n "$(find "$GATEWAY_SRC_DIR/src" -name '*.ts' -newer "$SCRIPT_DIR/gateway-bin/max-gateway" -print -quit 2>/dev/null)" ]; then
         GATEWAY_BIN_NEEDS_BUILD=true
-    elif [ "$GATEWAY_SRC_DIR/package.json" -nt "$SCRIPT_DIR/gateway-bin/vellum-gateway" ] || \
-         [ "$GATEWAY_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/gateway-bin/vellum-gateway" ]; then
+    elif [ "$GATEWAY_SRC_DIR/package.json" -nt "$SCRIPT_DIR/gateway-bin/max-gateway" ] || \
+         [ "$GATEWAY_SRC_DIR/bun.lock" -nt "$SCRIPT_DIR/gateway-bin/max-gateway" ]; then
         GATEWAY_BIN_NEEDS_BUILD=true
     fi
 fi
 if [ "$GATEWAY_BIN_NEEDS_BUILD" = true ]; then
     build_bun_binary "$GATEWAY_SRC_DIR" "$GATEWAY_SRC_DIR/src/index.ts" \
-        "$SCRIPT_DIR/gateway-bin" "vellum-gateway"
+        "$SCRIPT_DIR/gateway-bin" "max-gateway"
 fi
 # Always refresh WASM assets (not embedded by bun --compile).
 # These must be copied even when the gateway binary is reused from a previous build.
@@ -1278,8 +1278,8 @@ if [ -d "$SCRIPT_DIR/gateway-bin" ] && [ -d "$GATEWAY_SRC_DIR/node_modules/web-t
 fi
 
 # Also rebuild if gateway binary changed or newly added
-if [ -f "$SCRIPT_DIR/gateway-bin/vellum-gateway" ]; then
-    if [ ! -f "$MACOS_DIR/vellum-gateway" ] || [ "$SCRIPT_DIR/gateway-bin/vellum-gateway" -nt "$MACOS_DIR/vellum-gateway" ]; then
+if [ -f "$SCRIPT_DIR/gateway-bin/max-gateway" ]; then
+    if [ ! -f "$MACOS_DIR/max-gateway" ] || [ "$SCRIPT_DIR/gateway-bin/max-gateway" -nt "$MACOS_DIR/max-gateway" ]; then
         NEEDS_REBUILD=true
     fi
 fi
@@ -1321,11 +1321,11 @@ if [ "$NEEDS_REBUILD" = true ]; then
     install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS_DIR/$BUNDLE_DISPLAY_NAME" 2>/dev/null || true
 
     # Copy bundled daemon binary (if available — built by CI or locally)
-    DAEMON_BIN="$SCRIPT_DIR/daemon-bin/vellum-daemon"
+    DAEMON_BIN="$SCRIPT_DIR/daemon-bin/max-daemon"
     if [ -f "$DAEMON_BIN" ]; then
         echo "Bundling daemon binary..."
-        cp "$DAEMON_BIN" "$MACOS_DIR/vellum-daemon"
-        chmod +x "$MACOS_DIR/vellum-daemon"
+        cp "$DAEMON_BIN" "$MACOS_DIR/max-daemon"
+        chmod +x "$MACOS_DIR/max-daemon"
         # Embedding runtime is now downloaded post-hatch (no bundled node_modules)
         rm -rf "$MACOS_DIR/node_modules"
     else
@@ -1333,35 +1333,35 @@ if [ "$NEEDS_REBUILD" = true ]; then
     fi
 
     # Copy bundled assistant CLI binary (if available — built by CI or locally)
-    ASSISTANT_CLI_BIN="$SCRIPT_DIR/assistant-bin/vellum-assistant"
+    ASSISTANT_CLI_BIN="$SCRIPT_DIR/assistant-bin/max-assistant"
     if [ -f "$ASSISTANT_CLI_BIN" ]; then
         echo "Bundling assistant CLI binary..."
-        cp "$ASSISTANT_CLI_BIN" "$MACOS_DIR/vellum-assistant"
-        chmod +x "$MACOS_DIR/vellum-assistant"
+        cp "$ASSISTANT_CLI_BIN" "$MACOS_DIR/max-assistant"
+        chmod +x "$MACOS_DIR/max-assistant"
         # Create an 'assistant' symlink so `which assistant` inside any subprocess
         # spawned by the app resolves to the bundled binary rather than a
         # globally installed version (e.g. ~/.bun/bin/assistant).
-        ln -sf "vellum-assistant" "$MACOS_DIR/assistant"
+        ln -sf "max-assistant" "$MACOS_DIR/assistant"
     else
         echo "No assistant CLI binary at $ASSISTANT_CLI_BIN — skipping (dev mode)"
     fi
 
     # Copy bundled CLI binary (if available — built by CI or locally)
-    CLI_BIN="$SCRIPT_DIR/cli-bin/vellum-cli"
+    CLI_BIN="$SCRIPT_DIR/cli-bin/max-cli"
     if [ -f "$CLI_BIN" ]; then
         echo "Bundling CLI binary..."
-        cp "$CLI_BIN" "$MACOS_DIR/vellum-cli"
-        chmod +x "$MACOS_DIR/vellum-cli"
+        cp "$CLI_BIN" "$MACOS_DIR/max-cli"
+        chmod +x "$MACOS_DIR/max-cli"
     else
         echo "No CLI binary at $CLI_BIN — skipping (dev mode)"
     fi
 
     # Copy bundled gateway binary (if available — built by CI or locally)
-    GATEWAY_BIN="$SCRIPT_DIR/gateway-bin/vellum-gateway"
+    GATEWAY_BIN="$SCRIPT_DIR/gateway-bin/max-gateway"
     if [ -f "$GATEWAY_BIN" ]; then
         echo "Bundling gateway binary..."
-        cp "$GATEWAY_BIN" "$MACOS_DIR/vellum-gateway"
-        chmod +x "$MACOS_DIR/vellum-gateway"
+        cp "$GATEWAY_BIN" "$MACOS_DIR/max-gateway"
+        chmod +x "$MACOS_DIR/max-gateway"
         # Bundle WASM assets into Resources (not embedded by bun --compile).
         # tree-sitter is used by the gateway for risk classification.
         for wasm in "$SCRIPT_DIR/gateway-bin/"*.wasm; do
@@ -1488,13 +1488,13 @@ if [ -f "$TTS_PROVIDER_CATALOG" ]; then
     cp "$TTS_PROVIDER_CATALOG" "$RESOURCES_DIR/tts-provider-catalog.json"
 fi
 # NOTE: llm-provider-catalog.json and web-search-provider-catalog.json
-# are bundled into the VellumAssistantShared SPM resource bundle (see
-# clients/Package.swift) and loaded via Bundle.vellumShared at runtime;
+# are bundled into the MaxAssistantShared SPM resource bundle (see
+# clients/Package.swift) and loaded via Bundle.maxShared at runtime;
 # no main-bundle copy needed. tts-provider-catalog.json still copies
 # here because TTSProviderRegistry continues to use Bundle.main.
 # Bundle Dockerfiles into Contents/Resources/dockerfiles/ for debug builds
 # so that the CLI's findRepoRoot() can locate them when running from a
-# packaged DMG.  This enables `vellum hatch --remote docker` to work
+# packaged DMG.  This enables `max hatch --remote docker` to work
 # without a full source checkout (the CLI detects the missing source tree
 # and falls back to pulling pre-built images instead of building locally).
 if [ "$CONFIG" = "debug" ]; then
@@ -1538,7 +1538,7 @@ done
 COMMIT_SHA_PLIST=""
 if [ -n "${COMMIT_SHA:-}" ]; then
     COMMIT_SHA_PLIST=$(cat <<EOF
-    <key>VellumCommitSHA</key>
+    <key>MaxCommitSHA</key>
     <string>$COMMIT_SHA</string>
 EOF
 )
@@ -1547,8 +1547,8 @@ fi
 
 LSE_ENVIRONMENT_PLIST=""
 _LSE_ENTRIES=""
-if [ -n "${VELLUM_DOCS_BASE_URL:-}" ]; then
-    DOCS_BASE_URL_OVERRIDE="${VELLUM_DOCS_BASE_URL%/}"
+if [ -n "${MAX_DOCS_BASE_URL:-}" ]; then
+    DOCS_BASE_URL_OVERRIDE="${MAX_DOCS_BASE_URL%/}"
     # XML-escape ampersand/lt/gt before embedding into Info.plist so a
     # malformed override (e.g. one containing `&` in a URL path) cannot
     # corrupt the entire plist and prevent the app from launching.
@@ -1560,42 +1560,42 @@ if [ -n "${VELLUM_DOCS_BASE_URL:-}" ]; then
     DOCS_BASE_URL_OVERRIDE="${DOCS_BASE_URL_OVERRIDE//>/&gt;}"
     echo "Embedding app docs base URL override: $DOCS_BASE_URL_OVERRIDE"
     _LSE_ENTRIES+="
-        <key>VELLUM_DOCS_BASE_URL</key>
+        <key>MAX_DOCS_BASE_URL</key>
         <string>$DOCS_BASE_URL_OVERRIDE</string>"
 fi
-if [ -n "${VELLUM_PLATFORM_URL:-}" ]; then
-    PLATFORM_URL_OVERRIDE="${VELLUM_PLATFORM_URL%/}"
+if [ -n "${MAX_PLATFORM_URL:-}" ]; then
+    PLATFORM_URL_OVERRIDE="${MAX_PLATFORM_URL%/}"
     PLATFORM_URL_OVERRIDE="${PLATFORM_URL_OVERRIDE//&/&amp;}"
     PLATFORM_URL_OVERRIDE="${PLATFORM_URL_OVERRIDE//</&lt;}"
     PLATFORM_URL_OVERRIDE="${PLATFORM_URL_OVERRIDE//>/&gt;}"
-    echo "Embedding VELLUM_PLATFORM_URL override: $PLATFORM_URL_OVERRIDE"
+    echo "Embedding MAX_PLATFORM_URL override: $PLATFORM_URL_OVERRIDE"
     _LSE_ENTRIES+="
-        <key>VELLUM_PLATFORM_URL</key>
+        <key>MAX_PLATFORM_URL</key>
         <string>$PLATFORM_URL_OVERRIDE</string>"
 fi
-if [ -n "${VELLUM_WEB_URL:-}" ]; then
-    WEB_URL_OVERRIDE="${VELLUM_WEB_URL%/}"
+if [ -n "${MAX_WEB_URL:-}" ]; then
+    WEB_URL_OVERRIDE="${MAX_WEB_URL%/}"
     WEB_URL_OVERRIDE="${WEB_URL_OVERRIDE//&/&amp;}"
     WEB_URL_OVERRIDE="${WEB_URL_OVERRIDE//</&lt;}"
     WEB_URL_OVERRIDE="${WEB_URL_OVERRIDE//>/&gt;}"
-    echo "Embedding VELLUM_WEB_URL override: $WEB_URL_OVERRIDE"
+    echo "Embedding MAX_WEB_URL override: $WEB_URL_OVERRIDE"
     _LSE_ENTRIES+="
-        <key>VELLUM_WEB_URL</key>
+        <key>MAX_WEB_URL</key>
         <string>$WEB_URL_OVERRIDE</string>"
 fi
 if [ "$CONFIG" = "debug" ]; then
-    echo "Embedding VELLUM_FLAG_PLATFORM_HOSTED_ENABLED for debug build"
+    echo "Embedding MAX_FLAG_PLATFORM_HOSTED_ENABLED for debug build"
     _LSE_ENTRIES+="
-        <key>VELLUM_FLAG_PLATFORM_HOSTED_ENABLED</key>
+        <key>MAX_FLAG_PLATFORM_HOSTED_ENABLED</key>
         <string>1</string>"
-    echo "Embedding VELLUM_FLAG_LOCAL_DOCKER_ENABLED for debug build"
+    echo "Embedding MAX_FLAG_LOCAL_DOCKER_ENABLED for debug build"
     _LSE_ENTRIES+="
-        <key>VELLUM_FLAG_LOCAL_DOCKER_ENABLED</key>
+        <key>MAX_FLAG_LOCAL_DOCKER_ENABLED</key>
         <string>1</string>"
 fi
 _LSE_ENTRIES+="
-        <key>VELLUM_ENVIRONMENT</key>
-        <string>$VELLUM_ENVIRONMENT</string>"
+        <key>MAX_ENVIRONMENT</key>
+        <string>$MAX_ENVIRONMENT</string>"
 if [ -n "${SENTRY_DSN_MACOS:-}" ]; then
     echo "Embedding SENTRY_DSN_MACOS"
     _LSE_ENTRIES+="
@@ -1647,13 +1647,13 @@ cat > "$CONTENTS/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
     <key>NSScreenRecordingUsageDescription</key>
-    <string>Vellum needs Screen Recording access to see what's on your screen during computer use tasks.</string>
+    <string>Max needs Screen Recording access to see what's on your screen during computer use tasks.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Vellum needs microphone access to transcribe voice commands.</string>
+    <string>Max needs microphone access to transcribe voice commands.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>Vellum uses speech recognition to convert voice commands into tasks.</string>
+    <string>Max uses speech recognition to convert voice commands into tasks.</string>
     <key>SUFeedURL</key>
-    <string>${SU_FEED_URL:-https://github.com/vellum-ai/vellum-assistant/releases/latest/download/appcast.xml}</string>
+    <string>${SU_FEED_URL:-https://github.com/max-ai/max-assistant/releases/latest/download/appcast.xml}</string>
     <key>SUPublicEDKey</key>
     <string>${SU_PUBLIC_ED_KEY:-}</string>
     <key>SUEnableAutomaticChecks</key>
@@ -1688,7 +1688,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
                 <key>NSIncludesSubdomains</key>
                 <true/>
             </dict>
-            <key>vellum.local</key>
+            <key>max.local</key>
             <dict>
                 <key>NSExceptionAllowsInsecureHTTPLoads</key>
                 <true/>
@@ -1712,24 +1712,24 @@ cat > "$CONTENTS/Info.plist" <<PLIST
     <array>
         <dict>
             <key>UTTypeIdentifier</key>
-            <string>com.vellum.app-bundle</string>
+            <string>com.max.app-bundle</string>
             <key>UTTypeConformsTo</key>
             <array>
                 <string>public.data</string>
                 <string>public.content</string>
             </array>
             <key>UTTypeDescription</key>
-            <string>Vellum App Bundle</string>
+            <string>Max App Bundle</string>
             <key>UTTypeIconFile</key>
-            <string>VellumDocument</string>
+            <string>MaxDocument</string>
             <key>UTTypeTagSpecification</key>
             <dict>
                 <key>public.filename-extension</key>
                 <array>
-                    <string>vellum</string>
+                    <string>max</string>
                 </array>
                 <key>public.mime-type</key>
-                <string>application/x-vellum</string>
+                <string>application/x-max</string>
             </dict>
         </dict>
     </array>
@@ -1738,13 +1738,13 @@ cat > "$CONTENTS/Info.plist" <<PLIST
         <dict>
             <key>CFBundleTypeExtensions</key>
             <array>
-                <string>vellum</string>
+                <string>max</string>
             </array>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
             <key>LSItemContentTypes</key>
             <array>
-                <string>com.vellum.app-bundle</string>
+                <string>com.max.app-bundle</string>
             </array>
         </dict>
     </array>
@@ -1755,8 +1755,8 @@ PLIST
 # Resolve per-environment icon source. Falls back to production if no
 # environment-specific override exists.
 ICONS_DIR="$SCRIPT_DIR/build-resources/icons"
-if [ -d "$ICONS_DIR/$VELLUM_ENVIRONMENT" ]; then
-    ICON_SOURCE_DIR="$ICONS_DIR/$VELLUM_ENVIRONMENT"
+if [ -d "$ICONS_DIR/$MAX_ENVIRONMENT" ]; then
+    ICON_SOURCE_DIR="$ICONS_DIR/$MAX_ENVIRONMENT"
 elif [ -d "$ICONS_DIR/production" ]; then
     ICON_SOURCE_DIR="$ICONS_DIR/production"
 else
@@ -1767,7 +1767,7 @@ fi
 # AppIcon.icon is a Xcode-26 Icon Composer bundle — actool reads it alongside
 # the xcassets and emits both the layered Liquid Glass iconstack for macOS Tahoe
 # and backward-compatible raster fallbacks for macOS 15 into Assets.car.
-XCASSETS="$SCRIPT_DIR/vellum-assistant/Resources/Assets.xcassets"
+XCASSETS="$SCRIPT_DIR/max-assistant/Resources/Assets.xcassets"
 APP_ICON="$SCRIPT_DIR/build-resources/AppIcon.icon"
 
 # Overlay environment-specific icon into the .icon bundle so both actool
@@ -2095,8 +2095,8 @@ SWIFT_SCRIPT
     echo "Generated AppIcon.icns"
 fi
 
-# Copy document type icon for .vellum UTI
-cp "$SCRIPT_DIR/vellum-assistant/Resources/VellumDocument.icns" "$RESOURCES_DIR/"
+# Copy document type icon for .max UTI
+cp "$SCRIPT_DIR/max-assistant/Resources/MaxDocument.icns" "$RESOURCES_DIR/"
 
 # Derive target architecture for Quick Look extensions from RELEASE_ARCH_FLAGS.
 # Falls back to host architecture when RELEASE_ARCH_FLAGS is unset (dev builds).
@@ -2106,10 +2106,10 @@ fi
 QL_TARGET_ARCH="${QL_TARGET_ARCH:-$(uname -m)}"
 
 # Build and embed Quick Look Thumbnail extension (appex)
-QLTHUMB_SRC="$SCRIPT_DIR/VellumQLThumbnail"
+QLTHUMB_SRC="$SCRIPT_DIR/MaxQLThumbnail"
 if [ -d "$QLTHUMB_SRC" ]; then
-    echo "Building VellumQLThumbnail appex..."
-    QLTHUMB_APPEX="$CONTENTS/PlugIns/VellumQLThumbnail.appex"
+    echo "Building MaxQLThumbnail appex..."
+    QLTHUMB_APPEX="$CONTENTS/PlugIns/MaxQLThumbnail.appex"
     QLTHUMB_APPEX_CONTENTS="$QLTHUMB_APPEX/Contents"
     QLTHUMB_APPEX_MACOS="$QLTHUMB_APPEX_CONTENTS/MacOS"
     mkdir -p "$QLTHUMB_APPEX_MACOS"
@@ -2119,7 +2119,7 @@ if [ -d "$QLTHUMB_SRC" ]; then
     # The -Xlinker -e -Xlinker _NSExtensionMain flags tell the linker to use it
     # instead of a regular main() function.
     xcrun swiftc \
-        -module-name VellumQLThumbnail \
+        -module-name MaxQLThumbnail \
         -emit-executable \
         -target "${QL_TARGET_ARCH}-apple-macosx15.0" \
         -sdk "$(xcrun --show-sdk-path)" \
@@ -2127,20 +2127,20 @@ if [ -d "$QLTHUMB_SRC" ]; then
         -framework AppKit \
         -framework CoreGraphics \
         -Xlinker -e -Xlinker _NSExtensionMain \
-        -o "$QLTHUMB_APPEX_MACOS/VellumQLThumbnail" \
+        -o "$QLTHUMB_APPEX_MACOS/MaxQLThumbnail" \
         "$QLTHUMB_SRC/ThumbnailProvider.swift"
 
     # Copy Info.plist
     cp "$QLTHUMB_SRC/Info.plist" "$QLTHUMB_APPEX_CONTENTS/Info.plist"
 
-    echo "VellumQLThumbnail appex built"
+    echo "MaxQLThumbnail appex built"
 fi
 
 # Build and embed Quick Look Preview extension (appex)
-QLPREV_SRC="$SCRIPT_DIR/VellumQLPreview"
+QLPREV_SRC="$SCRIPT_DIR/MaxQLPreview"
 if [ -d "$QLPREV_SRC" ]; then
-    echo "Building VellumQLPreview appex..."
-    QLPREV_APPEX="$CONTENTS/PlugIns/VellumQLPreview.appex"
+    echo "Building MaxQLPreview appex..."
+    QLPREV_APPEX="$CONTENTS/PlugIns/MaxQLPreview.appex"
     QLPREV_APPEX_CONTENTS="$QLPREV_APPEX/Contents"
     QLPREV_APPEX_MACOS="$QLPREV_APPEX_CONTENTS/MacOS"
     mkdir -p "$QLPREV_APPEX_MACOS"
@@ -2148,20 +2148,20 @@ if [ -d "$QLPREV_SRC" ]; then
     # Compile the extension as an appex binary.
     # App extensions use NSExtensionMain as the entry point (provided by Foundation).
     xcrun swiftc \
-        -module-name VellumQLPreview \
+        -module-name MaxQLPreview \
         -emit-executable \
         -target "${QL_TARGET_ARCH}-apple-macosx15.0" \
         -sdk "$(xcrun --show-sdk-path)" \
         -framework QuickLookUI \
         -framework UniformTypeIdentifiers \
         -Xlinker -e -Xlinker _NSExtensionMain \
-        -o "$QLPREV_APPEX_MACOS/VellumQLPreview" \
+        -o "$QLPREV_APPEX_MACOS/MaxQLPreview" \
         "$QLPREV_SRC/PreviewProvider.swift"
 
     # Copy Info.plist
     cp "$QLPREV_SRC/Info.plist" "$QLPREV_APPEX_CONTENTS/Info.plist"
 
-    echo "VellumQLPreview appex built"
+    echo "MaxQLPreview appex built"
 fi
 
 # Remove transient runtime artifacts that may be written into the app bundle
@@ -2210,7 +2210,7 @@ if [ "$CONFIG" = "release" ] && [ "$SIGN_IDENTITY" != "-" ]; then
 else
     CODESIGN_TS_FLAGS=(--timestamp=none --options runtime)
     # Generate debug entitlements with get-task-allow for debugger attachment
-    _DEBUG_ENT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/vellum-ent.XXXXXX")
+    _DEBUG_ENT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/max-ent.XXXXXX")
     APP_ENTITLEMENTS_PATH="$_DEBUG_ENT_DIR/app-entitlements.plist"
     DAEMON_ENTITLEMENTS_PATH="$_DEBUG_ENT_DIR/daemon-entitlements.plist"
     cp "$SCRIPT_DIR/app-entitlements.plist" "$APP_ENTITLEMENTS_PATH"
@@ -2250,33 +2250,33 @@ if [ -d "$FRAMEWORKS_DIR/Sparkle.framework" ]; then
 fi
 
 # Sign Quick Look Thumbnail extension (must be signed before outer app bundle)
-QLTHUMB_APPEX="$CONTENTS/PlugIns/VellumQLThumbnail.appex"
+QLTHUMB_APPEX="$CONTENTS/PlugIns/MaxQLThumbnail.appex"
 if [ -d "$QLTHUMB_APPEX" ]; then
     QLTHUMB_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" "${CODESIGN_TS_FLAGS[@]}")
     codesign "${QLTHUMB_SIGN_FLAGS[@]}" "$QLTHUMB_APPEX"
-    echo "VellumQLThumbnail.appex signed"
+    echo "MaxQLThumbnail.appex signed"
 fi
 
 # Sign Quick Look Preview extension (must be signed before outer app bundle)
-QLPREV_APPEX="$CONTENTS/PlugIns/VellumQLPreview.appex"
+QLPREV_APPEX="$CONTENTS/PlugIns/MaxQLPreview.appex"
 if [ -d "$QLPREV_APPEX" ]; then
     QLPREV_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" "${CODESIGN_TS_FLAGS[@]}")
     codesign "${QLPREV_SIGN_FLAGS[@]}" "$QLPREV_APPEX"
-    echo "VellumQLPreview.appex signed"
+    echo "MaxQLPreview.appex signed"
 fi
 
 # Sign Bun-compiled binaries with daemon entitlements. These are JavaScript
 # executables produced by `bun build --compile` that require JIT and unsigned
 # executable memory to run under hardened runtime.
-if [ -f "$MACOS_DIR/vellum-cli" ]; then
+if [ -f "$MACOS_DIR/max-cli" ]; then
     CLI_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" --entitlements "$DAEMON_ENTITLEMENTS_PATH" "${CODESIGN_TS_FLAGS[@]}")
-    codesign "${CLI_SIGN_FLAGS[@]}" "$MACOS_DIR/vellum-cli"
+    codesign "${CLI_SIGN_FLAGS[@]}" "$MACOS_DIR/max-cli"
     echo "CLI binary signed with entitlements"
 fi
 
-if [ -f "$MACOS_DIR/vellum-gateway" ]; then
+if [ -f "$MACOS_DIR/max-gateway" ]; then
     GATEWAY_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" --entitlements "$DAEMON_ENTITLEMENTS_PATH" "${CODESIGN_TS_FLAGS[@]}")
-    codesign "${GATEWAY_SIGN_FLAGS[@]}" "$MACOS_DIR/vellum-gateway"
+    codesign "${GATEWAY_SIGN_FLAGS[@]}" "$MACOS_DIR/max-gateway"
     echo "Gateway binary signed with entitlements"
 fi
 
@@ -2286,9 +2286,9 @@ if [ -f "$MACOS_DIR/credential-executor" ]; then
     echo "credential-executor binary signed with entitlements"
 fi
 
-if [ -f "$MACOS_DIR/vellum-assistant" ]; then
+if [ -f "$MACOS_DIR/max-assistant" ]; then
     ASSISTANT_BIN_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" --entitlements "$DAEMON_ENTITLEMENTS_PATH" "${CODESIGN_TS_FLAGS[@]}")
-    codesign "${ASSISTANT_BIN_SIGN_FLAGS[@]}" "$MACOS_DIR/vellum-assistant"
+    codesign "${ASSISTANT_BIN_SIGN_FLAGS[@]}" "$MACOS_DIR/max-assistant"
     echo "Assistant binary signed with entitlements"
 fi
 
@@ -2300,18 +2300,18 @@ if [ -d "$MACOS_DIR" ]; then
     EXTRA_FILE_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" "${CODESIGN_TS_FLAGS[@]}")
     find "$MACOS_DIR" -maxdepth 1 -type f \
         ! -name "$BUNDLE_DISPLAY_NAME" \
-        ! -name "vellum-daemon" \
-        ! -name "vellum-assistant" \
-        ! -name "vellum-cli" \
-        ! -name "vellum-gateway" \
+        ! -name "max-daemon" \
+        ! -name "max-assistant" \
+        ! -name "max-cli" \
+        ! -name "max-gateway" \
         ! -name "credential-executor" \
         -exec codesign "${EXTRA_FILE_SIGN_FLAGS[@]}" {} \;
 fi
 
 # Sign daemon binary with its own entitlements (JIT, network)
-if [ -f "$MACOS_DIR/vellum-daemon" ]; then
+if [ -f "$MACOS_DIR/max-daemon" ]; then
     DAEMON_SIGN_FLAGS=(--force --sign "$SIGN_IDENTITY" --entitlements "$DAEMON_ENTITLEMENTS_PATH" "${CODESIGN_TS_FLAGS[@]}")
-    codesign "${DAEMON_SIGN_FLAGS[@]}" "$MACOS_DIR/vellum-daemon"
+    codesign "${DAEMON_SIGN_FLAGS[@]}" "$MACOS_DIR/max-daemon"
     echo "Daemon binary signed with entitlements"
 fi
 
@@ -2371,10 +2371,10 @@ fi
 #
 # For local builds, record a manifest entry so the localhost downloads page
 # can discover and serve previous builds. Each build gets a JSON file under
-# $_VELLUM_CONFIG_DIR/builds/ keyed by BUILD_VERSION, and a companion ZIP
+# $_MAX_CONFIG_DIR/builds/ keyed by BUILD_VERSION, and a companion ZIP
 # of the .app bundle for download.
-if [ "$VELLUM_ENVIRONMENT" = "local" ] && [ -d "$APP_DIR" ]; then
-    _BUILDS_DIR="$_VELLUM_CONFIG_DIR/builds/macos"
+if [ "$MAX_ENVIRONMENT" = "local" ] && [ -d "$APP_DIR" ]; then
+    _BUILDS_DIR="$_MAX_CONFIG_DIR/builds/macos"
     mkdir -p "$_BUILDS_DIR"
 
     # DISPLAY_VERSION is unique per local build (e.g. 0.6.6-local.20260429143709.b8d2555c5).
@@ -2397,7 +2397,7 @@ if [ "$VELLUM_ENVIRONMENT" = "local" ] && [ -d "$APP_DIR" ]; then
 
     # Sign the ZIP with the local Sparkle EdDSA key (if available).
     _ED_SIGNATURE=""
-    _SPARKLE_KEY_FILE="${_VELLUM_CONFIG_DIR}/sparkle/ed25519-key.pem"
+    _SPARKLE_KEY_FILE="${_MAX_CONFIG_DIR}/sparkle/ed25519-key.pem"
     if [ -f "$_SPARKLE_KEY_FILE" ]; then
         _SIGN_UPDATE=$(command -v sign_update 2>/dev/null || true)
         if [ -z "$_SIGN_UPDATE" ]; then
@@ -2449,9 +2449,9 @@ if [ "$CMD" = "run" ]; then
     echo "Launching..."
     # Kill any previous build.sh watcher processes so they don't linger
     # after their terminal is closed and trigger surprise rebuilds.
-    # Skip when invoked as a nested rebuild (VELLUM_NO_WATCH=1) to avoid
+    # Skip when invoked as a nested rebuild (MAX_NO_WATCH=1) to avoid
     # killing the parent watcher process.
-    if [ -z "${VELLUM_NO_WATCH:-}" ]; then
+    if [ -z "${MAX_NO_WATCH:-}" ]; then
         my_pid=$$
         for pid in $(pgrep -f "build\.sh run" 2>/dev/null || true); do
             if [ "$pid" != "$my_pid" ]; then
@@ -2463,9 +2463,9 @@ if [ "$CMD" = "run" ]; then
     # Kill any running instance that shares our bundle ID (SIGTERM for
     # clean shutdown). We match by reading each candidate's Info.plist
     # rather than by process name, so a production app
-    # (com.vellum.vellum-assistant) is never killed by a dev build
-    # (com.vellum.vellum-assistant-dev), and vice versa. An unrelated
-    # third-party app named "Vellum" (e.g. vellum.pub) is also ignored.
+    # (com.max.max-assistant) is never killed by a dev build
+    # (com.max.max-assistant-dev), and vice versa. An unrelated
+    # third-party app named "Max" (e.g. max.pub) is also ignored.
     _kill_targets=""
     while IFS= read -r line; do
         read -r pid exe_path <<< "$line"
@@ -2527,7 +2527,7 @@ if [ "$CMD" = "run" ]; then
 
     # Stream unified logs from the app in the background so errors are
     # visible in the same terminal. Only start once (skip nested rebuilds).
-    if [ -z "${VELLUM_NO_WATCH:-}" ]; then
+    if [ -z "${MAX_NO_WATCH:-}" ]; then
         LOG_STREAM_PID=""
         echo ""
         echo "Streaming app logs (subsystem: $BUNDLE_ID)..."
@@ -2536,13 +2536,13 @@ if [ "$CMD" = "run" ]; then
     fi
 
     # Watch for file changes and auto-rebuild+relaunch (skip in nested invocations)
-    if [ -z "${VELLUM_NO_WATCH:-}" ]; then
+    if [ -z "${MAX_NO_WATCH:-}" ]; then
         WATCH_MARKER=$(mktemp)
         WATCH_MANIFEST=$(mktemp)
         touch "$WATCH_MARKER"
         trap 'rm -f "$WATCH_MARKER" "$WATCH_MANIFEST"; [ -n "${LOG_STREAM_PID:-}" ] && kill "$LOG_STREAM_PID" 2>/dev/null || true' EXIT
 
-        WATCH_DIRS=("$SCRIPT_DIR/vellum-assistant" "$SCRIPT_DIR/vellum-assistant-app")
+        WATCH_DIRS=("$SCRIPT_DIR/max-assistant" "$SCRIPT_DIR/max-assistant-app")
         WATCH_FILES=("$SCRIPT_DIR/../Package.swift")
 
         # Snapshot current watched files so we can detect deletions
@@ -2591,7 +2591,7 @@ if [ "$CMD" = "run" ]; then
                 echo "───────────────────────────────────"
                 touch "$WATCH_MARKER"
                 snapshot_watched_files
-                if VELLUM_NO_WATCH=1 "$SCRIPT_DIR/build.sh" run; then
+                if MAX_NO_WATCH=1 "$SCRIPT_DIR/build.sh" run; then
                     echo "✓ Rebuilt and relaunched"
                 else
                     echo "✗ Build failed"
@@ -2611,9 +2611,9 @@ if [ "$RELEASE_APP_MODE" = true ]; then
     echo "═══════════════════════════════════════════"
 
     DMG_BUILD_DIR="$SCRIPT_DIR/build"
-    case "$VELLUM_ENVIRONMENT" in
-        production) DMG_FILENAME="vellum-assistant.dmg" ;;
-        *)          DMG_FILENAME="vellum-assistant-${VELLUM_ENVIRONMENT}.dmg" ;;
+    case "$MAX_ENVIRONMENT" in
+        production) DMG_FILENAME="max-assistant.dmg" ;;
+        *)          DMG_FILENAME="max-assistant-${MAX_ENVIRONMENT}.dmg" ;;
     esac
     DMG_PATH="$DMG_BUILD_DIR/$DMG_FILENAME"
     DMG_STAGING="$DMG_BUILD_DIR/dmg-staging"
@@ -2739,7 +2739,7 @@ if [ "$RELEASE_APP_MODE" = true ]; then
     echo "    open /Applications/$BUNDLE_DISPLAY_NAME.app"
     echo ""
     echo "  To test first-launch (hatch) crash:"
-    echo "    rm -rf ~/.vellum && open /Applications/$BUNDLE_DISPLAY_NAME.app"
+    echo "    rm -rf ~/.max && open /Applications/$BUNDLE_DISPLAY_NAME.app"
     echo "═══════════════════════════════════════════"
 
     # Clean up staging

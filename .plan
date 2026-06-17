@@ -46,7 +46,7 @@ bounds: { windowState: 'minimized' }
 bounds: { left: 740, top: 60, width: 680, height: 520, windowState: 'normal' }
 ```
 
-This positions a 680x520 Chrome window on the right side of the screen, leaving ~720px on the left for the Vellum chat window. Works well on 1440-wide screens (13" MacBook effective resolution). On wider screens it just has more space on the left.
+This positions a 680x520 Chrome window on the right side of the screen, leaving ~720px on the left for the Max chat window. Works well on 1440-wide screens (13" MacBook effective resolution). On wider screens it just has more space on the left.
 
 Keep `moveWindowOnscreen()` as-is (1280x960 for user interaction like sign-in and credential copying).
 
@@ -65,7 +65,7 @@ Update all callsites that call `moveWindowOffscreen()`:
 - `SCREENCAST_HEIGHT`: 600 → 800
 - Screencast JPEG quality: 30 → 45 (better text readability)
 
-**`clients/macos/vellum-assistant/Features/BrowserPiP/BrowserPiPManager.swift`**
+**`clients/macos/max-assistant/Features/BrowserPiP/BrowserPiPManager.swift`**
 - Default panel size: 800x600 → 1024x640
 - Panel aspect ratio: 4:3 → 8:5 (matches new screencast ratio)
 - Panel minimum size: 200x150 → 320x200
@@ -172,7 +172,7 @@ No major changes needed. The manual path for channels already works well. Minor 
 | File | Change |
 |------|--------|
 | `assistant/src/tools/browser/browser-manager.ts` | Screencast 800x600→1280x800, quality 30→45, `moveWindowOffscreen`→`positionWindowSidebar` (visible on side instead of minimizing) |
-| `clients/macos/vellum-assistant/Features/BrowserPiP/BrowserPiPManager.swift` | Default panel 800x600→1024x640, aspect ratio 4:3→8:5, min size |
+| `clients/macos/max-assistant/Features/BrowserPiP/BrowserPiPManager.swift` | Default panel 800x600→1024x640, aspect ratio 4:3→8:5, min size |
 | `assistant/src/config/bundled-skills/google-oauth-setup/SKILL.md` | Rewrite automated setup path for reliability |
 
 ## Risks

@@ -1,7 +1,7 @@
 # Claude Subscription Bridge — Isolation Probes
 
 Empirical regression scripts for the `claude-subscription` LLM provider. They
-exercise `@anthropic-ai/claude-agent-sdk` directly (no Vellum runtime) to verify
+exercise `@anthropic-ai/claude-agent-sdk` directly (no Max runtime) to verify
 the security claims documented in
 [`assistant/docs/architecture/claude-subscription-bridge.md`](../../docs/architecture/claude-subscription-bridge.md).
 
@@ -69,7 +69,7 @@ Per the architecture doc's "Things to not change without re-running the
 empirical probes" section, re-run after touching any of:
 
 - `tools`, `permissionMode`, `settingSources`, or `canUseTool` in `client.ts`
-- `MAX_CONCURRENT_CALLS`, `maxTurns: 25`, or `MCP_SERVER_NAME = "vellum-skills"`
+- `MAX_CONCURRENT_CALLS`, `maxTurns: 25`, or `MCP_SERVER_NAME = "max-skills"`
 - The `systemPrompt` option in `client.ts`
 - The `@anthropic-ai/claude-agent-sdk` version
 

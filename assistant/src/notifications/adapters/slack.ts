@@ -164,7 +164,7 @@ function buildAccessRequestBlocks(
       ? payload.guardianResolutionSource
       : undefined;
   if (
-    (guardianResolutionSource === "vellum-anchor" ||
+    (guardianResolutionSource === "max-anchor" ||
       guardianResolutionSource === "none") &&
     sourceChannel
   ) {

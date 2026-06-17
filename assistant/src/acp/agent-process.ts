@@ -24,7 +24,7 @@ const log = getLogger("acp");
 
 /**
  * Factory function type for creating ACP client handlers.
- * PR 5 will provide the real VellumAcpClientHandler implementation.
+ * PR 5 will provide the real MaxAcpClientHandler implementation.
  */
 export type AcpClientFactory = (agent: Agent) => Client;
 
@@ -101,7 +101,7 @@ export class AcpAgentProcess {
 
     return this.connection.initialize({
       protocolVersion: acp.PROTOCOL_VERSION,
-      clientInfo: { name: "vellum", version: "1.0.0" },
+      clientInfo: { name: "max", version: "1.0.0" },
       clientCapabilities: {
         fs: { readTextFile: true, writeTextFile: true },
         terminal: true,

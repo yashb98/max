@@ -65,7 +65,7 @@ describe("resolveCallSiteConfig", () => {
       activeProfile: "active",
       callSites: {
         conversationStarters: {
-          model: "claude-haiku-4-5-20251001",
+          model: "claude-opus-4-6",
           effort: "low",
         },
       },
@@ -74,7 +74,7 @@ describe("resolveCallSiteConfig", () => {
     const resolved = resolveCallSiteConfig("conversationStarters", llm);
 
     expect(resolved.provider).toBe("anthropic");
-    expect(resolved.model).toBe("claude-haiku-4-5-20251001");
+    expect(resolved.model).toBe("claude-opus-4-6");
     expect(resolved.effort).toBe("low");
   });
 

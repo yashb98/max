@@ -43,8 +43,8 @@ export const backfillInstallationIdMigration: WorkspaceMigration = {
     //    platform.ts — the lockfile is a per-user file, not per-instance.
     const home = homedir();
     const lockCandidates = [
-      join(home, ".vellum.lock.json"),
-      join(home, ".vellum.lockfile.json"),
+      join(home, ".max.lock.json"),
+      join(home, ".max.lockfile.json"),
     ];
 
     let lockPath: string | undefined;

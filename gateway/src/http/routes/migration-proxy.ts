@@ -35,7 +35,7 @@ import {
   createTimeoutController,
   isTimeoutError,
   stripHopByHop,
-} from "@vellumai/assistant-client";
+} from "@maxai/assistant-client";
 
 import { mintServiceToken } from "../../auth/token-exchange.js";
 import type { GatewayConfig } from "../../config.js";

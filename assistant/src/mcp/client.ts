@@ -49,7 +49,7 @@ export class McpClient {
   constructor(serverId: string) {
     this.serverId = serverId;
     this.client = new Client({
-      name: "vellum-assistant",
+      name: "max-assistant",
       version: "1.0.0",
     });
 

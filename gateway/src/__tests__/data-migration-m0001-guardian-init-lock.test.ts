@@ -28,9 +28,9 @@ function seedLegacy(file: string, contents: string): void {
 beforeEach(() => {
   testHome = join(
     tmpdir(),
-    `vellum-m0001-test-${randomBytes(6).toString("hex")}`,
+    `max-m0001-test-${randomBytes(6).toString("hex")}`,
   );
-  legacyDir = join(testHome, ".vellum");
+  legacyDir = join(testHome, ".max");
   protectedDir = join(legacyDir, "protected");
   mkdirSync(protectedDir, { recursive: true });
 
@@ -92,21 +92,21 @@ describe("m0001-guardian-init-lock", () => {
   });
 
   test("no-op for a named-instance layout (different GATEWAY_SECURITY_DIR)", () => {
-    // Simulate a named instance: its protected dir is NOT $HOME/.vellum/protected.
+    // Simulate a named instance: its protected dir is NOT $HOME/.max/protected.
     const namedInstanceProtected = join(
       testHome,
       ".local",
       "share",
-      "vellum",
+      "max",
       "assistants",
       "work",
-      ".vellum",
+      ".max",
       "protected",
     );
     mkdirSync(namedInstanceProtected, { recursive: true });
     process.env.GATEWAY_SECURITY_DIR = namedInstanceProtected;
 
-    // A stray lock at the user's ~/.vellum (e.g. left behind by first-local).
+    // A stray lock at the user's ~/.max (e.g. left behind by first-local).
     seedLegacy("guardian-init.lock", "first-local-lock");
 
     expect(up()).toBe("done");

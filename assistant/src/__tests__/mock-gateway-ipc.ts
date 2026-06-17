@@ -1,6 +1,6 @@
 /**
  * Global test utility for mocking gateway IPC calls via
- * `@vellumai/gateway-client/ipc-client`.
+ * `@maxai/gateway-client/ipc-client`.
  *
  * Usage:
  *   import { mockGatewayIpc, resetMockGatewayIpc } from "../__tests__/mock-gateway-ipc.js";
@@ -24,7 +24,7 @@
  * a real gateway socket. Call `mockGatewayIpc()` to configure specific
  * responses when the test cares about the IPC result.
  *
- * Mocks `@vellumai/gateway-client/ipc-client` at the package level so the
+ * Mocks `@maxai/gateway-client/ipc-client` at the package level so the
  * assistant's thin wrapper in `ipc/gateway-client.ts` (which delegates to
  * the package) gets the fake implementation. Non-gateway IPC paths (e.g.
  * CLI IPC) are unaffected since they don't import from the package.
@@ -69,7 +69,7 @@ class FakePersistentIpcClient extends EventEmitter {
 // ---------------------------------------------------------------------------
 
 export function installGatewayIpcMock(): void {
-  mock.module("@vellumai/gateway-client/ipc-client", () => ({
+  mock.module("@maxai/gateway-client/ipc-client", () => ({
     ipcCall: async (
       _socketPath: string,
       method: string,

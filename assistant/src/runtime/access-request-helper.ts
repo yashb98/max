@@ -7,7 +7,7 @@
  *
  * Access requests are a special case: they always create a canonical request
  * and emit a notification signal, even when no same-channel guardian binding
- * exists. Guardian identity resolution is anchored on the assistant's vellum
+ * exists. Guardian identity resolution is anchored on the assistant's max
  * principal so access requests cannot bind to stale/cross-assistant contacts.
  */
 
@@ -73,7 +73,7 @@ export type AccessRequestResult =
  * Returns a result indicating whether the guardian was notified and whether
  * a new request was created or an existing one was deduped.
  *
- * Guardian identity resolution uses the assistant's vellum principal as the
+ * Guardian identity resolution uses the assistant's max principal as the
  * trust anchor and only accepts source-channel contacts that match it. This
  * prevents stale or cross-assistant contacts from being bound to the request.
  *
@@ -99,16 +99,16 @@ export function notifyGuardianOfAccessRequest(
   }
 
   // Resolve guardian identity with assistant-anchored strategy:
-  // 1. Ensure the assistant has a vellum guardian principal (trust anchor)
+  // 1. Ensure the assistant has a max guardian principal (trust anchor)
   // 2. Use source-channel guardian only when principal matches anchor
-  // 3. Fallback to vellum guardian identity for this assistant principal
+  // 3. Fallback to max guardian identity for this assistant principal
   let guardianExternalUserId: string | null = null;
   let guardianPrincipalId: string | null = null;
   let guardianBindingChannel: string | null = null;
   let guardianResolutionSource: GuardianResolutionSource = "none";
 
-  const vellumGuardian = findGuardianForChannel("vellum");
-  const assistantGuardianPrincipalId = vellumGuardian?.contact.principalId;
+  const maxGuardian = findGuardianForChannel("max");
+  const assistantGuardianPrincipalId = maxGuardian?.contact.principalId;
 
   // Try source-channel guardian, but only if it maps to the assistant's
   // anchored principal. This blocks cross-assistant/stale contact selection.
@@ -125,13 +125,13 @@ export function notifyGuardianOfAccessRequest(
   }
 
   // Access requests always require a principal. If source-channel resolution
-  // did not match the assistant anchor, use the anchored vellum identity.
-  if (!guardianPrincipalId && vellumGuardian) {
+  // did not match the assistant anchor, use the anchored max identity.
+  if (!guardianPrincipalId && maxGuardian) {
     guardianExternalUserId =
-      vellumGuardian.channel.externalUserId ?? guardianExternalUserId;
+      maxGuardian.channel.externalUserId ?? guardianExternalUserId;
     guardianPrincipalId = assistantGuardianPrincipalId ?? null;
-    guardianBindingChannel = guardianBindingChannel ?? "vellum";
-    guardianResolutionSource = "vellum-anchor";
+    guardianBindingChannel = guardianBindingChannel ?? "max";
+    guardianResolutionSource = "max-anchor";
   }
 
   log.debug(
@@ -191,7 +191,7 @@ export function notifyGuardianOfAccessRequest(
     expiresAt: Date.now() + GUARDIAN_APPROVAL_TTL_MS,
   });
 
-  let vellumDeliveryId: string | null = null;
+  let maxDeliveryId: string | null = null;
   // When the access request originates from a text channel with
   // notification delivery support (Slack, Telegram), route the guardian
   // notification to that same channel only. Delivering on the macOS
@@ -203,7 +203,7 @@ export function notifyGuardianOfAccessRequest(
   // route only to that channel — delivering on desktop as well is noisy
   // and the desktop path lacks the channel delivery context for approval.
   // When the guardian was NOT verified on the source channel (e.g. resolved
-  // via vellum anchor), route to all channels so the guardian can see
+  // via max anchor), route to all channels so the guardian can see
   // the request on desktop/other channels where they ARE verified.
   const TEXT_CHANNELS_WITH_DELIVERY: ReadonlySet<string> = new Set([
     "slack",
@@ -240,28 +240,28 @@ export function notifyGuardianOfAccessRequest(
     },
     dedupeKey: `access-request:${canonicalRequest.id}`,
     onConversationCreated: (info) => {
-      if (info.sourceEventName !== "ingress.access_request" || vellumDeliveryId)
+      if (info.sourceEventName !== "ingress.access_request" || maxDeliveryId)
         return;
       const delivery = createCanonicalGuardianDelivery({
         requestId: canonicalRequest.id,
-        destinationChannel: "vellum",
+        destinationChannel: "max",
         destinationConversationId: info.conversationId,
       });
-      vellumDeliveryId = delivery.id;
+      maxDeliveryId = delivery.id;
     },
   })
     .then((signalResult) => {
       for (const result of signalResult.deliveryResults) {
-        if (result.channel === "vellum") {
-          if (!vellumDeliveryId) {
+        if (result.channel === "max") {
+          if (!maxDeliveryId) {
             const delivery = createCanonicalGuardianDelivery({
               requestId: canonicalRequest.id,
-              destinationChannel: "vellum",
+              destinationChannel: "max",
               destinationConversationId: result.conversationId,
             });
-            vellumDeliveryId = delivery.id;
+            maxDeliveryId = delivery.id;
           }
-          applyDeliveryStatus(vellumDeliveryId, result);
+          applyDeliveryStatus(maxDeliveryId, result);
           continue;
         }
 
@@ -274,15 +274,15 @@ export function notifyGuardianOfAccessRequest(
         applyDeliveryStatus(delivery.id, result);
       }
 
-      if (!vellumDeliveryId && !sameChannelOnly) {
+      if (!maxDeliveryId && !sameChannelOnly) {
         const fallback = createCanonicalGuardianDelivery({
           requestId: canonicalRequest.id,
-          destinationChannel: "vellum",
+          destinationChannel: "max",
         });
         updateCanonicalGuardianDelivery(fallback.id, { status: "failed" });
         log.warn(
           { requestId: canonicalRequest.id, reason: signalResult.reason },
-          "Notification pipeline did not produce a vellum delivery result for access request",
+          "Notification pipeline did not produce a max delivery result for access request",
         );
       }
     })

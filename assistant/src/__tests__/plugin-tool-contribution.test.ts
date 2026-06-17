@@ -62,13 +62,13 @@ import {
 import type { Tool, ToolContext, ToolExecutionResult } from "../tools/types.js";
 
 // Redirect plugin-storage-directory creation into a per-process temp tree so
-// the test doesn't touch the developer's real ~/.vellum. This matches the
+// the test doesn't touch the developer's real ~/.max. This matches the
 // convention used by plugin-bootstrap.test.ts.
 const TEST_WORKSPACE_DIR = join(
   tmpdir(),
-  `vellum-plugin-tool-contrib-test-${process.pid}`,
+  `max-plugin-tool-contrib-test-${process.pid}`,
 );
-process.env.VELLUM_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
+process.env.MAX_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
 
 const fakeConfig = {} as unknown as AssistantConfig;
 const fakeCtx: DaemonContext = {

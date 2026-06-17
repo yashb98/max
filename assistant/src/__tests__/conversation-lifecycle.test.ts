@@ -129,7 +129,7 @@ function makeConversation(): Conversation {
     "/tmp",
   );
   // Default to guardian trust so tests load all messages.
-  conv.setTrustContext({ trustClass: "guardian", sourceChannel: "vellum" });
+  conv.setTrustContext({ trustClass: "guardian", sourceChannel: "max" });
   return conv;
 }
 
@@ -454,10 +454,10 @@ describe("loadFromDb metadata injection rehydration", () => {
     // Regression: the prior `!isUntrustedTrustClass(trustClass)` gate
     // blocked any non-guardian view from rehydrating personal memory,
     // including legitimate internal flows (e.g. trusted_contact actors
-    // arriving over the internal `"vellum"` channel). Injection time
+    // arriving over the internal `"max"` channel). Injection time
     // uses `shouldExposePersonalMemory`, which keys on `sourceChannel`
     // rather than `trustClass` and exposes personal memory for
-    // `sourceChannel === "vellum"` regardless of actor trust class. The
+    // `sourceChannel === "max"` regardless of actor trust class. The
     // rehydrate gate must match so a daemon-restart reload of the same
     // conversation produces an identical prefix.
     mockConversation = defaultConv();
@@ -491,7 +491,7 @@ describe("loadFromDb metadata injection rehydration", () => {
     const conversation = makeConversation();
     conversation.setTrustContext({
       trustClass: "trusted_contact",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
     });
     await conversation.loadFromDb();
     const messages = conversation.getMessages();
@@ -610,7 +610,7 @@ describe("loadFromDb metadata injection rehydration", () => {
     // Regression: cache invalidation previously keyed only on trust class.
     // `loadFromDb` gates `memoryV2StaticBlock` rehydration on `sourceChannel`
     // via `shouldExposePersonalMemory`, so a same-trust-class reuse from a
-    // different channel (e.g. internal `vellum` → remote channel) must
+    // different channel (e.g. internal `max` → remote channel) must
     // re-run `loadFromDb` or stale personal-memory exposure persists.
     mockConversation = defaultConv();
     mockDbMessages = [
@@ -640,10 +640,10 @@ describe("loadFromDb metadata injection rehydration", () => {
 
     const conversation = makeConversation();
     // First load: internal channel, trusted_contact actor → personal memory
-    // exposed via `shouldExposePersonalMemory({sourceChannel: "vellum", ...})`.
+    // exposed via `shouldExposePersonalMemory({sourceChannel: "max", ...})`.
     conversation.setTrustContext({
       trustClass: "trusted_contact",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
     });
     await conversation.ensureActorScopedHistory();
     expect(conversation.getMessages()[0].content).toEqual([

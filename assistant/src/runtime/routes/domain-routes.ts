@@ -1,7 +1,7 @@
 /**
  * Route handlers for domain registration and status.
  *
- * Delegates to the Vellum platform API for register/status and persists
+ * Delegates to the Max platform API for register/status and persists
  * the subdomain to local config so getAssistantDomain() can use it.
  */
 
@@ -11,14 +11,14 @@ import {
   saveRawConfig,
   setNestedValue,
 } from "../../config/loader.js";
-import { VellumPlatformClient } from "../../platform/client.js";
+import { MaxPlatformClient } from "../../platform/client.js";
 import { BadRequestError, RouteError, UnauthorizedError } from "./errors.js";
 import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-async function requireClient(): Promise<VellumPlatformClient> {
-  const client = await VellumPlatformClient.create();
+async function requireClient(): Promise<MaxPlatformClient> {
+  const client = await MaxPlatformClient.create();
   if (!client) {
     throw new UnauthorizedError(
       "Platform credentials not configured. Run: assistant platform connect",

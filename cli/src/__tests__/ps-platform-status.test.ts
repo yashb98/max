@@ -8,7 +8,7 @@ import { join } from "node:path";
 // ---------------------------------------------------------------------------
 
 const testDir = mkdtempSync(join(tmpdir(), "cli-ps-platform-status-test-"));
-process.env.VELLUM_LOCKFILE_DIR = testDir;
+process.env.MAX_LOCKFILE_DIR = testDir;
 
 // ---------------------------------------------------------------------------
 // Mocks — set up before importing the command under test. All spies are
@@ -115,7 +115,7 @@ import { listAllAssistants } from "../commands/ps.js";
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("vellum ps — platform status line", () => {
+describe("max ps — platform status line", () => {
   test("no local token: prints 'Platform: not logged in' and skips ALL network fetches", async () => {
     readPlatformTokenMock.mockReturnValue(null);
 
@@ -167,14 +167,14 @@ describe("vellum ps — platform status line", () => {
     readPlatformTokenMock.mockReturnValue("session_abc123");
     fetchCurrentUserMock.mockResolvedValue({
       id: "u1",
-      email: "vargas@vellum.ai",
+      email: "vargas@max.ai",
       display: "Vargas",
     });
     fetchPlatformAssistantsMock.mockResolvedValue([]);
 
     await listAllAssistants(false);
 
-    expect(stdout).toContain("Platform: logged in as vargas@vellum.ai");
+    expect(stdout).toContain("Platform: logged in as vargas@max.ai");
     expect(
       stderr.some((l) => l.includes("Failed to fetch organization")),
     ).toBe(false);

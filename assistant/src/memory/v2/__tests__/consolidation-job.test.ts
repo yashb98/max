@@ -12,7 +12,7 @@
  *     `emitNotificationSignal` was NOT called as a result of the failure
  *     (suppression is honored end-to-end).
  *
- * Tests use temp workspaces (mkdtemp) and never touch `~/.vellum/`. Sample
+ * Tests use temp workspaces (mkdtemp) and never touch `~/.max/`. Sample
  * content uses generic placeholders (Alice).
  */
 import {
@@ -110,15 +110,15 @@ let previousWorkspaceEnv: string | undefined;
 
 beforeAll(() => {
   tmpWorkspace = mkdtempSync(join(tmpdir(), "memory-v2-consolidate-test-"));
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 });
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
 });
@@ -243,7 +243,7 @@ describe("memoryV2ConsolidateJob — non-empty buffer", () => {
     // would spam the home feed.
     expect(runnerLastArgs?.suppressFailureNotifications).toBe(true);
     expect(runnerLastArgs?.trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     expect(typeof runnerLastArgs?.timeoutMs).toBe("number");

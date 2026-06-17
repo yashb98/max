@@ -66,7 +66,7 @@ export async function setup(): Promise<void> {
   const args = process.argv.slice(3);
 
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum setup");
+    console.log("Usage: max setup");
     console.log("");
     console.log("Interactive wizard to configure API keys.");
     console.log(
@@ -78,14 +78,14 @@ export async function setup(): Promise<void> {
   const entry = resolveAssistant();
   if (!entry) {
     console.error(
-      "Error: No active assistant found. Run `vellum hatch` first.",
+      "Error: No active assistant found. Run `max hatch` first.",
     );
     process.exit(1);
   }
 
   const gatewayUrl = entry.localUrl ?? entry.runtimeUrl;
 
-  console.log("Vellum Setup");
+  console.log("Max Setup");
   console.log("============\n");
 
   const apiKey = await promptMasked(

@@ -17,7 +17,7 @@ const mockConfig = {
     enabled: false,
     backend: "native" as const,
     docker: {
-      image: "vellum-sandbox:latest",
+      image: "max-sandbox:latest",
       cpus: 1,
       memoryMb: 512,
       pidsLimit: 256,
@@ -49,6 +49,7 @@ mock.module("../daemon/conversation-skill-tools.js", () => ({
     toolDefinitions: [],
   })),
   resetSkillToolProjection: () => undefined,
+  activateBridgedSkill: () => new Set<string>(),
 }));
 
 mock.module("../runtime/agent-wake.js", () => ({

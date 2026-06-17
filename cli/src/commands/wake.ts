@@ -21,7 +21,7 @@ import { maybeStartNgrokTunnel } from "../lib/ngrok";
 export async function wake(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum wake [<name>] [options]");
+    console.log("Usage: max wake [<name>] [options]");
     console.log("");
     console.log("Start the assistant and gateway processes.");
     console.log("");
@@ -70,7 +70,7 @@ export async function wake(): Promise<void> {
 
   if (entry.cloud && entry.cloud !== "local") {
     console.error(
-      `Error: 'vellum wake' only works with local and docker assistants. '${entry.assistantId}' is a ${entry.cloud} instance.`,
+      `Error: 'max wake' only works with local and docker assistants. '${entry.assistantId}' is a ${entry.cloud} instance.`,
     );
     process.exit(1);
   }
@@ -120,7 +120,7 @@ export async function wake(): Promise<void> {
   }
 
   // Resolve the signing key. The gateway persists its own copy to disk at
-  // <instanceDir>/.vellum/protected/actor-token-signing-key. That on-disk key
+  // <instanceDir>/.max/protected/actor-token-signing-key. That on-disk key
   // is the source of truth because it is what the gateway actually used to sign
   // existing actor tokens. Prefer it over the lockfile value so that tokens
   // survive upgrades and any scenario where the two diverge.
@@ -130,7 +130,7 @@ export async function wake(): Promise<void> {
   // must remain the authoritative source.
   const legacyKeyPath = join(
     resources.instanceDir,
-    ".vellum",
+    ".max",
     "protected",
     "actor-token-signing-key",
   );
@@ -159,8 +159,8 @@ export async function wake(): Promise<void> {
 
   // Start gateway
   {
-    const vellumDir = join(resources.instanceDir, ".vellum");
-    const gatewayPidFile = join(vellumDir, "gateway.pid");
+    const maxDir = join(resources.instanceDir, ".max");
+    const gatewayPidFile = join(maxDir, "gateway.pid");
     const { alive, pid } = isProcessAlive(gatewayPidFile);
     if (alive) {
       if (watch) {
@@ -187,7 +187,7 @@ export async function wake(): Promise<void> {
   // Self-heal the guardian token when the current environment's config dir
   // is missing it. Hatch cross-writes the lockfile across env dirs but the
   // guardian token is only persisted under the hatch-time env, so a desktop
-  // app built under a different VELLUM_ENVIRONMENT can't find a bearer and
+  // app built under a different MAX_ENVIRONMENT can't find a bearer and
   // cascades into 401 → auth-rate-limit → 429. A sibling env copy is cheap
   // and strictly additive.
   if (seedGuardianTokenFromSiblingEnv(entry.assistantId)) {
@@ -195,10 +195,10 @@ export async function wake(): Promise<void> {
   }
 
   // Auto-start ngrok if webhook integrations (e.g. Telegram) are configured.
-  const workspaceDir = join(resources.instanceDir, ".vellum", "workspace");
+  const workspaceDir = join(resources.instanceDir, ".max", "workspace");
   const ngrokChild = await maybeStartNgrokTunnel(resources.gatewayPort, workspaceDir);
   if (ngrokChild?.pid) {
-    const ngrokPidFile = join(resources.instanceDir, ".vellum", "ngrok.pid");
+    const ngrokPidFile = join(resources.instanceDir, ".max", "ngrok.pid");
     writeFileSync(ngrokPidFile, String(ngrokChild.pid));
   }
 

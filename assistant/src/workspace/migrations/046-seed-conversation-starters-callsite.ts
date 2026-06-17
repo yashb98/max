@@ -15,7 +15,7 @@ import type { WorkspaceMigration } from "./types.js";
  * expensive reasoning call that adds noticeable cost and latency.
  *
  * Follows the same contract as `040-seed-latency-callsite-defaults`:
- *   - Skip entirely when `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH` is set
+ *   - Skip entirely when `MAX_DEFAULT_WORKSPACE_CONFIG_PATH` is set
  *     (platform overlay owns call-site seeds).
  *   - Skip when the resolved provider is not Anthropic (the seeded
  *     model IDs are Anthropic-shaped, so mixing with another provider
@@ -29,7 +29,7 @@ export const seedConversationStartersCallsiteMigration: WorkspaceMigration = {
   description:
     "Seed latency-optimized default for conversationStarters LLM call site",
   run(workspaceDir: string): void {
-    if (process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH) return;
+    if (process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH) return;
 
     const configPath = join(workspaceDir, "config.json");
     const configExisted = existsSync(configPath);

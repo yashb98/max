@@ -345,7 +345,7 @@ if [ "${1:-}" = "--self-test" ]; then
     SAFE_TS_UNION_TYPE_SECRET='  let clientSecret: string | undefined;'
     # Documentation placeholder with lowercase descriptive text (false positive to whitelist)
     SAFE_DOC_EXTRACTED_PLACEHOLDER='client_secret: "<extracted client secret>"  (if required)'
-    SAFE_GHA_SECRETS_LINE='          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}'
+    SAFE_GHA_SECRETS_LINE='          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}'
     SAFE_GHA_SECRETS_COMMENT_LINE='          client_secret: ${{ secrets.CLIENT_SECRET }} # rotated monthly'
     UNSAFE_GHA_SECRETS_FALLBACK='          client_secret: ${{ secrets.CLIENT_SECRET || "SuperSecretFallback12345" }}'
 

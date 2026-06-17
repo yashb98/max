@@ -117,7 +117,7 @@ export function resolveRoutingStateFromRuntime(
  * Override the sourceChannel on a resolved TrustContext.
  *
  * The HTTP /messages endpoint resolves trust against a fixed internal
- * channel ('vellum') but the request body carries the actual sourceChannel
+ * channel ('max') but the request body carries the actual sourceChannel
  * (e.g. the channel the gateway routed the request through). This helper
  * copies the context with the caller-supplied sourceChannel.
  */

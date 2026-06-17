@@ -2,12 +2,12 @@
  * CES local subject resolution.
  *
  * Resolves CES credential handles to their underlying storage subjects
- * using the shared `@vellumai/credential-storage` primitives. This module
+ * using the shared `@maxai/credential-storage` primitives. This module
  * is the CES-side counterpart to the assistant's credential resolver, but
  * operates independently — it never imports from the assistant daemon.
  *
  * Subject resolution is the first phase of credential materialisation:
- * 1. Parse the handle (via `@vellumai/service-contracts`)
+ * 1. Parse the handle (via `@maxai/service-contracts`)
  * 2. Look up the metadata/connection record in local storage
  * 3. Return a resolved subject that the materialiser can consume
  *
@@ -20,13 +20,13 @@ import {
   type OAuthConnectionRecord,
   type StaticCredentialRecord,
   StaticCredentialMetadataStore,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 import {
   HandleType,
   parseHandle,
   type LocalOAuthHandle,
   type LocalStaticHandle,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 // ---------------------------------------------------------------------------
 // Resolved subject types

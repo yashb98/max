@@ -61,10 +61,10 @@
  *
  * This file has zero `assistant/` imports — every runtime dependency
  * arrives via the {@link SkillHost} contract from
- * `@vellumai/skill-host-contracts`.
+ * `@maxai/skill-host-contracts`.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "@maxai/skill-host-contracts";
 
 import type {
   SpeakerChangeEvent,

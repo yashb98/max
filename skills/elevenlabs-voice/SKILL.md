@@ -1,10 +1,10 @@
 ---
 name: elevenlabs-voice
 description: Select and tune an ElevenLabs TTS voice - curated voice list, custom/cloned voices via API key, and tuning parameters
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🗣️"
-  vellum:
+  max:
     display-name: "ElevenLabs Voice"
 ---
 

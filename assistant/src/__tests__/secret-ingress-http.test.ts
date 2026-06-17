@@ -111,14 +111,14 @@ mock.module("../memory/conversation-crud.js", () => ({
 mock.module("../runtime/local-actor-identity.js", () => ({
   resolveLocalTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
 }));
 
 mock.module("../runtime/trust-context-resolver.js", () => ({
   resolveTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
   withSourceChannel: (sourceChannel: unknown, ctx: unknown) => ({
     ...(ctx as Record<string, unknown>),
@@ -174,13 +174,13 @@ function makeRequest(
     headers: {
       "Content-Type": "application/json",
       ...(authContext.actorPrincipalId
-        ? { "x-vellum-actor-principal-id": authContext.actorPrincipalId }
+        ? { "x-max-actor-principal-id": authContext.actorPrincipalId }
         : {}),
-      "x-vellum-principal-type": authContext.principalType,
+      "x-max-principal-type": authContext.principalType,
     },
     body: JSON.stringify({
       conversationKey: "test-conversation",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       interface: "macos",
       ...body,
     }),

@@ -3,7 +3,7 @@
  *
  * Registers one route per HTTP method that delegates to the
  * UserRouteDispatcher for file-based dispatch from
- * `$VELLUM_WORKSPACE_DIR/routes/`.
+ * `$MAX_WORKSPACE_DIR/routes/`.
  *
  * The dispatcher operates on native `Request`/`Response` objects (the
  * contract with user-authored handler files). This module bridges the

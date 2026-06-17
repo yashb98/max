@@ -120,7 +120,7 @@ jobs:
 
       - name: Install linked package dependencies
         run: |
-          for pkg in $(jq -r '.bundledDependencies[]' credential-executor/package.json | sed 's|@vellumai/||'); do
+          for pkg in $(jq -r '.bundledDependencies[]' credential-executor/package.json | sed 's|@maxai/||'); do
             cd packages/$pkg && bun install --frozen-lockfile && cd ../..;
           done
 
@@ -153,8 +153,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -230,8 +230,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -319,8 +319,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -396,8 +396,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -484,8 +484,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -558,8 +558,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -757,14 +757,14 @@ jobs:
         working-directory: clients/chrome-extension
         env:
           VERSION: ${{ needs.compute-version.outputs.version }}
-          VELLUM_ENVIRONMENT: dev
+          MAX_ENVIRONMENT: dev
         run: bash build.sh
 
       - name: Upload extension zip
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dev-chrome-extension
-          path: clients/chrome-extension/vellum-browser-relay.zip
+          path: clients/chrome-extension/max-browser-relay.zip
           retention-days: 30
 
   # ── macOS DMG ──────────────────────────────────────────────────────────
@@ -840,13 +840,13 @@ jobs:
         run: |
           set -o pipefail
           SKIP_BUN_REBUILD=1 \
-          BUNDLE_DISPLAY_NAME="Vellum Dev" \
+          BUNDLE_DISPLAY_NAME="Max Dev" \
           DISPLAY_VERSION="${{ needs.compute-version.outputs.version }}" \
           BUILD_VERSION="${{ steps.version.outputs.build_version }}" \
           COMMIT_SHA="${{ github.sha }}" \
-          VELLUM_ENVIRONMENT=dev \
+          MAX_ENVIRONMENT=dev \
           SU_PUBLIC_ED_KEY="${{ secrets.SPARKLE_ED_PUBLIC_KEY }}" \
-          SU_FEED_URL="https://storage.googleapis.com/vellum-nonprod-sparkle/dev/appcast.xml" \
+          SU_FEED_URL="https://storage.googleapis.com/max-nonprod-sparkle/dev/appcast.xml" \
           SIGN_IDENTITY="Developer ID Application" \
           RELEASE_ARCH_FLAGS="--arch arm64" \
           ./build.sh release 2>&1 | while IFS= read -r line; do
@@ -881,36 +881,36 @@ jobs:
         run: |
           DMG_STAGING="build/dmg-staging"
           mkdir -p "$DMG_STAGING" build
-          cp -R "dist/Vellum Dev.app" "$DMG_STAGING/"
+          cp -R "dist/Max Dev.app" "$DMG_STAGING/"
           ln -s /Applications "$DMG_STAGING/Applications"
 
           create-dmg \
-            --volname "Vellum Dev" \
+            --volname "Max Dev" \
             --background "dmg/dmg-background@2x.png" \
             --window-pos 200 120 \
             --window-size 660 400 \
             --icon-size 128 \
             --text-size 10 \
-            --icon "Vellum Dev.app" 175 190 \
+            --icon "Max Dev.app" 175 190 \
             --icon "Applications" 530 190 \
-            --hide-extension "Vellum Dev.app" \
+            --hide-extension "Max Dev.app" \
             --no-internet-enable \
-            "build/vellum-assistant-dev.dmg" \
+            "build/max-assistant-dev.dmg" \
             "$DMG_STAGING/" \
           || {
             EXIT_CODE=$?
-            if [ $EXIT_CODE -eq 2 ] && [ -f "build/vellum-assistant-dev.dmg" ]; then
+            if [ $EXIT_CODE -eq 2 ] && [ -f "build/max-assistant-dev.dmg" ]; then
               echo "create-dmg exited with warning (code 2), but DMG was created"
             else
               exit $EXIT_CODE
             fi
           }
-          ls -lh "build/vellum-assistant-dev.dmg"
+          ls -lh "build/max-assistant-dev.dmg"
 
       - name: Sign DMG
         run: |
-          codesign --sign "Developer ID Application" --timestamp "build/vellum-assistant-dev.dmg"
-          codesign --verify --verbose "build/vellum-assistant-dev.dmg"
+          codesign --sign "Developer ID Application" --timestamp "build/max-assistant-dev.dmg"
+          codesign --verify --verbose "build/max-assistant-dev.dmg"
 
       - name: Notarize DMG
         env:
@@ -922,7 +922,7 @@ jobs:
           echo "$ASC_KEY_P8" > ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
 
           echo "Submitting DMG for notarization..."
-          NOTARIZE_OUTPUT=$(xcrun notarytool submit "build/vellum-assistant-dev.dmg" \
+          NOTARIZE_OUTPUT=$(xcrun notarytool submit "build/max-assistant-dev.dmg" \
             --key ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 \
             --key-id "$ASC_KEY_ID" \
             --issuer "$ASC_ISSUER_ID" \
@@ -951,7 +951,7 @@ jobs:
           MAX_ATTEMPTS=10
           WAIT_SECS=30
           for i in $(seq 1 $MAX_ATTEMPTS); do
-            STAPLE_OUTPUT=$(xcrun stapler staple "build/vellum-assistant-dev.dmg" 2>&1)
+            STAPLE_OUTPUT=$(xcrun stapler staple "build/max-assistant-dev.dmg" 2>&1)
             STAPLE_EXIT=$?
             if [ $STAPLE_EXIT -eq 0 ]; then
               echo "Stapling succeeded on attempt $i"
@@ -965,14 +965,14 @@ jobs:
             sleep $WAIT_SECS
             WAIT_SECS=$((WAIT_SECS + 15))
           done
-          xcrun stapler validate "build/vellum-assistant-dev.dmg"
+          xcrun stapler validate "build/max-assistant-dev.dmg"
 
       - name: Build ZIP for Sparkle auto-update
         run: |
           cd dist
-          ditto -c -k --keepParent "Vellum Dev.app" vellum-assistant-dev.zip
+          ditto -c -k --keepParent "Max Dev.app" max-assistant-dev.zip
           echo "Sparkle ZIP created:"
-          ls -lh vellum-assistant-dev.zip
+          ls -lh max-assistant-dev.zip
 
       - name: Cache Homebrew Sparkle
         id: cache-sparkle
@@ -1004,7 +1004,7 @@ jobs:
 
           ED_KEY_FILE=$(mktemp)
           echo "$SPARKLE_ED_PRIVATE_KEY" > "$ED_KEY_FILE"
-          SIGN_OUTPUT=$(sign_update dist/vellum-assistant-dev.zip --ed-key-file "$ED_KEY_FILE") || {
+          SIGN_OUTPUT=$(sign_update dist/max-assistant-dev.zip --ed-key-file "$ED_KEY_FILE") || {
             echo "sign_update failed with exit code $?"
             rm -f "$ED_KEY_FILE"
             exit 1
@@ -1018,7 +1018,7 @@ jobs:
             exit 1
           fi
           if [ -z "$SIZE" ]; then
-            SIZE=$(stat -f%z dist/vellum-assistant-dev.zip)
+            SIZE=$(stat -f%z dist/max-assistant-dev.zip)
           fi
 
           REPO="${{ github.repository }}"
@@ -1026,13 +1026,13 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
             <channel>
-              <title>Vellum Dev</title>
+              <title>Max Dev</title>
               <item>
                 <title>${VERSION}</title>
                 <sparkle:version>${BUILD_VERSION}</sparkle:version>
                 <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
                 <enclosure
-                  url="https://storage.googleapis.com/vellum-nonprod-sparkle/dev/vellum-assistant-dev.zip"
+                  url="https://storage.googleapis.com/max-nonprod-sparkle/dev/max-assistant-dev.zip"
                   sparkle:edSignature="${SIGNATURE}"
                   length="${SIZE}"
                   type="application/octet-stream" />
@@ -1046,7 +1046,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dev-dmg
-          path: clients/macos/build/vellum-assistant-dev.dmg
+          path: clients/macos/build/max-assistant-dev.dmg
           retention-days: 30
 
       - name: Upload Sparkle artifacts
@@ -1054,7 +1054,7 @@ jobs:
         with:
           name: dev-sparkle
           path: |
-            clients/macos/dist/vellum-assistant-dev.zip
+            clients/macos/dist/max-assistant-dev.zip
             clients/macos/dist/appcast.xml
           retention-days: 30
 
@@ -1066,7 +1066,7 @@ jobs:
 
   # ── Sparkle Rolling Release ────────────────────────────────────────────
   # ── Upload Sparkle artifacts to GCS ───────────────────────────────────
-  # Push appcast.xml + ZIP to the public vellum-nonprod-sparkle GCS bucket.
+  # Push appcast.xml + ZIP to the public max-nonprod-sparkle GCS bucket.
   # Dev macOS builds have SUFeedURL pointing here, so Sparkle auto-updates
   # work without creating GitHub releases.
 
@@ -1100,7 +1100,7 @@ jobs:
       - name: Upload Sparkle artifacts to GCS
         run: |
           VERSION="${{ needs.compute-version.outputs.version }}"
-          BUCKET="vellum-nonprod-sparkle"
+          BUCKET="max-nonprod-sparkle"
 
           ZIP=$(find sparkle-artifacts -name "*.zip" -type f | head -1)
           APPCAST=$(find sparkle-artifacts -name "appcast.xml" -type f | head -1)
@@ -1111,9 +1111,9 @@ jobs:
             exit 0
           fi
 
-          gcloud storage cp "$ZIP" "gs://${BUCKET}/dev/vellum-assistant-dev.zip"
+          gcloud storage cp "$ZIP" "gs://${BUCKET}/dev/max-assistant-dev.zip"
           gcloud storage cp "$APPCAST" "gs://${BUCKET}/dev/appcast.xml"
-          [ -n "$DMG" ] && gcloud storage cp "$DMG" "gs://${BUCKET}/dev/vellum-assistant-dev.dmg"
+          [ -n "$DMG" ] && gcloud storage cp "$DMG" "gs://${BUCKET}/dev/max-assistant-dev.dmg"
 
           echo "Uploaded Sparkle artifacts to gs://${BUCKET}/dev/ (version=${VERSION})"
 
@@ -1129,10 +1129,10 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
-          app-id: ${{ secrets.VELLUM_AUTOMATION_GITHUB_APP_ID }}
-          private-key: ${{ secrets.VELLUM_AUTOMATION_GITHUB_PRIVATE_KEY }}
-          owner: vellum-ai
-          repositories: vellum-assistant-platform
+          app-id: ${{ secrets.MAX_AUTOMATION_GITHUB_APP_ID }}
+          private-key: ${{ secrets.MAX_AUTOMATION_GITHUB_PRIVATE_KEY }}
+          owner: max-ai
+          repositories: max-assistant-platform
 
       - name: Dispatch iOS release
         env:
@@ -1143,9 +1143,9 @@ jobs:
             -X POST \
             -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/vellum-ai/vellum-assistant-platform/dispatches" \
+            "https://api.github.com/repos/max-ai/max-assistant-platform/dispatches" \
             -d "{\"event_type\":\"ios-release\",\"client_payload\":{\"environment\":\"dev\",\"version\":\"$VERSION\"}}"
-          echo "Dispatched ios-release to vellum-assistant-platform (environment=dev, version=$VERSION)"
+          echo "Dispatched ios-release to max-assistant-platform (environment=dev, version=$VERSION)"
 
   # ── Slack notification (first failure only) ──────────────────────────
 

@@ -54,7 +54,7 @@ async function main(): Promise<void> {
         cache = await refreshChannelCache();
       } else {
         cache = loadCache<SlackChannelCache>(
-          `${process.env.HOME}/.vellum/workspace/data/slack-skill/channels.json`,
+          `${process.env.HOME}/.max/workspace/data/slack-skill/channels.json`,
         );
         if (!cache) {
           cache = await refreshChannelCache();

@@ -76,7 +76,7 @@ When the provider ID differs from the credential provider name (e.g. `google-gem
 
 ### macOS settings key behavior
 
-**File:** `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift`
+**File:** `clients/macos/max-assistant/Features/Settings/SettingsStore.swift`
 
 The `sttKeyIsExclusive(for:)` / `sttKeyIsShared(for:)` helpers derive shared-vs-exclusive key behavior from the catalog automatically: if `apiKeyProviderName == id`, the key is exclusive; otherwise it is shared. No new conditionals are needed unless the provider has a non-standard key-ownership model.
 

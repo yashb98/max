@@ -1,8 +1,8 @@
 /**
- * Browser-side entrypoint for the Vellum web client.
+ * Browser-side entrypoint for the Max web client.
  *
  * This module is built into a self-contained ESM bundle that is:
- *   - loaded by the CLI's local server (`vellum client --interface web`)
+ *   - loaded by the CLI's local server (`max client --interface web`)
  *     via the SPA shell at `/`, which calls `mount()` against `#root`.
  *   - importable directly by the platform via dynamic `import(<bundleUrl>)`,
  *     which then calls `mount()` against a container of its choice.

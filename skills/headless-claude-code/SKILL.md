@@ -4,7 +4,7 @@ description: Reference guide for running Claude Code in headless, container, and
 compatibility: "Any environment running Claude Code headlessly"
 metadata:
   emoji: "🖥️"
-  vellum:
+  max:
     display-name: "Headless Claude Code"
 ---
 

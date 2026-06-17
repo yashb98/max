@@ -74,7 +74,7 @@ const log = getLogger("conversation-store");
 // extra keys are allowed via passthrough so callers can attach ad-hoc data.
 
 const channelIdSchema = z.enum(CHANNEL_IDS);
-// Accept both canonical INTERFACE_IDS and the legacy "vellum" alias,
+// Accept both canonical INTERFACE_IDS and the legacy "max" alias,
 // normalizing to "web" on read so downstream code only handles canonical IDs.
 const interfaceIdSchema = z
   .string()

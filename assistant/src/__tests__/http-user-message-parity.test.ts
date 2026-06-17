@@ -105,14 +105,14 @@ mock.module("../memory/conversation-crud.js", () => ({
 mock.module("../runtime/local-actor-identity.js", () => ({
   resolveLocalTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
 }));
 
 mock.module("../runtime/trust-context-resolver.js", () => ({
   resolveTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
   }),
   withSourceChannel: (sourceChannel: unknown, ctx: unknown) => ({
     ...(ctx as Record<string, unknown>),
@@ -234,13 +234,13 @@ function makeRequest(content: string, extra: Record<string, unknown> = {}) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-vellum-actor-principal-id": "test-user",
-      "x-vellum-principal-type": "actor",
+      "x-max-actor-principal-id": "test-user",
+      "x-max-principal-type": "actor",
     },
     body: JSON.stringify({
       conversationKey: "parity-test-key",
       content,
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       interface: "macos",
       ...extra,
     }),
@@ -370,7 +370,7 @@ describe("HTTP POST /v1/messages clientTimezone transport metadata", () => {
     expect(res.status).toBe(202);
     expect(capturedOptions).toEqual({
       transport: {
-        channelId: "vellum",
+        channelId: "max",
         interfaceId: "macos",
         clientTimezone: "America/New_York",
       },
@@ -397,7 +397,7 @@ describe("HTTP POST /v1/messages clientTimezone transport metadata", () => {
     expect(res.status).toBe(202);
     expect(capturedOptions).toEqual({
       transport: {
-        channelId: "vellum",
+        channelId: "max",
         interfaceId: "ios",
         clientTimezone: "Europe/London",
       },
@@ -424,7 +424,7 @@ describe("HTTP POST /v1/messages clientTimezone transport metadata", () => {
     expect(res.status).toBe(202);
     expect(capturedOptions).toEqual({
       transport: {
-        channelId: "vellum",
+        channelId: "max",
         interfaceId: "macos",
       },
     });

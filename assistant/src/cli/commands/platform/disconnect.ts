@@ -8,7 +8,7 @@ export function registerPlatformDisconnectCommand(platform: Command): void {
   platform
     .command("disconnect")
     .description(
-      "Disconnect from the Vellum Platform by removing stored credentials",
+      "Disconnect from the Max Platform by removing stored credentials",
     )
     .addHelpText(
       "after",

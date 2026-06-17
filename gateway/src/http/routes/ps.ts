@@ -2,7 +2,7 @@
  * Process status endpoint (GET /v1/ps).
  *
  * Returns a JSON summary of the assistant's process tree so the CLI
- * (and platform UI) can render `vellum ps` without SSH or local process
+ * (and platform UI) can render `max ps` without SSH or local process
  * detection.  The gateway calls the daemon's own `/v1/ps` endpoint
  * (which dynamically probes qdrant, embed-worker, etc.) and appends
  * the gateway's own entry.

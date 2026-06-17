@@ -33,7 +33,7 @@ import { _resetBackend } from "../security/secure-keys.js";
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-byo-conn-test-${randomBytes(4).toString("hex")}`,
+  `max-byo-conn-test-${randomBytes(4).toString("hex")}`,
 );
 const STORE_PATH = join(TEST_DIR, "keys.enc");
 

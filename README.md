@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Vellum Assistant" width="100%">
+  <img src="assets/banner.png" alt="Max Assistant" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://vellum.ai/docs"><img src="https://img.shields.io/badge/Docs-vellum.ai%2Fdocs-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://vellum.ai/community"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/vellum-ai/vellum-assistant/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
-  <a href="https://vellum.ai"><img src="https://img.shields.io/badge/Built%20by-Vellum-blueviolet?style=for-the-badge" alt="Built by Vellum"></a>
+  <a href="https://max.ai/docs"><img src="https://img.shields.io/badge/Docs-max.ai%2Fdocs-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://max.ai/community"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://github.com/max-ai/max-assistant/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://max.ai"><img src="https://img.shields.io/badge/Built%20by-Max-blueviolet?style=for-the-badge" alt="Built by Max"></a>
 </p>
 
 <p align="center"><b>A personal AI assistant that evolves with you.</b><br>
@@ -23,18 +23,14 @@ It learns how you work, remembers what matters, and acts before you ask. Yours t
 | **Proactivity** | **Reaches out when something matters, without being asked.** Every hour it checks in with itself: re-reads its notes, notices what's unfinished or due soon, and sends a message if needed. Notifications are routed to the right channel and won't interrupt you if you're already talking. |
 | **Security** | **Fail-closed by design.** Actor identity is resolved once (guardian, trusted, or unknown) and enforced everywhere. Untrusted actors cannot read or write memory, trigger tools, or escalate. Credentials live in a separate process and never reach the model. Every tool runs in a sandbox. |
 
-<p align="center">
-  <img src="assets/what-it-does.png" alt="Memory, identity, proactivity, and security in the Vellum Assistant" width="100%">
-</p>
-
 ---
 
 ## Get started
 
-**1. [Download the latest release](https://vellum.ai/download)**
+**1. [Download the latest release](https://max.ai/download)**
 
 **2. Open the app and pick your mode**
-  - **Managed** — sign in via Vellum Cloud, no local runtime required
+  - **Managed** — sign in via Max Cloud, no local runtime required
   - **Local** — everything runs on your machine
 
 **3. Hatch your assistant**
@@ -62,28 +58,28 @@ The CLI works but the desktop app is our primary focus. Available for advanced u
 **Install**
 
 ```bash
-bun install -g vellum
-vellum hatch
+bun install -g max
+max hatch
 ```
 
 **Install from source**
 
 ```bash
-git clone https://github.com/vellum-ai/vellum-assistant.git
-cd vellum-assistant
+git clone https://github.com/max-ai/max-assistant.git
+cd max-assistant
 ./setup.sh
-vellum hatch
+max hatch
 ```
 
 **Common commands**
 
 ```bash
-vellum wake        # start services
-vellum sleep       # stop services, keep data
-vellum client      # interact through the terminal
-vellum ps          # view running assistants
-vellum terminal    # open a shell into a managed assistant container
-vellum upgrade     # upgrade to latest version
+max wake        # start services
+max sleep       # stop services, keep data
+max client      # interact through the terminal
+max ps          # view running assistants
+max terminal    # open a shell into a managed assistant container
+max upgrade     # upgrade to latest version
 ```
 
 All commands target the default assistant. If you have multiple, pass the assistant ID as the second argument.
@@ -105,7 +101,7 @@ All commands target the default assistant. If you have multiple, pass the assist
 
 ## Foundational documents
 
-The canonical sources for who we are and how we talk about what we're building. The docs site at [vellum.ai/docs](https://vellum.ai/docs) is a rendered view of these files.
+The canonical sources for who we are and how we talk about what we're building. The docs site at [max.ai/docs](https://max.ai/docs) is a rendered view of these files.
 
 | Doc | What it is |
 |-----|------------|
@@ -118,13 +114,13 @@ The canonical sources for who we are and how we talk about what we're building. 
 
 | Section | What's covered |
 |---------|---------------|
-| [Architecture](https://vellum.ai/docs/developer-guide/architecture) | Platform domains, repo structure, runtime · clients · gateway |
-| [Security & Permissions](https://vellum.ai/docs/developer-guide/security) | Sandbox, credentials, trust rules, permission modes |
-| [Features & Capabilities](https://vellum.ai/docs/developer-guide/features) | Integrations, dynamic skills, browser, attachments, media embeds |
-| [API & Communication](https://vellum.ai/docs/developer-guide/api) | SSE event stream, event payloads, remote access |
-| [Development Workflow](https://vellum.ai/docs/developer-guide/development-workflow) | Claude Code commands, parallel PRs, review loops, release pipeline |
+| [Architecture](https://max.ai/docs/developer-guide/architecture) | Platform domains, repo structure, runtime · clients · gateway |
+| [Security & Permissions](https://max.ai/docs/developer-guide/security) | Sandbox, credentials, trust rules, permission modes |
+| [Features & Capabilities](https://max.ai/docs/developer-guide/features) | Integrations, dynamic skills, browser, attachments, media embeds |
+| [API & Communication](https://max.ai/docs/developer-guide/api) | SSE event stream, event payloads, remote access |
+| [Development Workflow](https://max.ai/docs/developer-guide/development-workflow) | Claude Code commands, parallel PRs, review loops, release pipeline |
 
-📖 **[Full documentation →](https://vellum.ai/docs)**
+📖 **[Full documentation →](https://max.ai/docs)**
 
 ---
 
@@ -137,15 +133,15 @@ We welcome contributions from everyone.
 
 ## Community
 
-- 💬 [Discord](https://vellum.ai/community)
-- 🐛 [Issues](https://github.com/vellum-ai/vellum-assistant/issues)
+- 💬 [Discord](https://max.ai/community)
+- 🐛 [Issues](https://github.com/max-ai/max-assistant/issues)
 
 ## License
 
-MIT — see [License](https://github.com/vellum-ai/vellum-assistant?tab=MIT-1-ov-file). Integration logos from [Simple Icons](https://github.com/simple-icons/simple-icons), licensed [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
+MIT — see [License](https://github.com/max-ai/max-assistant?tab=MIT-1-ov-file). Integration logos from [Simple Icons](https://github.com/simple-icons/simple-icons), licensed [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
-Vellum Assistant is open-source software built by [Vellum AI](https://vellum.ai), a for-profit company. We also offer a managed product, the [Vellum Platform](https://vellum.ai/platform), which sustains the business. Free to use and modify under MIT, and we're committed to keeping it that way.
+Max Assistant is open-source software built by [Max AI](https://max.ai), a for-profit company. We also offer a managed product, the [Max Platform](https://max.ai/platform), which sustains the business. Free to use and modify under MIT, and we're committed to keeping it that way.
 
 ---
 
-<p align="center">Built with 💚 by <a href="https://vellum.ai">Vellum</a></p>
+<p align="center">Built with 💚 by <a href="https://max.ai">Max</a></p>

@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, mock, test } from "bun:test";
 // ── Mocks (must precede imports from mocked modules) ──────────────────
 
 mock.module("../channels/config.js", () => ({
-  getDeliverableChannels: () => ["vellum"],
+  getDeliverableChannels: () => ["max"],
 }));
 
 mock.module("../notifications/decisions-store.js", () => ({
@@ -117,10 +117,10 @@ function setupLLMProvider() {
     name: "record_notification_decision",
     input: {
       shouldNotify: true,
-      selectedChannels: ["vellum"],
+      selectedChannels: ["max"],
       reasoningSummary: "LLM decision with recipient context",
       renderedCopy: {
-        vellum: {
+        max: {
           title: "Guardian Question",
           body: "What is the gate code?",
         },
@@ -144,12 +144,12 @@ describe("recipient context in notification decision engine", () => {
   test("guardian contact notes appear in system prompt as <recipient-context>", async () => {
     mockGuardianResult = {
       contact: { notes: "Prefers formal tone. Address as Dr. Smith." },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     setupLLMProvider();
 
     const signal = makeSignal();
-    await evaluateSignal(signal, ["vellum"] as NotificationChannel[]);
+    await evaluateSignal(signal, ["max"] as NotificationChannel[]);
 
     expect(capturedSystemPrompt).toBeDefined();
     expect(capturedSystemPrompt).toContain("<recipient-context>");
@@ -164,7 +164,7 @@ describe("recipient context in notification decision engine", () => {
     setupLLMProvider();
 
     const signal = makeSignal();
-    await evaluateSignal(signal, ["vellum"] as NotificationChannel[]);
+    await evaluateSignal(signal, ["max"] as NotificationChannel[]);
 
     expect(capturedSystemPrompt).toBeDefined();
     expect(capturedSystemPrompt).not.toContain("<recipient-context>");
@@ -174,12 +174,12 @@ describe("recipient context in notification decision engine", () => {
   test("recipient-context is omitted when guardian notes are null", async () => {
     mockGuardianResult = {
       contact: { notes: null },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     setupLLMProvider();
 
     const signal = makeSignal();
-    await evaluateSignal(signal, ["vellum"] as NotificationChannel[]);
+    await evaluateSignal(signal, ["max"] as NotificationChannel[]);
 
     expect(capturedSystemPrompt).toBeDefined();
     expect(capturedSystemPrompt).not.toContain("<recipient-context>");
@@ -189,12 +189,12 @@ describe("recipient context in notification decision engine", () => {
   test("recipient-context is omitted when guardian notes are empty string", async () => {
     mockGuardianResult = {
       contact: { notes: "" },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     setupLLMProvider();
 
     const signal = makeSignal();
-    await evaluateSignal(signal, ["vellum"] as NotificationChannel[]);
+    await evaluateSignal(signal, ["max"] as NotificationChannel[]);
 
     expect(capturedSystemPrompt).toBeDefined();
     expect(capturedSystemPrompt).not.toContain("<recipient-context>");
@@ -204,12 +204,12 @@ describe("recipient context in notification decision engine", () => {
   test("large guardian notes are truncated to prevent oversized prompts", async () => {
     mockGuardianResult = {
       contact: { notes: "N".repeat(3000) },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     setupLLMProvider();
 
     const signal = makeSignal();
-    await evaluateSignal(signal, ["vellum"] as NotificationChannel[]);
+    await evaluateSignal(signal, ["max"] as NotificationChannel[]);
 
     expect(capturedSystemPrompt).toBeDefined();
     expect(capturedSystemPrompt).toContain("<recipient-context>");
@@ -231,20 +231,20 @@ describe("recipient context in notification decision engine", () => {
   test("fallback path works correctly without recipient context", async () => {
     mockGuardianResult = {
       contact: { notes: "Prefers formal tone." },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     // null provider forces fallback path
     configuredProvider = null;
 
     const signal = makeSignal();
     const decision = await evaluateSignal(signal, [
-      "vellum",
+      "max",
     ] as NotificationChannel[]);
 
     expect(decision.fallbackUsed).toBe(true);
     expect(decision.shouldNotify).toBe(true);
-    expect(decision.renderedCopy.vellum?.title).toBeDefined();
-    expect(decision.renderedCopy.vellum?.body).toBeDefined();
+    expect(decision.renderedCopy.max?.title).toBeDefined();
+    expect(decision.renderedCopy.max?.body).toBeDefined();
     // No LLM call, so no system prompt captured
     expect(capturedSystemPrompt).toBeUndefined();
   });
@@ -252,14 +252,14 @@ describe("recipient context in notification decision engine", () => {
   test("recipient-context appears after user-preferences in prompt", async () => {
     mockGuardianResult = {
       contact: { notes: "Prefers brief updates." },
-      channels: [{ type: "vellum" }],
+      channels: [{ type: "max" }],
     };
     setupLLMProvider();
 
     const signal = makeSignal();
     await evaluateSignal(
       signal,
-      ["vellum"] as NotificationChannel[],
+      ["max"] as NotificationChannel[],
       "Notify only for urgent items",
     );
 

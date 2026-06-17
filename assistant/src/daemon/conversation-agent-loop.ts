@@ -402,7 +402,7 @@ export async function trackCompactionOutcome(
  * to a custom plugin reading `ctx.trust`.
  */
 const FALLBACK_TURN_TRUST: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "unknown",
 };
 
@@ -531,6 +531,21 @@ export interface AgentLoopConversationContext {
   preactivatedSkillIds?: string[];
   readonly skillProjectionState: Map<string, string>;
   readonly skillProjectionCache: SkillProjectionCache;
+  /**
+   * Skill IDs activated via bridged tool calls (e.g. kimi-agent executing
+   * `skill_load` inside its own inner SDK loop). These IDs never appear as
+   * `tool_use` blocks in the outer `history`, so `deriveActiveSkills` cannot
+   * find them. This set is populated by `handleToolResult` when a bridged
+   * `skill_load` result carries a `<loaded_skill>` marker, and is merged into
+   * `effectivePreactivated` by `createResolveToolsCallback` on every turn.
+   * Unlike `preactivatedSkillIds`, this set is NOT cleared at turn end so
+   * skills activated in a previous kimi turn remain active in later turns.
+   */
+  /**
+   * Optional so test mocks that don't wire this field remain valid.
+   * Production `Conversation` instances always initialise it to `new Set()`.
+   */
+  readonly bridgedActiveSkillIds?: Set<string>;
 
   readonly traceEmitter: TraceEmitter;
   readonly profiler: ToolProfiler;
@@ -714,14 +729,14 @@ export async function runAgentLoopImpl(
     if (origin)
       return { userMessageChannel: origin, assistantMessageChannel: origin };
     return {
-      userMessageChannel: "vellum" as ChannelId,
-      assistantMessageChannel: "vellum" as ChannelId,
+      userMessageChannel: "max" as ChannelId,
+      assistantMessageChannel: "max" as ChannelId,
     };
   })();
 
   // Capture interface context with the same anti-race snapshot pattern.
   // Interface and channel are orthogonal dimensions, so when interface
-  // context is missing we default explicitly to 'vellum' instead of
+  // context is missing we default explicitly to 'max' instead of
   // deriving from channel.
   const capturedTurnInterfaceContext: TurnInterfaceContext = (() => {
     const live = ctx.getTurnInterfaceContext();

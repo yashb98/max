@@ -151,7 +151,7 @@ describe("pairDeliveryWithConversation", () => {
     mockBindings = {};
   });
 
-  // ── start_new_conversation (vellum) ─────────────────────────────────
+  // ── start_new_conversation (max) ─────────────────────────────────
 
   test("creates a conversation and message for start_new_conversation strategy", async () => {
     const signal = makeSignal();
@@ -159,7 +159,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -183,7 +183,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -201,7 +201,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -220,7 +220,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -242,7 +242,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -266,7 +266,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -282,7 +282,7 @@ describe("pairDeliveryWithConversation", () => {
 
     await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -781,33 +781,33 @@ describe("pairDeliveryWithConversation", () => {
   });
 
   test("binding context does not trigger reuse for start_new_conversation channels", async () => {
-    // vellum uses start_new_conversation — binding context should be ignored for reuse
-    mockExistingConversations["conv-bound-vellum"] = {
-      id: "conv-bound-vellum",
+    // max uses start_new_conversation — binding context should be ignored for reuse
+    mockExistingConversations["conv-bound-max"] = {
+      id: "conv-bound-max",
       source: "notification",
-      title: "Vellum Thread",
+      title: "Max Thread",
     };
-    mockBindings["notification:vellum:device-1"] = {
-      conversationId: "conv-bound-vellum",
-      sourceChannel: "notification:vellum",
+    mockBindings["notification:max:device-1"] = {
+      conversationId: "conv-bound-max",
+      sourceChannel: "notification:max",
       externalChatId: "device-1",
     };
 
     const signal = makeSignal();
     const copy = makeCopy();
     const bindingContext: DestinationBindingContext = {
-      sourceChannel: "vellum" as NotificationChannel,
+      sourceChannel: "max" as NotificationChannel,
       externalChatId: "device-1",
     };
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
       { bindingContext },
     );
 
-    // Should still create a new conversation — vellum is start_new_conversation
+    // Should still create a new conversation — max is start_new_conversation
     expect(result.conversationId).toBe("conv-001");
     expect(result.createdNewConversation).toBe(true);
     expect(createConversationMock).toHaveBeenCalledTimes(1);
@@ -829,7 +829,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -840,7 +840,7 @@ describe("pairDeliveryWithConversation", () => {
       string,
       unknown
     >;
-    // vellum channel normally yields "standard", but the metadata override wins
+    // max channel normally yields "standard", but the metadata override wins
     expect(callArgs.conversationType).toBe("background");
   });
 
@@ -855,7 +855,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -865,7 +865,7 @@ describe("pairDeliveryWithConversation", () => {
       string,
       unknown
     >;
-    // No override — vellum (start_new_conversation) defaults to "standard"
+    // No override — max (start_new_conversation) defaults to "standard"
     expect(callArgs.conversationType).toBe("standard");
   });
 
@@ -912,7 +912,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
       { conversationAction },
     );
@@ -939,7 +939,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
       { conversationAction },
     );
@@ -968,7 +968,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
       { conversationAction },
     );
@@ -985,7 +985,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
       { conversationAction },
     );
@@ -1002,7 +1002,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -1021,7 +1021,7 @@ describe("pairDeliveryWithConversation", () => {
     // Should not throw
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -1039,7 +1039,7 @@ describe("pairDeliveryWithConversation", () => {
 
     const result = await pairDeliveryWithConversation(
       signal,
-      "vellum" as NotificationChannel,
+      "max" as NotificationChannel,
       copy,
     );
 
@@ -1055,7 +1055,7 @@ describe("pairDeliveryWithConversation", () => {
     for (let i = 0; i < 3; i++) {
       const result = await pairDeliveryWithConversation(
         makeSignal({ signalId: `sig-${i}` }),
-        "vellum" as NotificationChannel,
+        "max" as NotificationChannel,
         makeCopy(),
       );
       expect(result.conversationId).toBeNull();

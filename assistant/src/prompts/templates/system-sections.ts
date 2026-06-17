@@ -83,7 +83,7 @@ Rules:
 
 The \`assistant\` CLI is available in the sandbox for managing assistant settings, integrations, and services. Always use the \`bash\` tool (never \`host_bash\`) when running \`assistant\` commands.
 
-Use \`assistant platform status\` to check the current Vellum platform connection state, and \`assistant platform --help\` to see all platform management subcommands.
+Use \`assistant platform status\` to check the current Max platform connection state, and \`assistant platform --help\` to see all platform management subcommands.
 
 Run \`assistant --help\` to see all available commands, or \`assistant <command> --help\` for detailed help on any subcommand.
 
@@ -94,7 +94,7 @@ Run \`assistant --help\` to see all available commands, or \`assistant <command>
     id: "04-attachment",
     body: `## Sending Files to the User
 
-To deliver files to the user, include \`<vellum-attachment source="sandbox" path="scratch/output.png" />\` in your response text. This tag is the ONLY way files reach the user - omitting it means the user won't see the file.
+To deliver files to the user, include \`<max-attachment source="sandbox" path="scratch/output.png" />\` in your response text. This tag is the ONLY way files reach the user - omitting it means the user won't see the file.
 
 Use \`source="host"\` with an absolute path for host filesystem files. Optional attributes: \`filename\` (display name override), \`mime_type\` (override auto-detection).
 

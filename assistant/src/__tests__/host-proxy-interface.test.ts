@@ -77,7 +77,7 @@ describe("supportsHostProxy (type predicate)", () => {
   test("narrowing reaches through discriminated transport union", () => {
     // Build a value typed as the full union so TypeScript can't cheat.
     const transport: ConversationTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -97,7 +97,7 @@ describe("supportsHostProxy (type predicate)", () => {
 
   test("non-host-proxy branch narrows to NonHostProxyTransportMetadata", () => {
     const transport: ConversationTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "ios",
     };
 
@@ -118,7 +118,7 @@ describe("supportsHostProxy (type predicate)", () => {
 describe("isHostProxyTransport", () => {
   test("returns true for macOS transport and narrows to HostProxyTransportMetadata", () => {
     const transport: ConversationTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
       interfaceId: "macos",
       hostHomeDir: "/Users/alice",
       hostUsername: "alice",
@@ -149,7 +149,7 @@ describe("isHostProxyTransport", () => {
     ];
     for (const interfaceId of nonHostProxyIds) {
       const transport: ConversationTransportMetadata = {
-        channelId: "vellum",
+        channelId: "max",
         interfaceId,
       };
       expect(isHostProxyTransport(transport)).toBe(false);
@@ -158,7 +158,7 @@ describe("isHostProxyTransport", () => {
 
   test("returns false when interfaceId is absent", () => {
     const transport: ConversationTransportMetadata = {
-      channelId: "vellum",
+      channelId: "max",
     };
     expect(isHostProxyTransport(transport)).toBe(false);
   });

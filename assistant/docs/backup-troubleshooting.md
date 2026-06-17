@@ -6,7 +6,7 @@ Operational procedures for diagnosing and recovering from snapshot issues.
 
 ### Symptom
 
-Backup CLI commands (`vellum backup create`) and scheduled snapshot ticks repeatedly fail with one of:
+Backup CLI commands (`max backup create`) and scheduled snapshot ticks repeatedly fail with one of:
 
 - `snapshot in progress (locked by pid <N>)`
 - `snapshot in progress (lock holder unidentified; possible partial write)`
@@ -27,8 +27,8 @@ In rare cases a writer can crash after creating the lock file but before writing
 2. Inspect the lock file:
 
    ```bash
-   ls -l ~/.vellum/backups/.snapshot.lock
-   cat ~/.vellum/backups/.snapshot.lock
+   ls -l ~/.max/backups/.snapshot.lock
+   cat ~/.max/backups/.snapshot.lock
    ```
 
    If the file is empty, zero-byte, or contains no parseable PID, it is stuck debris from a crashed writer.
@@ -42,11 +42,11 @@ In rare cases a writer can crash after creating the lock file but before writing
 3. Remove the lock file:
 
    ```bash
-   rm ~/.vellum/backups/.snapshot.lock
+   rm ~/.max/backups/.snapshot.lock
    ```
 
 4. Retry the backup operation. The next acquire attempt will succeed on the now-empty slot.
 
 ### Docker mode
 
-In containerized deployments the backup root is controlled by `VELLUM_BACKUP_DIR` (default `/workspace/.backups/`). The lock file lives one level above the local backups directory — adjust the path in the commands above accordingly, e.g. `/workspace/.backups/.snapshot.lock`.
+In containerized deployments the backup root is controlled by `MAX_BACKUP_DIR` (default `/workspace/.backups/`). The lock file lives one level above the local backups directory — adjust the path in the commands above accordingly, e.g. `/workspace/.backups/.snapshot.lock`.

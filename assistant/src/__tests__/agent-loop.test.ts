@@ -1460,7 +1460,7 @@ describe("AgentLoop", () => {
   // 32. Tool results with sensitiveBindings populate substitution map and
   //     final assistant message text is resolved with real values.
   test("resolves sensitive output placeholders in final assistant message", async () => {
-    const placeholder = "VELLUM_ASSISTANT_INVITE_CODE_TEST1234";
+    const placeholder = "MAX_ASSISTANT_INVITE_CODE_TEST1234";
     const realToken = "realInviteToken999";
 
     const { provider, calls } = createMockProvider([
@@ -1531,7 +1531,7 @@ describe("AgentLoop", () => {
 
   // 33. Streamed text_delta events have placeholders resolved to real values
   test("resolves sensitive output placeholders in streamed text_delta events", async () => {
-    const placeholder = "VELLUM_ASSISTANT_INVITE_CODE_STRM5678";
+    const placeholder = "MAX_ASSISTANT_INVITE_CODE_STRM5678";
     const realToken = "streamedRealToken";
 
     const { provider } = createMockProvider([

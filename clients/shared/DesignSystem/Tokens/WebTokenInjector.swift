@@ -107,17 +107,17 @@ public enum WebTokenInjector {
         """
     }
 
-    /// Returns a JS snippet that sets `window.vellum.theme.mode` to the
-    /// current colour-scheme and dispatches a `vellum-theme-change`
+    /// Returns a JS snippet that sets `window.max.theme.mode` to the
+    /// current colour-scheme and dispatches a `max-theme-change`
     /// CustomEvent whenever the system appearance changes.
     public static func themeEventScript() -> String {
         """
-        window.vellum.theme = {
+        window.max.theme = {
             mode: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
         };
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-            window.vellum.theme.mode = e.matches ? 'dark' : 'light';
-            window.dispatchEvent(new CustomEvent('vellum-theme-change', { detail: window.vellum.theme }));
+            window.max.theme.mode = e.matches ? 'dark' : 'light';
+            window.dispatchEvent(new CustomEvent('max-theme-change', { detail: window.max.theme }));
         });
         """
     }

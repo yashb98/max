@@ -1,8 +1,8 @@
 export type {
   AllowlistOption,
   ScopeOption,
-} from "@vellumai/skill-host-contracts";
-export { RiskLevel } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+export { RiskLevel } from "@maxai/skill-host-contracts";
 
 export type ApprovalMode = "prompted" | "auto" | "blocked" | "unknown";
 

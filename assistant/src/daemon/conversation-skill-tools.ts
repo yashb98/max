@@ -323,8 +323,21 @@ export function projectSkillTools(
       let accepted = tools;
       const prevHash = prevActive.get(skillId);
       if (prevHash === undefined) {
-        // Newly active skill — register for the first time
-        accepted = registerSkillTools(tools);
+        // Newly active skill — register for the first time.
+        // Guard against cross-skill name collisions (e.g. a superseded skill
+        // still on disk that shares tool names with the new one). Without the
+        // try/catch the thrown error propagates uncaught out of projectSkillTools,
+        // leaving ctx.allowedToolNames unpopulated and making all skill tools
+        // appear inactive for the rest of the turn.
+        try {
+          accepted = registerSkillTools(tools);
+        } catch (err) {
+          log.error(
+            { err, skillId },
+            "Failed to register skill tools on first activation (likely name collision with another skill); skipping",
+          );
+          continue;
+        }
       } else if (prevHash !== currentHash) {
         // Hash changed — unregister stale tools, then re-register with new definitions
         log.info(
@@ -424,4 +437,108 @@ export function resetSkillToolProjection(
     }
     trackedIds.clear();
   }
+}
+
+/**
+ * Immediately activate a skill by ID — load its TOOLS.json, register its
+ * tools in the global registry, and return the accepted tool names.
+ *
+ * This is used by the bridged-tool-result handler so that when an agentic
+ * bridge provider (e.g. kimi-agent) executes `skill_load` inside its own
+ * inner loop, the resulting `<loaded_skill>` marker is acted upon right away
+ * rather than waiting for the next outer-loop `resolveTools` pass (which
+ * scans `history` and would miss the bridged call because no `tool_use` block
+ * was appended to the outer history).
+ *
+ * Safe to call for skills that are already registered — the registry's
+ * idempotency check skips tools already owned by the same skill.
+ *
+ * @param skillId   The ID from the `<loaded_skill id="..."/>` marker.
+ * @param prevActive  The conversation-scoped tracking map (same one passed to
+ *                    projectSkillTools). Updated in-place on success.
+ * @param cache     The conversation-scoped projection cache (optional).
+ * @returns The set of tool names that were accepted (may be empty on failure).
+ */
+export function activateBridgedSkill(
+  skillId: string,
+  prevActive: Map<string, string>,
+  cache?: SkillProjectionCache,
+): Set<string> {
+  const catalog = getCachedCatalog(cache);
+  const skill = catalog.find((s) => s.id === skillId);
+  if (!skill) {
+    log.warn({ skillId }, "activateBridgedSkill: skill not found in catalog");
+    return new Set();
+  }
+
+  const manifest = loadManifestForSkill(skill);
+  if (!manifest) {
+    log.warn({ skillId }, "activateBridgedSkill: no TOOLS.json for skill");
+    return new Set();
+  }
+
+  let currentHash: string;
+  try {
+    currentHash = computeSkillVersionHash(skill.directoryPath);
+  } catch (err) {
+    log.warn(
+      { err, skillId },
+      "activateBridgedSkill: failed to compute version hash",
+    );
+    currentHash = `unknown-${Date.now()}`;
+  }
+
+  const tools = createSkillToolsFromManifest(
+    manifest.tools,
+    skillId,
+    skill.directoryPath,
+    currentHash,
+    skill.bundled,
+  );
+
+  if (tools.length === 0) {
+    return new Set();
+  }
+
+  let accepted: typeof tools;
+  const prevHash = prevActive.get(skillId);
+  if (prevHash === undefined) {
+    try {
+      accepted = registerSkillTools(tools);
+    } catch (err) {
+      log.error(
+        { err, skillId },
+        "activateBridgedSkill: failed to register skill tools (name collision?)",
+      );
+      return new Set();
+    }
+  } else if (prevHash !== currentHash) {
+    unregisterSkillTools(skillId);
+    try {
+      accepted = registerSkillTools(tools);
+    } catch (err) {
+      log.error(
+        { err, skillId },
+        "activateBridgedSkill: failed to re-register skill tools after version change",
+      );
+      return new Set();
+    }
+  } else {
+    // Already registered with same hash — return existing tool names
+    accepted = tools.filter((t) => {
+      const reg = getTool(t.name);
+      return (
+        reg !== undefined &&
+        reg.origin === "skill" &&
+        reg.ownerSkillId === skillId
+      );
+    });
+  }
+
+  prevActive.set(skillId, currentHash);
+  log.info(
+    { skillId, toolCount: accepted.length },
+    "activateBridgedSkill: skill activated via bridge",
+  );
+  return new Set(accepted.map((t) => t.name));
 }

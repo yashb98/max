@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 // Mock platform to use a temp directory
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 import { mock } from "bun:test";
 
@@ -146,18 +146,18 @@ describe("buildSystemPrompt", () => {
   test("uses IDENTITY.md when it exists", () => {
     writeFileSync(
       join(TEST_DIR, "IDENTITY.md"),
-      "# My Identity\n\nI am Vellum.",
+      "# My Identity\n\nI am Max.",
     );
     const result = buildSystemPrompt();
-    expect(basePrompt(result)).toBe("# My Identity\n\nI am Vellum.");
+    expect(basePrompt(result)).toBe("# My Identity\n\nI am Max.");
   });
 
   test("composes IDENTITY.md + SOUL.md when both exist", () => {
-    writeFileSync(join(TEST_DIR, "IDENTITY.md"), "# Identity\n\nI am Vellum.");
+    writeFileSync(join(TEST_DIR, "IDENTITY.md"), "# Identity\n\nI am Max.");
     writeFileSync(join(TEST_DIR, "SOUL.md"), "# Soul\n\nBe thoughtful.");
     const result = buildSystemPrompt();
     expect(basePrompt(result)).toBe(
-      "# Identity\n\nI am Vellum.\n\n# Soul\n\nBe thoughtful.",
+      "# Identity\n\nI am Max.\n\n# Soul\n\nBe thoughtful.",
     );
   });
 
@@ -454,10 +454,10 @@ describe("buildSystemPrompt", () => {
   test("strips comment lines starting with _ from prompt files", () => {
     writeFileSync(
       join(TEST_DIR, "IDENTITY.md"),
-      "# Identity\n_ This is a comment\nI am Vellum.\n_ Another comment",
+      "# Identity\n_ This is a comment\nI am Max.\n_ Another comment",
     );
     const result = buildSystemPrompt();
-    expect(basePrompt(result)).toBe("# Identity\nI am Vellum.");
+    expect(basePrompt(result)).toBe("# Identity\nI am Max.");
   });
 
   test("collapses whitespace around stripped comment lines", () => {
@@ -580,10 +580,10 @@ describe("buildSystemPrompt", () => {
     test("workspace file content still appears after prefix", () => {
       mkdirSync(SYSTEM_PROMPTS_DIR, { recursive: true });
       writeFileSync(PREFIX_FILE, PREFIX_FRONTMATTER + "Custom prefix\n");
-      writeFileSync(join(TEST_DIR, "IDENTITY.md"), "I am Vellum.");
+      writeFileSync(join(TEST_DIR, "IDENTITY.md"), "I am Max.");
       const result = buildSystemPrompt();
       expect(result.startsWith("Custom prefix")).toBe(true);
-      expect(basePrompt(result)).toBe("I am Vellum.");
+      expect(basePrompt(result)).toBe("I am Max.");
     });
 
     test("parallel tool calls section is sourced from workspace when present", () => {
@@ -967,11 +967,11 @@ describe("buildSystemPrompt", () => {
         mkdirSync(SYSTEM_PROMPTS_DIR, { recursive: true });
         writeFileSync(
           ATTACHMENT_FILE,
-          "## Sending Files to the User\n\nUse the `<vellum-attachment />` tag.\n",
+          "## Sending Files to the User\n\nUse the `<max-attachment />` tag.\n",
         );
         const result = buildSystemPrompt();
         expect(result).toContain("## Sending Files to the User");
-        expect(result).toContain("Use the `<vellum-attachment />` tag.");
+        expect(result).toContain("Use the `<max-attachment />` tag.");
         // Section lives in the static (cached) block.
         const boundaryIdx = result.indexOf(SYSTEM_PROMPT_CACHE_BOUNDARY);
         expect(boundaryIdx).toBeGreaterThan(-1);
@@ -1003,7 +1003,7 @@ describe("buildSystemPrompt", () => {
         mkdirSync(SYSTEM_PROMPTS_DIR, { recursive: true });
         const result = buildSystemPrompt();
         expect(result).toContain("## Sending Files to the User");
-        expect(result).toContain("<vellum-attachment");
+        expect(result).toContain("<max-attachment");
       });
     });
 

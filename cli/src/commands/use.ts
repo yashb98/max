@@ -8,7 +8,7 @@ export async function use(): Promise<void> {
   const args = process.argv.slice(3);
 
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum use [<name>]");
+    console.log("Usage: max use [<name>]");
     console.log("");
     console.log("Set the active assistant for commands.");
     console.log("");

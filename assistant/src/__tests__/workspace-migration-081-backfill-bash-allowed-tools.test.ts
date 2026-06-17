@@ -40,7 +40,7 @@ let workspaceDir: string;
 let metadataPath: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-migration-081-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-migration-081-test-"));
   metadataPath = join(workspaceDir, "data", "credentials", "metadata.json");
 });
 

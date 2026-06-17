@@ -83,10 +83,10 @@ function handleHostAppControlResult({ body, headers }: RouteHandlerArgs) {
   if (peeked.targetClientId != null) {
     const headerMap = headers ?? {};
     const submittingClientId =
-      headerMap["x-vellum-client-id"]?.trim() || undefined;
+      headerMap["x-max-client-id"]?.trim() || undefined;
     if (!submittingClientId) {
       throw new BadRequestError(
-        "x-vellum-client-id header is missing for a targeted host app-control request.",
+        "x-max-client-id header is missing for a targeted host app-control request.",
       );
     }
     if (submittingClientId !== peeked.targetClientId) {
@@ -95,7 +95,7 @@ function handleHostAppControlResult({ body, headers }: RouteHandlerArgs) {
       );
     }
     const submittingActorPrincipalId = resolveActorPrincipalIdForLocalGuardian(
-      headerMap["x-vellum-actor-principal-id"]?.trim() || undefined,
+      headerMap["x-max-actor-principal-id"]?.trim() || undefined,
     );
     enforceSameActorOrThrow({
       sourceActorPrincipalId: submittingActorPrincipalId,
@@ -165,7 +165,7 @@ export const ROUTES: RouteDefinition[] = [
     additionalResponses: {
       "400": {
         description:
-          "x-vellum-client-id header is missing for a targeted host app-control request.",
+          "x-max-client-id header is missing for a targeted host app-control request.",
       },
       "403": {
         description: SAME_ACTOR_FORBIDDEN_DESCRIPTION,

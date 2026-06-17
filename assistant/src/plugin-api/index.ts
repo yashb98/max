@@ -1,7 +1,7 @@
 /**
- * Public entry point for the `@vellumai/plugin-api` package.
+ * Public entry point for the `@maxai/plugin-api` package.
  *
- * Plugin authors import from `"@vellumai/plugin-api"`; this file is what
+ * Plugin authors import from `"@maxai/plugin-api"`; this file is what
  * their import lands on (directly via the published npm package, or via a
  * boot-time shim that re-exports from the assistant binary's embedded
  * bundle).

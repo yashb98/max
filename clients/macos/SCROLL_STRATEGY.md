@@ -1,4 +1,4 @@
-# Vellum Chat Scroll Strategy
+# Max Chat Scroll Strategy
 
 > **Architecture:** Inverted scroll via `FlippedModifier`
 > **Reference PRs:** #25828 through #25834 (inverted scroll migration, PRs 1-7)

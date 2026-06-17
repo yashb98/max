@@ -197,5 +197,5 @@ Count and timestamp are derived client-side from the connection state.
 - "Retry connection now" button on the picker — 60s loop is fast enough.
 - Settings → Providers reachability dashboard.
 - Native macOS notification when Ollama goes offline.
-- Auto-launching of Ollama from Vellum.
+- Auto-launching of Ollama from Max.
 - Surfacing models from multiple Ollama connections simultaneously (v1 assumes one active Ollama connection per workspace).

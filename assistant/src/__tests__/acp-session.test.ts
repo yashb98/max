@@ -1,25 +1,25 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import { VellumAcpClientHandler } from "../acp/client-handler.js";
+import { MaxAcpClientHandler } from "../acp/client-handler.js";
 import { AcpSessionManager } from "../acp/session-manager.js";
 import type { ServerMessage } from "../daemon/message-protocol.js";
 import * as pendingInteractions from "../runtime/pending-interactions.js";
 
 // ---------------------------------------------------------------------------
-// VellumAcpClientHandler tests
+// MaxAcpClientHandler tests
 // ---------------------------------------------------------------------------
 
-describe("VellumAcpClientHandler", () => {
+describe("MaxAcpClientHandler", () => {
   let sent: ServerMessage[];
-  let sendToVellum: (msg: ServerMessage) => void;
-  let handler: VellumAcpClientHandler;
+  let sendToMax: (msg: ServerMessage) => void;
+  let handler: MaxAcpClientHandler;
 
   beforeEach(() => {
     sent = [];
-    sendToVellum = (msg) => sent.push(msg);
-    handler = new VellumAcpClientHandler(
+    sendToMax = (msg) => sent.push(msg);
+    handler = new MaxAcpClientHandler(
       "session-1",
-      sendToVellum,
+      sendToMax,
       "conv-parent",
     );
     pendingInteractions.clear();
@@ -197,7 +197,7 @@ describe("AcpSessionManager", () => {
   describe("concurrency limit", () => {
     test("rejects spawn when max concurrent sessions reached", async () => {
       const manager = new AcpSessionManager(0);
-      const sendToVellum = mock(() => {});
+      const sendToMax = mock(() => {});
 
       await expect(
         manager.spawn(
@@ -206,7 +206,7 @@ describe("AcpSessionManager", () => {
           "do something",
           "/tmp",
           "parent-1",
-          sendToVellum,
+          sendToMax,
         ),
       ).rejects.toThrow(/concurrency limit reached/i);
     });
@@ -253,7 +253,7 @@ describe("AcpSessionManager", () => {
       });
 
       const manager = new AcpSessionManager(1);
-      const sendToVellum = mock(() => {});
+      const sendToMax = mock(() => {});
 
       // Inject a fake session directly into the manager to avoid needing
       // a real child process.
@@ -265,9 +265,9 @@ describe("AcpSessionManager", () => {
         createSession: mock(() => Promise.resolve("proto-session")),
         cancel: mock(() => Promise.resolve()),
       };
-      const fakeHandler = new VellumAcpClientHandler(
+      const fakeHandler = new MaxAcpClientHandler(
         "test-session",
-        sendToVellum,
+        sendToMax,
         "conv-1",
       );
 
@@ -284,7 +284,7 @@ describe("AcpSessionManager", () => {
           startedAt: Date.now(),
         },
         clientHandler: fakeHandler,
-        sendToVellum,
+        sendToMax,
         currentPrompt: null as any,
         parentConversationId: "conv-1",
         cwd: "/tmp",
@@ -314,7 +314,7 @@ describe("AcpSessionManager", () => {
 
     test("failed session is removed from the session map", async () => {
       const manager = new AcpSessionManager(1);
-      const sendToVellum = mock(() => {});
+      const sendToMax = mock(() => {});
 
       let rejectPrompt: (e: Error) => void;
       const promptPromise = new Promise<{ stopReason: string }>((_r, rej) => {
@@ -325,9 +325,9 @@ describe("AcpSessionManager", () => {
         prompt: () => promptPromise,
         kill: mock(() => {}),
       };
-      const fakeHandler = new VellumAcpClientHandler(
+      const fakeHandler = new MaxAcpClientHandler(
         "test-session-2",
-        sendToVellum,
+        sendToMax,
         "conv-2",
       );
 
@@ -343,7 +343,7 @@ describe("AcpSessionManager", () => {
           startedAt: Date.now(),
         },
         clientHandler: fakeHandler,
-        sendToVellum,
+        sendToMax,
         currentPrompt: null as any,
         parentConversationId: "conv-2",
         cwd: "/tmp",

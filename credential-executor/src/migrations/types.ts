@@ -1,4 +1,4 @@
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 
 /**
  * A single CES data migration.

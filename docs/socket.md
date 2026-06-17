@@ -1,10 +1,10 @@
-# Socket.dev at Vellum Assistant
+# Socket.dev at Max Assistant
 
-This doc is the operator runbook for Socket.dev on `vellum-ai/vellum-assistant`: what runs in CI, how the policy file is wired, how the weekly autofix works, where the API token comes from, and the manual `gh api` command used to wire Socket checks into `main` branch protection. The sibling repo `vellum-ai/vellum-assistant-platform` uses the **same Socket API token** and has a parallel runbook — rotating the token affects both repos.
+This doc is the operator runbook for Socket.dev on `max-ai/max-assistant`: what runs in CI, how the policy file is wired, how the weekly autofix works, where the API token comes from, and the manual `gh api` command used to wire Socket checks into `main` branch protection. The sibling repo `max-ai/max-assistant-platform` uses the **same Socket API token** and has a parallel runbook — rotating the token affects both repos.
 
 ## Tier
 
-The vellum-ai Socket org is on **Socket Free**.
+The max-ai Socket org is on **Socket Free**.
 
 **Works on Free:**
 
@@ -25,7 +25,7 @@ The vellum-ai Socket org is on **Socket Free**.
 
 ### `socket-security` GitHub App (per PR)
 
-The `socket-security` App (installed at the vellum-ai org level) emits two check runs on every PR:
+The `socket-security` App (installed at the max-ai org level) emits two check runs on every PR:
 
 - `Socket Security: Project Report` — runs on every PR.
 - `Socket Security: Pull Request Alerts` — runs when a PR touches a manifest or lockfile (`package.json` / `bun.lock`).
@@ -54,11 +54,11 @@ Socket Certified Patches (`socket-patch`) are deferred: `socket-patch apply` mod
 ## Token provenance
 
 - `SOCKET_CLI_API_TOKEN` is created at **Socket dashboard → Settings → API Tokens** with scopes `full-scans:create` and `packages:list`.
-- Stored as a repo secret at `vellum-ai/vellum-assistant → Settings → Secrets and variables → Actions`.
-- **Same token is used by the sibling `vellum-assistant-platform` repo.** One Socket token covers both repos; rotation means updating the secret in both.
+- Stored as a repo secret at `max-ai/max-assistant → Settings → Secrets and variables → Actions`.
+- **Same token is used by the sibling `max-assistant-platform` repo.** One Socket token covers both repos; rotation means updating the secret in both.
 - **Rotation procedure:**
   1. In the Socket dashboard, create a new token with the same scopes (`full-scans:create`, `packages:list`).
-  2. Update the repo secret in both `vellum-ai/vellum-assistant` and `vellum-ai/vellum-assistant-platform`, then trigger each repo's Socket workflow manually and confirm success.
+  2. Update the repo secret in both `max-ai/max-assistant` and `max-ai/max-assistant-platform`, then trigger each repo's Socket workflow manually and confirm success.
   3. Delete the old token in the Socket dashboard.
 - Do NOT rotate during the Monday 09:00 UTC scheduled-run window.
 
@@ -75,7 +75,7 @@ Ruleset ID: **`12614752`** ("Main Protection" on `main`).
 ### Step A — snapshot the existing ruleset
 
 ```bash
-gh api /repos/vellum-ai/vellum-assistant/rulesets/12614752 > /tmp/main-ruleset.json
+gh api /repos/max-ai/max-assistant/rulesets/12614752 > /tmp/main-ruleset.json
 ```
 
 ### Step B — verify the pre-PATCH baseline
@@ -113,7 +113,7 @@ gh api \
   --method PUT \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  /repos/vellum-ai/vellum-assistant/rulesets/12614752 \
+  /repos/max-ai/max-assistant/rulesets/12614752 \
   --input /tmp/main-ruleset-patched.json
 ```
 
@@ -125,7 +125,7 @@ Payload notes:
 - `context` is the check-run name emitted by the `socket-security` App — exact strings. If GitHub returns an app-integration ambiguity error, add `"integration_id": <socket-app-id>` to each entry. Look up the App ID via:
 
   ```bash
-  gh api /repos/vellum-ai/vellum-assistant/installations \
+  gh api /repos/max-ai/max-assistant/installations \
     --jq '.installations[] | select(.app_slug == "socket-security") | .app_id'
   ```
 
@@ -133,12 +133,12 @@ Payload notes:
 
 ```bash
 # Expected: both Socket contexts listed.
-gh api /repos/vellum-ai/vellum-assistant/rulesets/12614752 | \
+gh api /repos/max-ai/max-assistant/rulesets/12614752 | \
   jq '.rules[] | select(.type == "required_status_checks") | .parameters.required_status_checks'
 
 # Expected: review rule unchanged (approving_review_count=1,
 # dismiss_stale_reviews_on_push=true, require_last_push_approval=true).
-gh api /repos/vellum-ai/vellum-assistant/rulesets/12614752 | \
+gh api /repos/max-ai/max-assistant/rulesets/12614752 | \
   jq '.rules[] | select(.type == "pull_request") | .parameters'
 ```
 

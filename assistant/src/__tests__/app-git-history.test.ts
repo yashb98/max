@@ -20,11 +20,11 @@ describe("App Git History", () => {
   beforeEach(() => {
     testDataDir = join(
       tmpdir(),
-      `vellum-app-git-history-${Date.now()}-${Math.random()
+      `max-app-git-history-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`,
     );
-    process.env.VELLUM_WORKSPACE_DIR = testDataDir;
+    process.env.MAX_WORKSPACE_DIR = testDataDir;
     _resetGitServiceRegistry();
   });
 

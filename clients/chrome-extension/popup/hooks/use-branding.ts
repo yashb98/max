@@ -19,7 +19,7 @@ export function useBranding(): Branding {
       ? chrome.runtime.getURL(manifestIcons['128'])
       : '';
     const name =
-      typeof manifest.name === 'string' ? manifest.name : 'Vellum Assistant';
+      typeof manifest.name === 'string' ? manifest.name : 'Max Assistant';
     return { name, icons: { icon48, icon128 } };
   }, []);
 }

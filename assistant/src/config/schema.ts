@@ -140,8 +140,8 @@ export const AssistantConfigSchema = z
       .number({ error: "maxStepsPerSession must be a number" })
       .int("maxStepsPerSession must be an integer")
       .min(1, "maxStepsPerSession must be >= 1")
-      .max(200, "maxStepsPerSession must be <= 200")
-      .default(50)
+      .max(100000, "maxStepsPerSession must be <= 100000")
+      .default(100000)
       .describe("Maximum number of computer-use steps per session"),
   })
   .superRefine((config, ctx) => {

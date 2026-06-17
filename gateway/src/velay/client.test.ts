@@ -164,8 +164,8 @@ function makeClient(
     credentials:
       overrides.credentials ??
       makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
     configFile: overrides.configFile ?? makeConfigFileCache({ count: 0 }),
     webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -222,7 +222,7 @@ describe("VelayTunnelClient", () => {
       sockets,
       reconnectDelays,
       credentials: makeCredentials({
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
     });
 
@@ -244,7 +244,7 @@ describe("VelayTunnelClient", () => {
       sockets,
       reconnectDelays,
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
       }),
     });
 
@@ -294,7 +294,7 @@ describe("VelayTunnelClient", () => {
       protocols: [VELAY_TUNNEL_SUBPROTOCOL],
       headers: {
         Authorization: "Api-Key api-key-123",
-        "X-Vellum-Velay-Allowed-Paths": VELAY_ALLOWED_PATHS_HEADER_VALUE,
+        "X-Max-Velay-Allowed-Paths": VELAY_ALLOWED_PATHS_HEADER_VALUE,
       },
     });
 
@@ -480,8 +480,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -914,8 +914,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -952,8 +952,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -989,8 +989,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -1028,8 +1028,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),
@@ -1067,8 +1067,8 @@ describe("VelayTunnelClient", () => {
       velayBaseUrl: "http://velay.example.test",
       gatewayLoopbackBaseUrl: "http://127.0.0.1:7830",
       credentials: makeCredentials({
-        [credentialKey("vellum", "assistant_api_key")]: "api-key-123",
-        [credentialKey("vellum", "platform_assistant_id")]: "asst-123",
+        [credentialKey("max", "assistant_api_key")]: "api-key-123",
+        [credentialKey("max", "platform_assistant_id")]: "asst-123",
       }),
       configFile: makeConfigFileCache({ count: 0 }),
       webSocketConstructor: makeFakeWebSocketConstructor(sockets),

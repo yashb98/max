@@ -79,7 +79,7 @@ describe("computeExtensionId", () => {
 describe("renderManifest", () => {
   test("substitutes {{EXT_ID}} into a template string", () => {
     const template = JSON.stringify({
-      name: "com.vellum.meet",
+      name: "com.max.meet",
       allowed_origins: ["chrome-extension://{{EXT_ID}}/"],
     });
     const rendered = renderManifest(
@@ -99,7 +99,7 @@ describe("renderManifest", () => {
   });
 
   test("is a no-op when the placeholder is absent", () => {
-    const template = '{"name":"com.vellum.meet"}';
+    const template = '{"name":"com.max.meet"}';
     expect(renderManifest(template, "anything")).toBe(template);
   });
 });
@@ -110,7 +110,7 @@ describe("render integration", () => {
       import.meta.dir,
       "..",
       "native-messaging",
-      "com.vellum.meet.json",
+      "com.max.meet.json",
     );
     const extManifestPath = resolve(
       import.meta.dir,
@@ -131,7 +131,7 @@ describe("render integration", () => {
       path: string;
       allowed_origins: string[];
     };
-    expect(parsed.name).toBe("com.vellum.meet");
+    expect(parsed.name).toBe("com.max.meet");
     expect(parsed.type).toBe("stdio");
     expect(parsed.path).toBe("/app/bot/src/native-messaging/nmh-shim.ts");
     expect(parsed.allowed_origins).toEqual([`chrome-extension://${extId}/`]);

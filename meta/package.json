@@ -1,10 +1,10 @@
 {
-  "name": "vellum",
+  "name": "max",
   "version": "0.8.1",
   "license": "MIT",
-  "description": "Install the full Vellum stack locally",
+  "description": "Install the full Max stack locally",
   "bin": {
-    "vellum": "./bin/vellum.js",
+    "max": "./bin/max.js",
     "assistant": "./bin/assistant.js"
   },
   "scripts": {
@@ -15,10 +15,10 @@
     "Dockerfile"
   ],
   "dependencies": {
-    "@vellumai/assistant": "0.8.1",
-    "@vellumai/cli": "0.8.1",
-    "@vellumai/credential-executor": "0.8.1",
-    "@vellumai/vellum-gateway": "0.8.1"
+    "@maxai/assistant": "0.8.1",
+    "@maxai/cli": "0.8.1",
+    "@maxai/credential-executor": "0.8.1",
+    "@maxai/max-gateway": "0.8.1"
   },
   "overrides": {
     "drizzle-orm": "0.45.2",

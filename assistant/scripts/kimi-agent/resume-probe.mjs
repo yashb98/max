@@ -22,7 +22,7 @@ import { writeKimiAgentFiles } from "../../src/providers/kimi-agent/agent-file.t
 import { stageMcpFreeShareDir } from "../../src/providers/kimi-agent/share-dir.ts";
 
 const RECALL_CODE = "MAUVE-HERON-7319";
-const SESSION_ID = `vellum-resume-probe-${Date.now().toString(36)}`;
+const SESSION_ID = `max-resume-probe-${Date.now().toString(36)}`;
 // ONE workDir for both calls — sessions are keyed by md5(workDir).
 const workDir = mkdtempSync(join(tmpdir(), "kimi-resume-"));
 

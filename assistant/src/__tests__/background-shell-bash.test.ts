@@ -21,7 +21,7 @@ mock.module("../config/loader.js", () => ({
       enabled: false,
       backend: "native",
       docker: {
-        image: "vellum-sandbox:latest",
+        image: "max-sandbox:latest",
         shell: "bash",
         cpus: 1,
         memoryMb: 512,
@@ -89,7 +89,7 @@ mock.module("../tools/background-tool-registry.js", () => ({
 // ── Imports (after mocks) ───────────────────────────────────────────────────
 
 const baseContext = {
-  workingDir: process.env.VELLUM_WORKSPACE_DIR ?? "/tmp",
+  workingDir: process.env.MAX_WORKSPACE_DIR ?? "/tmp",
   conversationId: "conv-bg-test",
   trustClass: "guardian" as const,
   onOutput: () => {},

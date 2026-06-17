@@ -10,12 +10,12 @@ import {
   test,
 } from "bun:test";
 
-const testDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDir = process.env.MAX_WORKSPACE_DIR!;
 const secureStorePath = join(testDir, "keys.enc");
 const metadataPath = join(testDir, "metadata.json");
-const originalVellumDev = process.env.VELLUM_DEV;
+const originalMaxDev = process.env.MAX_DEV;
 
-process.env.VELLUM_DEV = "1";
+process.env.MAX_DEV = "1";
 
 // In-memory config store for tests
 let configStore: Record<string, unknown> = {};
@@ -170,10 +170,10 @@ afterAll(() => {
   _setMetadataPath(null);
   _setStorePath(null);
   _resetBackend();
-  if (originalVellumDev === undefined) {
-    delete process.env.VELLUM_DEV;
+  if (originalMaxDev === undefined) {
+    delete process.env.MAX_DEV;
   } else {
-    process.env.VELLUM_DEV = originalVellumDev;
+    process.env.MAX_DEV = originalMaxDev;
   }
 });
 

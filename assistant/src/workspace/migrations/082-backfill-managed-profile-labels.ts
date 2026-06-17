@@ -34,7 +34,7 @@
  *
  * Idempotent: running twice produces no second write.
  *
- * Does NOT skip on `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH`: the platform
+ * Does NOT skip on `MAX_DEFAULT_WORKSPACE_CONFIG_PATH`: the platform
  * overlay supplies its own label when it cares, and the runtime seeder's
  * `preservedProfileNames` skip path will defer to that overlay-supplied
  * label on every boot. This migration only fills the gap when no source

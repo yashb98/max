@@ -11,12 +11,12 @@
  * ## Isolation rule
  *
  * This module is dependency-free on `assistant/`. `SkillHost` comes
- * from `@vellumai/skill-host-contracts`, the neutral package that
+ * from `@maxai/skill-host-contracts`, the neutral package that
  * defines the host contract. Adding any `assistant/` import here
  * would defeat the purpose of the refactor.
  */
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "@maxai/skill-host-contracts";
 
 import { createDockerRunner, DOCKER_RUNNER_MODULE } from "./docker-runner.js";
 

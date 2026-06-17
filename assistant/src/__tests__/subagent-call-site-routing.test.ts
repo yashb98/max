@@ -280,7 +280,7 @@ describe("SubagentManager — provider call-site routing", () => {
     });
 
     const parentTrustContext = {
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
       guardianPrincipalId: "guardian-1",
       guardianExternalUserId: "guardian-1",

@@ -452,7 +452,7 @@ describe("host_bash — environment setup", () => {
 
   test("does not leak non-allowlisted env vars", async () => {
     // Set a custom env var that is NOT in the SAFE_ENV_VARS allowlist
-    const varName = "VELLUM_TEST_UNLISTED_VAR";
+    const varName = "MAX_TEST_UNLISTED_VAR";
     const originalVal = process.env[varName];
     process.env[varName] = "should-not-appear";
 
@@ -695,9 +695,9 @@ describe("host_bash — spawn error handling", () => {
 
 describe("host_bash — proxy delegation", () => {
   const ROUTING_ENV_KEYS = [
-    "VELLUM_WORKSPACE_DIR",
-    "VELLUM_DATA_DIR",
-    "VELLUM_ENVIRONMENT",
+    "MAX_WORKSPACE_DIR",
+    "MAX_DATA_DIR",
+    "MAX_ENVIRONMENT",
     "INTERNAL_GATEWAY_BASE_URL",
   ] as const;
 
@@ -861,7 +861,7 @@ describe("host_bash — proxy delegation", () => {
     expect(spawnCalls.length).toBe(1);
   });
 
-  test("propagates VELLUM_UNTRUSTED_SHELL env to proxy under CES lockdown", async () => {
+  test("propagates MAX_UNTRUSTED_SHELL env to proxy under CES lockdown", async () => {
     // Enable CES shell lockdown via the override cache
     const { _setOverridesForTesting } =
       await import("../config/assistant-feature-flags.js");
@@ -895,7 +895,7 @@ describe("host_bash — proxy delegation", () => {
       expect(result).toBe(proxyResult);
       expect(calls.length).toBe(1);
       expect(calls[0].input.env).toEqual({
-        VELLUM_UNTRUSTED_SHELL: "1",
+        MAX_UNTRUSTED_SHELL: "1",
         __CONVERSATION_ID: "test-conversation",
       });
     } finally {
@@ -940,13 +940,13 @@ describe("host_bash — proxy delegation", () => {
   test("propagates daemon routing env vars to proxy for nested assistant CLI calls", async () => {
     const envSnapshot = captureEnv([
       ...ROUTING_ENV_KEYS,
-      "VELLUM_UNTRUSTED_SHELL",
+      "MAX_UNTRUSTED_SHELL",
     ]);
-    process.env.VELLUM_WORKSPACE_DIR = "/tmp/vellum-instance/.vellum/workspace";
-    process.env.VELLUM_DATA_DIR = "/tmp/vellum-instance/.vellum/workspace/data";
-    process.env.VELLUM_ENVIRONMENT = "local";
+    process.env.MAX_WORKSPACE_DIR = "/tmp/max-instance/.max/workspace";
+    process.env.MAX_DATA_DIR = "/tmp/max-instance/.max/workspace/data";
+    process.env.MAX_ENVIRONMENT = "local";
     process.env.INTERNAL_GATEWAY_BASE_URL = "http://127.0.0.1:7830";
-    delete process.env.VELLUM_UNTRUSTED_SHELL;
+    delete process.env.MAX_UNTRUSTED_SHELL;
 
     try {
       const proxyResult: ToolExecutionResult = {
@@ -968,9 +968,9 @@ describe("host_bash — proxy delegation", () => {
       expect(result).toBe(proxyResult);
       expect(calls.length).toBe(1);
       expect(calls[0].input.env).toEqual({
-        VELLUM_WORKSPACE_DIR: "/tmp/vellum-instance/.vellum/workspace",
-        VELLUM_DATA_DIR: "/tmp/vellum-instance/.vellum/workspace/data",
-        VELLUM_ENVIRONMENT: "local",
+        MAX_WORKSPACE_DIR: "/tmp/max-instance/.max/workspace",
+        MAX_DATA_DIR: "/tmp/max-instance/.max/workspace/data",
+        MAX_ENVIRONMENT: "local",
         INTERNAL_GATEWAY_BASE_URL: "http://127.0.0.1:7830",
         __CONVERSATION_ID: "test-conversation",
       });

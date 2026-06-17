@@ -128,7 +128,7 @@ export async function seedV2SkillEntries(
  *      augmentation and the prose-style content render (`buildSkillContent`,
  *      capped at 500 chars).
  *   3. Defense-in-depth feature-flag filter: drop any skill whose declared
- *      `metadata.vellum.feature-flag` is currently disabled.
+ *      `metadata.max.feature-flag` is currently disabled.
  *   3b. Fetch the full remote catalog and seed any uninstalled skills so
  *      their activation hints are discoverable by semantic search. Best-effort:
  *      if the catalog fetch fails, only installed skills are seeded.
@@ -182,7 +182,7 @@ async function runSeedOnce(): Promise<void> {
       for (const entry of fullCatalog) {
         knownSkillIds.add(entry.id);
         if (installedIds.has(entry.id)) continue;
-        const flagKey = entry.metadata?.vellum?.["feature-flag"];
+        const flagKey = entry.metadata?.max?.["feature-flag"];
         if (flagKey && !isAssistantFeatureFlagEnabled(flagKey, config))
           continue;
         const content = buildSkillContent(fromCatalogSkill(entry));

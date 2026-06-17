@@ -3,7 +3,7 @@ import Foundation
 public class APIKeyManager {
     public static let shared = APIKeyManager()
 
-    private let service = "vellum-assistant"
+    private let service = "max-assistant"
 
     private init() {}
 

@@ -16,8 +16,8 @@ describe("markdownToEmailHtml", () => {
   });
 
   test("converts markdown links", () => {
-    const result = markdownToEmailHtml("Visit [Vellum](https://vellum.ai)");
-    expect(result).toContain('<a href="https://vellum.ai">Vellum</a>');
+    const result = markdownToEmailHtml("Visit [Max](https://max.ai)");
+    expect(result).toContain('<a href="https://max.ai">Max</a>');
   });
 
   test("converts markdown lists", () => {

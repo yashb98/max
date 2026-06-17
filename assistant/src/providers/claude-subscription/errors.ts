@@ -2,7 +2,7 @@
  * Provider-specific error hierarchy for the claude-subscription bridge.
  *
  * The Agent SDK surfaces failures through generic `Error` objects whose
- * messages are the only place to recover discriminating signal. Vellum
+ * messages are the only place to recover discriminating signal. Max
  * wants those failures to reach the UI with actionable copy ("run
  * `claude login`") rather than a stack trace, so this module classifies
  * each known failure mode into a discriminator (`kind`) and pairs it

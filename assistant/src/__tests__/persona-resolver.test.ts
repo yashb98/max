@@ -32,7 +32,7 @@ import {
 // ── Mock state ────────────────────────────────────────────────────
 
 let mockWorkspaceDir: string = "";
-let mockVellumGuardian:
+let mockMaxGuardian:
   | {
       contact: { userFile: string | null };
       channel: Record<string, unknown>;
@@ -54,7 +54,7 @@ mock.module("../util/platform.js", () => ({
 mock.module("../contacts/contact-store.js", () => ({
   findContactByChannelExternalId: () => null,
   findGuardianForChannel: (channelType: string) =>
-    channelType === "vellum" ? mockVellumGuardian : null,
+    channelType === "max" ? mockMaxGuardian : null,
   listGuardianChannels: () => mockAnyGuardian,
 }));
 
@@ -83,7 +83,7 @@ afterAll(() => {
 beforeEach(() => {
   // Fresh workspace per test, so filesystem state doesn't leak.
   mockWorkspaceDir = mkdtempSync(join(testRoot, "ws-"));
-  mockVellumGuardian = null;
+  mockMaxGuardian = null;
   mockAnyGuardian = null;
 });
 
@@ -95,14 +95,14 @@ afterEach(() => {
 
 describe("resolveGuardianPersonaPath", () => {
   test("returns null when no guardian exists", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     mockAnyGuardian = null;
 
     expect(resolveGuardianPersonaPath()).toBeNull();
   });
 
   test("returns absolute path when guardian has userFile set", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: { userFile: "alice.md" },
       channel: {},
     };
@@ -154,14 +154,14 @@ describe("ensureGuardianPersonaFile", () => {
 
 describe("resolveGuardianPersonaStrict", () => {
   test("returns null when no guardian contact exists", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     mockAnyGuardian = null;
 
     expect(resolveGuardianPersonaStrict()).toBeNull();
   });
 
   test("returns null when the guardian's own file is missing, even if default.md exists", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: { userFile: "alice.md" },
       channel: {},
     };
@@ -183,7 +183,7 @@ describe("resolveGuardianPersonaStrict", () => {
   });
 
   test("returns guardian file content when present", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: { userFile: "alice.md" },
       channel: {},
     };

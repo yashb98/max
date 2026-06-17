@@ -558,10 +558,10 @@ describe("Managed connection write protection", () => {
         findHandler("inference_provider_connections_update"),
         {
           pathParams: { name: "anthropic-managed" },
-          body: { auth: { type: "platform" }, label: "Vellum-managed Anthropic" },
+          body: { auth: { type: "platform" }, label: "Max-managed Anthropic" },
         },
       )) as { label: string | null };
-      expect(result.label).toBe("Vellum-managed Anthropic");
+      expect(result.label).toBe("Max-managed Anthropic");
     });
   });
 
@@ -668,7 +668,7 @@ describe("isManaged flag on connection responses", () => {
         findHandler("inference_provider_connections_update"),
         {
           pathParams: { name: "anthropic-managed" },
-          body: { auth: { type: "platform" }, label: "Vellum Anthropic" },
+          body: { auth: { type: "platform" }, label: "Max Anthropic" },
         },
       )) as { name: string; isManaged: boolean };
 

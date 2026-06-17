@@ -34,7 +34,7 @@ export function registerDomainCommand(program: Command): void {
         "after",
         `
 Each assistant can register its own subdomain (e.g. velly.${baseDomain})
-for email and web presence. DNS managed by the Vellum platform.
+for email and web presence. DNS managed by the Max platform.
 
 Examples:
   $ assistant domain register velly
@@ -55,7 +55,7 @@ Arguments:
               If omitted, the platform derives it from the assistant's name.
 
 Registers a subdomain at <subdomain>.${baseDomain}. DNS managed by the
-Vellum platform — no manual DNS changes needed.
+Max platform — no manual DNS changes needed.
 
 Examples:
   $ assistant domain register velly

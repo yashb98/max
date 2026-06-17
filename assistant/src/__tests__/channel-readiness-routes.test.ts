@@ -139,7 +139,7 @@ describe("channel readiness routes — email and WhatsApp probes", () => {
     test("ready when all prerequisites are met (including inbox)", async () => {
       mockRawConfig = {
         ingress: { publicBaseUrl: "https://example.com", enabled: true },
-        email: { address: "hello@vellum.me" },
+        email: { address: "hello@max.me" },
       };
       const service = createReadinessService();
       const [snapshot] = await service.getReadiness("email", true);

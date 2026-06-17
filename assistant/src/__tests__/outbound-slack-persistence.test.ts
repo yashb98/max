@@ -104,7 +104,7 @@ import { readSlackMetadata } from "../messaging/providers/slack/message-metadata
 function makeDeps(
   conversationId: string,
   overrides: {
-    assistantMessageChannel?: "slack" | "vellum" | "telegram";
+    assistantMessageChannel?: "slack" | "max" | "telegram";
     requesterChatId?: string;
   } = {},
 ): EventHandlerDeps {
@@ -134,11 +134,11 @@ function makeDeps(
     } as EventHandlerDeps["turnChannelContext"],
     turnInterfaceContext: {
       userMessageInterface:
-        assistantMessageChannel === "vellum"
+        assistantMessageChannel === "max"
           ? "macos"
           : assistantMessageChannel,
       assistantMessageInterface:
-        assistantMessageChannel === "vellum"
+        assistantMessageChannel === "max"
           ? "macos"
           : assistantMessageChannel,
     } as EventHandlerDeps["turnInterfaceContext"],
@@ -275,14 +275,14 @@ describe("outbound assistant Slack metadata persistence", () => {
   });
 
   test("does NOT stamp slackMeta on non-Slack outbound assistant messages", async () => {
-    const conversationId = "conv-vellum";
+    const conversationId = "conv-max";
     const deps = makeDeps(conversationId, {
-      assistantMessageChannel: "vellum",
+      assistantMessageChannel: "max",
     });
     await handleMessageComplete(
       state,
       deps,
-      makeMessageCompleteEvent("vellum reply"),
+      makeMessageCompleteEvent("max reply"),
     );
 
     const persisted = lastAssistantPersisted();

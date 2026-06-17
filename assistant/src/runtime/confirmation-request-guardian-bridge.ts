@@ -3,7 +3,7 @@
  *
  * When a trusted-contact channel session creates a confirmation_request (tool approval),
  * this helper emits a guardian.question notification signal and persists canonical
- * delivery rows to guardian destinations (Telegram/Slack/Vellum), enabling the guardian
+ * delivery rows to guardian destinations (Telegram/Slack/Max), enabling the guardian
  * to approve via callback/request-code path.
  *
  * Modeled after the tool-grant-request-helper pattern. Designed to be called from
@@ -173,7 +173,7 @@ export function bridgeConfirmationRequestToGuardian(
     onConversationCreated: (info) => {
       createCanonicalGuardianDelivery({
         requestId: canonicalRequest.id,
-        destinationChannel: "vellum",
+        destinationChannel: "max",
         destinationConversationId: info.conversationId,
       });
     },
@@ -183,7 +183,7 @@ export function bridgeConfirmationRequestToGuardian(
   void signalPromise
     .then((signalResult) => {
       for (const result of signalResult.deliveryResults) {
-        if (result.channel === "vellum") continue; // handled in onConversationCreated
+        if (result.channel === "max") continue; // handled in onConversationCreated
         createCanonicalGuardianDelivery({
           requestId: canonicalRequest.id,
           destinationChannel: result.channel,

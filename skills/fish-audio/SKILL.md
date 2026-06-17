@@ -1,10 +1,10 @@
 ---
 name: fish-audio
 description: "Generate expressive audio clips using Fish Audio S2 TTS with bracket emotion tags. Record voice memos, narration, audio messages, or any spoken content."
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎙️"
-  vellum:
+  max:
     display-name: "Fish Audio TTS"
 ---
 
@@ -341,5 +341,5 @@ S2 excels at dynamic emotional shifts. Use this for natural-feeling monologues:
 - **Add 1-1.5s silence between clips** when combining for natural pacing
 - **Listen and iterate** — generate a few takes with different temperatures if the first one does not hit right
 - **The voice carries context** — `condition_on_previous_chunks: true` (default) helps maintain consistency within a single API call
-- Always deliver the final audio to the user with `<vellum-attachment>` tags
+- Always deliver the final audio to the user with `<max-attachment>` tags
 - Only use `[bracket]` syntax inside text passed to the Fish Audio API, not in regular text responses

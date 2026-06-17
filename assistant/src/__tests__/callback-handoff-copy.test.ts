@@ -49,8 +49,8 @@ describe("callback handoff copy template", () => {
       callerName: "Alice",
       callerPhoneNumber: "+15551234567",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.title).toBe("Callback Requested");
     expect(copy.body).toContain("Alice (+15551234567)");
@@ -63,8 +63,8 @@ describe("callback handoff copy template", () => {
       callerName: null,
       callerPhoneNumber: "+15559876543",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toContain("+15559876543");
     expect(copy.body).not.toContain("null");
@@ -75,8 +75,8 @@ describe("callback handoff copy template", () => {
       callerName: "Bob",
       callerPhoneNumber: null,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toContain("Bob");
   });
@@ -86,8 +86,8 @@ describe("callback handoff copy template", () => {
       callerName: null,
       callerPhoneNumber: null,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toContain("An unknown caller");
   });
@@ -98,8 +98,8 @@ describe("callback handoff copy template", () => {
       callerPhoneNumber: "+15551111111",
       requestCode: "a1b2c3",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toContain("A1B2C3");
   });
@@ -110,8 +110,8 @@ describe("callback handoff copy template", () => {
       callerPhoneNumber: "+15551111111",
       requestCode: null,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toContain("Request code");
   });
@@ -122,8 +122,8 @@ describe("callback handoff copy template", () => {
       callerPhoneNumber: "+15552222222",
       requesterMemberId: "member-789",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).toContain("trusted contact");
     expect(copy.body).toContain("member-789");
@@ -135,8 +135,8 @@ describe("callback handoff copy template", () => {
       callerPhoneNumber: "+15553333333",
       requesterMemberId: null,
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.body).not.toContain("trusted contact");
     expect(copy.body).not.toContain("member");
@@ -174,8 +174,8 @@ describe("callback handoff copy template", () => {
       requestCode: "ff00aa",
       requesterMemberId: "member-full-test",
     });
-    const result = composeFallbackCopy(signal, ["vellum"]);
-    const copy = result.vellum!;
+    const result = composeFallbackCopy(signal, ["max"]);
+    const copy = result.max!;
 
     expect(copy.title).toBe("Callback Requested");
     expect(copy.body).toContain("Hank (+15556666666)");

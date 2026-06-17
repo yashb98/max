@@ -7,12 +7,12 @@ const PRODUCTION_ENVIRONMENT_NAME = "production";
 
 /**
  * Production lockfile filenames in priority order. The current name is
- * `.vellum.lock.json`; `.vellum.lockfile.json` is the legacy name kept for
+ * `.max.lock.json`; `.max.lockfile.json` is the legacy name kept for
  * backward compatibility with installs that predate the rename.
  */
 const PRODUCTION_LOCKFILE_NAMES = [
-  ".vellum.lock.json",
-  ".vellum.lockfile.json",
+  ".max.lock.json",
+  ".max.lockfile.json",
 ] as const;
 
 const DEFAULT_PORTS: Readonly<PortMap> = {
@@ -26,22 +26,22 @@ const DEFAULT_PORTS: Readonly<PortMap> = {
 
 /**
  * Config directory for an environment.
- * Production preserves the existing `~/.config/vellum/` location;
- * non-production environments use `$XDG_CONFIG_HOME/vellum-<env>/`.
+ * Production preserves the existing `~/.config/max/` location;
+ * non-production environments use `$XDG_CONFIG_HOME/max-<env>/`.
  */
 export function getConfigDir(env: EnvironmentDefinition): string {
   if (env.configDirOverride) return env.configDirOverride;
   if (env.name === PRODUCTION_ENVIRONMENT_NAME) {
-    return join(xdgConfigHome(), "vellum");
+    return join(xdgConfigHome(), "max");
   }
-  return join(xdgConfigHome(), `vellum-${env.name}`);
+  return join(xdgConfigHome(), `max-${env.name}`);
 }
 
 /**
  * Lockfile candidate paths for an environment, in priority order.
  *
- * For production, returns both the current `.vellum.lock.json` and the
- * legacy `.vellum.lockfile.json` so read-side callers can fall back to the
+ * For production, returns both the current `.max.lock.json` and the
+ * legacy `.max.lockfile.json` so read-side callers can fall back to the
  * legacy filename on installs that predate the rename. Non-production
  * environments are new and have a single canonical path under the env-scoped
  * XDG config directory.
@@ -52,7 +52,7 @@ export function getConfigDir(env: EnvironmentDefinition): string {
  * (canonical) entry.
  *
  * `env.lockfileDirOverride` (populated by the resolver from
- * `VELLUM_LOCKFILE_DIR`) overrides the directory the lockfile lives in for
+ * `MAX_LOCKFILE_DIR`) overrides the directory the lockfile lives in for
  * both production and non-production environments.
  */
 export function getLockfilePaths(env: EnvironmentDefinition): string[] {
@@ -66,7 +66,7 @@ export function getLockfilePaths(env: EnvironmentDefinition): string[] {
 
 /**
  * Canonical lockfile path for writes. For production this is the current
- * `.vellum.lock.json` (legacy reads handled by {@link getLockfilePaths}).
+ * `.max.lock.json` (legacy reads handled by {@link getLockfilePaths}).
  */
 export function getLockfilePath(env: EnvironmentDefinition): string {
   return getLockfilePaths(env)[0]!;
@@ -74,15 +74,15 @@ export function getLockfilePath(env: EnvironmentDefinition): string {
 
 /**
  * Multi-instance root directory for an environment. Production uses
- * `~/.local/share/vellum/assistants/` — the convention already in
+ * `~/.local/share/max/assistants/` — the convention already in
  * `cli/src/lib/assistant-config.ts`. Non-production environments use
- * `~/.local/share/vellum-<env>/assistants/`.
+ * `~/.local/share/max-<env>/assistants/`.
  */
 export function getMultiInstanceDir(env: EnvironmentDefinition): string {
   if (env.name === PRODUCTION_ENVIRONMENT_NAME) {
-    return join(xdgDataHome(), "vellum", "assistants");
+    return join(xdgDataHome(), "max", "assistants");
   }
-  return join(xdgDataHome(), `vellum-${env.name}`, "assistants");
+  return join(xdgDataHome(), `max-${env.name}`, "assistants");
 }
 
 /**
@@ -100,14 +100,14 @@ export function getDefaultPorts(env: EnvironmentDefinition): PortMap {
 
 /**
  * Runtime state directory for an environment (upgrade logs, etc.).
- * Production uses `~/.local/share/vellum/`; non-production environments
- * use `~/.local/share/vellum-<env>/`.
+ * Production uses `~/.local/share/max/`; non-production environments
+ * use `~/.local/share/max-<env>/`.
  */
 export function getStateDir(env: EnvironmentDefinition): string {
   if (env.name === PRODUCTION_ENVIRONMENT_NAME) {
-    return join(xdgDataHome(), "vellum");
+    return join(xdgDataHome(), "max");
   }
-  return join(xdgDataHome(), `vellum-${env.name}`);
+  return join(xdgDataHome(), `max-${env.name}`);
 }
 
 /**
@@ -116,13 +116,13 @@ export function getStateDir(env: EnvironmentDefinition): string {
  * Follows the XDG Base Directory spec: history files are state data
  * (persistent across runs but not portable / user-owned content), so they
  * belong under `$XDG_STATE_HOME`, mirroring `bash`, `zsh`, `psql`, and `gh`.
- * Defaults to `~/.local/state/vellum/input-history`.
+ * Defaults to `~/.local/state/max/input-history`.
  *
  * Not environment-scoped: terminal input history is per-user, not per-assistant,
  * so dev and prod CLIs share the same history file.
  */
 export function getInputHistoryPath(): string {
-  return join(xdgStateHome(), "vellum", "input-history");
+  return join(xdgStateHome(), "max", "input-history");
 }
 
 /**

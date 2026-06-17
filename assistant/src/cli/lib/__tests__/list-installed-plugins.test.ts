@@ -49,7 +49,7 @@ describe("listInstalledPlugins", () => {
         name: "zeta",
         version: "1.2.3",
         description: "z plugin",
-        peerDependencies: { "@vellumai/plugin-api": "0.8.0" },
+        peerDependencies: { "@maxai/plugin-api": "0.8.0" },
       }),
     );
     mkdirSync(join(pluginsDir, "alpha"));
@@ -70,7 +70,7 @@ describe("listInstalledPlugins", () => {
       name: "zeta",
       version: "1.2.3",
       description: "z plugin",
-      peerDependencies: { "@vellumai/plugin-api": "0.8.0" },
+      peerDependencies: { "@maxai/plugin-api": "0.8.0" },
     });
     expect(result.every((p) => p.issues.length === 0)).toBe(true);
   });

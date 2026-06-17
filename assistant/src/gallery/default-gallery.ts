@@ -352,7 +352,7 @@ const habitTrackerHtml = `<!DOCTYPE html>
 </div>
 <div id="habitsList"></div>
 <script>
-  var vellum = window.vellum;
+  var max = window.max;
   var habits = [];
   var dates = [];
 
@@ -371,7 +371,7 @@ const habitTrackerHtml = `<!DOCTYPE html>
   }
 
   function loadHabits() {
-    vellum.data.query().then(function(records) {
+    max.data.query().then(function(records) {
       habits = records;
       render();
     });
@@ -415,7 +415,7 @@ const habitTrackerHtml = `<!DOCTYPE html>
     var name = input.value.trim();
     if (!name) return;
     input.value = '';
-    vellum.data.create({ name: name, completedDates: '[]' }).then(function() {
+    max.data.create({ name: name, completedDates: '[]' }).then(function() {
       loadHabits();
     });
   }
@@ -427,7 +427,7 @@ const habitTrackerHtml = `<!DOCTYPE html>
     try { completedDates = JSON.parse(record.data.completedDates || '[]'); } catch(e) { console.error('Failed to parse completedDates for habit ' + record.id + ':', e); }
     var idx = completedDates.indexOf(date);
     if (idx === -1) { completedDates.push(date); } else { completedDates.splice(idx, 1); }
-    vellum.data.update(recordId, {
+    max.data.update(recordId, {
       name: record.data.name,
       completedDates: JSON.stringify(completedDates)
     }).then(function() {
@@ -436,7 +436,7 @@ const habitTrackerHtml = `<!DOCTYPE html>
   }
 
   function deleteHabit(recordId) {
-    vellum.data.delete(recordId).then(function() {
+    max.data.delete(recordId).then(function() {
       loadHabits();
     });
   }
@@ -652,7 +652,7 @@ const expenseTrackerHtml = `<!DOCTYPE html>
 <div class="section-title">Recent Expenses</div>
 <div class="expense-list" id="expenseList"></div>
 <script>
-  var vellum = window.vellum;
+  var max = window.max;
   var expenses = [];
 
   document.getElementById('dateInput').value = new Date().toISOString().slice(0, 10);
@@ -664,7 +664,7 @@ const expenseTrackerHtml = `<!DOCTYPE html>
   }
 
   function loadExpenses() {
-    vellum.data.query().then(function(records) {
+    max.data.query().then(function(records) {
       expenses = records;
       expenses.sort(function(a, b) {
         return (b.data.date || '').localeCompare(a.data.date || '') || b.createdAt - a.createdAt;
@@ -720,7 +720,7 @@ const expenseTrackerHtml = `<!DOCTYPE html>
     var category = document.getElementById('categorySelect').value;
     var description = document.getElementById('descInput').value.trim() || 'Untitled';
     var date = document.getElementById('dateInput').value;
-    vellum.data.create({
+    max.data.create({
       amount: amount,
       category: category,
       description: description,
@@ -733,7 +733,7 @@ const expenseTrackerHtml = `<!DOCTYPE html>
   }
 
   function deleteExpense(id) {
-    vellum.data.delete(id).then(function() {
+    max.data.delete(id).then(function() {
       loadExpenses();
     });
   }
@@ -990,7 +990,7 @@ render(<HabitTracker />, document.getElementById("app")!);
   "src/components/HabitTracker.tsx": `import { useCallback, useEffect, useState } from "preact/hooks";
 import { HabitRow } from "./HabitRow.js";
 
-declare const vellum: {
+declare const max: {
   data: {
     query(): Promise<Array<{ id: string; data: Record<string, string> }>>;
     create(data: Record<string, string>): Promise<void>;
@@ -1026,7 +1026,7 @@ export function HabitTracker() {
   const dayNames = getDayNames(dates);
 
   const loadHabits = useCallback(() => {
-    vellum.data.query().then((records) => {
+    max.data.query().then((records) => {
       setHabits(records as unknown as HabitRecord[]);
     });
   }, []);
@@ -1039,7 +1039,7 @@ export function HabitTracker() {
     const name = input.trim();
     if (!name) return;
     setInput("");
-    vellum.data.create({ name, completedDates: "[]" }).then(loadHabits);
+    max.data.create({ name, completedDates: "[]" }).then(loadHabits);
   };
 
   const toggleDate = (recordId: string, date: string) => {
@@ -1054,7 +1054,7 @@ export function HabitTracker() {
     const idx = completed.indexOf(date);
     if (idx === -1) completed.push(date);
     else completed.splice(idx, 1);
-    vellum.data
+    max.data
       .update(recordId, {
         name: record.data.name,
         completedDates: JSON.stringify(completed),
@@ -1063,7 +1063,7 @@ export function HabitTracker() {
   };
 
   const deleteHabit = (recordId: string) => {
-    vellum.data.delete(recordId).then(loadHabits);
+    max.data.delete(recordId).then(loadHabits);
   };
 
   return (

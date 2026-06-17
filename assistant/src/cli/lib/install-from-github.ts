@@ -2,7 +2,7 @@
  * Install an external plugin by name from the canonical GitHub source.
  *
  * The plugin source convention is fixed at
- * `vellum-ai/vellum-assistant/experimental/plugins/<name>/` on the configured
+ * `max-ai/max-assistant/experimental/plugins/<name>/` on the configured
  * git ref. The {@link installPlugin} entry point fetches the directory tree
  * via the GitHub Contents API and materializes it into
  * `<workspacePluginsDir>/<name>/` so the daemon discovers it on next start.
@@ -20,8 +20,8 @@ import { dirname, join } from "node:path";
 
 import { getWorkspacePluginsDir } from "../../util/platform.js";
 
-const PLUGIN_SOURCE_OWNER = "vellum-ai";
-const PLUGIN_SOURCE_REPO = "vellum-assistant";
+const PLUGIN_SOURCE_OWNER = "max-ai";
+const PLUGIN_SOURCE_REPO = "max-assistant";
 const PLUGIN_SOURCE_PATH_PREFIX = "experimental/plugins";
 /** Default git ref to fetch from when callers don't override. */
 export const DEFAULT_PLUGIN_REF = "main";
@@ -296,7 +296,7 @@ async function githubFetch(
 ): Promise<Response> {
   const headers: Record<string, string> = {
     Accept: accept,
-    "User-Agent": "vellum-assistant-cli",
+    "User-Agent": "max-assistant-cli",
   };
   const token = process.env.GITHUB_TOKEN?.trim();
   if (token) headers.Authorization = `Bearer ${token}`;

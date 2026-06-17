@@ -34,11 +34,11 @@
 |---|---|---|
 | `clients/shared/Models/ProviderAvailabilityStatus.swift` | Create | Codable model matching the daemon wire shape. |
 | `clients/shared/Network/ProviderAvailabilityClient.swift` | Create | Protocol-based HTTP client (`ProviderAvailabilityClientProtocol`) for hermetic tests, mirroring `ProviderConnectionClient`. |
-| `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift` | Modify | New `@Published providerAvailability` map + `loadProviderAvailability` + `refreshProviderAvailability` + refresh on app-launch and picker-open. |
-| `clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift` | Modify | Add `providerAvailability` field to `ChatProfilePickerConfiguration`. |
-| `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift` | Modify | New `claudeSubscriptionProviderRow(...)` helper rendering the disabled-row branch; new pure `claudeSubscriptionTrailingText` + `claudeSubscriptionRowLabel` helpers. |
-| `clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift` | Modify | Extend with 4 cases for each `Reason` plus the available case. |
-| `clients/macos/vellum-assistantTests/SettingsStoreProviderAvailabilityTests.swift` | Create | Asserts publish + tolerant-on-failure refresh. |
+| `clients/macos/max-assistant/Features/Settings/SettingsStore.swift` | Modify | New `@Published providerAvailability` map + `loadProviderAvailability` + `refreshProviderAvailability` + refresh on app-launch and picker-open. |
+| `clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift` | Modify | Add `providerAvailability` field to `ChatProfilePickerConfiguration`. |
+| `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift` | Modify | New `claudeSubscriptionProviderRow(...)` helper rendering the disabled-row branch; new pure `claudeSubscriptionTrailingText` + `claudeSubscriptionRowLabel` helpers. |
+| `clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift` | Modify | Extend with 4 cases for each `Reason` plus the available case. |
+| `clients/macos/max-assistantTests/SettingsStoreProviderAvailabilityTests.swift` | Create | Asserts publish + tolerant-on-failure refresh. |
 
 ---
 
@@ -72,7 +72,7 @@ cd clients/macos
 ./build.sh
 ```
 
-Expected: `dist/Vellum.app` produced without errors. If the build is already cached, force-clean: `./build.sh clean && ./build.sh`.
+Expected: `dist/Max.app` produced without errors. If the build is already cached, force-clean: `./build.sh clean && ./build.sh`.
 
 ---
 
@@ -528,7 +528,7 @@ public struct ProviderAvailabilityStatus: Codable, Equatable, Sendable {
 
 ```bash
 cd clients
-swift build --target VellumAssistantShared 2>&1 | tail -20
+swift build --target MaxAssistantShared 2>&1 | tail -20
 echo "EXIT=$?"
 ```
 
@@ -580,7 +580,7 @@ public struct ProviderAvailabilityClient: ProviderAvailabilityClientProtocol {
 
 ```bash
 cd clients
-swift build --target VellumAssistantShared 2>&1 | tail -20
+swift build --target MaxAssistantShared 2>&1 | tail -20
 echo "EXIT=$?"
 ```
 
@@ -591,17 +591,17 @@ Expected: builds cleanly, `EXIT=0`.
 ## Phase 6 — Swift: `SettingsStore.providerAvailability`
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift`
-- Create: `clients/macos/vellum-assistantTests/SettingsStoreProviderAvailabilityTests.swift`
+- Modify: `clients/macos/max-assistant/Features/Settings/SettingsStore.swift`
+- Create: `clients/macos/max-assistantTests/SettingsStoreProviderAvailabilityTests.swift`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `clients/macos/vellum-assistantTests/SettingsStoreProviderAvailabilityTests.swift`:
+Create `clients/macos/max-assistantTests/SettingsStoreProviderAvailabilityTests.swift`:
 
 ```swift
 import XCTest
-@testable import VellumAssistantLib
-@testable import VellumAssistantShared
+@testable import MaxAssistantLib
+@testable import MaxAssistantShared
 
 final class SettingsStoreProviderAvailabilityTests: XCTestCase {
 
@@ -654,7 +654,7 @@ Expected: FAIL — `providerAvailability` / `loadProviderAvailability` / `refres
 
 - [ ] **Step 3: Implement the published map + load/refresh**
 
-In `clients/macos/vellum-assistant/Features/Settings/SettingsStore.swift`, alongside `connectionReachability` (around line 138):
+In `clients/macos/max-assistant/Features/Settings/SettingsStore.swift`, alongside `connectionReachability` (around line 138):
 
 ```swift
 /// Mirror of `connectionReachability` for provider *setup* state. Populated
@@ -713,11 +713,11 @@ Expected: full test suite green.
 ## Phase 7 — Swift: thread availability through `ChatProfilePickerConfiguration`
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift`
+- Modify: `clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift`
 
 - [ ] **Step 1: Add the field to `ChatProfilePickerConfiguration`**
 
-In `clients/macos/vellum-assistant/Features/Chat/ChatProfilePicker.swift`, inside the `ChatProfilePickerConfiguration` struct (alongside `connectionReachability` at line ~25):
+In `clients/macos/max-assistant/Features/Chat/ChatProfilePicker.swift`, inside the `ChatProfilePickerConfiguration` struct (alongside `connectionReachability` at line ~25):
 
 ```swift
 /// Snapshot of `SettingsStore.providerAvailability`. Drives the disabled-row
@@ -731,7 +731,7 @@ var providerAvailability: [String: ProviderAvailabilityStatus] = [:]
 Find every site that constructs `ChatProfilePickerConfiguration` (typically inside `ComposerView` / `ComposerSection` and in chat-state observation code). For each, add the snapshot read:
 
 ```bash
-cd clients/macos/vellum-assistant
+cd clients/macos/max-assistant
 grep -rn "ChatProfilePickerConfiguration(" --include="*.swift"
 ```
 
@@ -745,19 +745,19 @@ cd clients/macos
 echo "EXIT=$?"
 ```
 
-Expected: `EXIT=0`; `dist/Vellum.app` rebuilt.
+Expected: `EXIT=0`; `dist/Max.app` rebuilt.
 
 ---
 
 ## Phase 8 — Swift: `ComposerSettingsMenu.providerRow` branch + pure helpers
 
 **Files:**
-- Modify: `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift`
-- Modify: `clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift`
+- Modify: `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift`
+- Modify: `clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift`
 
 - [ ] **Step 1: Write the failing tests for the pure helpers**
 
-In `clients/macos/vellum-assistantTests/Features/Chat/ChatProfilePickerTests.swift`, add a new `describe`-style block:
+In `clients/macos/max-assistantTests/Features/Chat/ChatProfilePickerTests.swift`, add a new `describe`-style block:
 
 ```swift
 // MARK: - ComposerSettingsMenu: claude-subscription unavailable branch
@@ -814,7 +814,7 @@ Expected: FAIL — helpers not defined.
 
 - [ ] **Step 3: Implement the pure helpers**
 
-In `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift`, add inside `ComposerSettingsMenu` (place near the existing `ollamaStatusTrailingText` static at line ~549):
+In `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift`, add inside `ComposerSettingsMenu` (place near the existing `ollamaStatusTrailingText` static at line ~549):
 
 ```swift
 /// Trailing text shown next to the disabled claude-subscription row.
@@ -937,7 +937,7 @@ cd clients/macos
 echo "EXIT=$?"
 ```
 
-Expected: `EXIT=0`. App bundle rebuilt at `dist/Vellum.app`.
+Expected: `EXIT=0`. App bundle rebuilt at `dist/Max.app`.
 
 ---
 
@@ -978,11 +978,11 @@ cd clients/macos
 ./build.sh
 ```
 
-Expected: tests green; app bundle present at `dist/Vellum.app`.
+Expected: tests green; app bundle present at `dist/Max.app`.
 
 - [ ] **Step 4: Manual smoke per state**
 
-Launch `dist/Vellum.app`. For each of the 4 states, observe the picker:
+Launch `dist/Max.app`. For each of the 4 states, observe the picker:
 
 | State | Setup | Expected picker row |
 |---|---|---|
@@ -998,7 +998,7 @@ Take a screenshot of each state for the PR description.
 If any of the load-bearing options in `client.ts` were touched during implementation, re-run per the probe README. Otherwise:
 
 ```bash
-cd /Users/yashbishnoi/Downloads/vellum-assistant-main
+cd /Users/yashbishnoi/Downloads/max-assistant-main
 node assistant/scripts/claude-subscription/i-11-isolation.mjs
 node assistant/scripts/claude-subscription/i-11b-subagent-isolation.mjs
 node assistant/scripts/claude-subscription/i-22-system-prompt.mjs
@@ -1011,7 +1011,7 @@ Expected: i-11 and i-11b print `VERDICT: ✅`; i-22 exits 0 with the 3 sub-probe
 In `assistant/docs/architecture/claude-subscription-bridge.md`, mark task #2 as done in the priority queue (same strikethrough + "(done)" pattern used for task #1). Cross-reference this plan's location. Also update the "Suggested opening prompt" template to point at task #3 (DI refactor for availability tests) so the next session continues the chain.
 
 ```bash
-cd /Users/yashbishnoi/Downloads/vellum-assistant-main
+cd /Users/yashbishnoi/Downloads/max-assistant-main
 git status assistant/docs/architecture/claude-subscription-bridge.md
 ```
 

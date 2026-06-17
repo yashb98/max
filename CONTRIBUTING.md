@@ -1,27 +1,27 @@
 # Contributing
 
-Thank you for your interest in Vellum Assistant! We welcome contributions of all kinds — bug fixes, new features, documentation improvements, and more.
+Thank you for your interest in Max Assistant! We welcome contributions of all kinds — bug fixes, new features, documentation improvements, and more.
 
 ## Before you start
 
-- **Bug reports and feature requests**: [Open an issue](https://github.com/vellum-ai/vellum-assistant/issues). Use the provided templates.
+- **Bug reports and feature requests**: [Open an issue](https://github.com/max-ai/max-assistant/issues). Use the provided templates.
 - **Security vulnerabilities**: Report these privately. See [SECURITY.md](SECURITY.md).
-- **Questions and discussion**: Join us on [Discord](https://vellum.ai/community).
+- **Questions and discussion**: Join us on [Discord](https://max.ai/community).
 
 ## Development setup
 
 ### Getting started
 
 ```bash
-git clone https://github.com/vellum-ai/vellum-assistant.git
-cd vellum-assistant
-./setup.sh    # installs Bun (if needed), installs deps, links packages, registers the global vellum CLI
+git clone https://github.com/max-ai/max-assistant.git
+cd max-assistant
+./setup.sh    # installs Bun (if needed), installs deps, links packages, registers the global max CLI
 ```
 
 Verify your setup:
 
 ```bash
-vellum --version
+max --version
 ```
 
 ### Running the assistant locally
@@ -37,10 +37,10 @@ vellum --version
 > **Note:** CLI interaction hasn't been heavily tested — we welcome contributions to improve the experience.
 
 ```bash
-vellum hatch   # first-time setup (only needed once)
-vellum wake    # start an existing assistant
-vellum client  # interact with your assistant through the terminal
-vellum sleep   # stop but do not remove an existing assistant
+max hatch   # first-time setup (only needed once)
+max wake    # start an existing assistant
+max client  # interact with your assistant through the terminal
+max sleep   # stop but do not remove an existing assistant
 ```
 
 ### Running tests
@@ -70,7 +70,7 @@ bun run typecheck
 |---|---|
 | `assistant/` | Core assistant runtime — memory, tools, skills, scheduling, integrations |
 | `gateway/` | Public ingress — webhooks, API routes, OAuth callbacks |
-| `cli/` | The `vellum` CLI |
+| `cli/` | The `max` CLI |
 | `clients/` | Native clients (macOS) and browser extension |
 | `apps/` | End-user app surfaces (web, iOS, macOS/Electron, Chrome extension) — scaffold |
 | `credential-executor/` | Isolated credential execution service |
@@ -89,7 +89,7 @@ directories until the move is complete.
 | Directory | Status |
 |---|---|
 | `apps/web/` | Scaffold only — Vite + React Router v7 toolchain landed, no app code yet. The live web app is currently maintained in a separate, non-public repository and will land here as the migration completes. |
-| `apps/chrome-extension/` | Move in progress from [`clients/chrome-extension/`](https://github.com/vellum-ai/vellum-assistant/tree/main/clients/chrome-extension). |
+| `apps/chrome-extension/` | Move in progress from [`clients/chrome-extension/`](https://github.com/max-ai/max-assistant/tree/main/clients/chrome-extension). |
 
 ## Submitting a pull request
 

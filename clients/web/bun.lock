@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@vellumai/web",
+      "name": "@maxai/web",
       "dependencies": {
         "react": "19.2.6",
         "react-dom": "19.2.6",

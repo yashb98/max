@@ -52,7 +52,7 @@ mock.module("../config/loader.js", () => ({
 }));
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => mockPlatformClient,
   },
 }));

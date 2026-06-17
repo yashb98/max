@@ -212,7 +212,7 @@ function makeSystemPrompt(size: "small" | "production" = "small"): string {
     "",
     "### MCP Servers",
     "Custom MCP servers can be added via the config file.",
-    "The config lives at ~/.vellum/config.json.",
+    "The config lives at ~/.max/config.json.",
     "Each MCP server entry requires: name, command, args, and optional env.",
   );
 
@@ -220,8 +220,8 @@ function makeSystemPrompt(size: "small" | "production" = "small"): string {
   sections.push(
     "",
     "## Attachment Handling",
-    "When sending files to the user, use the <vellum-attachment> tag:",
-    '`<vellum-attachment path="/path/to/file" type="image/png" />`',
+    "When sending files to the user, use the <max-attachment> tag:",
+    '`<max-attachment path="/path/to/file" type="image/png" />`',
     "",
     "Supported attachment types:",
     "- Images: png, jpg, gif, webp, svg",

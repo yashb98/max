@@ -25,7 +25,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             let response = try await GatewayHTTPClient.post(
                 path: "host-bash-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: 30
             )
             guard response.isSuccess else {
@@ -50,7 +50,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             let response = try await GatewayHTTPClient.post(
                 path: "host-file-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: timeout
             )
             guard response.isSuccess else {
@@ -70,7 +70,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             let response = try await GatewayHTTPClient.post(
                 path: "host-cu-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: 30
             )
             guard response.isSuccess else {
@@ -96,7 +96,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             let response = try await GatewayHTTPClient.post(
                 path: "host-app-control-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: timeout
             )
             guard response.isSuccess else {
@@ -113,14 +113,14 @@ public struct HostProxyClient: HostProxyClientProtocol {
     public func postBrowserResult(_ result: HostBrowserResultPayload) async -> Bool {
         do {
             let body = try JSONEncoder().encode(result)
-            // Attach X-Vellum-Client-Id so the daemon can verify the submitting
+            // Attach X-Max-Client-Id so the daemon can verify the submitting
             // client matches the targeted client recorded at request time.
             // Without this header the daemon will reject targeted host_browser
             // results with 400. Mirrors postBashResult / postCuResult / etc.
             let response = try await GatewayHTTPClient.post(
                 path: "host-browser-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: 30
             )
             guard response.isSuccess else {
@@ -142,7 +142,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             let response = try await GatewayHTTPClient.post(
                 path: "host-transfer-result",
                 body: body,
-                extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+                extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()],
                 timeout: timeout
             )
             guard response.isSuccess else {
@@ -161,7 +161,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
         let response = try await GatewayHTTPClient.get(
             path: "transfers/\(transferId)/content",
             timeout: 300,
-            extraHeaders: ["X-Vellum-Client-Id": DeviceIdStore.getOrCreate()]
+            extraHeaders: ["X-Max-Client-Id": DeviceIdStore.getOrCreate()]
         )
         guard response.isSuccess else {
             throw TransferError.pullFailed(statusCode: response.statusCode)
@@ -177,7 +177,7 @@ public struct HostProxyClient: HostProxyClientProtocol {
             body: data,
             params: ["sourcePath": sourcePath],
             contentType: "application/octet-stream",
-            extraHeaders: ["X-Transfer-SHA256": sha256, "X-Vellum-Client-Id": DeviceIdStore.getOrCreate()],
+            extraHeaders: ["X-Transfer-SHA256": sha256, "X-Max-Client-Id": DeviceIdStore.getOrCreate()],
             timeout: timeout
         )
         guard response.isSuccess else {

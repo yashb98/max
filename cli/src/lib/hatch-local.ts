@@ -104,7 +104,7 @@ function installCLISymlink(): void {
   if (!cliBinary || !existsSync(cliBinary)) return;
 
   // Preferred location — works on most Macs where /usr/local/bin exists
-  const preferredPath = "/usr/local/bin/vellum";
+  const preferredPath = "/usr/local/bin/max";
   if (trySymlink(cliBinary, preferredPath)) {
     console.log(`   Symlinked ${preferredPath} → ${cliBinary}`);
     return;
@@ -113,7 +113,7 @@ function installCLISymlink(): void {
   // Fallback — use ~/.local/bin which is user-writable and doesn't need root.
   // On some Macs /usr/local doesn't exist and creating it requires admin privileges.
   const localBinDir = join(homedir(), ".local", "bin");
-  const fallbackPath = join(localBinDir, "vellum");
+  const fallbackPath = join(localBinDir, "max");
   if (trySymlink(cliBinary, fallbackPath)) {
     console.log(`   Symlinked ${fallbackPath} → ${cliBinary}`);
     ensureLocalBinInShellProfile(localBinDir);
@@ -121,7 +121,7 @@ function installCLISymlink(): void {
   }
 
   console.log(
-    `   ⚠ Could not create symlink for vellum CLI (tried ${preferredPath} and ${fallbackPath})`,
+    `   ⚠ Could not create symlink for max CLI (tried ${preferredPath} and ${fallbackPath})`,
   );
 }
 
@@ -134,7 +134,7 @@ export async function hatchLocal(
 ): Promise<void> {
   const instanceName = generateInstanceName(
     species,
-    name ?? process.env.VELLUM_ASSISTANT_NAME,
+    name ?? process.env.MAX_ASSISTANT_NAME,
   );
 
   emitProgress(1, 6, "Allocating resources...");
@@ -143,7 +143,7 @@ export async function hatchLocal(
   if (existing && (!existing.cloud || existing.cloud === "local")) {
     throw new Error(
       `An assistant named "${instanceName}" is already hatched.\n` +
-        `Run \`vellum wake\` to restart it, or \`vellum retire ${instanceName}\` to remove it first.`,
+        `Run \`max wake\` to restart it, or \`max retire ${instanceName}\` to remove it first.`,
     );
   }
 
@@ -151,7 +151,7 @@ export async function hatchLocal(
 
   const logsDir = join(
     resources.instanceDir,
-    ".vellum",
+    ".max",
     "workspace",
     "data",
     "logs",
@@ -234,7 +234,7 @@ export async function hatchLocal(
   saveAssistantEntry(localEntry);
   setActiveAssistant(instanceName);
 
-  if (process.env.VELLUM_DESKTOP_APP) {
+  if (process.env.MAX_DESKTOP_APP) {
     installCLISymlink();
   }
 

@@ -154,13 +154,13 @@ export function attemptVerificationCode(
           existingGuardian: existingBinding.guardianExternalUserId,
         };
       } else {
-        // Resolve canonical principal from the vellum channel binding
-        const vellumBinding = getGuardianBinding(
+        // Resolve canonical principal from the max channel binding
+        const maxBinding = getGuardianBinding(
           verificationAssistantId,
-          "vellum",
+          "max",
         );
         canonicalPrincipal =
-          vellumBinding?.guardianPrincipalId ?? verificationFromNumber;
+          maxBinding?.guardianPrincipalId ?? verificationFromNumber;
       }
     }
 

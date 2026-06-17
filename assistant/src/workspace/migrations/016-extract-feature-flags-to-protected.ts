@@ -10,17 +10,17 @@ import {
 import { join } from "node:path";
 
 import type { WorkspaceMigration } from "./types.js";
-import { getVellumRoot } from "./utils.js";
+import { getMaxRoot } from "./utils.js";
 
 export const extractFeatureFlagsToProtectedMigration: WorkspaceMigration = {
   id: "016-extract-feature-flags-to-protected",
   description:
-    "Move assistantFeatureFlagValues from config.json to ~/.vellum/protected/feature-flags.json",
+    "Move assistantFeatureFlagValues from config.json to ~/.max/protected/feature-flags.json",
 
   down(workspaceDir: string): void {
     // Reverse: read feature flags from protected directory and write them
     // back to config.json as assistantFeatureFlagValues.
-    const protectedDir = join(getVellumRoot(), "protected");
+    const protectedDir = join(getMaxRoot(), "protected");
     const featureFlagsPath = join(protectedDir, "feature-flags.json");
 
     if (!existsSync(featureFlagsPath)) return;
@@ -105,7 +105,7 @@ export const extractFeatureFlagsToProtectedMigration: WorkspaceMigration = {
     }
 
     // Write feature flags to protected directory
-    const protectedDir = join(getVellumRoot(), "protected");
+    const protectedDir = join(getMaxRoot(), "protected");
     mkdirSync(protectedDir, { recursive: true });
 
     const featureFlagsPath = join(protectedDir, "feature-flags.json");

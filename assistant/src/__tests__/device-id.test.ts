@@ -13,24 +13,24 @@ mock.module("../util/logger.js", () => ({
 
 import { getDeviceId, resetDeviceIdCache } from "../util/device-id.js";
 
-const originalVellumEnvironment = process.env.VELLUM_ENVIRONMENT;
+const originalMaxEnvironment = process.env.MAX_ENVIRONMENT;
 const originalXdgConfigHome = process.env.XDG_CONFIG_HOME;
 const originalIsContainerized = process.env.IS_CONTAINERIZED;
 
 let tempDir: string;
 
 beforeEach(() => {
-  tempDir = mkdtempSync(join(tmpdir(), "vellum-device-id-test-"));
+  tempDir = mkdtempSync(join(tmpdir(), "max-device-id-test-"));
   resetDeviceIdCache();
 });
 
 afterEach(() => {
   resetDeviceIdCache();
 
-  if (originalVellumEnvironment == null) {
-    delete process.env.VELLUM_ENVIRONMENT;
+  if (originalMaxEnvironment == null) {
+    delete process.env.MAX_ENVIRONMENT;
   } else {
-    process.env.VELLUM_ENVIRONMENT = originalVellumEnvironment;
+    process.env.MAX_ENVIRONMENT = originalMaxEnvironment;
   }
   if (originalXdgConfigHome == null) {
     delete process.env.XDG_CONFIG_HOME;
@@ -51,62 +51,62 @@ afterEach(() => {
 });
 
 describe("getDeviceId env-awareness", () => {
-  test("non-prod (dev) writes device.json under $XDG_CONFIG_HOME/vellum-dev", () => {
+  test("non-prod (dev) writes device.json under $XDG_CONFIG_HOME/max-dev", () => {
     // Guarantee we're not containerized — the test-preload deletes this,
     // but be defensive.
     delete process.env.IS_CONTAINERIZED;
-    process.env.VELLUM_ENVIRONMENT = "dev";
+    process.env.MAX_ENVIRONMENT = "dev";
     process.env.XDG_CONFIG_HOME = tempDir;
 
     const id = getDeviceId();
     expect(typeof id).toBe("string");
     expect(id.length).toBeGreaterThan(0);
 
-    const expectedPath = join(tempDir, "vellum-dev", "device.json");
+    const expectedPath = join(tempDir, "max-dev", "device.json");
     expect(existsSync(expectedPath)).toBe(true);
 
     const parsed = JSON.parse(readFileSync(expectedPath, "utf-8"));
     expect(parsed.deviceId).toBe(id);
   });
 
-  test("staging environment writes under $XDG_CONFIG_HOME/vellum-staging", () => {
+  test("staging environment writes under $XDG_CONFIG_HOME/max-staging", () => {
     delete process.env.IS_CONTAINERIZED;
-    process.env.VELLUM_ENVIRONMENT = "staging";
+    process.env.MAX_ENVIRONMENT = "staging";
     process.env.XDG_CONFIG_HOME = tempDir;
 
     getDeviceId();
 
-    const expectedPath = join(tempDir, "vellum-staging", "device.json");
+    const expectedPath = join(tempDir, "max-staging", "device.json");
     expect(existsSync(expectedPath)).toBe(true);
   });
 
-  test("unknown environment does NOT write under $XDG_CONFIG_HOME/vellum-<unknown>", () => {
+  test("unknown environment does NOT write under $XDG_CONFIG_HOME/max-<unknown>", () => {
     // Unknown env names fall back to the legacy production behavior.
     // We can't assert the exact legacy path without mocking homedir(),
     // but we can assert that the XDG env-scoped dir is NOT created.
     delete process.env.IS_CONTAINERIZED;
-    process.env.VELLUM_ENVIRONMENT = "no-such-env";
+    process.env.MAX_ENVIRONMENT = "no-such-env";
     process.env.XDG_CONFIG_HOME = tempDir;
 
     getDeviceId();
 
-    // No `vellum-no-such-env` directory created under our XDG tempdir.
-    const envScopedPath = join(tempDir, "vellum-no-such-env", "device.json");
+    // No `max-no-such-env` directory created under our XDG tempdir.
+    const envScopedPath = join(tempDir, "max-no-such-env", "device.json");
     expect(existsSync(envScopedPath)).toBe(false);
-    // Legacy fallback would write under `${homedir()}/.vellum` — not touched.
-    const productionXdgPath = join(tempDir, "vellum", "device.json");
+    // Legacy fallback would write under `${homedir()}/.max` — not touched.
+    const productionXdgPath = join(tempDir, "max", "device.json");
     expect(existsSync(productionXdgPath)).toBe(false);
   });
 
-  test("production does NOT write under $XDG_CONFIG_HOME/vellum", () => {
-    // Production path is ~/.vellum/device.json, never XDG_CONFIG_HOME.
+  test("production does NOT write under $XDG_CONFIG_HOME/max", () => {
+    // Production path is ~/.max/device.json, never XDG_CONFIG_HOME.
     delete process.env.IS_CONTAINERIZED;
-    delete process.env.VELLUM_ENVIRONMENT;
+    delete process.env.MAX_ENVIRONMENT;
     process.env.XDG_CONFIG_HOME = tempDir;
 
     getDeviceId();
 
-    const xdgPath = join(tempDir, "vellum", "device.json");
+    const xdgPath = join(tempDir, "max", "device.json");
     expect(existsSync(xdgPath)).toBe(false);
   });
 });

@@ -24,7 +24,7 @@ const attachmentsDir = join(testWorkspaceDir, "data", "attachments");
 const conversationsDir = join(testWorkspaceDir, "conversations");
 const recordingsDir = join(
   testHomeDir,
-  "Library/Application Support/vellum-assistant/recordings",
+  "Library/Application Support/max-assistant/recordings",
 );
 const outsideDir = mkdtempSync(join(tmpdir(), "attachment-routes-outside-"));
 

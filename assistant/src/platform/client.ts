@@ -15,7 +15,7 @@ const log = getLogger("platform-client");
 
 let _missingPrereqsWarned = false;
 
-export class VellumPlatformClient {
+export class MaxPlatformClient {
   private readonly platformBaseUrl: string;
   private readonly apiKey: string;
   private readonly assistantId: string;
@@ -42,7 +42,7 @@ export class VellumPlatformClient {
    * key). The assistant ID is resolved but not required — callers that need it
    * should check `platformAssistantId` themselves.
    */
-  static async create(): Promise<VellumPlatformClient | null> {
+  static async create(): Promise<MaxPlatformClient | null> {
     const ctx = await resolveManagedProxyContext();
 
     let baseUrl = ctx.enabled ? ctx.platformBaseUrl : "";
@@ -53,20 +53,20 @@ export class VellumPlatformClient {
     if (!baseUrl) {
       baseUrl =
         (await getSecureKeyAsync(
-          credentialKey("vellum", "platform_base_url"),
+          credentialKey("max", "platform_base_url"),
         )) ?? "";
     }
     if (!apiKey) {
       apiKey =
         (await getSecureKeyAsync(
-          credentialKey("vellum", "assistant_api_key"),
+          credentialKey("max", "assistant_api_key"),
         )) ?? "";
     }
     if (!assistantId) {
       assistantId =
         (
           await getSecureKeyAsync(
-            credentialKey("vellum", "platform_assistant_id"),
+            credentialKey("max", "platform_assistant_id"),
           )
         )?.trim() ?? "";
     }
@@ -86,7 +86,7 @@ export class VellumPlatformClient {
       return null;
     }
 
-    return new VellumPlatformClient(baseUrl, apiKey, assistantId);
+    return new MaxPlatformClient(baseUrl, apiKey, assistantId);
   }
 
   /**

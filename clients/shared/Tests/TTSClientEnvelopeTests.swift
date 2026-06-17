@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Parity tests for `TTSClient.parseEnvelopeMessage` — mirrors the daemon's
 /// standard JSON error envelope `{"error":{"code":"...","message":"..."}}`.

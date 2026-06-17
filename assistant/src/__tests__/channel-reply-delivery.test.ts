@@ -585,15 +585,15 @@ describe("channel-reply-delivery", () => {
     });
 
     it("does NOT call updateMessageMetadata when the assistant row has no slackMeta", async () => {
-      // vellum/telegram/non-slack outbound: the row's metadata envelope has
+      // max/telegram/non-slack outbound: the row's metadata envelope has
       // no slackMeta sub-key. The reconciler must short-circuit silently.
       conversationMessages.push({
-        id: "msg-vellum",
+        id: "msg-max",
         role: "assistant",
         content: '[{"type":"text","text":"hi"}]',
         metadata: JSON.stringify({
-          userMessageChannel: "vellum",
-          assistantMessageChannel: "vellum",
+          userMessageChannel: "max",
+          assistantMessageChannel: "max",
         }),
       });
       renderedHistoryContent = {
@@ -608,10 +608,10 @@ describe("channel-reply-delivery", () => {
       nextDeliveryTs = "1700000300.000800";
 
       await deliverReplyViaCallback(
-        "conv-vellum",
-        "chat-vellum",
+        "conv-max",
+        "chat-max",
         "http://gateway/deliver/telegram",
-        "assistant-vellum",
+        "assistant-max",
       );
 
       expect(updateMessageMetadataCalls.length).toBe(0);

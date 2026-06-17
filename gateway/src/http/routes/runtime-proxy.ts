@@ -4,7 +4,7 @@ import {
   createTimeoutController,
   isTimeoutError,
   stripHopByHop,
-} from "@vellumai/assistant-client";
+} from "@maxai/assistant-client";
 
 import {
   validateEdgeToken,
@@ -44,15 +44,15 @@ export function createRuntimeProxyHandler(config: GatewayConfig) {
       );
     }
 
-    // IPC fast-path: when the client sends X-Vellum-Proxy-Server: ipc and
+    // IPC fast-path: when the client sends X-Max-Proxy-Server: ipc and
     // the route is in the schema cache, serve via IPC instead of HTTP.
     // Auth is handled inside tryIpcProxy — it replicates the same JWT
     // validation as the HTTP path below.
     const ipcResponse = await tryIpcProxy(req, config);
     if (ipcResponse) return ipcResponse;
 
-    // Validate the edge JWT (aud=vellum-gateway) when auth is required.
-    // On success, mint an exchange token (aud=vellum-daemon) for the runtime.
+    // Validate the edge JWT (aud=max-gateway) when auth is required.
+    // On success, mint an exchange token (aud=max-daemon) for the runtime.
     // When auth is not required (or OPTIONS), mint a service token instead —
     // the gateway always authenticates itself to the daemon regardless of the
     // client-facing auth setting.

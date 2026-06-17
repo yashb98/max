@@ -51,7 +51,7 @@ export const ROUTES: RouteDefinition[] = [
       // Dev-bypass mode (DISABLE_HTTP_AUTH=true, mirroring
       // require-bound-guardian.ts) preserves the previous "return all" behavior
       // for platform-managed deployments where the platform handles auth.
-      const callerPrincipalId = headers?.["x-vellum-actor-principal-id"];
+      const callerPrincipalId = headers?.["x-max-actor-principal-id"];
       const filtered = isHttpAuthDisabled()
         ? clients
         : clients.filter(

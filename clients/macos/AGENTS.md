@@ -15,7 +15,7 @@ A native macOS menu bar app that controls your Mac via accessibility APIs and CG
 Single build script: `./build.sh` wraps SwiftPM → `.app` bundle → codesign. No Xcode project needed.
 
 ```bash
-# Build debug .app bundle (→ dist/<BUNDLE_DISPLAY_NAME>.app, e.g. Vellum Dev.app or Vellum Local.app via vel up)
+# Build debug .app bundle (→ dist/<BUNDLE_DISPLAY_NAME>.app, e.g. Max Dev.app or Max Local.app via vel up)
 ./build.sh
 
 # Build + launch
@@ -35,9 +35,9 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --filter Ses
 
 # Watch logs from a running instance
 # Production:
-log stream --predicate 'subsystem == "com.vellum.vellum-assistant"' --level debug
+log stream --predicate 'subsystem == "com.max.max-assistant"' --level debug
 # Local dev:
-log stream --predicate 'subsystem == "com.vellum.vellum-assistant-local"' --level debug
+log stream --predicate 'subsystem == "com.max.max-assistant-local"' --level debug
 ```
 
 ---
@@ -167,16 +167,16 @@ A background screen-watching system that runs alongside the manual session loop:
 ### App Lifecycle
 
 The package is split into two targets for Xcode Preview support:
-- **`VellumAssistantLib`** (library) — all app code, resources, and linker settings. Previews work on any SwiftUI view here.
-- **`vellum-assistant`** (executable) — thin `@main` entry point in `vellum-assistant-app/` that imports `VellumAssistantLib`.
+- **`MaxAssistantLib`** (library) — all app code, resources, and linker settings. Previews work on any SwiftUI view here.
+- **`max-assistant`** (executable) — thin `@main` entry point in `max-assistant-app/` that imports `MaxAssistantLib`.
 
-`AppDelegate` sets up: NSStatusItem with NSPopover, global hotkey (Cmd+Shift+G via Carbon `RegisterEventHotKey`), global Escape monitor, voice input, ambient agent, and onboarding flow. `VellumAssistantApp` is the `@main` entry point with `@NSApplicationDelegateAdaptor`.
+`AppDelegate` sets up: NSStatusItem with NSPopover, global hotkey (Cmd+Shift+G via Carbon `RegisterEventHotKey`), global Escape monitor, voice input, ambient agent, and onboarding flow. `MaxAssistantApp` is the `@main` entry point with `@NSApplicationDelegateAdaptor`.
 
 ### Onboarding
 
 `Features/Onboarding/` — multi-step flow (`OnboardingFlowView` → `OnboardingState`) covering wake-up animation, naming, permissions (screen recording, microphone), Fn key setup, and an alive-check step. Shown on first launch; skip with `--skip-onboarding` in debug.
 
-The onboarding flow includes a **managed sign-in** path: when the user clicks "Sign in", the app authenticates via WorkOS, runs `ManagedAssistantBootstrapService.ensureManagedAssistant()` to discover or create a platform-hosted assistant, persists a managed lockfile entry (`cloud: "vellum"`), and configures HTTP transport in `platformAssistantProxy` mode with session token auth. Managed mode skips local daemon hatching and actor credential bootstrap. If bootstrap fails, the user stays on the onboarding screen with a retry option. See `clients/ARCHITECTURE.md` for the full managed sign-in architecture.
+The onboarding flow includes a **managed sign-in** path: when the user clicks "Sign in", the app authenticates via WorkOS, runs `ManagedAssistantBootstrapService.ensureManagedAssistant()` to discover or create a platform-hosted assistant, persists a managed lockfile entry (`cloud: "max"`), and configures HTTP transport in `platformAssistantProxy` mode with session token auth. Managed mode skips local daemon hatching and actor credential bootstrap. If bootstrap fails, the user stays on the onboarding screen with a retry option. See `clients/ARCHITECTURE.md` for the full managed sign-in architecture.
 
 ---
 
@@ -320,7 +320,7 @@ DM Mono is not used in the SwiftUI-facing palette anymore (removed when the type
   
   **Enforced mechanically in CI**: [`clients/scripts/check-flexframe.sh`](../scripts/check-flexframe.sh) fails the build on new `.frame(minWidth:)` / `.frame(minHeight:)` / `.frame(maxWidth:)` / `.frame(maxHeight:)` / `.frame(idealWidth:)` / `.frame(idealHeight:)` inside `Features/Chat/`, `Features/Home/`, and `Features/MainWindow/`. Known intentional usages are listed in [`clients/scripts/flexframe-allowlist.txt`](../scripts/flexframe-allowlist.txt). Prefer fixing the code over adding allowlist entries; the allowlist is a last resort.
   
-  **Leaf wrapper exception (O(0) cascade)**: `_FlexFrameLayout` wrapping a view with no descendants — `Text`, `Image`, `VIconView`, `RoundedRectangle`, etc. — has nothing to cascade into. The alignment query bottoms out immediately. Documented allowlist case: [`QueuedMessageRow.swift:55`](vellum-assistant/Features/Chat/QueuedMessageRow.swift) `.frame(maxWidth: .infinity, alignment: .leading)` around a leaf `Text` with `.lineLimit(1).truncationMode(.tail)` — a configuration `HStack + Spacer` breaks cleanly (truncation stops working because the Text takes intrinsic width first). If you must wrap a leaf, prefer `HStack + Spacer` or `.widthCap` anyway; use the allowlist only when those break required semantics.
+  **Leaf wrapper exception (O(0) cascade)**: `_FlexFrameLayout` wrapping a view with no descendants — `Text`, `Image`, `VIconView`, `RoundedRectangle`, etc. — has nothing to cascade into. The alignment query bottoms out immediately. Documented allowlist case: [`QueuedMessageRow.swift:55`](max-assistant/Features/Chat/QueuedMessageRow.swift) `.frame(maxWidth: .infinity, alignment: .leading)` around a leaf `Text` with `.lineLimit(1).truncationMode(.tail)` — a configuration `HStack + Spacer` breaks cleanly (truncation stops working because the Text takes intrinsic width first). If you must wrap a leaf, prefer `HStack + Spacer` or `.widthCap` anyway; use the allowlist only when those break required semantics.
   
   **Non-lazy cascades**: the same `explicitAlignment` recursion applies **anywhere** `_FlexFrameLayout` modifiers are nested inside an animated subtree — not only under `.fixedSize()` or intrinsic-sizing parents. `MoveTransition` (`.transition(.move(…))`) forces uncached full layout on every animation frame, turning a normally-amortised cascade into a stack overflow when FlexFrame nesting depth reaches ~6-7 levels. The fix is the same: replace `_FlexFrameLayout` with safe alternatives (`HStack + Spacer`, `.layoutPriority(1)`, `.containerRelativeFrame`, `.fixedWidth()`). Switching to `.transition(.opacity)` is a workaround, not a fix — it masks the latent cascade. See [`Layout.explicitAlignment`](https://developer.apple.com/documentation/swiftui/layout/explicitalignment(of:in:proposal:subviews:cache:)-8cl0p) and [WWDC23: Demystify SwiftUI performance](https://developer.apple.com/videos/play/wwdc2023/10160/).
 - **No `.frame(maxHeight:)` on ScrollView inside LazyVStack cells**: `.frame(maxHeight:)` creates `_FlexFrameLayout` which measures the ScrollView's full content height before clamping — defeating lazy loading. Use the two-path pattern instead: long content gets `ScrollView { }.frame(height: fixedHeight)` (definite height, O(1)); short content renders directly with no ScrollView. See [`.frame(width:height:alignment:)`](https://developer.apple.com/documentation/swiftui/view/frame(width:height:alignment:)) vs [`.frame(minWidth:...maxHeight:...)`](https://developer.apple.com/documentation/swiftui/view/frame(minwidth:idealwidth:maxwidth:minheight:idealheight:maxheight:alignment:)).
@@ -346,12 +346,12 @@ DM Mono is not used in the SwiftUI-facing palette anymore (removed when the type
 ## Key Constraints
 
 - **Dock icon** — the app always shows a dock icon (no `LSUIElement`). The dock icon displays the assistant's avatar via `applicationIconImage`. On explicit disconnect (logout/retire/switch with no remaining assistants), `setActivationPolicy(.accessory)` hides the dock icon.
-- **`Bundle.main.bundleIdentifier` is nil** in SPM builds. Use `Bundle.appBundleIdentifier` (defined in `clients/shared/Utilities/AppBundleIdentifier.swift`) for all logger subsystems and self-detection checks — it resolves `Bundle.main.bundleIdentifier` with a fallback to `"com.vellum.vellum-assistant"`. Never hardcode the bundle identifier string directly.
-- **Adding .swift files**: Auto-picked up by SPM. No manual project file edits needed. New files go in `vellum-assistant/` (library target); only `@main` entry point lives in `vellum-assistant-app/`.
+- **`Bundle.main.bundleIdentifier` is nil** in SPM builds. Use `Bundle.appBundleIdentifier` (defined in `clients/shared/Utilities/AppBundleIdentifier.swift`) for all logger subsystems and self-detection checks — it resolves `Bundle.main.bundleIdentifier` with a fallback to `"com.max.max-assistant"`. Never hardcode the bundle identifier string directly.
+- **Adding .swift files**: Auto-picked up by SPM. No manual project file edits needed. New files go in `max-assistant/` (library target); only `@main` entry point lives in `max-assistant-app/`.
 - **Popover close delay** — 300ms initial delay before session starts to let the popover close and target app regain focus.
 - **SessionState enum** must stay in sync with `SessionOverlayView` pattern matching.
-- **SourceKit false positives** — SourceKit may report "Cannot find X in scope" or "No such module" for design system types (VColor, VFont, etc.) or shared modules (VellumAssistantShared) due to SPM module resolution. These are false positives — `swift build` succeeds. Do not "fix" these by adding imports or changing code.
-- **Stale SPM module cache after worktree switches** — when switching between `/do` worktrees (or otherwise moving between cloned copies), SPM's `clients/.build/arm64-apple-macosx/debug/ModuleCache/` holds `.pcm` files compiled with absolute paths to directories that no longer exist. Symptoms: both SourceKit and `swift build` report errors like "Type `Bundle` has no member `appBundleIdentifier`" or "No such module `VellumAssistantShared`" on files that were clean in the other worktree. Error output contains a telltale `was compiled with module cache path '…-wt-do-…'` line pointing at the deleted worktree. Fix: `rm -rf clients/.build/arm64-apple-macosx/debug/ModuleCache` and rebuild. Do NOT start adding imports.
+- **SourceKit false positives** — SourceKit may report "Cannot find X in scope" or "No such module" for design system types (VColor, VFont, etc.) or shared modules (MaxAssistantShared) due to SPM module resolution. These are false positives — `swift build` succeeds. Do not "fix" these by adding imports or changing code.
+- **Stale SPM module cache after worktree switches** — when switching between `/do` worktrees (or otherwise moving between cloned copies), SPM's `clients/.build/arm64-apple-macosx/debug/ModuleCache/` holds `.pcm` files compiled with absolute paths to directories that no longer exist. Symptoms: both SourceKit and `swift build` report errors like "Type `Bundle` has no member `appBundleIdentifier`" or "No such module `MaxAssistantShared`" on files that were clean in the other worktree. Error output contains a telltale `was compiled with module cache path '…-wt-do-…'` line pointing at the deleted worktree. Fix: `rm -rf clients/.build/arm64-apple-macosx/debug/ModuleCache` and rebuild. Do NOT start adding imports.
 
 ---
 
@@ -368,7 +368,7 @@ Settings → Connect is the entry point for gateway/runtime configuration. Layou
 ---
 ## Build Flags
 
-- `clients/macos/build.sh` bundles the Kata 3.17.0 ARM64 kernel into `Vellum.app/Contents/Resources/DeveloperVM/` and caches the downloaded archive under `clients/macos/.container-cache/`.
+- `clients/macos/build.sh` bundles the Kata 3.17.0 ARM64 kernel into `Max.app/Contents/Resources/DeveloperVM/` and caches the downloaded archive under `clients/macos/.container-cache/`.
 
 ## Keyboard Shortcuts
 
@@ -396,7 +396,7 @@ When adding a new keyboard shortcut to the macOS app, you **must** also add a co
 - The app is **not sandboxed** — it requires direct access to accessibility APIs, CGEvent injection, and file system paths outside the sandbox container.
 - The main app binary is signed with `app-entitlements.plist` ([`com.apple.security.device.audio-input`](https://developer.apple.com/documentation/BundleResources/Entitlements/com.apple.security.device.audio-input) — required for microphone access under [Hardened Runtime](https://developer.apple.com/documentation/xcode/configuring-the-hardened-runtime)).
 - The embedded daemon binary is signed with `daemon-entitlements.plist` (JIT, unsigned executable memory, network client).
-- All Bun-compiled binaries (`vellum-cli`, `vellum-gateway`, `credential-executor`) must be signed with daemon entitlements — hardened runtime blocks JIT by default, and these are JavaScript executables. See [`allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit).
+- All Bun-compiled binaries (`max-cli`, `max-gateway`, `credential-executor`) must be signed with daemon entitlements — hardened runtime blocks JIT by default, and these are JavaScript executables. See [`allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit).
 - If new hardware access is needed (e.g., camera), add the corresponding hardened runtime entitlement to `app-entitlements.plist`.
 - Never add `com.apple.security.app-sandbox` — it would break core functionality.
 
@@ -408,7 +408,7 @@ The signing identity fallback chain in `build.sh`:
 1. Developer ID Application (distribution)
 2. Apple Development / Mac Developer (local dev with Apple cert)
 3. Any valid codesigning identity (self-signed)
-4. Auto-generated "Vellum Local Development" self-signed cert (created on first build if no cert exists)
+4. Auto-generated "Max Local Development" self-signed cert (created on first build if no cert exists)
 5. Ad-hoc (`-s -`) — last resort, prints a warning on macOS 26+
 
 Key behaviors:
@@ -425,11 +425,11 @@ Key behaviors:
 
 ### External URLs
 
-All `vellum.ai` and external links the app navigates to (docs pages, terms of service, help menu items, etc.) live in `vellum-assistant/App/AppURLs.swift` as `public static` accessors. Do not hardcode `URL(string: "https://...")!` at call sites — add a new accessor to `AppURLs` and reference it.
+All `max.ai` and external links the app navigates to (docs pages, terms of service, help menu items, etc.) live in `max-assistant/App/AppURLs.swift` as `public static` accessors. Do not hardcode `URL(string: "https://...")!` at call sites — add a new accessor to `AppURLs` and reference it.
 
-- All `AppURLs` members are `public` so the `vellum-assistant-app` shell target can use them via `import VellumAssistantLib`.
-- The docs base URL honors a `VELLUM_DOCS_BASE_URL` env var (validated as an absolute http(s) URL with no query/fragment, falls back to `https://www.vellum.ai/docs` on failure).
-- If you introduce a new env-var-overridable URL, also: (1) embed the var into `Info.plist`'s `LSEnvironment` in `clients/macos/build.sh` — LaunchServices doesn't inherit shell env, so `./build.sh run` requires the embedding (XML-escape values; see the existing `VELLUM_DOCS_BASE_URL` block for the pattern); (2) register the var in `assistant/src/tools/terminal/safe-env.ts` and `assistant/src/config/env-registry.ts` per `assistant/CLAUDE.md` § "Adding new environment variables".
+- All `AppURLs` members are `public` so the `max-assistant-app` shell target can use them via `import MaxAssistantLib`.
+- The docs base URL honors a `MAX_DOCS_BASE_URL` env var (validated as an absolute http(s) URL with no query/fragment, falls back to `https://www.max.ai/docs` on failure).
+- If you introduce a new env-var-overridable URL, also: (1) embed the var into `Info.plist`'s `LSEnvironment` in `clients/macos/build.sh` — LaunchServices doesn't inherit shell env, so `./build.sh run` requires the embedding (XML-escape values; see the existing `MAX_DOCS_BASE_URL` block for the pattern); (2) register the var in `assistant/src/tools/terminal/safe-env.ts` and `assistant/src/config/env-registry.ts` per `assistant/CLAUDE.md` § "Adding new environment variables".
 
 ### Authentication
 
@@ -441,5 +441,5 @@ Before mirroring an auth-session flag from iOS to macOS (or vice versa), reprodu
 
 ## Data Storage
 
-- Session logs: `~/Library/Application Support/vellum-assistant/logs/session-*.json`
-- Knowledge store: `~/Library/Application Support/vellum-assistant/knowledge.json`
+- Session logs: `~/Library/Application Support/max-assistant/logs/session-*.json`
+- Knowledge store: `~/Library/Application Support/max-assistant/knowledge.json`

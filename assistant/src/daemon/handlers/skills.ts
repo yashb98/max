@@ -39,7 +39,7 @@ import {
 import { getCatalog } from "../../skills/catalog-cache.js";
 import {
   catalogSkillToSlim,
-  createVellumCatalogProvider,
+  createMaxCatalogProvider,
   hasHiddenOrSkippedSegment,
   sanitizeRelativePath,
   type SkillFileEntry,
@@ -91,7 +91,7 @@ import type {
 import { CONFIG_RELOAD_DEBOUNCE_MS, ensureSkillEntry, log } from "./shared.js";
 
 // ─── Provider chain for uninstalled skill file preview ───────────────────────
-// Ordered by priority: vellum first (most common and cheapest to check),
+// Ordered by priority: max first (most common and cheapest to check),
 // then skills.sh, then clawhub.
 //
 // Lazy-initialized on first access so that mock modules (in tests) can
@@ -102,7 +102,7 @@ let _fileProviders: SkillFileProvider[] | null = null;
 function getFileProviders(): SkillFileProvider[] {
   if (!_fileProviders) {
     _fileProviders = [
-      createVellumCatalogProvider(),
+      createMaxCatalogProvider(),
       createSkillsShProvider(),
       createClawhubProvider(),
     ];
@@ -321,8 +321,8 @@ function deriveOrigin(
   directoryPath: string,
   installMeta?: SkillInstallMeta | null,
 ): SlimSkillResponse["origin"] {
-  if (kind === "bundled") return "vellum";
-  if (kind === "catalog") return "vellum";
+  if (kind === "bundled") return "max";
+  if (kind === "catalog") return "max";
   // For installed skills, use provided install-meta or read from disk.
   // null means "already read, nothing found" — don't re-read.
   const meta =
@@ -353,7 +353,7 @@ function toSlimSkillResponse(
   } as const;
 
   switch (origin) {
-    case "vellum":
+    case "max":
       return { ...base, origin };
     case "clawhub": {
       const meta =
@@ -419,7 +419,7 @@ async function listSkillsWithCatalog(): Promise<SlimSkillResponse[]> {
     return installed;
   }
 
-  // All entries from the Vellum platform API are first-party.
+  // All entries from the Max platform API are first-party.
   // Create SlimSkillResponses for catalog skills not already installed.
   const available: SlimSkillResponse[] = catalogSkills
     .filter((cs) => !installedIds.has(cs.id))
@@ -446,8 +446,8 @@ interface SkillListFilter {
 /** Human-readable labels matching Swift's `sourceLabel`. */
 function originDisplayLabel(origin: string): string {
   switch (origin) {
-    case "vellum":
-      return "Vellum";
+    case "max":
+      return "Max";
     case "clawhub":
       return "Clawhub";
     case "skillssh":
@@ -546,7 +546,7 @@ export async function listSkillsFiltered(filter: SkillListFilter): Promise<{
     const bInstalled = b.kind === "installed" || b.kind === "bundled" ? 0 : 1;
     if (aInstalled !== bInstalled) return aInstalled - bInstalled;
 
-    // Within installed, community origins (clawhub, skillssh) before core (vellum)
+    // Within installed, community origins (clawhub, skillssh) before core (max)
     if (aInstalled === 0 && bInstalled === 0) {
       const aCommunity =
         a.origin === "clawhub" || a.origin === "skillssh" ? 0 : 1;
@@ -683,7 +683,7 @@ export async function getSkill(
     return { skill: detail };
   }
 
-  // vellum or custom origin — base fields only
+  // max or custom origin — base fields only
   const detail: SkillDetailResponse = {
     id: slim.id,
     name: slim.name,
@@ -834,7 +834,7 @@ function readDirRecursive(dir: string, rootDir: string): SkillFileEntry[] {
  * realpath containment checks for defense in depth.
  *
  * Provider chain fallback: when the skill id is not backed by a local
- * directory, iterates the file-provider chain (vellum catalog,
+ * directory, iterates the file-provider chain (max catalog,
  * skills.sh, clawhub) until one returns content.
  */
 export async function getSkillFileContent(
@@ -1135,14 +1135,14 @@ export async function installSkill(spec: {
       return { success: true, skillId: spec.slug };
     }
 
-    // Check the Vellum catalog (first-party skills hosted on the platform).
+    // Check the Max catalog (first-party skills hosted on the platform).
     // Skip when the caller explicitly specified a community origin — this
     // prevents slug collisions where a catalog skill shadows a community
     // skill the user selected from search results.
     if (spec.origin !== "clawhub" && spec.origin !== "skillssh")
       try {
-        const vellumCatalog = await getCatalog();
-        const catalogEntry = vellumCatalog.find((s) => s.id === spec.slug);
+        const maxCatalog = await getCatalog();
+        const catalogEntry = maxCatalog.find((s) => s.id === spec.slug);
         if (catalogEntry) {
           // Default `overwrite` to true at the handler boundary to preserve
           // pre-existing HTTP API behaviour. CLI callers always pass an
@@ -1165,12 +1165,12 @@ export async function installSkill(spec: {
         }
         log.warn(
           { err, skillId: spec.slug },
-          "Vellum catalog install failed, falling back to community registry",
+          "Max catalog install failed, falling back to community registry",
         );
       }
 
     if (spec.catalogOnly) {
-      return { success: false, error: `Skill "${spec.slug}" not found in the Vellum catalog` };
+      return { success: false, error: `Skill "${spec.slug}" not found in the Max catalog` };
     }
 
     // skills.sh install path: route here when origin is explicitly "skillssh"
@@ -1367,7 +1367,7 @@ export async function searchSkills(
         description: s.description,
         emoji: s.emoji,
         kind: "catalog" as const,
-        origin: "vellum" as const,
+        origin: "max" as const,
         status: "available" as const,
       };
     });

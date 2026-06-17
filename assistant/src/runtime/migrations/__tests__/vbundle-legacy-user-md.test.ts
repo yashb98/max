@@ -32,10 +32,10 @@ import { commitImport } from "../vbundle-importer.js";
 import { defaultV1Options } from "./v1-test-helpers.js";
 
 // ---------------------------------------------------------------------------
-// Shared fixture: per-test workspace under VELLUM_WORKSPACE_DIR.
+// Shared fixture: per-test workspace under MAX_WORKSPACE_DIR.
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_ROOT = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_ROOT = process.env.MAX_WORKSPACE_DIR!;
 const USERS_DIR = join(WORKSPACE_ROOT, "users");
 
 const LEGACY_USER_MD_CONTENT = `# User Profile
@@ -80,7 +80,7 @@ const CUSTOMIZED_PERSONA = `_ Lines starting with _ are comments - they won't ap
 - Work role: Staff Engineer
 - Goals: Ship drop-user-md
 - Hobbies/fun: Reading papers
-- Daily tools: Terminal, Vellum
+- Daily tools: Terminal, Max
 `;
 
 function cleanWorkspace() {

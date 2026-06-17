@@ -1,6 +1,6 @@
 import type { Server } from "bun";
 
-import { findVellumGuardian } from "../../auth/guardian-bootstrap.js";
+import { findMaxGuardian } from "../../auth/guardian-bootstrap.js";
 import { resolveScopeProfile } from "../../auth/scopes.js";
 import { parseSub } from "../../auth/subject.js";
 import { validateEdgeToken } from "../../auth/token-exchange.js";
@@ -23,8 +23,8 @@ type GetClientIp = () => string;
 // alone is insufficient — it closes the accidental misconfig case where the
 // flag gets set on a non-platform deployment (e.g. a leaked dev env var on a
 // public host). When the bypass IS active, the platform vembda sidecar is
-// expected to forward `X-Vellum-User-Id`; the gateway cross-checks that
-// against the locally-stored `vellum:platform_user_id` credential. This means
+// expected to forward `X-Max-User-Id`; the gateway cross-checks that
+// against the locally-stored `max:platform_user_id` credential. This means
 // reaching the gateway sidecar's port directly (without going through vembda)
 // still requires knowing the bound user id — the platform header alone is
 // not a free-pass.
@@ -57,7 +57,7 @@ export function logAuthBypassState(): void {
   if (isPlatformManaged()) {
     log.info(
       "DISABLE_HTTP_AUTH + IS_PLATFORM both set — JWT validation bypassed; " +
-        "X-Vellum-User-Id is cross-checked against stored platform_user_id",
+        "X-Max-User-Id is cross-checked against stored platform_user_id",
     );
   } else {
     log.warn(
@@ -73,8 +73,8 @@ export function logAuthBypassState(): void {
  *
  * All three guards short-circuit on loopback peers. Beyond that:
  *
- *   - `requireEdgeAuth` — validates a JWT bearer token (aud=vellum-gateway)
- *     OR (when bypass is active) cross-checks X-Vellum-User-Id against the
+ *   - `requireEdgeAuth` — validates a JWT bearer token (aud=max-gateway)
+ *     OR (when bypass is active) cross-checks X-Max-User-Id against the
  *     stored platform_user_id credential.
  *   - `requireEdgeAuthWithScope` — same, plus a scope-profile check on the
  *     decoded JWT. Under the platform bypass, scope is enforced upstream by
@@ -87,25 +87,25 @@ export function createAuthMiddleware(
   getClientIp: GetClientIp,
 ) {
   /**
-   * Cross-check `X-Vellum-User-Id` against the stored
-   * `vellum:platform_user_id` credential. Used by all three guards under the
+   * Cross-check `X-Max-User-Id` against the stored
+   * `max:platform_user_id` credential. Used by all three guards under the
    * platform-managed bypass. Returns null on success, or a 4xx/5xx Response.
    */
   async function requirePlatformUserHeader(
     req: Request,
   ): Promise<Response | null> {
-    const headerUserId = req.headers.get("x-vellum-user-id");
+    const headerUserId = req.headers.get("x-max-user-id");
     if (!headerUserId) {
       log.warn(
         { path: new URL(req.url).pathname },
-        "Edge auth rejected: missing X-Vellum-User-Id (platform bypass active)",
+        "Edge auth rejected: missing X-Max-User-Id (platform bypass active)",
       );
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
     let storedUserId: string | undefined;
     try {
       storedUserId = await readCredential(
-        credentialKey("vellum", "platform_user_id"),
+        credentialKey("max", "platform_user_id"),
       );
     } catch (err) {
       log.error(
@@ -124,7 +124,7 @@ export function createAuthMiddleware(
     if (storedUserId !== headerUserId) {
       log.warn(
         { path: new URL(req.url).pathname },
-        "Edge auth rejected: X-Vellum-User-Id does not match stored platform_user_id",
+        "Edge auth rejected: X-Max-User-Id does not match stored platform_user_id",
       );
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -132,7 +132,7 @@ export function createAuthMiddleware(
   }
 
   /**
-   * Validate a JWT bearer token (aud=vellum-gateway) for client-facing routes.
+   * Validate a JWT bearer token (aud=max-gateway) for client-facing routes.
    * Loopback peers (127.0.0.0/8, ::1) auto-pass without a token.
    */
   async function requireEdgeAuth(
@@ -205,13 +205,13 @@ export function createAuthMiddleware(
   }
 
   /**
-   * Assert that the caller is the assistant's bound vellum guardian.
+   * Assert that the caller is the assistant's bound max guardian.
    *
    * Two auth modes:
    *
    *   1. Platform-managed (DISABLE_HTTP_AUTH + IS_PLATFORM): caller's identity
-   *      is asserted via X-Vellum-User-Id cross-checked against the stored
-   *      `vellum:platform_user_id` credential.
+   *      is asserted via X-Max-User-Id cross-checked against the stored
+   *      `max:platform_user_id` credential.
    *   2. Default: validate the edge JWT, require an actor principal, assert it
    *      matches the bound guardian's principal id.
    *
@@ -230,7 +230,7 @@ export function createAuthMiddleware(
 
   /**
    * Default path — validate JWT, require actor principal, assert it matches
-   * the bound vellum guardian.
+   * the bound max guardian.
    */
   async function requireEdgeGuardianAuthByActorPrincipal(
     req: Request,
@@ -267,11 +267,11 @@ export function createAuthMiddleware(
     }
     let guardian: { principalId: string } | null;
     try {
-      guardian = await findVellumGuardian();
+      guardian = await findMaxGuardian();
     } catch (err) {
       log.error(
         { path: new URL(req.url).pathname, err },
-        "Guardian edge auth: findVellumGuardian failed",
+        "Guardian edge auth: findMaxGuardian failed",
       );
       return Response.json({ error: "Service Unavailable" }, { status: 503 });
     }

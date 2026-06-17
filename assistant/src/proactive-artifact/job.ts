@@ -213,7 +213,7 @@ export async function runProactiveArtifactJob(params: {
     // ── Notification ────────────────────────────────────────────────
     await emitNotificationSignal({
       sourceEventName: "activity.complete",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceContextId: params.conversationId,
       attentionHints: {
         urgency: "medium",

@@ -134,7 +134,7 @@ function proxyRequest(
 
 describe("policyCallback credential injection", () => {
   const CONV_ID = "conv-injection-test";
-  const DATA_DIR = "/tmp/vellum-injection-test";
+  const DATA_DIR = "/tmp/max-injection-test";
 
   test("matched credential injects Authorization header via policyCallback", async () => {
     // Set up a local echo server so we can inspect what headers the proxy
@@ -443,7 +443,7 @@ describe("injected header values never appear in sanitized log entries", () => {
 
 describe("composeWith injection", () => {
   const CONV_ID = "conv-compose-test";
-  const DATA_DIR = "/tmp/vellum-compose-test";
+  const DATA_DIR = "/tmp/max-compose-test";
 
   test("composes two credential values with separator via policyCallback", async () => {
     let receivedHeaders: http.IncomingHttpHeaders = {};

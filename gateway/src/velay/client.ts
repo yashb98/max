@@ -1,6 +1,6 @@
 import type { OutgoingHttpHeaders } from "node:http";
 
-import { normalizeHttpPublicBaseUrl } from "@vellumai/service-contracts/ingress";
+import { normalizeHttpPublicBaseUrl } from "@maxai/service-contracts/ingress";
 
 import type { GatewayConfig } from "../config.js";
 import type { ConfigFileCache } from "../config-file-cache.js";
@@ -183,10 +183,10 @@ export class VelayTunnelClient {
     try {
       [apiKeyRaw, platformAssistantIdRaw] = await Promise.all([
         this.options.credentials.get(
-          credentialKey("vellum", "assistant_api_key"),
+          credentialKey("max", "assistant_api_key"),
         ),
         this.options.credentials.get(
-          credentialKey("vellum", "platform_assistant_id"),
+          credentialKey("max", "platform_assistant_id"),
         ),
       ]);
     } catch (err) {

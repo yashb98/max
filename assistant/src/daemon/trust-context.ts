@@ -40,6 +40,6 @@ export interface TrustContext {
  * via `resolveTrustContext()` and must not use this constant.
  */
 export const INTERNAL_GUARDIAN_TRUST_CONTEXT = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 } as const satisfies TrustContext;

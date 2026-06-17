@@ -39,15 +39,15 @@ beforeEach(() => {
     `skills-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(join(tempDir, "skills"), { recursive: true });
-  originalWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tempDir;
+  originalWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tempDir;
 });
 
 afterEach(() => {
   if (originalWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = originalWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = originalWorkspaceDir;
   }
   rmSync(tempDir, { recursive: true, force: true });
 });
@@ -60,7 +60,7 @@ describe("assistant skills uninstall", () => {
 
     // GIVEN a skill is installed locally
     installFakeSkill("weather");
-    writeSkillsIndex("- weather\n- vellum-self-knowledge\n");
+    writeSkillsIndex("- weather\n- max-self-knowledge\n");
 
     // WHEN we uninstall the skill
     uninstallSkillLocally("weather");
@@ -73,7 +73,7 @@ describe("assistant skills uninstall", () => {
     expect(index).not.toContain("weather");
 
     // AND other skills should remain in the index
-    expect(index).toContain("vellum-self-knowledge");
+    expect(index).toContain("max-self-knowledge");
   });
 
   test("errors when skill is not installed", () => {

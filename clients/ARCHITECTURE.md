@@ -2,7 +2,7 @@
 
 This document owns macOS client architecture details. The repo-level architecture index lives in [`/ARCHITECTURE.md`](../ARCHITECTURE.md).
 
-The iOS client is a Capacitor shell that lives in [`vellum-assistant-platform/web/ios/`](https://github.com/vellum-ai/vellum-assistant-platform); it loads the web app over HTTPS and does not consume any Swift code from this repo.
+The iOS client is a Capacitor shell that lives in [`max-assistant-platform/web/ios/`](https://github.com/max-ai/max-assistant-platform); it loads the web app over HTTPS and does not consume any Swift code from this repo.
 
 ## macOS App — Service and State Ownership
 
@@ -86,7 +86,7 @@ sequenceDiagram
 
 **Transport:** `clients/shared/Network/LiveVoiceChannelClient.swift` is the shared WebSocket client. It builds the authenticated request with `GatewayHTTPClient.buildWebSocketRequest(path: "live-voice", params: nil)`, sends the conversation ID in the initial `start` JSON frame, sends mic audio as binary WebSocket frames, sends `ptt_release`, `interrupt`, and `end` control frames, and decodes `ready`, `busy`, `stt_*`, `assistant_text_delta`, `tts_*`, `metrics`, `archived`, and `error` server frames.
 
-**macOS session state:** `clients/macos/vellum-assistant/Features/Voice/LiveVoiceChannelManager.swift` owns the live session state machine (`idle`, `connecting`, `listening`, `transcribing`, `thinking`, `speaking`, `ending`, `failed`). It wires `LiveVoiceAudioCapture` for push-to-talk PCM capture and `LiveVoiceAudioPlayer` for streamed assistant audio. `VoiceModeManager` observes the manager with `withObservationTracking()` and maps live-channel states onto the existing voice-mode UI states (`listening`, `processing`, `speaking`, `idle`).
+**macOS session state:** `clients/macos/max-assistant/Features/Voice/LiveVoiceChannelManager.swift` owns the live session state machine (`idle`, `connecting`, `listening`, `transcribing`, `thinking`, `speaking`, `ending`, `failed`). It wires `LiveVoiceAudioCapture` for push-to-talk PCM capture and `LiveVoiceAudioPlayer` for streamed assistant audio. `VoiceModeManager` observes the manager with `withObservationTracking()` and maps live-channel states onto the existing voice-mode UI states (`listening`, `processing`, `speaking`, `idle`).
 
 **Fallback behavior:** When live voice is unavailable at listen start, `VoiceModeManager` uses the standard turn-based voice path. If a live session fails after selection, `VoiceModeManager` attempts one fallback to turn-based voice for that session and then relies on the existing STT/service and Apple Speech permission checks. Pending tool permissions also move voice mode back to the turn-based path so the existing approval prompt behavior stays unchanged.
 
@@ -101,7 +101,7 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph "Credential Store"
-        K1["API Key<br/>service: vellum-assistant<br/>account: anthropic<br/>stored via secure-keys.ts"]
+        K1["API Key<br/>service: max-assistant<br/>account: anthropic<br/>stored via secure-keys.ts"]
         K2["Credential Secrets<br/>key: credential/{service}/{field}<br/>stored via secure-keys.ts"]
     end
 
@@ -114,12 +114,12 @@ graph LR
         UD6["maxStepsPerSession"]
     end
 
-    subgraph "~/Library/Application Support/vellum-assistant/"
+    subgraph "~/Library/Application Support/max-assistant/"
         direction TB
         SL["logs/session-*.json<br/>───────────────<br/>Per-session JSON log<br/>task, start/end times, result<br/>Per-turn: AX tree, screenshot,<br/>action, token usage"]
     end
 
-    subgraph "~/.vellum/workspace/data/db/assistant.db (SQLite + WAL)"
+    subgraph "~/.max/workspace/data/db/assistant.db (SQLite + WAL)"
         direction TB
         CONV["conversations<br/>───────────────<br/>id, title, timestamps<br/>token counts, estimated cost<br/>context_summary (compaction)<br/>conversation_type: 'standard' | 'background' | 'scheduled'<br/>memory_scope_id: 'default' | '_pkb_workspace' | 'subagent:&lt;id&gt;'"]
         MSG["messages<br/>───────────────<br/>id, conversation_id (FK)<br/>role: user | assistant<br/>content: JSON array<br/>created_at"]
@@ -138,11 +138,11 @@ graph LR
         WORK_ITEMS["work_items<br/>───────────────<br/>Task Queue entries<br/>taskId (FK → tasks)<br/>title, notes, status<br/>priority_tier (0-3), sort_index<br/>last_run_id, last_run_status<br/>source_type, source_id"]
     end
 
-    subgraph "~/.vellum/ (Root Files)"
+    subgraph "~/.max/ (Root Files)"
         TRUST["protected/trust.json<br/>Tool permission rules"]
     end
 
-    subgraph "~/.vellum/workspace/ (Workspace Files)"
+    subgraph "~/.max/workspace/ (Workspace Files)"
         CONFIG["config files<br/>Hot-reloaded by daemon"]
         ONBOARD_PLAYBOOKS["onboarding/playbooks/<br/>[channel]_onboarding.md<br/>assistant-updatable checklists"]
         ONBOARD_REGISTRY["onboarding/playbooks/registry.json<br/>channel-start index for fast-path + reconciliation"]
@@ -261,7 +261,7 @@ A recording is initiated via dedicated HTTP endpoints (`/v1/recordings/*`). The 
 | File | Role |
 |---|---|
 | `assistant/src/daemon/handlers/recording.ts` | Daemon handler for start, stop, and status lifecycle events (dedicated HTTP endpoints) |
-| `clients/macos/vellum-assistant/ComputerUse/RecordingManager.swift` | macOS-side screen capture using ScreenCaptureKit |
+| `clients/macos/max-assistant/ComputerUse/RecordingManager.swift` | macOS-side screen capture using ScreenCaptureKit |
 
 ### Messages
 
@@ -371,13 +371,13 @@ The workspace is a `VStack(spacing: 0)` with `VColor.backgroundSubtle` backgroun
 ```mermaid
 graph LR
     subgraph "Injection (at document start)"
-        BRIDGE["1. Bridge Script<br/>───────────────<br/>window.vellum.sendAction()<br/>window.vellum.confirm()<br/>window.vellum.data.* (if appId)<br/>console forwarding"]
-        CSS["2. Design System CSS<br/>───────────────<br/>vellum-design-system.css<br/>Semantic tokens (--v-*)<br/>Element defaults<br/>Dark/light mode"]
-        WIDGETS["3. Widget Utilities JS<br/>───────────────<br/>vellum-widgets.js<br/>sparkline(), barChart()<br/>lineChart(), gauge()<br/>format() helpers"]
+        BRIDGE["1. Bridge Script<br/>───────────────<br/>window.max.sendAction()<br/>window.max.confirm()<br/>window.max.data.* (if appId)<br/>console forwarding"]
+        CSS["2. Design System CSS<br/>───────────────<br/>max-design-system.css<br/>Semantic tokens (--v-*)<br/>Element defaults<br/>Dark/light mode"]
+        WIDGETS["3. Widget Utilities JS<br/>───────────────<br/>max-widgets.js<br/>sparkline(), barChart()<br/>lineChart(), gauge()<br/>format() helpers"]
     end
 
     subgraph "Message Passing"
-        JS_CALL["JS: window.webkit.messageHandlers<br/>.vellumBridge.postMessage()"]
+        JS_CALL["JS: window.webkit.messageHandlers<br/>.maxBridge.postMessage()"]
         COORD["Coordinator<br/>(WKScriptMessageHandler)"]
         DAEMON["AppDelegate → Daemon"]
     end
@@ -387,9 +387,9 @@ graph LR
     COORD --> DAEMON
 ```
 
-**Per-app isolation:** Each app gets its own origin (`https://{appId}.vellum.local/`). The `VellumAppSchemeHandler` handles `vellumapp://` URLs for serving bundled app files from the sandbox directory. Sandbox mode blocks external network requests.
+**Per-app isolation:** Each app gets its own origin (`https://{appId}.max.local/`). The `MaxAppSchemeHandler` handles `maxapp://` URLs for serving bundled app files from the sandbox directory. Sandbox mode blocks external network requests.
 
-**Data RPC flow:** App JS calls `window.vellum.data.query()` → Coordinator → AppDelegate → Daemon `app_data_request`. Daemon responds with `app_data_response` → `SurfaceManager.resolveDataResponse()` → Coordinator evaluates `window.vellum.data._resolve()` in the WebView.
+**Data RPC flow:** App JS calls `window.max.data.query()` → Coordinator → AppDelegate → Daemon `app_data_request`. Daemon responds with `app_data_response` → `SurfaceManager.resolveDataResponse()` → Coordinator evaluates `window.max.data._resolve()` in the WebView.
 
 ---
 
@@ -453,7 +453,7 @@ The video webview applies three hardening layers:
 
 ### Settings Persistence
 
-Preferences that must be shared with the daemon live in the workspace config file (`~/.vellum/workspace/config.json`) under `ui`:
+Preferences that must be shared with the daemon live in the workspace config file (`~/.max/workspace/config.json`) under `ui`:
 
 ```json
 {
@@ -508,7 +508,7 @@ The avatar uses a simple image-based approach: a custom user-uploaded profile pi
 - `AvatarAppearanceManager` — Observable singleton that provides `chatAvatarImage` (custom PNG or initial-letter fallback). Watches the custom avatar file for live updates.
 - `AvatarCustomizationPanel` — User surface for uploading/clearing a custom profile picture
 
-**Custom avatar storage:** User-uploaded profile pictures are stored at `~/.vellum/workspace/data/avatar/avatar-image.png`. On first launch after upgrade, any legacy avatar from `~/Library/Application Support/vellum-assistant/` is automatically migrated (copied, not moved). The avatar customization panel is accessible from the Identity panel via a "Customize Avatar" CTA button.
+**Custom avatar storage:** User-uploaded profile pictures are stored at `~/.max/workspace/data/avatar/avatar-image.png`. On first launch after upgrade, any legacy avatar from `~/Library/Application Support/max-assistant/` is automatically migrated (copied, not moved). The avatar customization panel is accessible from the Identity panel via a "Customize Avatar" CTA button.
 
 **Fallback:** When no custom avatar exists, `buildInitialLetterAvatar(name:)` renders a Forest._600 circle with the assistant's first initial in white.
 
@@ -524,7 +524,7 @@ User clicks "Sign in"
   --> ManagedAssistantBootstrapService.ensureManagedAssistant()
       --> If activeAssistant in lockfile: GET /v1/assistants/{id}/  (retrieve by ID)
       --> Otherwise: POST /v1/assistants/hatch/  (idempotent — returns existing or creates new)
-  --> Upsert lockfile entry (cloud: "vellum")
+  --> Upsert lockfile entry (cloud: "max")
   --> Set activeAssistant in lockfile
   --> Configure managed HTTP transport
   --> Proceed to app
@@ -539,14 +539,14 @@ If managed bootstrap fails, the user stays on the onboarding screen with an erro
 | Mode | Route Pattern | Auth Header | When Used |
 |------|--------------|-------------|-----------|
 | `runtimeFlat` | `/health`, `/v1/messages`, `/v1/events` | `Authorization: Bearer {token}` | Local daemon, gateway-proxied remote |
-| `platformAssistantProxy` | `/v1/assistants/{id}/health/`, `/v1/assistants/{id}/messages/` | `X-Session-Token: {token}` | Platform-managed assistants (`cloud == "vellum"`) |
+| `platformAssistantProxy` | `/v1/assistants/{id}/health/`, `/v1/assistants/{id}/messages/` | `X-Session-Token: {token}` | Platform-managed assistants (`cloud == "max"`) |
 
 The route mode is determined by `GatewayHTTPClient.resolveConnection()` based on the lockfile entry. `AppDelegate` configures the connection via `GatewayConnectionManager`.
 
 ### Startup Guardrails
 
 When the current assistant is managed (`isCurrentAssistantManaged == true`), the app skips:
-- **Local daemon hatching** -- the platform hosts the daemon, so `vellumCli.hatch()` is not called.
+- **Local daemon hatching** -- the platform hosts the daemon, so `maxCli.hatch()` is not called.
 - **Actor credential bootstrap** -- identity is derived from the platform session token, not local actor tokens. The `ensureActorCredentials()` flow is skipped entirely.
 - **Server-unavailable re-hatch** -- the reconnection loop does not attempt local re-hatch when the daemon HTTP server is unreachable.
 
@@ -555,9 +555,9 @@ When the current assistant is managed (`isCurrentAssistantManaged == true`), the
 | Data | Storage | Location |
 |------|---------|----------|
 | Session token | Credential Store | provider: `session-token` (via `SessionTokenManager`) |
-| Platform token file | Filesystem | `~/.vellum/platform-token` (0600 permissions, daemon-readable) |
-| Managed lockfile entry | Filesystem | `~/.vellum.lock.json` (entry with `cloud: "vellum"`) |
-| Connected assistant ID | Lockfile | `activeAssistant` field in `~/.vellum.lock.json` |
+| Platform token file | Filesystem | `~/.max/platform-token` (0600 permissions, daemon-readable) |
+| Managed lockfile entry | Filesystem | `~/.max.lock.json` (entry with `cloud: "max"`) |
+| Connected assistant ID | Lockfile | `activeAssistant` field in `~/.max.lock.json` |
 
 ### 401 Handling in Managed Mode
 
@@ -569,11 +569,11 @@ When a managed-mode HTTP request receives a 401, `GatewayHTTPClient` does not at
 |------|---------|
 | `clients/shared/App/Auth/ManagedAssistantBootstrapService.swift` | Discover-or-create orchestrator for managed assistants |
 | `clients/shared/App/Auth/AuthService.swift` | Platform API methods (`getAssistant`, `hatchAssistant`) |
-| `clients/shared/App/Auth/SessionTokenManager.swift` | Session token storage (Credential Store + `~/.vellum/platform-token` file bridge) |
+| `clients/shared/App/Auth/SessionTokenManager.swift` | Session token storage (Credential Store + `~/.max/platform-token` file bridge) |
 | `clients/shared/Network/GatewayHTTPClient.swift` | Authenticated HTTP client for gateway and platform proxy requests |
-| `clients/macos/vellum-assistant/App/AppDelegate.swift` | Transport selection (`configureDaemonTransport`) and startup guardrails |
-| `clients/macos/vellum-assistant/Features/Onboarding/OnboardingFlowView.swift` | Onboarding sign-in UI and managed bootstrap invocation |
-| `clients/macos/vellum-assistant/Features/MainWindow/Panels/IdentityData.swift` | `LockfileAssistant.isManaged` computed property and managed entry upsert |
+| `clients/macos/max-assistant/App/AppDelegate.swift` | Transport selection (`configureDaemonTransport`) and startup guardrails |
+| `clients/macos/max-assistant/Features/Onboarding/OnboardingFlowView.swift` | Onboarding sign-in UI and managed bootstrap invocation |
+| `clients/macos/max-assistant/Features/MainWindow/Panels/IdentityData.swift` | `LockfileAssistant.isManaged` computed property and managed entry upsert |
 
 ---
 
@@ -674,6 +674,6 @@ Stores use `[weak self]` in all `Task` closures and background subscriptions. Pl
 
 ## macOS Deep-Link Send (M11)
 
-The macOS app registers a `vellum://send?message=...` URL scheme handler. When invoked, it creates or reuses a conversation and sends the message through the daemon. This enables external tools, scripts, and Shortcuts to trigger assistant actions on the Mac.
+The macOS app registers a `max://send?message=...` URL scheme handler. When invoked, it creates or reuses a conversation and sends the message through the daemon. This enables external tools, scripts, and Shortcuts to trigger assistant actions on the Mac.
 
 ---

@@ -9,7 +9,7 @@ Bot ↔ extension communication flows through Chrome Native Messaging:
 - The bot's NMH Unix-socket server (`src/native-messaging/socket-server.ts`) listens on `/run/nmh.sock`.
 - The NMH shim (`src/native-messaging/nmh-shim.ts`) is the process Chrome spawns in response to `chrome.runtime.connectNative(...)`. It bridges Chrome's stdin/stdout NMH protocol to the Unix socket.
 - Message shapes are declared in `../contracts/native-messaging.ts` (`BotToExtensionMessage` and `ExtensionToBotMessage`, with zod validation on both ends).
-- The shim's manifest is rendered at image-build time by `scripts/render-nmh-manifest.ts`, which reads the extension's `manifest.json`, derives the extension ID from its public key, and writes the manifest to `/etc/opt/chrome/native-messaging-hosts/com.vellum.meet.json` with `allowed_origins` set to the derived extension origin.
+- The shim's manifest is rendered at image-build time by `scripts/render-nmh-manifest.ts`, which reads the extension's `manifest.json`, derives the extension ID from its public key, and writes the manifest to `/etc/opt/chrome/native-messaging-hosts/com.max.meet.json` with `allowed_origins` set to the derived extension origin.
 
 ## What belongs where
 

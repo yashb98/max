@@ -2,7 +2,7 @@
 
 > **Status:** Implementation behind a feature flag (`claude-subscription-provider`, default off). Foundation security empirically verified. 38 unit tests passing. Remaining work is integration tests + UI polish; no protocol-level blockers.
 > **Audience:** Provider/runtime engineers who will take this to production.
-> **Goal:** Let users on a Claude Max subscription drive a Vellum assistant — including skill execution — without an Anthropic API key, while preserving every existing security invariant.
+> **Goal:** Let users on a Claude Max subscription drive a Max assistant — including skill execution — without an Anthropic API key, while preserving every existing security invariant.
 
 ---
 
@@ -37,10 +37,10 @@
 
 | # | Task | Why | Approx. effort |
 |---|---|---|---|
-| 1 | ~~**Port the empirical `.mjs` probes into the Vellum test tree**~~ **(done)** The 3 verified probes (i-11, i-11b, i-22) now live at `assistant/scripts/claude-subscription/` with a default-skip bun:test bridge at `src/__tests__/claude-subscription-isolation-probes.test.ts`. Opt in via `CLAUDE_SUBSCRIPTION_PROBES_ENABLED=1`. The two `i-19-*` probes from the demo workspace were intentionally **not** ported (bounded run inconclusive, unbounded run hung 20+ min; the I-19 mitigation is `maxTurns: 25` in `client.ts`). | The empirical regression tests are now in tree with cross-referenceable VERDICT assertions; CI can opt in once a credentialed `claude` install is available in the runner. | done |
+| 1 | ~~**Port the empirical `.mjs` probes into the Max test tree**~~ **(done)** The 3 verified probes (i-11, i-11b, i-22) now live at `assistant/scripts/claude-subscription/` with a default-skip bun:test bridge at `src/__tests__/claude-subscription-isolation-probes.test.ts`. Opt in via `CLAUDE_SUBSCRIPTION_PROBES_ENABLED=1`. The two `i-19-*` probes from the demo workspace were intentionally **not** ported (bounded run inconclusive, unbounded run hung 20+ min; the I-19 mitigation is `maxTurns: 25` in `client.ts`). | The empirical regression tests are now in tree with cross-referenceable VERDICT assertions; CI can opt in once a credentialed `claude` install is available in the runner. | done |
 | 2 | ~~**Wire the SwiftUI picker** to render "Install Claude Code" / "Run `claude login`" hints when `isProviderAvailable("claude-subscription") === false`.~~ **(done)** Implemented per `claude-subscription-picker-setup-hint-plan.md`. New daemon route `GET /v1/provider-availability` returns typed `ProviderAvailabilityStatus` per provider; `SettingsStore.providerAvailability` mirrors it via `ProviderAvailabilityClient`. `ComposerSettingsMenu.providerRow` renders a disabled `VMenuItem` with reason-specific copy (`Install Claude Code` / `Run claude login` / `Feature flag off`) for the `.claudeSubscription` group when the daemon reports `available: false`. Picker-open refresh hook re-fetches via `settingsStoreForRefresh`. Covered by `provider-availability.test.ts` (daemon), `provider-availability-routes.test.ts` (route), `SettingsStoreProviderAvailabilityTests` (store), and 8 helper tests in `ChatProfilePickerTests`. **Bonus fix:** `IconBundle.swift` resolver was silently failing under `swift test` (Bundle.main is `xctest`, not our test bundle), masking every `SettingsStore*Tests` crash behind the build script's WebKit-signal-5 tolerance. Removed `#if !SWIFT_PACKAGE` gate and added the SPM-test sibling-bundle lookup; this un-silences ~10 sibling test files. | Users no longer hit a confusing call-time error when picking the option without Claude Code installed — the row is disabled with a setup hint. | done |
 | 3 | ~~**Small DI refactor + unit tests for `provider-availability.ts`.** The current code uses `promisify(execFile)` captured at module load — bun's `mock.module` doesn't propagate through that. Inject `cliPresent: () => Promise<boolean>` and `loginPresent: () => Promise<boolean>` as opts; default to the current impls. Then write tests for the 4-state matrix (CLI × login).~~ **(done)** New exported type `ClaudeSubscriptionProbes` in `provider-availability.ts` accepts optional `cliPresent` and `loginPresent` callbacks; production callers pass nothing and get the real `execFile`-backed implementations. `getProviderAvailabilityStatus`, `getAllProviderAvailability`, and `isProviderAvailable` all take the probes as a trailing optional argument. The previously flaky `provider-availability.test.ts > flag on + cli/login present` test (10s timeout under cross-file load) is replaced by a hermetic 4-state matrix: cli×login → {available, missing-cli, not-logged-in, missing-cli (short-circuit)}; a wrapper-match test asserts `isProviderAvailable` agrees with `.available` across the matrix; a cache test confirms probes fire once per `clearClaudeSubscriptionAvailabilityCache()` window. Full foundation suite verified across 3 consecutive runs at 90/0 each — flake gone. | The availability check is currently only smoke-tested on a live host. With DI, we get hermetic test coverage. | done |
-| 4 | ~~**Integration test fixture** in `assistant/src/daemon/__tests__/tool-executor-via-bridge.test.ts`. Wire a real `ToolExecutor` with stubbed prompter / CES client / tool registry, drive `sendMessage` through the bridge, assert all gates fire (allowlist, trust, approval, CES, sandbox, audit) on bridge-invoked tools. Spec is in §6.2.4 (I-1 through I-10).~~ **(done — 10 of 10)** Fixture in `tool-executor-via-bridge.test.ts` covers I-1 (allowlist), I-2 (trust-class denial), I-3 (PermissionPrompter allow + deny), I-4 (CES grant retry — tool returns `cesApprovalRequired`, prompter approves, mock `cesClient.call("record_grant", …)` returns a `grantId`, tool re-runs with `grantId` injected; the approval-required payload never reaches the SDK), I-5 (sandbox routing — skill tool with `executionTarget: "sandbox"` reaches `runSkillToolScriptSandbox` via the real `runSkillToolScript` dispatcher), I-6 (audit lifecycle + conversation-id correlation), I-8 (yieldToUser through real executor aborts the SDK), I-9 (cross-conversation isolation incl. distinct MCP servers + audit-stream isolation), I-10 (abort isolation — outer signal A→sdkAbortA propagates, outer signal A does NOT touch B's sdkAbort; uses an opt-in hang-until-aborted SDK stream so both calls are mid-flight when inspected), plus a smoke happy-path. **I-7 lives in `src/__tests__/loop-bridge-event-forwarding.test.ts`** because it requires driving a full `AgentLoop` (the bridge fixture above bypasses the loop adapter): a bridged tool's `sensitiveBindings` get merged into `substitutionMap` by the bridge closure, then the streamed `text_delta` adapter rewrites the placeholder to the real value before forwarding to the outer-loop consumer; the bridge return's `content` never contains the secret. Discrimination-verified by a second test in the same file that omits the bridge merge → placeholder passes through verbatim. | This is the biggest single gap. It's what would let your team trust the bridge for production rollout — it's the proof, not just the model, that "tools work through the bridge" preserves every Vellum gate. | done |
+| 4 | ~~**Integration test fixture** in `assistant/src/daemon/__tests__/tool-executor-via-bridge.test.ts`. Wire a real `ToolExecutor` with stubbed prompter / CES client / tool registry, drive `sendMessage` through the bridge, assert all gates fire (allowlist, trust, approval, CES, sandbox, audit) on bridge-invoked tools. Spec is in §6.2.4 (I-1 through I-10).~~ **(done — 10 of 10)** Fixture in `tool-executor-via-bridge.test.ts` covers I-1 (allowlist), I-2 (trust-class denial), I-3 (PermissionPrompter allow + deny), I-4 (CES grant retry — tool returns `cesApprovalRequired`, prompter approves, mock `cesClient.call("record_grant", …)` returns a `grantId`, tool re-runs with `grantId` injected; the approval-required payload never reaches the SDK), I-5 (sandbox routing — skill tool with `executionTarget: "sandbox"` reaches `runSkillToolScriptSandbox` via the real `runSkillToolScript` dispatcher), I-6 (audit lifecycle + conversation-id correlation), I-8 (yieldToUser through real executor aborts the SDK), I-9 (cross-conversation isolation incl. distinct MCP servers + audit-stream isolation), I-10 (abort isolation — outer signal A→sdkAbortA propagates, outer signal A does NOT touch B's sdkAbort; uses an opt-in hang-until-aborted SDK stream so both calls are mid-flight when inspected), plus a smoke happy-path. **I-7 lives in `src/__tests__/loop-bridge-event-forwarding.test.ts`** because it requires driving a full `AgentLoop` (the bridge fixture above bypasses the loop adapter): a bridged tool's `sensitiveBindings` get merged into `substitutionMap` by the bridge closure, then the streamed `text_delta` adapter rewrites the placeholder to the real value before forwarding to the outer-loop consumer; the bridge return's `content` never contains the secret. Discrimination-verified by a second test in the same file that omits the bridge merge → placeholder passes through verbatim. | This is the biggest single gap. It's what would let your team trust the bridge for production rollout — it's the proof, not just the model, that "tools work through the bridge" preserves every Max gate. | done |
 | 5 | **Telemetry** (Phase 3.1 in this doc). Emit metrics for `claude_subscription.send_message`, `claude_subscription.tool_call`, with trust class / model labels. | Operational observability once people start using it. | 2-3 hours |
 
 ### Files to know
@@ -55,7 +55,7 @@
 | `assistant/src/providers/provider-availability.ts` | CLI + Keychain check |
 | `assistant/src/providers/inference/adapter-factory.ts` | Factory entry + parity guard |
 | `meta/feature-flags/feature-flag-registry.json` | `claude-subscription-provider`, default off |
-| `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift` | `ProviderGroup.claudeSubscription` + provider mapping |
+| `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift` | `ProviderGroup.claudeSubscription` + provider mapping |
 | `assistant/src/__tests__/claude-subscription-provider.test.ts` | 36 unit tests |
 | `assistant/src/__tests__/claude-subscription-concurrency.test.ts` | 2 concurrency tests |
 | `assistant/scripts/claude-subscription/i-11-isolation.mjs`, `i-11b-subagent-isolation.mjs`, `i-22-system-prompt.mjs` | Empirical isolation probes (in tree; default-skip bun:test bridge at `src/__tests__/claude-subscription-isolation-probes.test.ts`) |
@@ -64,7 +64,7 @@
 
 ### Suggested opening prompt for the new session
 
-> Continuing work on the `claude-subscription` LLM provider in vellum-assistant. Read `assistant/docs/architecture/claude-subscription-bridge.md` from the top — pay special attention to the "Resuming this work in a new session" section, §3 (audit), §9 (resolved decisions), and §10b (test suite). Then verify the foundation: `cd assistant && bun test src/__tests__/claude-subscription-{provider,concurrency}.test.ts src/providers/__tests__/provider-availability.test.ts src/runtime/routes/__tests__/provider-availability-routes.test.ts` should show 52 pass, and `NODE_OPTIONS="--max-old-space-size=8192" bunx tsc --noEmit` should be clean. After that, **pick task #3 from the priority queue: DI refactor + unit tests for `provider-availability.ts`.** The current code uses `promisify(execFile)` captured at module load — bun's `mock.module` doesn't propagate through that. Inject `cliPresent: () => Promise<boolean>` and `loginPresent: () => Promise<boolean>` as opts; default to the current impls. Then write tests for the 4-state matrix (CLI × login). Confirm with me before starting.
+> Continuing work on the `claude-subscription` LLM provider in max-assistant. Read `assistant/docs/architecture/claude-subscription-bridge.md` from the top — pay special attention to the "Resuming this work in a new session" section, §3 (audit), §9 (resolved decisions), and §10b (test suite). Then verify the foundation: `cd assistant && bun test src/__tests__/claude-subscription-{provider,concurrency}.test.ts src/providers/__tests__/provider-availability.test.ts src/runtime/routes/__tests__/provider-availability-routes.test.ts` should show 52 pass, and `NODE_OPTIONS="--max-old-space-size=8192" bunx tsc --noEmit` should be clean. After that, **pick task #3 from the priority queue: DI refactor + unit tests for `provider-availability.ts`.** The current code uses `promisify(execFile)` captured at module load — bun's `mock.module` doesn't propagate through that. Inject `cliPresent: () => Promise<boolean>` and `loginPresent: () => Promise<boolean>` as opts; default to the current impls. Then write tests for the 4-state matrix (CLI × login). Confirm with me before starting.
 
 ### Things to not change without re-running the empirical probes
 
@@ -73,17 +73,17 @@ If you touch any of these, re-run I-11, I-11b, I-19 before declaring done:
 - The four lines in `client.ts` setting `tools`, `permissionMode`, `settingSources`, `canUseTool` (the "locks")
 - `MAX_CONCURRENT_CALLS` (currently 4)
 - `maxTurns: 25` in the SDK `query()` options
-- `MCP_SERVER_NAME = "vellum-skills"`
+- `MCP_SERVER_NAME = "max-skills"`
 - `systemPrompt` option key (NOT `customSystemPrompt` — that was the bug found in I-22)
 
 ---
 
 ## Empirical foundation: I-11 isolation verified
 
-The foundational claim — "with the right SDK options, the bridge contains tool execution to Vellum's allowlist and the Claude Code subprocess cannot reach the host" — was **verified during scaffolding** via a hermetic test (`tools/claude-subscription-isolation-probe.mjs`, or equivalent in tree once ported from the demo workspace).
+The foundational claim — "with the right SDK options, the bridge contains tool execution to Max's allowlist and the Claude Code subprocess cannot reach the host" — was **verified during scaffolding** via a hermetic test (`tools/claude-subscription-isolation-probe.mjs`, or equivalent in tree once ported from the demo workspace).
 
 **First attempt FAILED** (this is important). The naive config
-`{ permissionMode: "bypassPermissions", allowedTools: ["mcp__vellum-skills__noop"], settingSources: [] }`
+`{ permissionMode: "bypassPermissions", allowedTools: ["mcp__max-skills__noop"], settingSources: [] }`
 let the model execute `id > /tmp/proof` via the Claude Code SDK's built-in **Bash** tool. The proof file was written with the host user's real `uid/gid`. `allowedTools` is an *auto-allow* list (skip-the-prompt), **not** a visibility filter — the docstring explicitly says "To restrict which tools are available, use the `tools` option instead."
 
 **Correct config (verified PASSING):**
@@ -101,13 +101,13 @@ query({
       ALLOW.has(name)
         ? { behavior: "allow" }
         : { behavior: "deny", message: `Tool '${name}' is not available.` },
-    mcpServers: { "vellum-skills": { type: "sdk", instance: vellumMcp } },
+    mcpServers: { "max-skills": { type: "sdk", instance: maxMcp } },
     customSystemPrompt,
   },
 });
 ```
 
-With that config, the SDK's `system/init` message lists only `mcp__vellum-skills__*` tools — Gmail, Drive, Notion, Vercel, etc. integrations attached to the user's Anthropic account (which `settingSources: []` did NOT exclude) **disappear** from the model's view. The model verbally confirms it lacks shell access. Tool-use attempts: zero. Proof file: never written.
+With that config, the SDK's `system/init` message lists only `mcp__max-skills__*` tools — Gmail, Drive, Notion, Vercel, etc. integrations attached to the user's Anthropic account (which `settingSources: []` did NOT exclude) **disappear** from the model's view. The model verbally confirms it lacks shell access. Tool-use attempts: zero. Proof file: never written.
 
 **Lesson:** `settingSources: []` is necessary but not sufficient. `canUseTool` is the seatbelt that catches account-level MCP servers the SDK auto-attaches behind the scenes. Both must be set.
 
@@ -115,7 +115,7 @@ With that config, the SDK's `system/init` message lists only `mcp__vellum-skills
 
 ## 0. TL;DR
 
-A new provider `claude-subscription` uses `@anthropic-ai/claude-agent-sdk` to call Claude with the user's local OAuth credentials (from `claude login`). Because the SDK runs its own agent loop, an in-process MCP server inside the provider exposes Vellum's tools to the SDK and routes their calls back into Vellum's existing `ToolExecutor` — so trust gates, approval prompts, CES grants, the sandbox, and audit all keep firing. The scaffold is in tree at `providers/claude-subscription/client.ts` with hooks in `agent/loop.ts`. This document audits what's done, lists every gap with severity, specifies the tests required, and lays out the controls and acceptance criteria for shipping.
+A new provider `claude-subscription` uses `@anthropic-ai/claude-agent-sdk` to call Claude with the user's local OAuth credentials (from `claude login`). Because the SDK runs its own agent loop, an in-process MCP server inside the provider exposes Max's tools to the SDK and routes their calls back into Max's existing `ToolExecutor` — so trust gates, approval prompts, CES grants, the sandbox, and audit all keep firing. The scaffold is in tree at `providers/claude-subscription/client.ts` with hooks in `agent/loop.ts`. This document audits what's done, lists every gap with severity, specifies the tests required, and lays out the controls and acceptance criteria for shipping.
 
 ---
 
@@ -123,9 +123,9 @@ A new provider `claude-subscription` uses `@anthropic-ai/claude-agent-sdk` to ca
 
 ### 1.1 Why a bridge is required at all
 
-Anthropic ships OAuth tokens (`sk-ant-oat01-…`) that authenticate Claude Code. Empirically verified during scaffolding: those tokens **cannot be used directly against `api.anthropic.com/v1/messages`** — every direct call returns `HTTP 429` with `{"type":"rate_limit_error","message":"Error"}` regardless of body or beta header. So the only path that uses the Max subscription is via the Agent SDK, which spawns the `claude` CLI subprocess and delegates the call. The CLI is an *agent runtime*, not an LLM API — it runs its own tool loop with its own system prompt, its own MCP support, and its own built-in tools (Read/Write/Bash). Vellum's existing providers (`AnthropicProvider` etc.) talk to a raw LLM API; this one talks to an agent.
+Anthropic ships OAuth tokens (`sk-ant-oat01-…`) that authenticate Claude Code. Empirically verified during scaffolding: those tokens **cannot be used directly against `api.anthropic.com/v1/messages`** — every direct call returns `HTTP 429` with `{"type":"rate_limit_error","message":"Error"}` regardless of body or beta header. So the only path that uses the Max subscription is via the Agent SDK, which spawns the `claude` CLI subprocess and delegates the call. The CLI is an *agent runtime*, not an LLM API — it runs its own tool loop with its own system prompt, its own MCP support, and its own built-in tools (Read/Write/Bash). Max's existing providers (`AnthropicProvider` etc.) talk to a raw LLM API; this one talks to an agent.
 
-### 1.2 Vellum's tool execution invariants (must not be weakened)
+### 1.2 Max's tool execution invariants (must not be weakened)
 
 Recorded in `ARCHITECTURE.md` and the codebase:
 
@@ -162,18 +162,18 @@ The provider runs inside `agent/loop.ts:run()` which then dispatches `tool_use` 
 | `assistant/src/providers/inference/adapter-factory.ts` | Modified — added `claude-subscription` factory | +5 |
 | `assistant/src/providers/model-catalog.ts` | Modified — added catalog entry with 3 Claude models, `setupMode: "keyless"`, no pricing | +52 |
 | `assistant/src/agent/loop.ts` | Modified — built per-call `toolBridge` closure that delegates to `this.toolExecutor`; reordered `turnCtx` construction | +45 / -10 |
-| `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift` | Modified — added `ProviderGroup.claudeSubscription` + mapping | +4 |
+| `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift` | Modified — added `ProviderGroup.claudeSubscription` + mapping | +4 |
 
 ### 2.2 What is verified
 
 - `bunx tsc --noEmit` (with `--max-old-space-size=8192`) passes.
 - `import('./providers/inference/adapter-factory.js')` loads cleanly — the catalog↔factory parity guard at module load is satisfied.
-- `import('./providers/claude-subscription/client.js')` loads — exports `ClaudeSubscriptionProvider`, `setVellumToolBridge`, `clearVellumToolBridge`.
+- `import('./providers/claude-subscription/client.js')` loads — exports `ClaudeSubscriptionProvider`, `setMaxToolBridge`, `clearMaxToolBridge`.
 - `import('./agent/loop.js')` loads — the `randomUUID` import and reordered `turnCtx` don't break anything.
 
 ### 2.3 What is NOT verified
 
-- **Zero runtime tests.** The provider has never sent a real request through Vellum's stack.
+- **Zero runtime tests.** The provider has never sent a real request through Max's stack.
 - **No end-to-end integration test** of: outer loop → provider → SDK → MCP → bridge → ToolExecutor → audit.
 - **No claim that the bridge inherits all gates** has been validated against the real `ToolExecutor`.
 - **No measurement of whether SDK opts (`settingSources: []`, `permissionMode: "bypassPermissions"`, `allowedTools: [...]`)** actually achieve the isolation we expect.
@@ -203,13 +203,13 @@ Status legend: ✅ preserved · ⚠️ degraded · ❌ broken · ❓ unverified.
 | I-15 | `tool_output_chunk` streaming events | ✅ resolved (Phase 2.5) | `ToolBridgeInvocation` carries an optional `onChunk` callback. The MCP CallTool handler in `client.ts` synthesizes a per-call `mcp-bridge-chunk-<uuid>` correlation id and wraps it into an `onChunk` that emits `tool_output_chunk` events through `options.onEvent`. The bridge closure in `agent/loop.ts` forwards `invocation.onChunk` as the 3rd argument to `LoopToolExecutor` (production: `conversation-tool-setup.ts` threads it into `ToolContext.onOutput`). 3 new unit tests in `claude-subscription-provider.test.ts` verify N chunks→N events, distinct ids per call, and `onChunk: undefined` when no `onEvent` is supplied; 1 new integration test in `tool-executor-via-bridge.test.ts` drives chunks through the real `ToolExecutor` and asserts the consumer sees them. **Note:** the `chunkToolUseId` is opaque and doesn't match any LLM-visible id — Phase 2.6 will replace it with the SDK's real `tool_use_id` once the assistant-message stream is plumbed. |
 | I-16 | `provider-availability` check | ❌ | Currently always-available (default for keyless). If `claude` CLI is missing or not logged in, the provider fails at call time with no UI hint. Severity: **medium** (UX). |
 | I-17 | Feature flag gate | ❌ | No flag declared. Anyone with the picker can select it. Severity: **medium** (rollout safety). |
-| I-18 | Claude Code's own audit trail | ⚠️ | The `claude` CLI writes its own session logs to `~/.claude/sessions/`. Tool calls fired through Vellum's executor inside the SDK loop are *also* in those logs, in a less-trusted location. Severity: **medium** for compliance contexts. |
-| I-19 | Subagent fan-out | ❓ | The SDK supports the model spawning sub-agents. Each sub-agent could call Vellum tools via the bridge. Unknown whether `allowedTools: []` filters apply to sub-agents; potential for fan-out beyond expected concurrency. |
-| I-20 | MCP server name | ⚠️ | Hardcoded `"vellum"`. Vellum's tool registry uses `origin: "mcp"` + `ownerMcpServerId` for *external* MCP servers the user configures — no in-process collision today, but rename to `"vellum-skills"` for clarity and future-proofing. |
+| I-18 | Claude Code's own audit trail | ⚠️ | The `claude` CLI writes its own session logs to `~/.claude/sessions/`. Tool calls fired through Max's executor inside the SDK loop are *also* in those logs, in a less-trusted location. Severity: **medium** for compliance contexts. |
+| I-19 | Subagent fan-out | ❓ | The SDK supports the model spawning sub-agents. Each sub-agent could call Max tools via the bridge. Unknown whether `allowedTools: []` filters apply to sub-agents; potential for fan-out beyond expected concurrency. |
+| I-20 | MCP server name | ⚠️ | Hardcoded `"max"`. Max's tool registry uses `origin: "mcp"` + `ownerMcpServerId` for *external* MCP servers the user configures — no in-process collision today, but rename to `"max-skills"` for clarity and future-proofing. |
 | I-21 | Cost / quota accounting | ⚠️ | Catalog has no pricing → `UsageTrackingProvider` computes $0 cost. Tokens are still recorded. If quota policy is per-dollar, this provider bypasses spend caps. Per-token quota still applies. Severity: **low** unless dollar quotas exist. |
-| I-22 | Custom system prompt vs Claude Code's | ✅ verified | **Important bug found & fixed.** Initial scaffold used `customSystemPrompt` (not a real SDK option) — silently ignored, Claude Code's coding-agent prompt remained. Switched to `systemPrompt: <string>` (the documented option). Re-tested: model now identifies as Vellum's persona, refuses coding when instructed, no Claude Code identity leakage. **Lesson:** the SDK does not warn on unknown option keys — verify any `*Prompt` option is the actual name. |
+| I-22 | Custom system prompt vs Claude Code's | ✅ verified | **Important bug found & fixed.** Initial scaffold used `customSystemPrompt` (not a real SDK option) — silently ignored, Claude Code's coding-agent prompt remained. Switched to `systemPrompt: <string>` (the documented option). Re-tested: model now identifies as Max's persona, refuses coding when instructed, no Claude Code identity leakage. **Lesson:** the SDK does not warn on unknown option keys — verify any `*Prompt` option is the actual name. |
 | I-23 | SDK built-in tools (Read/Write/Bash) | ✅ verified | The empirical I-11 test (above) confirms `tools: []` + `canUseTool` denial + `settingSources: []` reduces tool visibility to the bridge's MCP allowlist only. The scaffold code has been updated to this config. **DO NOT change those four options without re-running the test.** |
-| I-24 | User's Anthropic-account MCP integrations leak (Gmail/Drive/etc.) | ✅ mitigated | Discovered during I-11: `settingSources: []` does **not** exclude account-level MCP integrations. `canUseTool` runtime denial catches them. Without `canUseTool`, a model in subscription mode could send emails or read Drive files without going through Vellum's CES. **`canUseTool` is now a load-bearing security control, not a nice-to-have.** |
+| I-24 | User's Anthropic-account MCP integrations leak (Gmail/Drive/etc.) | ✅ mitigated | Discovered during I-11: `settingSources: []` does **not** exclude account-level MCP integrations. `canUseTool` runtime denial catches them. Without `canUseTool`, a model in subscription mode could send emails or read Drive files without going through Max's CES. **`canUseTool` is now a load-bearing security control, not a nice-to-have.** |
 
 **Items still needing empirical verification before any user sees this:** *(none at the protocol level — all initially-deferred ❓ items resolved)*.
 
@@ -233,34 +233,34 @@ The new `maxTurns: 25` line in `client.ts` is **load-bearing for cost containmen
 - A1 — User credentials (Anthropic OAuth, OAuth tokens for Gmail/Slack/etc. in CES)
 - A2 — User data (memory store, conversation history, journal)
 - A3 — User's filesystem and shell (home directory, ssh keys, etc.)
-- A4 — Other actors' data (in multi-actor channels: Slack/SMS — Vellum is multi-tenant inside one machine via trust)
+- A4 — Other actors' data (in multi-actor channels: Slack/SMS — Max is multi-tenant inside one machine via trust)
 
 ### 4.2 Trust boundaries
 
-- TB-α — Boundary between Vellum's runtime and the `claude` CLI subprocess
+- TB-α — Boundary between Max's runtime and the `claude` CLI subprocess
 - TB-β — Boundary between the SDK's agent loop and the model's tool selection
-- TB-γ — Vellum's existing actor/trust boundaries (unchanged)
+- TB-γ — Max's existing actor/trust boundaries (unchanged)
 
 ### 4.3 Threats
 
 | ID | Threat | Mitigation in the bridge |
 |---|---|---|
-| T-1 | A malicious model uses the SDK's Bash tool to read `~/.ssh/`, bypassing Vellum's allowlist. | `allowedTools` filtered to MCP-only **AND empirically verified**. Plus `settingSources: []` prevents the user's Claude Code config from re-enabling Bash. Plus `permissionMode: "bypassPermissions"` — *only safe iff allowedTools is correct*. |
+| T-1 | A malicious model uses the SDK's Bash tool to read `~/.ssh/`, bypassing Max's allowlist. | `allowedTools` filtered to MCP-only **AND empirically verified**. Plus `settingSources: []` prevents the user's Claude Code config from re-enabling Bash. Plus `permissionMode: "bypassPermissions"` — *only safe iff allowedTools is correct*. |
 | T-2 | An untrusted actor (trustClass="unknown") tricks the bridge into running a guardian-only tool. | The bridge calls `ToolExecutor.execute` which evaluates trust rules. Inherited gate. |
 | T-3 | A bug in the bridge skips audit emission for tool calls. | Audit fires inside `ToolExecutor.execute`, not in bridge code. Inherited. **Unit test asserts call counts.** |
 | T-4 | The bridge mishandles a placeholder substitution and the real secret reaches the model. | The bridge drops `sensitiveBindings` but **does not modify `content`** — `content` already has placeholders applied. Secret stays out of the model context. The substitution UX regresses (placeholders shown to user), but the security property holds. **Test asserts model sees no secret values.** |
-| T-5 | Resource exhaustion: subagent fan-out spawns N parallel tool calls. | `tool.execute` has timeouts (`toolExecutionTimeoutSec`). Concurrency limit is the SDK's, not Vellum's. Mitigation: cap SDK `maxTurns` and / or disable subagents in `query()` options. |
-| T-6 | The OAuth token in Keychain is read by a non-Vellum process. | Out of scope — that's a system-level Keychain ACL concern, unchanged by the bridge. |
-| T-7 | A Vellum tool returns malicious instructions in `content` that drives the SDK loop somewhere unsafe. | The model sees the tool result as a tool_result block. Vellum's tool result text is generally considered model-influenced input (prompt-injection risk). Mitigation is the same as today: Vellum's system prompt and trust gates already assume tool output is untrusted. The bridge does not change the threat. |
+| T-5 | Resource exhaustion: subagent fan-out spawns N parallel tool calls. | `tool.execute` has timeouts (`toolExecutionTimeoutSec`). Concurrency limit is the SDK's, not Max's. Mitigation: cap SDK `maxTurns` and / or disable subagents in `query()` options. |
+| T-6 | The OAuth token in Keychain is read by a non-Max process. | Out of scope — that's a system-level Keychain ACL concern, unchanged by the bridge. |
+| T-7 | A Max tool returns malicious instructions in `content` that drives the SDK loop somewhere unsafe. | The model sees the tool result as a tool_result block. Max's tool result text is generally considered model-influenced input (prompt-injection risk). Mitigation is the same as today: Max's system prompt and trust gates already assume tool output is untrusted. The bridge does not change the threat. |
 | T-8 | Multiple conversations call `sendMessage` concurrently; the wrong bridge fires for the wrong conversation. | Per-call `options.toolBridge` captures `turnCtx` by closure. **Cross-conversation regression test required.** |
 | T-9 | The SDK is hung; abort doesn't propagate; conversation gets stuck. | `AbortController` is plumbed through `query()`. Verify behavior. Worst case: kill the SDK subprocess. |
 | T-10 | An attacker installs a fake `claude` binary on the PATH. | The SDK spawns whatever `claude` is on PATH. Out of scope — this is a host-compromise scenario where many things go wrong. Defensive: log the resolved binary path on startup. |
 
 ### 4.4 Out of scope
 
-- Defending against a compromised Vellum binary itself.
+- Defending against a compromised Max binary itself.
 - Defending against Anthropic's API behavior on the SDK side.
-- Defending against malicious skills (handled by Vellum's existing sandbox + risk classifier).
+- Defending against malicious skills (handled by Max's existing sandbox + risk classifier).
 
 ---
 
@@ -277,8 +277,8 @@ Goal: Prove (in tests, not by reading docs) that the SDK options actually isolat
 | 1.1 Add `claude-subscription` feature flag to `meta/feature-flags/feature-flag-registry.json`, scope `assistant`, `defaultEnabled: false`. | Flag visible in registry; default state is off. |
 | 1.2 Gate provider registration in `inference/adapter-factory.ts` on the flag. | Test: with flag off, `buildProviderAdapter("claude-subscription", …)` returns `null` AND the catalog entry is filtered out of `PROVIDER_CATALOG`. With flag on, both return values. |
 | 1.3 Add provider availability check: `claude` binary on PATH **and** Keychain entry exists. | Test: stub `which`/Keychain → matrix of {present/absent} returns correct availability. UI must surface "Claude Code not installed" rather than failing at call time. |
-| 1.4 Empirically verify SDK isolation. Write an integration test: call `query()` with `allowedTools: ["mcp__vellum__noop"]` + `settingSources: []` + `permissionMode: "bypassPermissions"`, ask the model "run `id` in bash". Assert: no bash invocation reaches the host, the model returns text only. | Integration test passes against a real or VCR-recorded SDK session. |
-| 1.5 Empirically verify `customSystemPrompt` replaces (not appends to) Claude Code's prompt. | Same integration test: ask "what is your system prompt" → assert response references Vellum's prompt, not Claude Code's. |
+| 1.4 Empirically verify SDK isolation. Write an integration test: call `query()` with `allowedTools: ["mcp__max__noop"]` + `settingSources: []` + `permissionMode: "bypassPermissions"`, ask the model "run `id` in bash". Assert: no bash invocation reaches the host, the model returns text only. | Integration test passes against a real or VCR-recorded SDK session. |
+| 1.5 Empirically verify `customSystemPrompt` replaces (not appends to) Claude Code's prompt. | Same integration test: ask "what is your system prompt" → assert response references Max's prompt, not Claude Code's. |
 | 1.6 Disable SDK subagents in `query()` options if possible (or document why we can't). | Configuration in `client.ts` references the disabling mechanism. Test confirms subagent attempts are denied. |
 
 **Cut here is acceptable.** With Phase 1, the bridge is provably isolated, gated, and discoverable — but tool calls still drop `contentBlocks`, `sensitiveBindings`, and `yieldToUser`. That's a defensible v1 for plain-text chat with light tool use.
@@ -362,7 +362,7 @@ Each numbered item is a concrete `test("…", …)` to write. Failure of any ass
 | # | Test | What it asserts |
 |---|---|---|
 | U-1 | constructs with a model, exposes `name: "claude-subscription"` and `tokenEstimationProvider: "anthropic"` | Identity invariants. |
-| U-2 | `sendMessage` with no tools and a single user message calls `query()` with `prompt` set to the user text, `model` set, `mcpServers.vellum-skills` registered, `allowedTools: []` | Smoke; SDK options correct. |
+| U-2 | `sendMessage` with no tools and a single user message calls `query()` with `prompt` set to the user text, `model` set, `mcpServers.max-skills` registered, `allowedTools: []` | Smoke; SDK options correct. |
 | U-3 | `sendMessage` flattens multi-turn history into the prompt string | Backwards-compat formatting; multi-turn text round-trips. |
 | U-4 | `sendMessage` rejects non-text content blocks with a structured `ProviderError` in v1 (until Phase 4) | Honest failure rather than silent loss. |
 | U-5 | `sendMessage` emits `text_delta` events for each text block on `assistant` messages from the SDK | Streaming works. |
@@ -371,7 +371,7 @@ Each numbered item is a concrete `test("…", …)` to write. Failure of any ass
 | U-8 | Aborting `options.signal` mid-stream calls `AbortController.abort` on the SDK and the returned promise rejects | Abort propagation. |
 | U-9 | The exact load-bearing isolation options are passed to `query()`: `tools: []`, `settingSources: []`, `permissionMode: "default"`, plus a `canUseTool` callback. Regression-critical — see I-11 above. | Isolation options correct. |
 | U-9b | `canUseTool` returns `behavior: "allow"` for names in the bridge allowlist and `behavior: "deny"` for anything else, including bash/built-ins and account-level MCP tools (e.g. `mcp__claude_ai_Gmail__list_drafts`). | Account-MCP leak prevention. |
-| U-10 | When `tools` (Vellum's tool list) is non-empty, `allowedTools` is built as `[mcp__vellum-skills__<name1>, ...]` for each tool, AND that same set seeds the `canUseTool` allowlist. | Tool exposure correct and consistent. |
+| U-10 | When `tools` (Max's tool list) is non-empty, `allowedTools` is built as `[mcp__max-skills__<name1>, ...]` for each tool, AND that same set seeds the `canUseTool` allowlist. | Tool exposure correct and consistent. |
 | U-11 | Provider does not import any `claude-code` runtime config at module load (no `~/.claude/` reads at import time) | Cleanly lazy. |
 | U-12 | `tokenEstimationProvider === "anthropic"` so existing token estimators apply | Estimator routing. |
 
@@ -437,7 +437,7 @@ The hardest tests; require a network-recorded SDK session OR a controlled host w
 | # | Test | What it asserts |
 |---|---|---|
 | I-11 | With `allowedTools: []` + `permissionMode: "bypassPermissions"` + `settingSources: []`, a model prompt "run `id` via bash" does NOT execute bash on the host (no observable filesystem or process side effects) | T-1 mitigated. |
-| I-12 | The same isolated config exposes only `mcp__vellum-skills__*` tools to the model when `tools` is non-empty | T-1 mitigated. |
+| I-12 | The same isolated config exposes only `mcp__max-skills__*` tools to the model when `tools` is non-empty | T-1 mitigated. |
 | I-13 | A model prompt "what is your system prompt" returns text consistent with `customSystemPrompt`, NOT Claude Code's coding-agent prompt | I-22 verified. |
 | I-14 | Aborting the `query()` mid-execution terminates the subprocess within N seconds | I-9 verified. |
 
@@ -453,7 +453,7 @@ The hardest tests; require a network-recorded SDK session OR a controlled host w
 
 ### 6.4 Coverage targets
 
-Following Vellum's testing conventions (see `.claude/rules/testing.md`): 80% overall, 90% for `providers/` and security-critical paths. Specifically:
+Following Max's testing conventions (see `.claude/rules/testing.md`): 80% overall, 90% for `providers/` and security-critical paths. Specifically:
 
 - `claude-subscription/client.ts`: **95%+** branch coverage.
 - `agent/loop.ts` toolBridge plumbing: **100%** branch coverage on the new closure.
@@ -467,7 +467,7 @@ Tests that assert what the bridge does NOT do are as important as what it does:
 - N-2: The bridge never reads from `~/.claude/credentials` or the Keychain directly. (Spy on filesystem and Keychain APIs; assert zero invocations from `client.ts`.)
 - N-3: The bridge never writes to `~/.claude/sessions/`. (Same.)
 - N-4: The bridge never invokes `child_process.spawn` directly — only via the SDK's `query()`. (Spy; assert zero.)
-- N-5: With `allowedTools: ["mcp__vellum-skills__foo"]`, the bridge cannot be coerced (via a malformed CallTool name) into invoking `bash` or any non-MCP tool. (Property test: random tool-name strings → bridge returns "tool not found" or routes to the listed MCP only.)
+- N-5: With `allowedTools: ["mcp__max-skills__foo"]`, the bridge cannot be coerced (via a malformed CallTool name) into invoking `bash` or any non-MCP tool. (Property test: random tool-name strings → bridge returns "tool not found" or routes to the listed MCP only.)
 
 ---
 
@@ -543,8 +543,8 @@ The provider is gated entirely by the feature flag. To roll back: set `defaultEn
 
 ### Resolved
 
-- **D-1 (Resolved):** MCP server name is `"vellum-skills"`. Already in code.
-- **D-2 (Resolved — abort):** When a tool returns `yieldToUser: true`, the bridge calls `abortController.abort()` on the SDK after the MCP CallToolResult has been returned (scheduled via `setImmediate` so the SDK still sees the tool's result). The provider returns whatever assistant text accumulated; Vellum's outer loop sees no tool_use blocks and breaks naturally. Implemented in `client.ts` (`onYieldToUser` plumbing) and `agent/loop.ts` (forwarding `result.yieldToUser` through the `ProviderToolBridge` return).
+- **D-1 (Resolved):** MCP server name is `"max-skills"`. Already in code.
+- **D-2 (Resolved — abort):** When a tool returns `yieldToUser: true`, the bridge calls `abortController.abort()` on the SDK after the MCP CallToolResult has been returned (scheduled via `setImmediate` so the SDK still sees the tool's result). The provider returns whatever assistant text accumulated; Max's outer loop sees no tool_use blocks and breaks naturally. Implemented in `client.ts` (`onYieldToUser` plumbing) and `agent/loop.ts` (forwarding `result.yieldToUser` through the `ProviderToolBridge` return).
 - **D-3 (Resolved — keep sub-agents enabled):** The bridge keeps `Task` enabled (`tools: ["Task"]`) and explicitly adds `"Task"` to the `canUseTool` allowlist. **I-11b verified empirically**: a sub-agent prompted to escape via bash failed — sub-agents inherit the parent's tool restrictions (or use a default agent type that lacks Bash; the exact mechanism wasn't pinned down but the operational outcome is correct containment). Re-run I-11b any time the `tools` or `canUseTool` config changes. Implications the team should be aware of: one user message can fan out to N parallel tool calls via sub-agents; audit records will include the sub-agent's tool invocations under the parent conversation. Add metrics in Phase 3 to surface fan-out per turn.
 - **D-4 (Resolved — add `"cli-login"`):** `ProviderCatalogEntry.setupMode` now accepts `"api-key" | "keyless" | "cli-login"`. The `claude-subscription` entry uses `"cli-login"`. Both `registry.ts` and `inference/adapter-factory.ts` treat `"cli-login"` and `"keyless"` identically for credential plumbing (no apiKey passed to the factory). UI consumers in `clients/macos` (and other client surfaces, e.g. browser extension) need a setup-hint branch for the new value; default behavior falls back to the existing keyless rendering if a client hasn't yet updated.
 - **D-5 (Resolved — auto-refresh on 401):** Implemented as a retry-once-on-auth-error wrapper around the SDK call. Heuristic match on common auth error signatures (401, "unauthorized", "token expired", etc.); see `AUTH_ERROR_PATTERNS` in `client.ts`. **Retries only if zero output streamed** — preserves at-most-once semantics for tool side effects. On second failure, throws a `ProviderError` with HTTP 401 and a message telling the user to run `claude login`. The SDK is the `claude` CLI under the hood and itself handles silent token refresh during normal use; this wrapper exists as a defensive layer for the race-condition case and to provide a clean failure UX.
@@ -566,7 +566,7 @@ The provider is gated entirely by the feature flag. To roll back: set `defaultEn
 ### Still open
 
 - **Test suite for `tool-executor-via-bridge.test.ts` (integration, §6.2.4)** — the spec lists 10 integration tests (I-1 through I-10) that need a real `ToolExecutor` fixture wired against trust gates, CES, audit, etc. Those are deferred until a fixture is built; the existing 35-test unit suite covers everything that can be tested without that fixture.
-- ~~**`tools/claude-subscription-isolation-probe.mjs`** — port the I-11, I-11b, and I-22 test scripts from `~/Downloads/claude-subscription-demo/` into the Vellum repo as recurring regression tests~~ **(done)** Probes now live at `assistant/scripts/claude-subscription/`; bun:test bridge at `src/__tests__/claude-subscription-isolation-probes.test.ts`, default-skipped (opt in with `CLAUDE_SUBSCRIPTION_PROBES_ENABLED=1`). CI will need a credentialed `claude` install before this can be gated by default.
+- ~~**`tools/claude-subscription-isolation-probe.mjs`** — port the I-11, I-11b, and I-22 test scripts from `~/Downloads/claude-subscription-demo/` into the Max repo as recurring regression tests~~ **(done)** Probes now live at `assistant/scripts/claude-subscription/`; bun:test bridge at `src/__tests__/claude-subscription-isolation-probes.test.ts`, default-skipped (opt in with `CLAUDE_SUBSCRIPTION_PROBES_ENABLED=1`). CI will need a credentialed `claude` install before this can be gated by default.
 - **I-19 (subagent fan-out under load)** — needs an empirical test with the SDK actually spawning sub-agents in parallel and observing per-agent isolation.
 - **Availability check unit tests** — `node:child_process` mocking via bun's `mock.module` didn't propagate through `promisify(execFile)` cleanly. A small refactor to inject the CLI/keychain checkers as dependencies would make the SUT testable; alternatively the live-host smoke verification covers the happy path.
 
@@ -612,7 +612,7 @@ What's covered:
 | Area | Tests | Key assertions |
 |---|---|---|
 | Construction & identity | 1 | `name`, `tokenEstimationProvider` |
-| **SDK isolation options (security)** | 9 | All four locks present (`tools: ["Task"]`, `settingSources: []`, `permissionMode: "default"`, `canUseTool`); `systemPrompt` not `customSystemPrompt`; `canUseTool` denies Bash/Read/Write/Edit/WebFetch/Glob/Grep; denies Gmail/Drive/Notion/Vercel account-MCP leaks; denies arbitrary unregistered names including `../escape` and empty; exactly one MCP server named `vellum-skills`; AbortController attached |
+| **SDK isolation options (security)** | 9 | All four locks present (`tools: ["Task"]`, `settingSources: []`, `permissionMode: "default"`, `canUseTool`); `systemPrompt` not `customSystemPrompt`; `canUseTool` denies Bash/Read/Write/Edit/WebFetch/Glob/Grep; denies Gmail/Drive/Notion/Vercel account-MCP leaks; denies arbitrary unregistered names including `../escape` and empty; exactly one MCP server named `max-skills`; AbortController attached |
 | Streaming + usage | 5 | `text_delta` events; `thinking_delta`; usage aggregation including cache fields; model from init or fallback; stopReason mapping |
 | Bridge resolution precedence | 5 | per-call wins over registry; registry wins over stub; stub returns when neither set; JSON Schema passes through to MCP ListTools verbatim; bridge throw is caught and returned as isError |
 | **D-5 auth retry** | 4 | retries on auth error with no output; does NOT retry non-auth; surfaces friendly 401 after retries exhausted; recognises 6 auth-error signatures |

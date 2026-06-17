@@ -49,10 +49,10 @@ describe("channel policy registry", () => {
   });
 
   test("getDeliverableChannels returns a non-empty array", () => {
-    // At minimum, vellum should always be deliverable.
+    // At minimum, max should always be deliverable.
     const deliverable = getDeliverableChannels();
     expect(deliverable.length).toBeGreaterThan(0);
-    expect(deliverable).toContain("vellum");
+    expect(deliverable).toContain("max");
   });
 
   test("getDeliverableChannels does not include channels with deliveryEnabled: false", () => {
@@ -98,7 +98,7 @@ describe("channel policy registry", () => {
   test("getConversationStrategy returns correct strategies per channel", () => {
     // Known assertions for current policy (regression guard)
     const expectedStrategies: [ChannelId, ConversationStrategy][] = [
-      ["vellum", "start_new_conversation"],
+      ["max", "start_new_conversation"],
       ["telegram", "continue_existing_conversation"],
       ["slack", "continue_existing_conversation"],
       ["phone", "not_deliverable"],
@@ -135,9 +135,9 @@ describe("channel policy registry", () => {
     expect(getConversationStrategy("phone")).toBe("not_deliverable");
   });
 
-  test("deliverable channels include vellum and telegram", () => {
+  test("deliverable channels include max and telegram", () => {
     const deliverable = getDeliverableChannels();
-    expect(deliverable).toContain("vellum");
+    expect(deliverable).toContain("max");
     expect(deliverable).toContain("telegram");
   });
 

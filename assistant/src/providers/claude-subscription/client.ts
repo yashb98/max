@@ -61,14 +61,14 @@ async function resolveClaudeCliPath(): Promise<string | null> {
 
 // ── Tool-bridge resolution ─────────────────────────────────────────────
 //
-// The Provider boundary in Vellum is intentionally narrow: it covers the
+// The Provider boundary in Max is intentionally narrow: it covers the
 // LLM call and nothing else. Tool execution lives in the conversation
 // runtime alongside trust gates, CES, approval flow, and audit. The
 // Claude Agent SDK, by contrast, runs its own agent loop and invokes
 // tools during that loop — so when this provider is the LLM transport,
-// any tool the model calls fires inside the SDK's loop, not Vellum's.
+// any tool the model calls fires inside the SDK's loop, not Max's.
 //
-// Two seams let Vellum's tool runner be reached from inside the SDK loop:
+// Two seams let Max's tool runner be reached from inside the SDK loop:
 //
 //   1. Per-call: `SendMessageOptions.toolBridge` (preferred). The caller
 //      (typically `agent/loop.ts`) supplies a closure already bound to
@@ -76,7 +76,7 @@ async function resolveClaudeCliPath(): Promise<string | null> {
 //      the right path in production because conversation/trust state is
 //      per-call ephemeral and must not leak across conversations.
 //
-//   2. Process-global registry: `setVellumToolBridge(...)`. Useful for
+//   2. Process-global registry: `setMaxToolBridge(...)`. Useful for
 //      tests and for early-boot calls that happen before a conversation
 //      exists. Not appropriate for multi-conversation production paths.
 //
@@ -84,18 +84,18 @@ async function resolveClaudeCliPath(): Promise<string | null> {
 // than silently returning empty results.
 //
 // Security: this provider does NOT re-implement gates. The bridge it
-// receives is expected to call into Vellum's existing `ToolExecutor`,
+// receives is expected to call into Max's existing `ToolExecutor`,
 // which runs the full allowlist → permission → approval → CES → audit
 // pipeline. Registering a permissive bridge that bypasses that pipeline
 // would create a security regression — don't.
 
 let registryBridge: ProviderToolBridge | undefined;
 
-export function setVellumToolBridge(bridge: ProviderToolBridge): void {
+export function setMaxToolBridge(bridge: ProviderToolBridge): void {
   registryBridge = bridge;
 }
 
-export function clearVellumToolBridge(): void {
+export function clearMaxToolBridge(): void {
   registryBridge = undefined;
 }
 
@@ -205,10 +205,10 @@ const stubBridge: ProviderToolBridge = async ({ toolName, input }) => {
   );
   return {
     content:
-      `[claude-subscription bridge stub] The Agent SDK called Vellum tool ` +
+      `[claude-subscription bridge stub] The Agent SDK called Max tool ` +
       `"${toolName}" with input ${JSON.stringify(input)}, but no bridge is ` +
       `registered. Either pass options.toolBridge per-call or call ` +
-      `setVellumToolBridge() at boot for a process-global fallback.`,
+      `setMaxToolBridge() at boot for a process-global fallback.`,
     isError: false,
   };
 };
@@ -219,7 +219,7 @@ export interface ClaudeSubscriptionOptions {
   streamTimeoutMs?: number;
 }
 
-const MCP_SERVER_NAME = "vellum-skills";
+const MCP_SERVER_NAME = "max-skills";
 
 /**
  * Items the MCP `CallToolResult.content` array accepts. Loose-typed so we can
@@ -231,7 +231,7 @@ type McpContentItem =
   | { type: "image"; data: string; mimeType: string };
 
 /**
- * Translate Vellum's `ContentBlock[]` (carried on `ToolBridgeResult`) into
+ * Translate Max's `ContentBlock[]` (carried on `ToolBridgeResult`) into
  * MCP `CallToolResult.content` items. Only kinds that make semantic sense as
  * tool output emit a corresponding MCP item:
  *   • `text`  → `{ type: "text", text }`
@@ -487,7 +487,7 @@ export class ClaudeSubscriptionProvider implements Provider {
             },
             abortController: sdkAbort,
             // `systemPrompt: <string>` REPLACES Claude Code's default
-            // coding-agent prompt with Vellum's prompt (SOUL.md +
+            // coding-agent prompt with Max's prompt (SOUL.md +
             // identity). `customSystemPrompt` is not a real SDK option;
             // an earlier draft passed that and it was silently ignored,
             // leaving Claude Code's coding-agent persona in place. I-22
@@ -510,7 +510,7 @@ export class ClaudeSubscriptionProvider implements Provider {
                   thinking: block.thinking,
                 });
               } else if (block.type === "tool_use") {
-                // Surface the SDK's tool-call lifecycle to Vellum's outer
+                // Surface the SDK's tool-call lifecycle to Max's outer
                 // ProviderEvent stream so the composer renders bridged tool
                 // calls the same way it renders outer-loop ones (Kimi /
                 // Ollama). The SDK's `id` is the real tool_use_id assigned
@@ -671,10 +671,10 @@ export class ClaudeSubscriptionProvider implements Provider {
   }
 
   /**
-   * Build an in-process MCP server that exposes each Vellum tool to the
+   * Build an in-process MCP server that exposes each Max tool to the
    * Agent SDK. We use the lower-level `Server` request handlers (via
    * `McpServer.server`) instead of `registerTool()` so we can forward the
-   * Vellum-supplied JSON Schema as-is — the higher-level API expects a
+   * Max-supplied JSON Schema as-is — the higher-level API expects a
    * Zod shape, which would require lossy schema conversion.
    */
   private buildMcpServer(
@@ -732,7 +732,7 @@ export class ClaudeSubscriptionProvider implements Provider {
         const msg = err instanceof Error ? err.message : String(err);
         log.error(
           { toolName: req.params.name, err: msg },
-          "Vellum tool bridge threw inside MCP server",
+          "Max tool bridge threw inside MCP server",
         );
         result = { content: `Bridge error: ${msg}`, isError: true };
       }
@@ -746,7 +746,7 @@ export class ClaudeSubscriptionProvider implements Provider {
       if (result.yieldToUser) {
         log.info(
           { toolName: req.params.name },
-          "Vellum tool requested yieldToUser; aborting SDK loop",
+          "Max tool requested yieldToUser; aborting SDK loop",
         );
         setImmediate(() => onYieldToUser());
       }
@@ -804,7 +804,7 @@ export class ClaudeSubscriptionProvider implements Provider {
   }
 
   /**
-   * Flatten Vellum's message history into a single prompt string for the
+   * Flatten Max's message history into a single prompt string for the
    * Agent SDK. The SDK manages its own session; the cleanest fit for a
    * single-call transport is to serialise history as a header and put the
    * latest user message as the focus.
@@ -844,7 +844,10 @@ export class ClaudeSubscriptionProvider implements Provider {
         parts.push(block.text);
       } else if (block.type === "tool_use") {
         parts.push(`[tool_use ${block.name}(${JSON.stringify(block.input)})]`);
-      } else if (block.type === "tool_result") {
+      } else if (
+        block.type === "tool_result" ||
+        block.type === "web_search_tool_result"
+      ) {
         const text =
           typeof block.content === "string"
             ? block.content

@@ -21,7 +21,7 @@ let skillsDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-026-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-026-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   skillsDir = join(workspaceDir, "skills");
   mkdirSync(skillsDir, { recursive: true });
@@ -205,10 +205,10 @@ describe("026-backfill-install-meta migration", () => {
     expect(meta!.contentHash).toMatch(/^v2:[0-9a-f]{64}$/);
   });
 
-  // ─── Case 2: version with no origin (vellum or clawhub) ───────────────
+  // ─── Case 2: version with no origin (max or clawhub) ───────────────
 
-  test("infers vellum origin from version.json with version and no origin", () => {
-    createSkillDir("vellum-skill", {
+  test("infers max origin from version.json with version and no origin", () => {
+    createSkillDir("max-skill", {
       versionJson: {
         version: "v1:abc123",
         installedAt: "2025-01-20T08:00:00.000Z",
@@ -217,9 +217,9 @@ describe("026-backfill-install-meta migration", () => {
 
     backfillInstallMetaMigration.run(workspaceDir);
 
-    const meta = readInstallMeta("vellum-skill");
+    const meta = readInstallMeta("max-skill");
     expect(meta).not.toBeNull();
-    expect(meta!.origin).toBe("vellum");
+    expect(meta!.origin).toBe("max");
     expect(meta!.version).toBe("v1:abc123");
     expect(meta!.installedAt).toBe("2025-01-20T08:00:00.000Z");
     expect(meta!.installedBy).toBeUndefined();
@@ -441,7 +441,7 @@ describe("026-backfill-install-meta migration", () => {
     const metaC = readInstallMeta("skill-c");
 
     expect(metaA).not.toBeNull();
-    expect(metaA!.origin).toBe("vellum");
+    expect(metaA!.origin).toBe("max");
 
     expect(metaB).not.toBeNull();
     expect(metaB!.origin).toBe("skillssh");

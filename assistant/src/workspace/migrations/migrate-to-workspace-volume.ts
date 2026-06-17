@@ -2,13 +2,13 @@
  * Workspace migration: Migrate workspace data from /data to /workspace volume.
  *
  * In the old Docker volume layout, workspace data lived at
- * `<vellumRoot>/workspace`. In the new layout, VELLUM_WORKSPACE_DIR points
+ * `<maxRoot>/workspace`. In the new layout, MAX_WORKSPACE_DIR points
  * to a dedicated volume (e.g. `/workspace`). On first boot with the new layout,
  * this migration copies existing workspace data from the old location to the
  * new volume so nothing is lost.
  *
  * Idempotent:
- * - Skips if VELLUM_WORKSPACE_DIR is not set (non-Docker or old layout).
+ * - Skips if MAX_WORKSPACE_DIR is not set (non-Docker or old layout).
  * - Skips if the workspace volume already has data (config.json exists).
  * - Skips if the sentinel file exists (already migrated).
  * - Skips if the old workspace directory doesn't exist or is empty.
@@ -24,14 +24,14 @@ import {
 import { join } from "node:path";
 
 import type { WorkspaceMigration } from "./types.js";
-import { getVellumRoot } from "./utils.js";
+import { getMaxRoot } from "./utils.js";
 
 const SENTINEL_FILENAME = ".workspace-volume-migrated";
 
 export const migrateToWorkspaceVolumeMigration: WorkspaceMigration = {
   id: "014-migrate-to-workspace-volume",
   description:
-    "Copy workspace data from old /data/.vellum/workspace to new VELLUM_WORKSPACE_DIR volume on first boot",
+    "Copy workspace data from old /data/.max/workspace to new MAX_WORKSPACE_DIR volume on first boot",
 
   down(workspaceDir: string): void {
     // This migration copies data between volumes. Actually reversing the copy
@@ -51,9 +51,9 @@ export const migrateToWorkspaceVolumeMigration: WorkspaceMigration = {
 
   run(workspaceDir: string): void {
     const workspaceDirOverride =
-      process.env.VELLUM_WORKSPACE_DIR?.trim() || undefined;
+      process.env.MAX_WORKSPACE_DIR?.trim() || undefined;
 
-    // Only relevant when VELLUM_WORKSPACE_DIR is explicitly set (Docker with separate volume)
+    // Only relevant when MAX_WORKSPACE_DIR is explicitly set (Docker with separate volume)
     if (!workspaceDirOverride) return;
 
     const sentinelPath = join(workspaceDir, SENTINEL_FILENAME);
@@ -69,8 +69,8 @@ export const migrateToWorkspaceVolumeMigration: WorkspaceMigration = {
       return;
     }
 
-    // Resolve the old workspace location: <vellumRoot>/workspace
-    const oldWorkspaceDir = join(getVellumRoot(), "workspace");
+    // Resolve the old workspace location: <maxRoot>/workspace
+    const oldWorkspaceDir = join(getMaxRoot(), "workspace");
 
     // If the old workspace doesn't exist or is empty, nothing to migrate
     if (!existsSync(oldWorkspaceDir)) {

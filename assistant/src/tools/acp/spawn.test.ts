@@ -90,7 +90,7 @@ const spawnMock = mock(
     _task: string,
     _cwd: string,
     _parentConversationId: string,
-    _sendToVellum: (msg: unknown) => void,
+    _sendToMax: (msg: unknown) => void,
   ) => ({
     acpSessionId: "acp-session-test",
     protocolSessionId: "proto-session-test",

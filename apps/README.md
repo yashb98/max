@@ -1,6 +1,6 @@
 # apps/
 
-Home for end-user app surfaces of the Vellum assistant — browser, mobile, and
+Home for end-user app surfaces of the Max assistant — browser, mobile, and
 desktop wrappers that users interact with directly. This directory is part of
 the ongoing Web App Repo Move; surfaces will be migrated here incrementally in
 follow-up PRs.
@@ -16,7 +16,7 @@ follow-up PRs.
 - Native Swift clients — `clients/macos/` remains the source of truth for the
   macOS app.
 - The local-daemon web interface — `clients/web/` is an internal control plane
-  served by `vellum client --interface web`, not an end-user surface.
+  served by `max client --interface web`, not an end-user surface.
 - Backend services — `assistant/`, `gateway/`, `credential-executor/`, `cli/`
   stay at the repo root.
 

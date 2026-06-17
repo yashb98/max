@@ -1,10 +1,10 @@
 ---
 name: contacts
 description: Manage contacts, communication channels, access control, and invite links
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "👥"
-  vellum:
+  max:
     display-name: "Contacts"
     activation-hints:
       - "Look up contact info before asking the user for email addresses or phone numbers"
@@ -142,7 +142,7 @@ Invite links let the guardian share a link or code that automatically grants acc
 
 Use this when the guardian wants to invite someone to message the assistant on Telegram without needing their user ID upfront. The invite link is a shareable Telegram deep link -- when someone opens it, they automatically get trusted-contact access.
 
-**Important**: The shell snippet below emits a `<vellum-sensitive-output>` directive containing the raw invite token. The tool executor automatically strips this directive and replaces the raw token with a placeholder so the LLM never sees it. The placeholder is resolved back to the real token in the final assistant reply.
+**Important**: The shell snippet below emits a `<max-sensitive-output>` directive containing the raw invite token. The tool executor automatically strips this directive and replaces the raw token with a placeholder so the LLM never sees it. The placeholder is resolved back to the real token in the final assistant reply.
 
 ```bash
 INVITE_JSON=$(assistant contacts invites create --source-channel telegram --contact-id "<contact_id>" --max-uses 1 --note "<optional note, e.g. the person it is for>" --json)
@@ -176,7 +176,7 @@ if [ -z "$INVITE_URL" ]; then
   INVITE_URL="https://t.me/$BOT_USERNAME?start=iv_$INVITE_TOKEN"
 fi
 
-echo "<vellum-sensitive-output kind=\"invite_code\" value=\"$INVITE_TOKEN\" />"
+echo "<max-sensitive-output kind=\"invite_code\" value=\"$INVITE_TOKEN\" />"
 echo "$INVITE_URL"
 ```
 
@@ -275,7 +275,7 @@ The response contains `{ ok: true, invite: { id, token, inviteCode, guardianInst
 
 - `inviteCode` is the 6-digit code the invitee must send to redeem the invite. It is only returned at creation time.
 - `guardianInstruction` is a generated instruction telling the guardian how to share the invite.
-- `channelHandle` is the assistant's email address (e.g. `hello@vellum.me`).
+- `channelHandle` is the assistant's email address (e.g. `hello@max.me`).
 
 **Presenting to the guardian**: Give the guardian the invite code and the assistant's email address:
 

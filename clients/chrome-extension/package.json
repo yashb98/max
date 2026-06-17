@@ -1,5 +1,5 @@
 {
-  "name": "@vellumai/chrome-extension",
+  "name": "@maxai/chrome-extension",
   "version": "0.8.1",
   "private": true,
   "type": "module",

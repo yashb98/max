@@ -62,7 +62,7 @@ The existing `host_bash` tool executes commands on the host machine without any 
 
 ### 2. Local static secrets are local-mode only — by policy
 
-For the current implementation, local static secrets (API keys, tokens stored via the credential store in `~/.vellum/protected/`) are only accessible to CES in **local mode**, where CES runs as a child process of the assistant. CES reads them at materialization time via direct filesystem access.
+For the current implementation, local static secrets (API keys, tokens stored via the credential store in `~/.max/protected/`) are only accessible to CES in **local mode**, where CES runs as a child process of the assistant. CES reads them at materialization time via direct filesystem access.
 
 In **managed mode**, `local_static` handles are not supported and the CES returns a clear error for any `local_static` handle. Managed deployments use `platform_oauth` handles exclusively. With v2 `store.key`, this is a **policy choice** (simpler lifecycle, centralized token management) rather than a technical limitation — the UID-independent key file could be shared via volume mount.
 
@@ -70,7 +70,7 @@ In **managed mode**, `local_static` handles are not supported and the CES return
 
 The v1 encrypted key store uses PBKDF2 key derivation where the encryption key is derived from `userInfo().username` and `userInfo().homedir`. In managed deployments the assistant and CES sidecar run as different OS users, producing different derived keys — making it impossible for CES to decrypt secrets stored by the assistant.
 
-v2 stores replaced PBKDF2 derivation with a random 32-byte key stored at `<vellumRoot>/protected/store.key`. This key is UID-independent and can be shared via volume mount, removing the technical barrier to `local_static` in managed mode.
+v2 stores replaced PBKDF2 derivation with a random 32-byte key stored at `<maxRoot>/protected/store.key`. This key is UID-independent and can be shared via volume mount, removing the technical barrier to `local_static` in managed mode.
 
 The policy decision to use `platform_oauth` exclusively in managed mode still stands for operational reasons: simpler credential lifecycle, centralized token management, and no need to synchronize key files across containers. Future iterations may enable `local_static` in managed mode via shared `store.key` volume mounts if there is a compelling use case.
 
@@ -86,7 +86,7 @@ These alternatives were evaluated for the v1 key store and rejected. They are re
 
 ### 3. Platform OAuth materialization stays on the platform
 
-OAuth tokens managed by the platform (`vellum-assistant-platform`) — including token refresh, revocation, and scope management — continue to be handled by the platform's token management system. CES does not duplicate OAuth lifecycle management. When CES needs an OAuth token, it requests a materialized token from the platform via the existing platform proxy endpoint, using the same mechanism the assistant currently uses.
+OAuth tokens managed by the platform (`max-assistant-platform`) — including token refresh, revocation, and scope management — continue to be handled by the platform's token management system. CES does not duplicate OAuth lifecycle management. When CES needs an OAuth token, it requests a materialized token from the platform via the existing platform proxy endpoint, using the same mechanism the assistant currently uses.
 
 ### 4. Secure generic authenticated HTTP must not run through `run_authenticated_command`
 
@@ -174,13 +174,13 @@ CES and the assistant share contract definitions and credential-storage abstract
 
 | Package                          | Purpose                                                                                                                                                                                                                    | Consumers                            |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `@vellumai/service-contracts`    | RPC protocol types, method names, protocol version constant, grant shapes, credential handle types, and rendering helpers. Consumed via explicit domain subpaths (e.g. `@vellumai/service-contracts/credential-rpc`). | `assistant/`, `credential-executor/` |
-| `@vellumai/credential-storage`   | Credential store read API (static secrets and OAuth runtime), unified credential handle abstraction                                                                                                                         | `assistant/`, `credential-executor/` |
-| `@vellumai/egress-proxy`         | Session-scoped egress proxy lifecycle (create, start, stop, env-var injection)                                                                                                                                             | `assistant/`, `credential-executor/` |
+| `@maxai/service-contracts`    | RPC protocol types, method names, protocol version constant, grant shapes, credential handle types, and rendering helpers. Consumed via explicit domain subpaths (e.g. `@maxai/service-contracts/credential-rpc`). | `assistant/`, `credential-executor/` |
+| `@maxai/credential-storage`   | Credential store read API (static secrets and OAuth runtime), unified credential handle abstraction                                                                                                                         | `assistant/`, `credential-executor/` |
+| `@maxai/egress-proxy`         | Session-scoped egress proxy lifecycle (create, start, stop, env-var injection)                                                                                                                                             | `assistant/`, `credential-executor/` |
 
 These packages are the **only** allowed shared-code path between the assistant and CES. Direct source imports between `assistant/` and `credential-executor/` remain banned. The packages are built locally via `workspace:*` references and copied into the CES Docker image at build time (`COPY packages/ ...` in `credential-executor/Dockerfile`).
 
-New code must import from `@vellumai/service-contracts` using explicit subpaths (e.g. `@vellumai/service-contracts/credential-rpc`, `@vellumai/service-contracts/trust-rules`). The aggregate root import (`@vellumai/service-contracts`) must not be used in `assistant/`, `gateway/`, or `credential-executor/` source — always use explicit domain subpaths.
+New code must import from `@maxai/service-contracts` using explicit subpaths (e.g. `@maxai/service-contracts/credential-rpc`, `@maxai/service-contracts/trust-rules`). The aggregate root import (`@maxai/service-contracts`) must not be used in `assistant/`, `gateway/`, or `credential-executor/` source — always use explicit domain subpaths.
 
 ## Secure Command Auth Adapters
 
@@ -271,7 +271,7 @@ Local deployments do not require image changes. Enabling `ces-tools` causes the 
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Process-boundary credential isolation      | Strong (separate child process)                                                                       | Strong (separate container)                                                                                                                      |
 | Credential value never in assistant memory | Strong                                                                                                | Strong                                                                                                                                           |
-| Grant persistence survives restarts        | Strong (filesystem-backed under `~/.vellum/protected/`)                                               | Strong (dedicated `/ces-data` volume)                                                                                                            |
+| Grant persistence survives restarts        | Strong (filesystem-backed under `~/.max/protected/`)                                               | Strong (dedicated `/ces-data` volume)                                                                                                            |
 | Network egress enforcement via proxy       | Moderate (cooperative via HTTP_PROXY/HTTPS_PROXY env vars; host networking is available — see Risk 7) | Moderate (cooperative via env vars; per-container Calico/NetworkPolicy egress restriction is a v2 design goal but not yet enforced — see Risk 7) |
 | Secret scrubbing in HTTP responses         | Defense-in-depth only                                                                                 | Defense-in-depth only                                                                                                                            |
 | `host_bash` restriction                    | Policy-only (trust rules can deny, but the tool exists)                                               | Policy-only (same; managed deployments should deny `host_bash` for untrusted agents)                                                             |
@@ -392,7 +392,7 @@ This means the helper is subject to the same cooperative egress limitation as th
 The following capabilities are intentionally deferred beyond v1:
 
 - **`local_static` handles in managed mode** — Technically feasible with v2 `store.key` (UID-independent), but managed mode currently uses `platform_oauth` exclusively as a policy choice (see Locked Decision #2). May be enabled in the future via shared `store.key` volume mount if there is a compelling use case.
-- **Cloud KMS/Vault integration for secret storage** — v1 reads secrets from filesystem (`~/.vellum/protected/` locally, `/ces-data` in managed). Moving to a dedicated secrets manager is a future enhancement.
+- **Cloud KMS/Vault integration for secret storage** — v1 reads secrets from filesystem (`~/.max/protected/` locally, `/ces-data` in managed). Moving to a dedicated secrets manager is a future enhancement.
 - **Multi-CES-instance support** — Each assistant pod runs exactly one CES sidecar. Horizontal scaling of CES within a pod is not supported.
 - **Cross-pod credential sharing** — CES grants are scoped to a single pod. There is no grant federation across pods or assistant instances.
 - **Browser automation through CES** — Browser form-fill with credential injection is deferred beyond initial rollout.
@@ -403,4 +403,4 @@ The following capabilities are intentionally deferred beyond v1:
 - [Security architecture](architecture/security.md) — existing credential broker and permission model
 - [AGENTS.md](../../AGENTS.md) — tooling direction and CES exception
 - [Tools AGENTS.md](../src/tools/AGENTS.md) — tooling direction and CES exception
-- [Network traffic matrix](../../../vellum-assistant-platform/docs/network-traffic-matrix.md) — managed pod network policies
+- [Network traffic matrix](../../../max-assistant-platform/docs/network-traffic-matrix.md) — managed pod network policies

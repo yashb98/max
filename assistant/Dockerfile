@@ -139,8 +139,8 @@ RUN groupadd --system --gid 1001 assistant && \
     echo "assistant ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Set up assistant home directory for local state (device.json, etc.)
-RUN mkdir -p /home/assistant/.vellum && \
-    chown -R assistant:assistant /home/assistant/.vellum
+RUN mkdir -p /home/assistant/.max && \
+    chown -R assistant:assistant /home/assistant/.max
 
 # Update PATH for assistant user
 ENV PATH="/home/assistant/.bun/bin:${PATH}"
@@ -155,23 +155,23 @@ RUN printf '%s\n' \
     'if [ -r /app/assistant/docker-kata-apt-env.sh ]; then' \
     '  . /app/assistant/docker-kata-apt-env.sh' \
     'fi' \
-    > /etc/profile.d/vellum-kata-apt-root.sh && \
+    > /etc/profile.d/max-kata-apt-root.sh && \
     printf '%s\n' \
     '' \
-    'if [ -r /etc/profile.d/vellum-kata-apt-root.sh ]; then' \
-    '  . /etc/profile.d/vellum-kata-apt-root.sh' \
+    'if [ -r /etc/profile.d/max-kata-apt-root.sh ]; then' \
+    '  . /etc/profile.d/max-kata-apt-root.sh' \
     'fi' \
     >> /etc/bash.bashrc && \
     printf '%s\n' \
     '' \
-    'if [ -r /etc/profile.d/vellum-kata-apt-root.sh ]; then' \
-    '  . /etc/profile.d/vellum-kata-apt-root.sh' \
+    'if [ -r /etc/profile.d/max-kata-apt-root.sh ]; then' \
+    '  . /etc/profile.d/max-kata-apt-root.sh' \
     'fi' \
     >> /root/.bashrc && \
     printf '%s\n' \
     '' \
-    'if [ -r /etc/profile.d/vellum-kata-apt-root.sh ]; then' \
-    '  . /etc/profile.d/vellum-kata-apt-root.sh' \
+    'if [ -r /etc/profile.d/max-kata-apt-root.sh ]; then' \
+    '  . /etc/profile.d/max-kata-apt-root.sh' \
     'fi' \
     >> /home/assistant/.bashrc && \
     chown assistant:assistant /home/assistant/.bashrc
@@ -179,11 +179,11 @@ RUN printf '%s\n' \
 RUN printf '%s\n' \
     '#!/usr/bin/env sh' \
     'set -eu' \
-    'if [ "${VELLUM_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
+    'if [ "${MAX_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
     '  exec /usr/bin/apt-get "$@"' \
     'fi' \
     'export DEBIAN_FRONTEND=noninteractive' \
-    'DATA_ROOT="${VELLUM_APT_DATA_ROOT:-/data/system}"' \
+    'DATA_ROOT="${MAX_APT_DATA_ROOT:-/data/system}"' \
     '/app/assistant/docker-init-apt-root.sh' \
     'if [ -x "${DATA_ROOT}/bin/sh" ] && [ -x "${DATA_ROOT}/usr/bin/apt-get" ] && [ -f "${DATA_ROOT}/.rootfs-initialized" ] && ! grep -qs " ${DATA_ROOT} .*noexec" /proc/mounts; then' \
     '  exec chroot "${DATA_ROOT}" /usr/bin/apt-get "$@"' \
@@ -194,11 +194,11 @@ RUN printf '%s\n' \
     printf '%s\n' \
     '#!/usr/bin/env sh' \
     'set -eu' \
-    'if [ "${VELLUM_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
+    'if [ "${MAX_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
     '  exec /usr/bin/apt "$@"' \
     'fi' \
     'export DEBIAN_FRONTEND=noninteractive' \
-    'DATA_ROOT="${VELLUM_APT_DATA_ROOT:-/data/system}"' \
+    'DATA_ROOT="${MAX_APT_DATA_ROOT:-/data/system}"' \
     '/app/assistant/docker-init-apt-root.sh' \
     'if [ -x "${DATA_ROOT}/bin/sh" ] && [ -x "${DATA_ROOT}/usr/bin/apt" ] && [ -f "${DATA_ROOT}/.rootfs-initialized" ] && ! grep -qs " ${DATA_ROOT} .*noexec" /proc/mounts; then' \
     '  exec chroot "${DATA_ROOT}" /usr/bin/apt "$@"' \
@@ -209,10 +209,10 @@ RUN printf '%s\n' \
     printf '%s\n' \
     '#!/usr/bin/env sh' \
     'set -eu' \
-    'if [ "${VELLUM_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
+    'if [ "${MAX_SANDBOX_RUNTIME:-}" != "kata" ]; then' \
     '  exec /usr/bin/dpkg "$@"' \
     'fi' \
-    'DATA_ROOT="${VELLUM_APT_DATA_ROOT:-/data/system}"' \
+    'DATA_ROOT="${MAX_APT_DATA_ROOT:-/data/system}"' \
     '/app/assistant/docker-init-apt-root.sh' \
     'if [ -x "${DATA_ROOT}/bin/sh" ] && [ -x "${DATA_ROOT}/usr/bin/dpkg" ] && [ -f "${DATA_ROOT}/.rootfs-initialized" ] && ! grep -qs " ${DATA_ROOT} .*noexec" /proc/mounts; then' \
     '  exec chroot "${DATA_ROOT}" /usr/bin/dpkg "$@"' \

@@ -48,7 +48,7 @@ mock.module("node:fs", () => ({
 }));
 
 mock.module("../../../util/platform.js", () => ({
-  getWorkspaceDirDisplay: () => "~/.vellum/workspace",
+  getWorkspaceDirDisplay: () => "~/.max/workspace",
 }));
 
 mock.module("../../../util/logger.js", () => ({

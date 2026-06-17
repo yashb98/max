@@ -62,7 +62,7 @@ const EmitSignalParams = z.object({
   sourceEventName: z.string().min(1),
   sourceChannel: z.enum([
     "assistant_tool",
-    "vellum",
+    "max",
     "phone",
     "telegram",
     "slack",

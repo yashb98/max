@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-private let flagPrefix = "VELLUM_FLAG_"
+private let flagPrefix = "MAX_FLAG_"
 private let userDefaultsPrefix = "MacOSFeatureFlag."
 private let log = Logger(subsystem: Bundle.appBundleIdentifier, category: "FeatureFlags")
 
@@ -110,7 +110,7 @@ public final class MacOSClientFeatureFlagManager: @unchecked Sendable {
         SharedUserDefaults.standard.removeObject(forKey: userDefaultsPrefix + normalized)
     }
 
-    /// Load VELLUM_FLAG_* entries from a `.env` file and apply them as overrides.
+    /// Load MAX_FLAG_* entries from a `.env` file and apply them as overrides.
     public func loadFromFile(at path: String) {
         guard let contents = try? String(contentsOfFile: path, encoding: .utf8) else { return }
         lock.lock()

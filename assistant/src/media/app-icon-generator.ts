@@ -3,7 +3,7 @@
  *
  * Called as an async side-effect after app creation — never blocks
  * the main app_create flow. Icons are saved to the app's directory
- * as `icon.png` and included in .vellum bundles.
+ * as `icon.png` and included in .max bundles.
  */
 
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -18,7 +18,7 @@ import { generateImage, mapImageGenError } from "./image-service.js";
 const log = getLogger("app-icon-generator");
 
 /**
- * Generate an app icon and save it to `~/.vellum/apps/{appId}/icon.png`.
+ * Generate an app icon and save it to `~/.max/apps/{appId}/icon.png`.
  *
  * Uses the configured image-generation provider when credentials are
  * available. Silently no-ops if no credentials are configured or

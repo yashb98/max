@@ -1,8 +1,8 @@
 import {
   buildTwilioPhoneNumberWebhookUrls,
   resolveTwilioPublicBaseUrl,
-} from "@vellumai/service-contracts/twilio-ingress";
-import { updatePhoneNumberWebhooks } from "@vellumai/twilio-client";
+} from "@maxai/service-contracts/twilio-ingress";
+import { updatePhoneNumberWebhooks } from "@maxai/twilio-client";
 
 import type { ConfigFileCache } from "../config-file-cache.js";
 import type { CredentialCache } from "../credential-cache.js";

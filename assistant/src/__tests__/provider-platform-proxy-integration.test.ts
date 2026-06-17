@@ -53,7 +53,7 @@ mock.module("../config/env.js", () => ({
 
 mock.module("../security/secure-keys.js", () => ({
   getSecureKeyAsync: async (key: string) => {
-    if (key === credentialKey("vellum", "assistant_api_key")) {
+    if (key === credentialKey("max", "assistant_api_key")) {
       return mockAssistantApiKey;
     }
     return mockProviderKeys[key] ?? null;
@@ -213,10 +213,15 @@ describe("managed proxy integration — credential precedence", () => {
       enableManagedProxy();
       mockProviderKeys = {};
       await initializeProviders(makeProvidersConfig("anthropic", "test-model"));
-      expect(listProviders()).toEqual(
+      // claude-subscription + kimi-agent are defaultEnabled cli-login providers
+      // that always register; exclude them to assert the managed-proxy set.
+      const managed = listProviders().filter(
+        (p) => p !== "claude-subscription" && p !== "kimi-agent",
+      );
+      expect(managed).toEqual(
         expect.arrayContaining(["anthropic", "openai", "gemini"]),
       );
-      expect(listProviders()).toHaveLength(3);
+      expect(managed).toHaveLength(3);
       expect(getProviderRoutingSource("anthropic")).toBe("managed-proxy");
       expect(getProviderRoutingSource("openai")).toBe("managed-proxy");
       expect(getProviderRoutingSource("gemini")).toBe("managed-proxy");
@@ -311,11 +316,11 @@ describe("managed proxy integration — credential precedence", () => {
         usageAttributionHeaders?: Record<string, string>;
       };
       expect(sentConfig.httpOptions?.headers).toEqual({
-        "X-Vellum-LLM-Call-Site": "mainAgent",
-        "X-Vellum-Inference-Profile": "conversation-profile",
-        "X-Vellum-Inference-Profile-Source": "conversation",
-        "X-Vellum-Resolved-Provider": "gemini",
-        "X-Vellum-Resolved-Model": "gemini-3.1-flash",
+        "X-Max-LLM-Call-Site": "mainAgent",
+        "X-Max-Inference-Profile": "conversation-profile",
+        "X-Max-Inference-Profile-Source": "conversation",
+        "X-Max-Resolved-Provider": "gemini",
+        "X-Max-Resolved-Model": "gemini-3.1-flash",
       });
       expect(sentConfig.usageAttributionHeaders).toBeUndefined();
 
@@ -371,7 +376,13 @@ describe("managed proxy integration — credential precedence", () => {
       disableManagedProxy();
       mockProviderKeys = {};
       await initializeProviders(makeProvidersConfig("anthropic", "test-model"));
-      expect(listProviders()).toEqual([]);
+      // Exclude the always-on cli-login providers (claude-subscription, kimi-agent)
+      // — "empty" here means no key-based/managed providers registered.
+      expect(
+        listProviders().filter(
+          (p) => p !== "claude-subscription" && p !== "kimi-agent",
+        ),
+      ).toEqual([]);
     });
   });
 

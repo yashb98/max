@@ -35,7 +35,7 @@ export interface DiskPressureTurnMetadata {
   callSite?: LLMCallSite | (string & {}) | null;
   isInteractive?: boolean | null;
   sourceChannel?: TrustContext["sourceChannel"] | (string & {}) | null;
-  sourceInterface?: InterfaceId | "vellum" | (string & {}) | null;
+  sourceInterface?: InterfaceId | "max" | (string & {}) | null;
   trustContext?: DiskPressureTurnTrustContext | null;
   isDirectWake?: boolean | null;
 }
@@ -57,7 +57,7 @@ const BACKGROUND_SOURCES = new Set([
   "task",
   "update-bulletin",
 ]);
-const LOCAL_OWNER_INTERFACES = new Set(["macos", "web", "vellum", "cli"]);
+const LOCAL_OWNER_INTERFACES = new Set(["macos", "web", "max", "cli"]);
 
 export function classifyDiskPressureTurnPolicy(
   status: DiskPressureStatus,
@@ -140,7 +140,7 @@ function isLocalOwnerTurnWithoutTrust(
 
   const channel = metadata.sourceChannel;
   const sourceInterface = metadata.sourceInterface;
-  if (channel !== "vellum" || sourceInterface == null) return false;
+  if (channel !== "max" || sourceInterface == null) return false;
   return LOCAL_OWNER_INTERFACES.has(sourceInterface);
 }
 
@@ -150,7 +150,7 @@ function isExplicitLocalOwnerCleanupTurn(
   if (metadata.isDirectWake !== true) return false;
   const sourceInterface = metadata.sourceInterface;
   if (
-    metadata.sourceChannel !== "vellum" ||
+    metadata.sourceChannel !== "max" ||
     sourceInterface == null ||
     !LOCAL_OWNER_INTERFACES.has(sourceInterface)
   ) {

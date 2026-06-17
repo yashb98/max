@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     console.log(JSON.stringify({ ok: false, error: "invalid JSON args" }));
     return;
   }
-  const body = JSON.stringify({ action, args, session: session ?? "vellum" });
+  const body = JSON.stringify({ action, args, session: session ?? "max" });
   try {
     const r = await fetch(`${DAEMON}/command`, {
       method: "POST",

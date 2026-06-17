@@ -99,9 +99,9 @@ function seedConversations(count: number): void {
 }
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-rsw-"));
-  origWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = workspaceDir;
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-rsw-"));
+  origWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = workspaceDir;
   fakeConnections.length = 0;
   fakeConversationCount = 0;
   fakeConversationCountThrows = false;
@@ -109,9 +109,9 @@ beforeEach(() => {
 
 afterEach(() => {
   if (origWorkspaceDir === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = origWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = origWorkspaceDir;
   }
   try {
     rmSync(workspaceDir, { recursive: true, force: true });
@@ -357,7 +357,7 @@ describe("relationship-state-writer", () => {
       // force mkdirSync to fail. The public API must swallow this.
       const sentinelFile = join(workspaceDir, "blocker");
       writeFileSync(sentinelFile, "blocking", "utf-8");
-      process.env.VELLUM_WORKSPACE_DIR = join(sentinelFile, "nested");
+      process.env.MAX_WORKSPACE_DIR = join(sentinelFile, "nested");
 
       await expect(writeRelationshipState()).resolves.toBeUndefined();
     });

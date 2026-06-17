@@ -34,7 +34,7 @@ describe("commitTurnChanges", () => {
   beforeEach(() => {
     testDir = join(
       tmpdir(),
-      `vellum-turn-commit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `max-turn-commit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(testDir, { recursive: true });
     _resetGitServiceRegistry();
@@ -329,7 +329,7 @@ describe("LLM commit message integration", () => {
   beforeEach(() => {
     testDir = join(
       tmpdir(),
-      `vellum-llm-commit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `max-llm-commit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(testDir, { recursive: true });
     _resetGitServiceRegistry();

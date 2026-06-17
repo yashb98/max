@@ -23,7 +23,7 @@
  * The loader deliberately:
  *
  * - Uses `getWorkspaceDir()` so each instance loads its own plugin set
- *   when `VELLUM_WORKSPACE_DIR` is set.
+ *   when `MAX_WORKSPACE_DIR` is set.
  * - Prefers `.js` over `.ts` per surface file (compiled-binary semantics).
  *   The external loader applies the same rule per surface file; the
  *   legacy path picks between `register.js` and `register.ts`.
@@ -94,9 +94,9 @@ export async function loadUserPlugins(
 ): Promise<void> {
   const importTimeoutMs = options.importTimeoutMs ?? USER_PLUGIN_IMPORT_TIMEOUT_MS;
 
-  // Materialize the workspace-level `@vellumai/plugin-api` shim *before*
+  // Materialize the workspace-level `@maxai/plugin-api` shim *before*
   // we dynamic-import any user plugins. The shim file must exist on disk
-  // before the first plugin's `import "@vellumai/plugin-api"` is parsed.
+  // before the first plugin's `import "@maxai/plugin-api"` is parsed.
   //
   // Wrapped in try/catch because per `AGENTS.md` the daemon must never
   // block startup. A shim-write failure (ENOSPC, read-only workspace,

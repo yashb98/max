@@ -6,7 +6,7 @@
  * goes through the gateway as required by AGENTS.md.
  */
 
-import { proxyForward } from "@vellumai/assistant-client";
+import { proxyForward } from "@maxai/assistant-client";
 
 import { mintServiceToken } from "../../auth/token-exchange.js";
 import type { GatewayConfig } from "../../config.js";

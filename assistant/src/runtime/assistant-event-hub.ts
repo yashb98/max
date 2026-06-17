@@ -584,7 +584,7 @@ function resolveCanonicalRequestSourceType(
   sourceChannel: string,
 ): "desktop" | "channel" | "voice" {
   if (sourceChannel === "phone") return "voice";
-  if (sourceChannel === "vellum") return "desktop";
+  if (sourceChannel === "max") return "desktop";
   return "channel";
 }
 
@@ -617,7 +617,7 @@ async function createCanonicalRequestForConfirmation(
 
     const conversation = findConversation(conversationId);
     const trustContext = conversation?.trustContext;
-    const sourceChannel = trustContext?.sourceChannel ?? "vellum";
+    const sourceChannel = trustContext?.sourceChannel ?? "max";
     const inputRecord = msg.input as Record<string, unknown>;
     const activityRaw =
       (typeof inputRecord.activity === "string"

@@ -23,7 +23,7 @@ public final class TaskProgressOverlayManager {
     // MARK: - Debug publish-rate counters
 
     #if DEBUG
-    private static let perfLog = OSLog(subsystem: "com.vellum.assistant", category: "PerfCounters")
+    private static let perfLog = OSLog(subsystem: "com.max.assistant", category: "PerfCounters")
     @ObservationIgnored private var publishCount = 0
     @ObservationIgnored private var lastRateLogTime = Date()
 

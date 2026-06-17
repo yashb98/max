@@ -72,7 +72,7 @@ export interface ClickHouseLlmRequestLogSourceDeps {
   resolveUrl?: () => Promise<string | null>;
   /** Override the credential read for `clickhouse:password`. */
   resolvePassword?: () => Promise<string | null>;
-  /** Override the credential read for `vellum:platform_assistant_id`. */
+  /** Override the credential read for `max:platform_assistant_id`. */
   resolveAssistantId?: () => Promise<string | null>;
   /** Override the turn-id resolver (default: `getAssistantMessageIdsInTurn`). */
   resolveTurnMessageIds?: (messageId: string) => string[];
@@ -107,7 +107,7 @@ export class ClickHouseLlmRequestLogSource implements LlmRequestLogSource {
       (() => readCredentialOrNull("clickhouse", "password"));
     this.resolveAssistantId =
       deps.resolveAssistantId ??
-      (() => readCredentialOrNull("vellum", "platform_assistant_id"));
+      (() => readCredentialOrNull("max", "platform_assistant_id"));
     this.resolveTurnMessageIds =
       deps.resolveTurnMessageIds ?? getAssistantMessageIdsInTurn;
     this.resolveMessage = deps.resolveMessage ?? getMessageById;
@@ -291,7 +291,7 @@ export class ClickHouseLlmRequestLogSource implements LlmRequestLogSource {
     const val = await this.resolveAssistantId();
     if (!val) {
       throw new Error(
-        "vellum:platform_assistant_id credential is required when readSource=clickhouse",
+        "max:platform_assistant_id credential is required when readSource=clickhouse",
       );
     }
     this.cachedAssistantId = val;

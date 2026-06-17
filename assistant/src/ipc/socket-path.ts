@@ -6,7 +6,7 @@ import { getWorkspaceDir } from "../util/platform.js";
 
 const DARWIN_UNIX_SOCKET_MAX_PATH_BYTES = 103;
 const DEFAULT_UNIX_SOCKET_MAX_PATH_BYTES = 107;
-const IPC_TMP_DIR_NAME = "vellum-ipc";
+const IPC_TMP_DIR_NAME = "max-ipc";
 
 export type IpcSocketPathSource =
   | "env-override"

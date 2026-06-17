@@ -29,11 +29,11 @@ import {
 const log = getLogger("retry");
 
 const USAGE_ATTRIBUTION_HEADER_NAMES = {
-  callSite: "X-Vellum-LLM-Call-Site",
-  inferenceProfile: "X-Vellum-Inference-Profile",
-  inferenceProfileSource: "X-Vellum-Inference-Profile-Source",
-  resolvedProvider: "X-Vellum-Resolved-Provider",
-  resolvedModel: "X-Vellum-Resolved-Model",
+  callSite: "X-Max-LLM-Call-Site",
+  inferenceProfile: "X-Max-Inference-Profile",
+  inferenceProfileSource: "X-Max-Inference-Profile-Source",
+  resolvedProvider: "X-Max-Resolved-Provider",
+  resolvedModel: "X-Max-Resolved-Model",
 } as const;
 
 /** Providers that support the `effort` config (extended thinking / reasoning). */

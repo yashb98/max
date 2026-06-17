@@ -2,9 +2,9 @@
 # Regenerate: cd assistant && bun run generate:openapi
 openapi: 3.0.0
 info:
-  title: Vellum Assistant API
+  title: Max Assistant API
   version: 0.8.1
-  description: Auto-generated OpenAPI specification for the Vellum Assistant runtime HTTP server.
+  description: Auto-generated OpenAPI specification for the Max Assistant runtime HTTP server.
 servers:
   - url: http://127.0.0.1:7821
     description: Local assistant (default port)
@@ -3103,7 +3103,7 @@ paths:
                           enum:
                             - telegram
                             - phone
-                            - vellum
+                            - max
                             - whatsapp
                             - slack
                             - email
@@ -5827,7 +5827,7 @@ paths:
     post:
       operationId: debug_bash_post
       summary: Execute a shell command in the assistant process
-      description: Developer debugging tool. Requires the assistant to be running with VELLUM_DEBUG=1.
+      description: Developer debugging tool. Requires the assistant to be running with MAX_DEBUG=1.
       tags:
         - debug
       responses:
@@ -6657,7 +6657,7 @@ paths:
     post:
       operationId: email_register_post
       summary: Register an email address
-      description: Register a new email address on the Vellum platform for the current assistant.
+      description: Register a new email address on the Max platform for the current assistant.
       tags:
         - email
       responses:
@@ -6697,7 +6697,7 @@ paths:
     post:
       operationId: email_send_post
       summary: Send an email
-      description: Send an email from the assistant's registered email address via the Vellum runtime proxy.
+      description: Send an email from the assistant's registered email address via the Max runtime proxy.
       tags:
         - email
       responses:
@@ -8205,7 +8205,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host app-control request.
+          description: x-max-client-id header is missing for a targeted host app-control request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -8276,7 +8276,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host bash request.
+          description: x-max-client-id header is missing for a targeted host bash request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -8365,7 +8365,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host browser request.
+          description: x-max-client-id header is missing for a targeted host browser request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -8446,7 +8446,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host CU request.
+          description: x-max-client-id header is missing for a targeted host CU request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -8514,7 +8514,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host file request.
+          description: x-max-client-id header is missing for a targeted host file request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -8566,7 +8566,7 @@ paths:
                   - accepted
                 additionalProperties: false
         "400":
-          description: x-vellum-client-id header is missing for a targeted host transfer request.
+          description: x-max-client-id header is missing for a targeted host transfer request.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -9011,7 +9011,7 @@ paths:
                   - ok
                 additionalProperties: false
         "400":
-          description: Connection is a Vellum-managed connection and cannot be deleted
+          description: Connection is a Max-managed connection and cannot be deleted
         "404":
           description: Connection not found
         "409":
@@ -10964,7 +10964,7 @@ paths:
                   type: string
                   enum:
                     - assistant_tool
-                    - vellum
+                    - max
                     - phone
                     - telegram
                     - slack
@@ -11517,7 +11517,7 @@ paths:
   /v1/platform/connect:
     post:
       operationId: platform_connect_post
-      summary: Connect to the Vellum Platform
+      summary: Connect to the Max Platform
       description: Checks existing credentials and emits the show_platform_login signal for connected clients to show a login UI.
       tags:
         - platform
@@ -11527,7 +11527,7 @@ paths:
   /v1/platform/disconnect:
     post:
       operationId: platform_disconnect_post
-      summary: Disconnect from the Vellum Platform
+      summary: Disconnect from the Max Platform
       description: Deletes stored platform credentials and emits platform_disconnected signal to connected clients.
       tags:
         - platform
@@ -13045,7 +13045,7 @@ paths:
                                 - available
                             origin:
                               type: string
-                              const: vellum
+                              const: max
                           required:
                             - id
                             - name
@@ -13230,13 +13230,13 @@ paths:
             type: string
             enum:
               - catalog
-          description: Optional inclusion flag. Use 'catalog' to merge available Vellum catalog skills into the response.
+          description: Optional inclusion flag. Use 'catalog' to merge available Max catalog skills into the response.
         - name: origin
           in: query
           required: false
           schema:
             type: string
-          description: Filter by skill origin (e.g. 'vellum', 'clawhub', 'skillssh', 'custom').
+          description: Filter by skill origin (e.g. 'max', 'clawhub', 'skillssh', 'custom').
         - name: kind
           in: query
           required: false
@@ -13351,7 +13351,7 @@ paths:
                               - available
                           origin:
                             type: string
-                            const: vellum
+                            const: max
                         required:
                           - id
                           - name
@@ -13904,7 +13904,7 @@ paths:
                   type: boolean
                 catalogOnly:
                   description:
-                    When true, restrict to bundled and Vellum catalog skills only — do not fall through to community
+                    When true, restrict to bundled and Max catalog skills only — do not fall through to community
                     registries.
                   type: boolean
               required:
@@ -13956,7 +13956,7 @@ paths:
                                 - available
                             origin:
                               type: string
-                              const: vellum
+                              const: max
                           required:
                             - id
                             - name
@@ -15095,7 +15095,7 @@ paths:
         "200":
           description: Successful response
         "400":
-          description: x-vellum-client-id header is missing for a targeted transfer.
+          description: x-max-client-id header is missing for a targeted transfer.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match
@@ -15116,7 +15116,7 @@ paths:
         "200":
           description: Successful response
         "400":
-          description: x-vellum-client-id header is missing for a targeted transfer.
+          description: x-max-client-id header is missing for a targeted transfer.
         "403":
           description:
             Submitting client does not match the targeted client, or the submitting actor's principal does not match

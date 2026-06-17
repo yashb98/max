@@ -32,7 +32,7 @@ function makeContext(overrides: Partial<TurnContext> = {}): TurnContext {
     requestId: "req-test",
     conversationId: "conv-test",
     turnIndex: 0,
-    trust: { sourceChannel: "vellum", trustClass: "guardian" },
+    trust: { sourceChannel: "max", trustClass: "guardian" },
     ...overrides,
   };
 }

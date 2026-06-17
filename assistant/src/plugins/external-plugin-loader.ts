@@ -12,7 +12,7 @@
  *     <pluginDir>/
  *       package.json              ← manifest.name comes from `name`
  *                                   (npm scope stripped);
- *                                   peerDependencies["@vellumai/plugin-api"]
+ *                                   peerDependencies["@maxai/plugin-api"]
  *                                   semver range is checked against the
  *                                   running assistant version and rejects
  *                                   the plugin if unsatisfied
@@ -57,7 +57,7 @@ import type {
   PluginToolRegistration,
 } from "./types.js";
 
-const PLUGIN_API_PEER_DEP = "@vellumai/plugin-api";
+const PLUGIN_API_PEER_DEP = "@maxai/plugin-api";
 
 const log = getLogger("external-plugin-loader");
 
@@ -68,7 +68,7 @@ const DEFAULT_IMPORT_TIMEOUT_MS = 10_000;
  * Zod schema for the subset of `package.json` the external loader reads.
  *
  * - `name` is the only required field; everything else is best-effort.
- * - `peerDependencies["@vellumai/plugin-api"]` is the canonical host-compat
+ * - `peerDependencies["@maxai/plugin-api"]` is the canonical host-compat
  *   declaration. If present, the loader checks `semver.satisfies(host, range)`
  *   against the running assistant version and rejects the plugin on
  *   mismatch. If absent, the plugin loads without a host-compat claim
@@ -98,7 +98,7 @@ export interface LoadExternalPluginOptions {
 }
 
 /**
- * Strip the npm scope from a package name. `@vellumai/simple-memory` →
+ * Strip the npm scope from a package name. `@maxai/simple-memory` →
  * `simple-memory`; an unscoped name passes through unchanged.
  */
 function stripScope(name: string): string {
@@ -218,7 +218,7 @@ async function buildPluginFromDir(pluginDir: string): Promise<Plugin> {
   const version = pkg.version && pkg.version.length > 0 ? pkg.version : "0.0.0";
 
   // Host-compat negotiation: plugins declare their plugin-api version
-  // range via standard `peerDependencies["@vellumai/plugin-api"]`. We
+  // range via standard `peerDependencies["@maxai/plugin-api"]`. We
   // inspect the range and report unparseable / unsatisfied cases via
   // `log.error` but still load the plugin — the plugin-installation
   // flow is in flux and a strict gate here would block experimentation

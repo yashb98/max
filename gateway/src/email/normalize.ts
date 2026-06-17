@@ -1,15 +1,15 @@
 import type { GatewayInboundEvent } from "../types.js";
 
 /**
- * Shape of a normalized inbound email event as sent by the Vellum
+ * Shape of a normalized inbound email event as sent by the Max
  * platform (or any upstream caller).
  *
  * The platform is responsible for provider-specific parsing (e.g.
  * Mailgun multipart → JSON). By the time the payload reaches the
  * gateway it should already be in this canonical shape.
  */
-export interface VellumEmailPayload {
-  /** Sender email address (e.g. "user@vellum.me"). */
+export interface MaxEmailPayload {
+  /** Sender email address (e.g. "user@max.me"). */
   from: string;
   /** Sender display name (e.g. "Alice Smith"). Optional. */
   fromName?: string;
@@ -42,7 +42,7 @@ export interface NormalizedEmailEvent {
 }
 
 /**
- * Normalize a Vellum email webhook payload into a GatewayInboundEvent.
+ * Normalize a Max email webhook payload into a GatewayInboundEvent.
  *
  * Returns null if required fields are missing.
  */

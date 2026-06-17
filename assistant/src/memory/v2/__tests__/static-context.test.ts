@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 const noopLogger: Record<string, unknown> = new Proxy(
   {} as Record<string, unknown>,
@@ -144,7 +144,7 @@ describe("shouldExposePersonalMemory", () => {
   test("allows guardian-trusted local conversations", () => {
     expect(
       shouldExposePersonalMemory({
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         isTrustedActor: true,
       }),
     ).toBe(true);
@@ -153,7 +153,7 @@ describe("shouldExposePersonalMemory", () => {
   test("allows local-channel conversations even when trust class is unknown (analyze runs, dev)", () => {
     expect(
       shouldExposePersonalMemory({
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         isTrustedActor: false,
       }),
     ).toBe(true);

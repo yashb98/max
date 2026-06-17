@@ -200,7 +200,7 @@ describe("daemon/CLI signing key interoperability", () => {
 
     // Mint a token using the daemon's key
     const daemonToken = mintToken({
-      aud: "vellum-daemon",
+      aud: "max-daemon",
       sub: "svc:daemon:self",
       scope_profile: "gateway_service_v1",
       policy_epoch: CURRENT_POLICY_EPOCH,
@@ -218,7 +218,7 @@ describe("daemon/CLI signing key interoperability", () => {
 
     // Mint a token using the CLI's disk-loaded key
     const cliToken = mintToken({
-      aud: "vellum-daemon",
+      aud: "max-daemon",
       sub: "svc:daemon:self",
       scope_profile: "gateway_service_v1",
       policy_epoch: CURRENT_POLICY_EPOCH,
@@ -229,13 +229,13 @@ describe("daemon/CLI signing key interoperability", () => {
     // CLI-minted token must verify with daemon key
     _resetSigningKeyForTesting();
     initAuthSigningKey(daemonKey);
-    const cliResult = verifyToken(cliToken, "vellum-daemon");
+    const cliResult = verifyToken(cliToken, "max-daemon");
     expect(cliResult.ok).toBe(true);
 
     // Daemon-minted token must verify with CLI disk key
     _resetSigningKeyForTesting();
     initAuthSigningKey(cliDiskKey!);
-    const daemonResult = verifyToken(daemonToken, "vellum-daemon");
+    const daemonResult = verifyToken(daemonToken, "max-daemon");
     expect(daemonResult.ok).toBe(true);
   });
 });

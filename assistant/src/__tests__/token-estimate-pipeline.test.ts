@@ -52,7 +52,7 @@ import type { Message, ToolDefinition } from "../providers/types.js";
 // ── Fixtures ─────────────────────────────────────────────────────────────
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

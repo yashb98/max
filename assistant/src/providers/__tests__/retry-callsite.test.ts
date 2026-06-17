@@ -164,15 +164,15 @@ describe("RetryProvider — callSite resolution", () => {
 
     const config = seen?.config as Record<string, unknown>;
     expect(config.usageAttributionHeaders).toEqual({
-      "X-Vellum-LLM-Call-Site": "memoryRetrieval",
-      "X-Vellum-Inference-Profile": "conversation-profile",
-      "X-Vellum-Inference-Profile-Source": "conversation",
-      "X-Vellum-Resolved-Provider": "openai",
-      "X-Vellum-Resolved-Model": "claude-profile",
+      "X-Max-LLM-Call-Site": "memoryRetrieval",
+      "X-Max-Inference-Profile": "conversation-profile",
+      "X-Max-Inference-Profile-Source": "conversation",
+      "X-Max-Resolved-Provider": "openai",
+      "X-Max-Resolved-Model": "claude-profile",
     });
     expect(
       (config.usageAttributionHeaders as Record<string, string>)[
-        "X-Vellum-LLM-Call-Site-Label"
+        "X-Max-LLM-Call-Site-Label"
       ],
     ).toBeUndefined();
   });
@@ -233,9 +233,9 @@ describe("RetryProvider — callSite resolution", () => {
 
     const config = seen?.config as Record<string, unknown>;
     expect(config.usageAttributionHeaders).toEqual({
-      "X-Vellum-LLM-Call-Site": "memoryRetrieval",
-      "X-Vellum-Resolved-Provider": "openai",
-      "X-Vellum-Resolved-Model": "gpt-default",
+      "X-Max-LLM-Call-Site": "memoryRetrieval",
+      "X-Max-Resolved-Provider": "openai",
+      "X-Max-Resolved-Model": "gpt-default",
     });
   });
 
@@ -741,7 +741,7 @@ describe("RetryProvider — no callSite (pre-resolved config passes through)", (
       config: {
         model: "explicit-model",
         usageAttributionHeaders: {
-          "X-Vellum-LLM-Call-Site": "injected",
+          "X-Max-LLM-Call-Site": "injected",
         },
       },
     });

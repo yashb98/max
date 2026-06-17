@@ -24,7 +24,7 @@ import { join } from "node:path";
 import type {
   SecureKeyBackend,
   SecureKeyDeleteResult,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import { getIsContainerized } from "../config/env-registry.js";
 import type { CesClient } from "../credential-execution/client.js";
@@ -48,7 +48,7 @@ export type {
 
 /**
  * Re-export shared-package secure-key abstractions so downstream consumers
- * can import from this module without a direct @vellumai/credential-storage
+ * can import from this module without a direct @maxai/credential-storage
  * dependency.
  */
 export type { SecureKeyBackend, SecureKeyDeleteResult };

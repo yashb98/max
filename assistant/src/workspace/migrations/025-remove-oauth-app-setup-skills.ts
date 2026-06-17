@@ -2,7 +2,7 @@
  * Workspace migration 025: Remove standalone OAuth app setup skill directories
  * and their SKILLS.md entries from user workspaces.
  *
- * These skills have been consolidated into vellum-oauth-integrations and are
+ * These skills have been consolidated into max-oauth-integrations and are
  * no longer shipped as standalone skills.
  *
  * Idempotent: safe to re-run after interruption at any point.
@@ -40,7 +40,7 @@ const DELETED_SKILLS = [
 export const removeOauthAppSetupSkillsMigration: WorkspaceMigration = {
   id: "025-remove-oauth-app-setup-skills",
   description:
-    "Remove standalone OAuth app setup skill directories consolidated into vellum-oauth-integrations",
+    "Remove standalone OAuth app setup skill directories consolidated into max-oauth-integrations",
 
   run(workspaceDir: string): void {
     const skillsDir = join(workspaceDir, "skills");
@@ -70,7 +70,7 @@ export const removeOauthAppSetupSkillsMigration: WorkspaceMigration = {
 
   down(_workspaceDir: string): void {
     // Deleted skills cannot be restored since they have been removed from the
-    // repo. Users would need to reinstall the `vellum-oauth-integrations`
+    // repo. Users would need to reinstall the `max-oauth-integrations`
     // skill to regain the consolidated OAuth setup functionality.
   },
 };

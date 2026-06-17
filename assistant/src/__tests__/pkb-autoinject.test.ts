@@ -25,7 +25,7 @@ const dirs: string[] = [];
 beforeEach(() => {
   pkbDir = join(
     tmpdir(),
-    `vellum-pkb-autoinject-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-pkb-autoinject-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(pkbDir, { recursive: true });
   dirs.push(pkbDir);

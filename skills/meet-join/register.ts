@@ -10,7 +10,7 @@
  * ## Isolation
  *
  * This file and every module it imports takes a runtime-injected
- * `SkillHost` from `@vellumai/skill-host-contracts` for feature-flag
+ * `SkillHost` from `@maxai/skill-host-contracts` for feature-flag
  * reads, logger access, event publication, and registry hooks. No file
  * under `skills/meet-join/` reaches into `assistant/src/...` directly;
  * the only cross-directory edge is the sanctioned named import of this
@@ -36,7 +36,7 @@
  * would reject the bot's opaque bearer token as a malformed JWT).
  */
 
-import type { SkillHost } from "@vellumai/skill-host-contracts";
+import type { SkillHost } from "@maxai/skill-host-contracts";
 
 import { createMeetSessionManager } from "./daemon/session-manager.js";
 import {

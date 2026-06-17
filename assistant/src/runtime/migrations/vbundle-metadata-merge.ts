@@ -4,21 +4,21 @@
  * The credential metadata file lists the credentials known to the assistant
  * (service, field, policy, timestamps) and is used by the gateway's
  * `readServiceCredentials` to decide whether a service is "configured".
- * The VELLUM spec requires all four `vellum:*` fields (`platform_base_url`,
+ * The MAX spec requires all four `max:*` fields (`platform_base_url`,
  * `assistant_api_key`, `platform_assistant_id`, `webhook_secret`) to be
  * present in metadata before the gateway will even look up their values in
  * CES.
  *
  * On a local→platform teleport, the bundle carries the SOURCE's metadata
- * (no `vellum:*` entries, since the source is local), and a naive overwrite
- * would wipe out the `vellum:*` entries that Django's post-hatch
+ * (no `max:*` entries, since the source is local), and a naive overwrite
+ * would wipe out the `max:*` entries that Django's post-hatch
  * provisioning just wrote on the TARGET. This module merges bundle and live
  * metadata with one rule:
  *
- *   - Drop `service === "vellum"` entries the bundle tries to ship
+ *   - Drop `service === "max"` entries the bundle tries to ship
  *     (defense-in-depth — they represent the source's identity, not the
  *     target's). This mirrors the CES-side filter in migration-routes.ts.
- *   - Preserve every `service === "vellum"` entry the target already has.
+ *   - Preserve every `service === "max"` entry the target already has.
  *   - Import bundle entries for every other service normally (user OAuth,
  *     channel credentials).
  *
@@ -28,7 +28,7 @@
  * can't be merged cleanly.
  */
 
-const VELLUM_SERVICE = "vellum";
+const MAX_SERVICE = "max";
 
 interface MetadataRecord {
   credentialId: string;
@@ -66,15 +66,15 @@ function parseMetadata(json: string | null | undefined): MetadataFile | null {
   }
 }
 
-function extractVellumRecords(file: MetadataFile | null): MetadataRecord[] {
+function extractMaxRecords(file: MetadataFile | null): MetadataRecord[] {
   if (!file || !Array.isArray(file.credentials)) return [];
   return file.credentials
     .filter(isRecord)
-    .filter((r) => r.service === VELLUM_SERVICE);
+    .filter((r) => r.service === MAX_SERVICE);
 }
 
 /**
- * Merge the bundle's metadata.json content with any `vellum:*` entries
+ * Merge the bundle's metadata.json content with any `max:*` entries
  * present in the target's live metadata.json.
  *
  * Returns the merged JSON string, preserving the bundle's schema version
@@ -85,28 +85,28 @@ function extractVellumRecords(file: MetadataFile | null): MetadataRecord[] {
  * If the live JSON is unparseable or missing, the bundle's file is returned
  * verbatim (no preservation possible — nothing to preserve).
  */
-export function mergeMetadataPreservingVellum(
+export function mergeMetadataPreservingMax(
   bundleJson: string,
   liveJson: string | null,
 ): string {
   const bundle = parseMetadata(bundleJson);
   if (!bundle) return bundleJson;
 
-  const preservedVellum = extractVellumRecords(parseMetadata(liveJson));
+  const preservedMax = extractMaxRecords(parseMetadata(liveJson));
 
   const bundleCredentials = Array.isArray(bundle.credentials)
     ? bundle.credentials.filter(isRecord)
     : [];
 
-  // Drop any `service === "vellum"` entries from the bundle (defense-in-depth).
+  // Drop any `service === "max"` entries from the bundle (defense-in-depth).
   const filteredBundle = bundleCredentials.filter(
-    (r) => r.service !== VELLUM_SERVICE,
+    (r) => r.service !== MAX_SERVICE,
   );
 
-  // Union: bundle non-vellum entries + target vellum entries. If the
+  // Union: bundle non-max entries + target max entries. If the
   // preserved list happens to collide with a bundle entry on credentialId,
   // the preserved version wins (it belongs to the target's live identity).
-  const merged = [...filteredBundle, ...preservedVellum];
+  const merged = [...filteredBundle, ...preservedMax];
 
   const output: MetadataFile = {
     ...bundle,
@@ -118,7 +118,7 @@ export function mergeMetadataPreservingVellum(
 
 /** @internal For direct use by tests. */
 const _internal = {
-  VELLUM_SERVICE,
+  MAX_SERVICE,
   parseMetadata,
-  extractVellumRecords,
+  extractMaxRecords,
 };

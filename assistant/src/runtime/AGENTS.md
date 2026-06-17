@@ -82,7 +82,7 @@ Host app-control allows the assistant to proxy app-control actions (target a spe
 
 The `chrome-extension` interface in `INTERFACE_IDS` is a non-interactive transport that supports only the `host_browser` capability — it does NOT support `host_bash`, `host_file`, or `host_cu`. This is encoded in `supportsHostProxy(id, capability)`: passing a capability argument returns `true` for `chrome-extension` only when the capability is `host_browser`; the no-arg form returns `false` for `chrome-extension` (so legacy desktop-only call sites that assume full-desktop proxy availability continue to gate correctly).
 
-For **self-hosted** deployments, `host_browser_request` frames are routed through the `ChromeExtensionRegistry` singleton (`runtime/chrome-extension-registry.ts`), which tracks active chrome-extension WebSocket connections keyed by `(guardianId, clientInstanceId)`. The registry is populated on WebSocket `open` and drained on `close` inside `http-server.ts`'s `/v1/browser-relay` handlers — see the `wsType === "browser-relay"` branches. For **cloud/platform-hosted** deployments, the chrome extension connects via SSE (`GET /v1/events` with `X-Vellum-Interface-Id: chrome-extension`) and `host_browser_request` frames travel through `assistantEventHub` to the SSE stream. The extension POSTs results back to `POST /v1/host-browser-result`. Transport selection is handled by `HostBrowserProxy`, which publishes events to the `assistantEventHub` with `targetCapability: "host_browser"` — the hub delivers to whichever subscriber (chrome-extension or macOS client) has the `host_browser` capability. For macOS, `host_browser_request` frames travel through `assistantEventHub` (SSE) by default; when the guardian also has an active extension connection, the registry-routed WebSocket sender takes precedence.
+For **self-hosted** deployments, `host_browser_request` frames are routed through the `ChromeExtensionRegistry` singleton (`runtime/chrome-extension-registry.ts`), which tracks active chrome-extension WebSocket connections keyed by `(guardianId, clientInstanceId)`. The registry is populated on WebSocket `open` and drained on `close` inside `http-server.ts`'s `/v1/browser-relay` handlers — see the `wsType === "browser-relay"` branches. For **cloud/platform-hosted** deployments, the chrome extension connects via SSE (`GET /v1/events` with `X-Max-Interface-Id: chrome-extension`) and `host_browser_request` frames travel through `assistantEventHub` to the SSE stream. The extension POSTs results back to `POST /v1/host-browser-result`. Transport selection is handled by `HostBrowserProxy`, which publishes events to the `assistantEventHub` with `targetCapability: "host_browser"` — the hub delivers to whichever subscriber (chrome-extension or macOS client) has the `host_browser` capability. For macOS, `host_browser_request` frames travel through `assistantEventHub` (SSE) by default; when the guardian also has an active extension connection, the registry-routed WebSocket sender takes precedence.
 
 A single guardian may have multiple parallel extension installs connected at once (two Chrome profiles, two desktops sharing a sync identity). Each install generates a stable `clientInstanceId` on first run, persists it in `chrome.storage.local`, and sends it on every WebSocket handshake as a query param (`clientInstanceId=...`) or header (`x-client-instance-id`). The registry keys inner entries by that id so sibling installs don't evict each other on register/unregister. The default `send(guardianId, msg)` path routes to whichever instance has the most recent activity (`lastActiveAt`); `sendToInstance(guardianId, clientInstanceId, msg)` pins a specific install. Older extension builds that omit the id get a connection-scoped `legacy:<connectionId>` fallback key so they degrade gracefully to single-instance semantics.
 
@@ -138,7 +138,7 @@ All CDP-backed browser tools (`browser_navigate`, `browser_snapshot`, `browser_s
 
 - The requested mode
 - An ordered list of attempted backends with exact failure reasons
-- A remediation checklist tailored by backend, failure code, and transport (e.g. for macOS SSE: "Verify the Vellum desktop app is running"; for extension: "Ensure Chrome is running with the extension paired")
+- A remediation checklist tailored by backend, failure code, and transport (e.g. for macOS SSE: "Verify the Max desktop app is running"; for extension: "Ensure Chrome is running with the extension paired")
 
 **Auto-mode fallback logging**: In auto mode, fallback transitions are logged at `warn` level with structured metadata including the full candidate sequence and per-candidate failure reasons. This ensures fallback events are always observable in production logs.
 
@@ -161,10 +161,10 @@ All `/v1/*` endpoints share a per-client-IP sliding-window rate limiter (`middle
 
 When the limit is exceeded, the limiter returns 429 and logs a structured warning (module: `rate-limiter`) with the denied endpoint and a breakdown of which endpoints consumed the budget in the current window. This makes it easy to identify whether the cause is rapid conversation switching, polling, or unexpected request volume.
 
-Logs are written to `~/.vellum/workspace/data/logs/vellum.log` by default. If `logFile.dir` is configured, logs rotate daily as `assistant-YYYY-MM-DD.log` in that directory. To watch rate limit events in real time:
+Logs are written to `~/.max/workspace/data/logs/max.log` by default. If `logFile.dir` is configured, logs rotate daily as `assistant-YYYY-MM-DD.log` in that directory. To watch rate limit events in real time:
 
 ```bash
-tail -f ~/.vellum/workspace/data/logs/vellum.log | grep rate-limit
+tail -f ~/.max/workspace/data/logs/max.log | grep rate-limit
 ```
 
 The provider-level rate limiter (`providers/ratelimit.ts`) also logs warnings (module: `rate-limit`) when request rate or token budget limits are enforced.

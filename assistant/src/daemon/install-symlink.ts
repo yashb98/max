@@ -17,12 +17,12 @@ import { getLogger } from "../util/logger.js";
 const log = getLogger("install-symlink");
 
 /**
- * Resolves the path to the `vellum-assistant` binary that should be symlinked
+ * Resolves the path to the `max-assistant` binary that should be symlinked
  * as `assistant`.
  *
  * - **Bundled (desktop app):** The daemon runs from a compiled binary inside
- *   `Vellum.app/Contents/MacOS/`. `process.execPath` is the daemon binary
- *   itself — the `vellum-assistant` CLI binary lives alongside it in the same
+ *   `Max.app/Contents/MacOS/`. `process.execPath` is the daemon binary
+ *   itself — the `max-assistant` CLI binary lives alongside it in the same
  *   directory.
  *
  * - **Dev (bun):** `process.execPath` is the bun runtime. We resolve the
@@ -39,13 +39,13 @@ function resolveAssistantBinary(): string | null {
     // The assistant CLI binary is a sibling of the daemon binary in
     // Contents/MacOS/.
     const macosDir = dirname(execPath);
-    const assistantBinary = join(macosDir, "vellum-assistant");
+    const assistantBinary = join(macosDir, "max-assistant");
     if (existsSync(assistantBinary)) {
       return assistantBinary;
     }
     log.warn(
       { expected: assistantBinary },
-      "Bundled vellum-assistant binary not found alongside daemon",
+      "Bundled max-assistant binary not found alongside daemon",
     );
     return null;
   }
@@ -148,17 +148,17 @@ function commandResolvesElsewhere(
  *
  * Called on every daemon startup. Handles two runtime modes:
  * - **Bundled binary** (desktop app): symlinks to the compiled
- *   `vellum-assistant` binary in the app bundle.
+ *   `max-assistant` binary in the app bundle.
  * - **Bun dev mode**: symlinks to a small wrapper script that invokes
  *   `bun run` on the assistant entrypoint.
  *
  * Tries `/usr/local/bin/assistant` first, then falls back to
  * `~/.local/bin/assistant` (and patches the shell profile if needed).
  *
- * Skipped when VELLUM_DEV=1 (developers manage their own PATH).
+ * Skipped when MAX_DEV=1 (developers manage their own PATH).
  */
 export function installAssistantSymlink(): void {
-  if (process.env.VELLUM_DEV === "1") return;
+  if (process.env.MAX_DEV === "1") return;
 
   const target = resolveAssistantBinary();
   if (!target) return;

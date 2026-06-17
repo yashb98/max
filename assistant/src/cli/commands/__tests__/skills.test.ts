@@ -180,7 +180,7 @@ describe("skills inspect", () => {
           name: "Weather",
           description: "Get weather",
           emoji: null,
-          source: "vellum",
+          source: "max",
           state: "enabled",
           directoryPath: "/path/to/weather",
           featureFlag: null,
@@ -466,7 +466,7 @@ describe("skills search", () => {
               id: "react-tools",
               name: "React Tools",
               description: "React helpers",
-              origin: "vellum",
+              origin: "max",
               kind: "catalog",
               status: "available",
             },
@@ -512,7 +512,7 @@ describe("skills search", () => {
     expect(parsed.communityError).toBe("community unavailable");
   });
 
-  test("deduplicates by id — vellum wins over community", async () => {
+  test("deduplicates by id — max wins over community", async () => {
     mockIpcResults = [
       {
         ok: true,
@@ -521,8 +521,8 @@ describe("skills search", () => {
             {
               id: "react-tools",
               name: "React Tools",
-              description: "Vellum version",
-              origin: "vellum",
+              description: "Max version",
+              origin: "max",
               kind: "catalog",
               status: "available",
             },
@@ -554,9 +554,9 @@ describe("skills search", () => {
     ]);
 
     const parsed = JSON.parse(stdout);
-    // vellum skill should be in catalog
+    // max skill should be in catalog
     expect(parsed.catalog).toHaveLength(1);
-    expect(parsed.catalog[0].origin).toBe("vellum");
+    expect(parsed.catalog[0].origin).toBe("max");
     // community skill with same id should be deduplicated out
     expect(parsed.community).toHaveLength(0);
   });

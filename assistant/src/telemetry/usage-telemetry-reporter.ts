@@ -23,7 +23,7 @@ import { queryUnreportedBridgedToolCallEvents } from "../memory/bridged-tool-cal
 import { queryUnreportedLifecycleEvents } from "../memory/lifecycle-events-store.js";
 import { queryUnreportedUsageEvents } from "../memory/llm-usage-store.js";
 import { queryUnreportedTurnEvents } from "../memory/turn-events-store.js";
-import { VellumPlatformClient } from "../platform/client.js";
+import { MaxPlatformClient } from "../platform/client.js";
 import { getDeviceId } from "../util/device-id.js";
 import { getLogger } from "../util/logger.js";
 import { APP_VERSION } from "../version.js";
@@ -64,7 +64,7 @@ export class UsageTelemetryReporter {
 
   start(): void {
     // Delay the first flush to allow the credential infrastructure (CES
-    // handshake) to complete. Without this delay, VellumPlatformClient.create()
+    // handshake) to complete. Without this delay, MaxPlatformClient.create()
     // returns null because the credential backend hasn't resolved yet, causing
     // telemetry to fall back to anonymous mode permanently.
     this.initialFlushTimer = setTimeout(() => {
@@ -187,7 +187,7 @@ export class UsageTelemetryReporter {
 
       // Resolve auth context — authenticated path uses client, anonymous path
       // sends unauthenticated (telemetry endpoints are public).
-      const client = await VellumPlatformClient.create();
+      const client = await MaxPlatformClient.create();
       log.debug(
         {
           authenticated: !!client,

@@ -1,10 +1,10 @@
 ---
 name: linear-app-setup
 description: Create and configure a Linear agent app so the assistant can manage issues, projects, and workflows under its own identity
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔷"
-  vellum:
+  max:
     display-name: "Linear App Setup"
     user-invocable: true
 ---
@@ -100,7 +100,7 @@ Linear doesn't support setting the avatar via API — it must be uploaded throug
 If the assistant has an avatar, send it to the user:
 
 ```
-<vellum-attachment source="sandbox" path="data/avatar/avatar-image.png" />
+<max-attachment source="sandbox" path="data/avatar/avatar-image.png" />
 ```
 
 Then direct them to the app settings page:

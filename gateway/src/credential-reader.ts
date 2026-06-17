@@ -3,14 +3,14 @@
  *
  * Resolution order:
  * 1. CES HTTP API (when CES_CREDENTIAL_URL is set)
- * 2. Encrypted-at-rest file (~/.vellum/protected/keys.enc)
+ * 2. Encrypted-at-rest file (~/.max/protected/keys.enc)
  */
 
 import { createDecipheriv, pbkdf2Sync } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
 import { join } from "node:path";
-import { createCesHttpCredentialClient } from "@vellumai/ces-client/http-credentials";
+import { createCesHttpCredentialClient } from "@maxai/ces-client/http-credentials";
 import { credentialKey } from "./credential-key.js";
 import { getLogger } from "./logger.js";
 import { getGatewaySecurityDir, getWorkspaceDir } from "./paths.js";
@@ -80,7 +80,7 @@ function deriveKey(salt: Buffer): Buffer {
 }
 
 /**
- * Read the v2 store key file (~/.vellum/protected/store.key).
+ * Read the v2 store key file (~/.max/protected/store.key).
  * Returns null if the file doesn't exist or isn't exactly 32 bytes.
  */
 function readStoreKey(): Buffer | null {
@@ -185,7 +185,7 @@ function readEncryptedCredential(account: string): string | undefined {
 /**
  * Try to read a credential from the CES managed service over HTTP.
  *
- * Delegates to `@vellumai/ces-client/http-credentials` for the transport.
+ * Delegates to `@maxai/ces-client/http-credentials` for the transport.
  * Activated when `CES_CREDENTIAL_URL` is set (e.g. `http://ces-host:8090`).
  * Requires `CES_SERVICE_TOKEN` for bearer auth.
  *
@@ -314,8 +314,8 @@ export const SLACK_CHANNEL_CREDENTIAL_SPEC: ServiceCredentialSpec = {
   requiredFields: ["bot_token", "app_token"],
 } as const;
 
-export const VELLUM_CREDENTIAL_SPEC: ServiceCredentialSpec = {
-  service: "vellum",
+export const MAX_CREDENTIAL_SPEC: ServiceCredentialSpec = {
+  service: "max",
   requiredFields: [
     "platform_base_url",
     "assistant_api_key",
@@ -329,5 +329,5 @@ export const ALL_CREDENTIAL_SPECS: readonly ServiceCredentialSpec[] = [
   TWILIO_CREDENTIAL_SPEC,
   WHATSAPP_CREDENTIAL_SPEC,
   SLACK_CHANNEL_CREDENTIAL_SPEC,
-  VELLUM_CREDENTIAL_SPEC,
+  MAX_CREDENTIAL_SPEC,
 ];

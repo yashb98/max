@@ -3,7 +3,7 @@
 
 /**
  * Minimal ambient declarations for the subset of the Chrome Extension API
- * surface used by the Vellum browser-relay extension's typed modules.
+ * surface used by the Max browser-relay extension's typed modules.
  *
  * This is intentionally narrow — it covers what's needed by the
  * typechecked files under `background/` and `popup/`, not the full
@@ -335,7 +335,7 @@ declare const chrome: ChromeGlobal;
 
 /**
  * Minimal ambient declaration for `process.env` so bundler-injected
- * constants like `process.env.VELLUM_ENVIRONMENT` can be referenced
+ * constants like `process.env.MAX_ENVIRONMENT` can be referenced
  * without pulling in the full `@types/node` package.
  *
  * At bundle time `bun build --define` replaces these references with

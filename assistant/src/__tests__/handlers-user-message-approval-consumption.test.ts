@@ -112,7 +112,7 @@ mock.module("../config/loader.js", () => ({
 mock.module("../runtime/local-actor-identity.js", () => ({
   resolveLocalTrustContext: () => ({
     trustClass: "guardian",
-    sourceChannel: "vellum",
+    sourceChannel: "max",
     guardianPrincipalId: "local-principal",
   }),
   resolveLocalAuthContext: () => ({

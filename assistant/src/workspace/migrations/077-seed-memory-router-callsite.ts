@@ -25,7 +25,7 @@ import type { WorkspaceMigration } from "./types.js";
  *      defaults to the in-memory config after migrations run.
  *
  * Skipped when:
- *   - `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH` is set (platform overlay wins),
+ *   - `MAX_DEFAULT_WORKSPACE_CONFIG_PATH` is set (platform overlay wins),
  *   - the user already has `llm.callSites.memoryRouter` (any override stays),
  *   - the resolved provider is non-Anthropic (those workspaces pick their
  *     own equivalent — we don't know which OpenAI/Gemini/Ollama model the
@@ -36,7 +36,7 @@ export const seedMemoryRouterCallsiteMigration: WorkspaceMigration = {
   description:
     "Seed callSites.memoryRouter to claude-sonnet-4-6 + 1M context for Anthropic",
   run(workspaceDir: string): void {
-    if (process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH) return;
+    if (process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH) return;
 
     const configPath = join(workspaceDir, "config.json");
     const configExisted = existsSync(configPath);

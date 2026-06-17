@@ -104,7 +104,7 @@ const EXTRACTION_TOOL = {
                   type: "array",
                   items: { type: "string" },
                   description:
-                    "Channels this preference applies to (e.g. telegram, vellum)",
+                    "Channels this preference applies to (e.g. telegram, max)",
                 },
                 urgencyLevels: {
                   type: "array",

@@ -54,7 +54,7 @@ const POLICY_TABLE: PolicyEntry[] = [
   // `assistant/src/runtime/auth/route-policy.ts`) MUST have a matching
   // entry here. The gateway IPC proxy default-allows operationIds with
   // no policy entry, so an authenticated edge JWT could otherwise reach
-  // them by setting `X-Vellum-Proxy-Server: ipc`, bypassing the daemon
+  // them by setting `X-Max-Proxy-Server: ipc`, bypassing the daemon
   // HTTP router entirely.
   //
   // The `ipc-route-policy-coverage.test.ts` lint enforces this invariant
@@ -150,11 +150,11 @@ const POLICY_TABLE: PolicyEntry[] = [
 
   // Debug
   //
-  // VELLUM_DEBUG=1 gates the handler at the daemon side — when debug
+  // MAX_DEBUG=1 gates the handler at the daemon side — when debug
   // mode is off (the default), the handler returns an error before
   // executing any command. The IPC scope here is the defense-in-depth
   // layer: it requires settings.write on the edge JWT in addition to
-  // the daemon-side VELLUM_DEBUG gate.
+  // the daemon-side MAX_DEBUG gate.
   ["debug_bash", ["settings.write"]],
 
   // Diagnostics

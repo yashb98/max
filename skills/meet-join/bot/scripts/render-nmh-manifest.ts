@@ -6,7 +6,7 @@
  *
  * Invoked at image-build time from `skills/meet-join/bot/Dockerfile` so the
  * rendered file lands at Chrome's well-known search path
- * (`/etc/opt/chrome/native-messaging-hosts/com.vellum.meet.json`) inside the
+ * (`/etc/opt/chrome/native-messaging-hosts/com.max.meet.json`) inside the
  * bot image. The Chrome extension's `allowed_origins` entry pins the bot's
  * native host to only accept connections from the extension whose SPKI
  * public-key matches the `key` field committed to
@@ -48,7 +48,7 @@ const DEFAULT_TEMPLATE_PATH = resolve(
   import.meta.dir,
   "..",
   "native-messaging",
-  "com.vellum.meet.json",
+  "com.max.meet.json",
 );
 
 /**

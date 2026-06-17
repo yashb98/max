@@ -117,7 +117,7 @@ export async function withRequestLogging(
     path,
     status,
     latencyMs,
-    interfaceId: req.headers.get("x-vellum-interface-id") ?? UNKNOWN,
+    interfaceId: req.headers.get("x-max-interface-id") ?? UNKNOWN,
     contentType: req.headers.get("content-type") ?? UNKNOWN,
     userAgent: req.headers.get("user-agent") ?? UNKNOWN,
   };

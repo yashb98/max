@@ -135,7 +135,7 @@ function geminiContentResponse() {
   };
 }
 
-const expectedAvatarPath = `${process.env.VELLUM_WORKSPACE_DIR}/data/avatar/avatar-image.png`;
+const expectedAvatarPath = `${process.env.MAX_WORKSPACE_DIR}/data/avatar/avatar-image.png`;
 
 // ---------------------------------------------------------------------------
 // Tests

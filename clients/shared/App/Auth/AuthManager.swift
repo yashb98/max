@@ -30,8 +30,8 @@ public final class AuthManager {
     private let authService = AuthService.shared
     /// Read the URL scheme from the bundle's CFBundleURLTypes rather than
     /// hardcoding it. Each environment gets its own scheme at build time
-    /// (e.g. vellum-assistant-dev, vellum-assistant-staging). Falls back
-    /// to "vellum-assistant" if the plist entry is missing.
+    /// (e.g. max-assistant-dev, max-assistant-staging). Falls back
+    /// to "max-assistant" if the plist entry is missing.
     private static let callbackScheme: String = {
         guard let urlTypes = Bundle.main.infoDictionary?["CFBundleURLTypes"] as? [[String: Any]],
               let schemes = urlTypes.first?["CFBundleURLSchemes"] as? [String],
@@ -39,7 +39,7 @@ public final class AuthManager {
               !scheme.isEmpty,
               !scheme.contains("$")
         else {
-            return "vellum-assistant"
+            return "max-assistant"
         }
         return scheme
     }()
@@ -141,7 +141,7 @@ public final class AuthManager {
         // All retries exhausted with a session token on disk: treat as
         // transient validation failure, NOT as unauthenticated. The token
         // may still be valid; the next re-validation can recover.
-        log.error("Session check failed after 3 attempts: baseURL=\(VellumEnvironment.resolvedPlatformURL, privacy: .public) error=\(lastError?.localizedDescription ?? "unknown", privacy: .public)")
+        log.error("Session check failed after 3 attempts: baseURL=\(MaxEnvironment.resolvedPlatformURL, privacy: .public) error=\(lastError?.localizedDescription ?? "unknown", privacy: .public)")
         state = .validationFailed(lastError: lastError ?? AuthServiceError.networkError(URLError(.unknown)))
     }
 
@@ -158,7 +158,7 @@ public final class AuthManager {
             // Build /accounts/native/start?state={state}. The server
             // determines the callback scheme from settings.ENVIRONMENT
             // — the client no longer sends it (ATL-454).
-            guard var startComponents = URLComponents(string: VellumEnvironment.resolvedWebURL) else {
+            guard var startComponents = URLComponents(string: MaxEnvironment.resolvedWebURL) else {
                 throw AuthServiceError.invalidURL
             }
             startComponents.path = "/accounts/native/start"
@@ -212,14 +212,14 @@ public final class AuthManager {
         } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
             log.info("User cancelled login")
         } catch {
-            log.error("Login failed: baseURL=\(VellumEnvironment.resolvedPlatformURL, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
+            log.error("Login failed: baseURL=\(MaxEnvironment.resolvedPlatformURL, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
             errorMessage = "Unable to sign in. Please try again."
         }
     }
 
     /// Exchange a one-time authorization code for a session token.
     private func exchangeCodeForSession(code: String) async throws -> String {
-        guard var exchangeComponents = URLComponents(string: VellumEnvironment.resolvedWebURL) else {
+        guard var exchangeComponents = URLComponents(string: MaxEnvironment.resolvedWebURL) else {
             throw AuthServiceError.invalidURL
         }
         exchangeComponents.path = "/accounts/native/exchange"
@@ -262,7 +262,7 @@ public final class AuthManager {
         do {
             _ = try await authService.logout()
         } catch {
-            log.error("Logout request failed: baseURL=\(VellumEnvironment.resolvedPlatformURL, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
+            log.error("Logout request failed: baseURL=\(MaxEnvironment.resolvedPlatformURL, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
             logoutError = error.localizedDescription
         }
         await SessionTokenManager.deleteTokenAsync()
@@ -313,7 +313,7 @@ public final class AuthManager {
             // user's existing IdP cookies in Safari are visible during auth —
             // otherwise Google re-prompts for credentials on every login,
             // defeating SSO inside ASWebAuthenticationSession. (The iOS
-            // counterpart in vellum-assistant-platform opts into ephemeral
+            // counterpart in max-assistant-platform opts into ephemeral
             // mode separately for a platform-specific signup_closed loop
             // that this client does not have.)
             //

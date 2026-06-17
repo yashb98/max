@@ -46,10 +46,10 @@ describe("emailInviteAdapter", () => {
   });
 
   test("returns configured email address via resolveChannelHandleAsync", async () => {
-    mockConfig = { email: { address: "hello@vellum.me" } };
+    mockConfig = { email: { address: "hello@max.me" } };
 
     const handle = await resolveAdapterHandle(emailInviteAdapter);
-    expect(handle).toBe("hello@vellum.me");
+    expect(handle).toBe("hello@max.me");
   });
 
   test("returns undefined when no address is configured", async () => {

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a bug with your Vellum assistant
+description: Report a bug with your Max assistant
 labels: ["bug"]
 body:
   - type: markdown
@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for taking the time to report a bug! Please fill out the details below so we can investigate.
 
-        > **Tip:** Clicking **Share feedback** in the app sends us your recent logs — see [Getting Help](https://www.vellum.ai/docs/help/getting-help) for more ways to reach us.
+        > **Tip:** Clicking **Share feedback** in the app sends us your recent logs — see [Getting Help](https://www.max.ai/docs/help/getting-help) for more ways to reach us.
 
   - type: textarea
     id: what-happened
@@ -24,7 +24,7 @@ body:
       label: Steps to reproduce
       description: How can we reproduce this? Be as specific as possible.
       placeholder: |
-        1. Run `vellum ...`
+        1. Run `max ...`
         2. ...
         3. See error
     validations:
@@ -41,8 +41,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Vellum version
-      description: Output of `vellum --version`, or the macOS app version.
+      label: Max version
+      description: Output of `max --version`, or the macOS app version.
       placeholder: e.g. 1.2.3
     validations:
       required: false
@@ -61,7 +61,7 @@ body:
     attributes:
       label: Install method
       options:
-        - CLI (bun install -g vellum)
+        - CLI (bun install -g max)
         - Built from source
         - macOS Desktop App
         - Other

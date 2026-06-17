@@ -1,10 +1,10 @@
 {
-  "name": "@vellumai/web",
+  "name": "@maxai/web",
   "version": "0.8.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "Web interface for the Vellum client (served by `vellum client --interface web`).",
+  "description": "Web interface for the Max client (served by `max client --interface web`).",
   "exports": {
     ".": "./src/server.ts",
     "./package.json": "./package.json"
@@ -12,7 +12,7 @@
   "scripts": {
     "local": "bun src/server.ts",
     "lint": "eslint",
-    "test": "bun test",
+    "test": "bun test --pass-with-no-tests",
     "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {

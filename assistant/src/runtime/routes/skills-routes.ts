@@ -47,7 +47,7 @@ const slimSkillBase = {
 };
 
 const slimSkillSchema = z.discriminatedUnion("origin", [
-  z.object({ ...slimSkillBase, origin: z.literal("vellum") }),
+  z.object({ ...slimSkillBase, origin: z.literal("max") }),
   z.object({
     ...slimSkillBase,
     origin: z.literal("clawhub"),
@@ -71,7 +71,7 @@ const slimSkillSchema = z.discriminatedUnion("origin", [
 ]);
 
 const skillDetailSchema = z.discriminatedUnion("origin", [
-  z.object({ ...slimSkillBase, origin: z.literal("vellum") }),
+  z.object({ ...slimSkillBase, origin: z.literal("max") }),
   z.object({
     ...slimSkillBase,
     origin: z.literal("clawhub"),
@@ -140,13 +140,13 @@ export const ROUTES: RouteDefinition[] = [
         name: "include",
         schema: { type: "string", enum: ["catalog"] },
         description:
-          "Optional inclusion flag. Use 'catalog' to merge available Vellum catalog skills into the response.",
+          "Optional inclusion flag. Use 'catalog' to merge available Max catalog skills into the response.",
       },
       {
         name: "origin",
         schema: { type: "string" },
         description:
-          "Filter by skill origin (e.g. 'vellum', 'clawhub', 'skillssh', 'custom').",
+          "Filter by skill origin (e.g. 'max', 'clawhub', 'skillssh', 'custom').",
       },
       {
         name: "kind",
@@ -507,7 +507,7 @@ export const ROUTES: RouteDefinition[] = [
           "Which registry to install from. When omitted, the install flow auto-detects based on slug format.",
         ),
       overwrite: z.boolean().optional().describe("Replace an existing install. Defaults to true for back-compat with the legacy in-process API."),
-      catalogOnly: z.boolean().optional().describe("When true, restrict to bundled and Vellum catalog skills only — do not fall through to community registries."),
+      catalogOnly: z.boolean().optional().describe("When true, restrict to bundled and Max catalog skills only — do not fall through to community registries."),
     }),
     responseBody: z.object({
       ok: z.boolean(),

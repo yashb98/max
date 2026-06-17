@@ -3283,12 +3283,12 @@ describe("outbound Telegram verification", () => {
     expect(msg).toContain("(resent)");
   });
 
-  test("telegram template includes Vellum assistant prefix", () => {
+  test("telegram template includes Max assistant prefix", () => {
     const msg = composeVerificationTelegram(
       GUARDIAN_VERIFY_TEMPLATE_KEYS.TELEGRAM_CHALLENGE_REQUEST,
       { code: "999999", expiresInMinutes: 10, assistantName: "MyBot" },
     );
-    expect(msg).toContain("Vellum assistant");
+    expect(msg).toContain("Max assistant");
     expect(msg).not.toContain("999999");
   });
 

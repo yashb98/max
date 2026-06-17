@@ -1,10 +1,10 @@
 ---
 name: resend-setup
 description: Set up and send emails via a user-provided Resend account (BYO email provider)
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📤"
-  vellum:
+  max:
     display-name: "Resend Email Setup"
     user-invocable: true
 ---

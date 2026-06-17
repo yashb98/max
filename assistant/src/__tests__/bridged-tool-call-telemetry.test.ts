@@ -132,6 +132,24 @@ describe("bridged_tool_call_events store", () => {
     expect(mine[1].errorKind).toBe("tool_failure");
   });
 
+  test("store records the provider label verbatim (e.g. kimi-agent)", () => {
+    const event = recordBridgedToolCall({
+      toolName: "bash",
+      conversationId: "conv-kimi-1",
+      trustClass: "guardian",
+      provider: "kimi-agent",
+      model: null,
+      durationMs: 33,
+      isError: false,
+      errorKind: null,
+    });
+
+    expect(event).not.toBeNull();
+    const rows = queryUnreportedBridgedToolCallEvents(0, undefined, 1000);
+    const mine = rows.find((r) => r.id === event!.id);
+    expect(mine?.provider).toBe("kimi-agent");
+  });
+
   test("watermark cursor (createdAt + id) skips already-reported rows", () => {
     const a = recordBridgedToolCall({
       toolName: "alpha",

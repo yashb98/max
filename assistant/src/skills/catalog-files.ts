@@ -7,7 +7,7 @@
  * `readCatalogSkillFiles` / `readCatalogSkillFileContent` functions.
  *
  * Data sources:
- *   - In `VELLUM_DEV` mode, when `<repo>/skills/<id>/` exists on disk, we
+ *   - In `MAX_DEV` mode, when `<repo>/skills/<id>/` exists on disk, we
  *     read the skill files directly from the repo checkout (matching the
  *     behavior of `getCatalog()` in dev).
  *   - Otherwise, we call the platform preview endpoints:
@@ -485,11 +485,11 @@ export async function readCatalogSkillFileContent(
 // ─── Catalog-to-slim conversion ──────────────────────────────────────────────
 
 /**
- * Map a `CatalogSkill` (from the Vellum platform API) to a `SlimSkillResponse`
+ * Map a `CatalogSkill` (from the Max platform API) to a `SlimSkillResponse`
  * shaped for the "available catalog skill" case. Shared between
  * `listSkillsWithCatalog` (merging catalog entries into the installed list),
  * `getSkillFiles` (catalog fallback for preview listings), and the
- * `VellumCatalogProvider`. Keeping the mapping in one place avoids divergence
+ * `MaxCatalogProvider`. Keeping the mapping in one place avoids divergence
  * between the list and detail paths.
  *
  * Extracted here (rather than in `daemon/handlers/skills.ts`) to avoid a
@@ -499,23 +499,23 @@ export async function readCatalogSkillFileContent(
 export function catalogSkillToSlim(cs: CatalogSkill): SlimSkillResponse {
   return {
     id: cs.id,
-    name: cs.metadata?.vellum?.["display-name"] ?? cs.name,
+    name: cs.metadata?.max?.["display-name"] ?? cs.name,
     description: cs.description,
     emoji: cs.emoji ?? cs.metadata?.emoji,
     kind: "catalog",
-    origin: "vellum",
+    origin: "max",
     status: "available",
   };
 }
 
-// ─── Vellum Catalog Provider ─────────────────────────────────────────────────
+// ─── Max Catalog Provider ─────────────────────────────────────────────────
 
 /**
  * Create a `SkillFileProvider` that wraps the existing catalog-files functions
- * for the Vellum first-party catalog. This is the first provider implementation
+ * for the Max first-party catalog. This is the first provider implementation
  * in the unified file-preview chain.
  */
-export function createVellumCatalogProvider(): SkillFileProvider {
+export function createMaxCatalogProvider(): SkillFileProvider {
   return {
     canHandle(skillId: string): boolean {
       const cached = getCachedCatalogSync();

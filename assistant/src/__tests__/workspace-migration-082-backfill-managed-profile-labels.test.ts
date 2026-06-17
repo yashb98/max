@@ -16,7 +16,7 @@ let workspaceDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-082-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-082-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(workspaceDir, { recursive: true });
 }
@@ -235,14 +235,14 @@ describe("082-backfill-managed-profile-labels migration", () => {
     ).not.toThrow();
   });
 
-  test("does NOT skip when VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH is set", () => {
+  test("does NOT skip when MAX_DEFAULT_WORKSPACE_CONFIG_PATH is set", () => {
     // Unlike the seed migrations (040/046/052/054/...), this is a forward
     // data repair that runs regardless. Platform-supplied overlay labels
     // already win at the profile level (the on-disk entry has a `label`
     // key, so this migration leaves it alone). Skipping the whole
     // migration when the env var is set would leave migration-052 holes
     // unhealed on platform-style hatches.
-    process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH = "/tmp/overlay.json";
+    process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH = "/tmp/overlay.json";
     writeConfig({
       llm: {
         profiles: {
@@ -262,7 +262,7 @@ describe("082-backfill-managed-profile-labels migration", () => {
         .profiles as Record<string, Record<string, unknown>>;
       expect(profiles.balanced.label).toBe("Balanced");
     } finally {
-      delete process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH;
+      delete process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH;
     }
   });
 });

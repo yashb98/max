@@ -29,17 +29,17 @@ import { validateAssistantName } from "../lib/retire-archive";
 
 export type { PollResult, WatchHatchingResult } from "../lib/gcp";
 
-const INSTALL_SCRIPT_REMOTE_PATH = "/tmp/vellum-install.sh";
+const INSTALL_SCRIPT_REMOTE_PATH = "/tmp/max-install.sh";
 
 const HATCH_TIMEOUT_MS: Record<Species, number> = {
-  vellum: 5 * 60 * 1000,
+  max: 5 * 60 * 1000,
   openclaw: 10 * 60 * 1000,
 };
-const DEFAULT_SPECIES: Species = "vellum";
+const DEFAULT_SPECIES: Species = "max";
 
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
-const IS_DESKTOP = !!process.env.VELLUM_DESKTOP_APP;
+const IS_DESKTOP = !!process.env.MAX_DESKTOP_APP;
 
 function desktopLog(msg: string): void {
   process.stdout.write(msg + "\n");
@@ -78,10 +78,10 @@ export async function buildStartupScript(
   const platformUrl = getPlatformUrl();
   const logPath =
     cloud === "custom"
-      ? "/tmp/vellum-startup.log"
+      ? "/tmp/max-startup.log"
       : "/var/log/startup-script.log";
   const errorPath =
-    cloud === "custom" ? "/tmp/vellum-startup-error" : "/var/log/startup-error";
+    cloud === "custom" ? "/tmp/max-startup-error" : "/var/log/startup-error";
   const timestampRedirect = buildTimestampRedirect(logPath);
   const userSetup = buildUserSetup(sshUser);
   const ownershipFixup = buildOwnershipFixup();
@@ -99,14 +99,14 @@ export async function buildStartupScript(
 
   // Generate a bootstrap secret for the laptop that initiated this remote
   // hatch. The startup script exports it as GUARDIAN_BOOTSTRAP_SECRET so
-  // that when `vellum hatch --remote docker` runs on the VM, the docker
+  // that when `max hatch --remote docker` runs on the VM, the docker
   // hatch detects the pre-set env var and appends its own secret.
   const laptopBootstrapSecret = randomBytes(32).toString("hex");
 
   // Build bash lines that set each provider API key as a shell variable
   // and corresponding dotenv lines for the env file.
   // Include the laptop bootstrap secret so that when the remote runs
-  // `vellum hatch --remote docker`, the docker hatch detects the pre-set
+  // `max hatch --remote docker`, the docker hatch detects the pre-set
   // env var and appends its own secret for multi-secret guardian init.
   const allEnvEntries: Record<string, string> = {
     ...providerApiKeys,
@@ -126,12 +126,12 @@ export async function buildStartupScript(
     const configJson = JSON.stringify(buildNestedConfig(configValues), null, 2);
     configWriteBlock = `
 echo "Writing default workspace config..."
-VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH="/tmp/vellum-initial-config-$$.json"
-cat > "\$VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH" << 'VELLUM_CONFIG_EOF'
+MAX_DEFAULT_WORKSPACE_CONFIG_PATH="/tmp/max-initial-config-$$.json"
+cat > "\$MAX_DEFAULT_WORKSPACE_CONFIG_PATH" << 'MAX_CONFIG_EOF'
 ${configJson}
-VELLUM_CONFIG_EOF
-export VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH
-echo "Default workspace config written to \$VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH"
+MAX_CONFIG_EOF
+export MAX_DEFAULT_WORKSPACE_CONFIG_PATH
+echo "Default workspace config written to \$MAX_DEFAULT_WORKSPACE_CONFIG_PATH"
 `;
   }
 
@@ -145,9 +145,9 @@ ${timestampRedirect}
 trap 'EXIT_CODE=\$?; if [ \$EXIT_CODE -ne 0 ]; then echo "Startup script failed with exit code \$EXIT_CODE at line \$LINENO" > ${errorPath}; echo "Last 20 log lines:" >> ${errorPath}; tail -20 ${logPath} >> ${errorPath} 2>/dev/null || true; fi' EXIT
 ${userSetup}
 ${envSetLines}
-VELLUM_ASSISTANT_NAME=${instanceName}
-mkdir -p "\$HOME/.config/vellum"
-cat > "\$HOME/.config/vellum/env" << DOTENV_EOF
+MAX_ASSISTANT_NAME=${instanceName}
+mkdir -p "\$HOME/.config/max"
+cat > "\$HOME/.config/max/env" << DOTENV_EOF
 ${dotenvLines}
 RUNTIME_HTTP_PORT=7821
 DOTENV_EOF
@@ -155,9 +155,9 @@ DOTENV_EOF
 ${ownershipFixup}
 ${configWriteBlock}
 export GUARDIAN_BOOTSTRAP_SECRET
-export VELLUM_SSH_USER="\$SSH_USER"
-export VELLUM_ASSISTANT_NAME="\$VELLUM_ASSISTANT_NAME"
-export VELLUM_CLOUD="${cloud}"
+export MAX_SSH_USER="\$SSH_USER"
+export MAX_ASSISTANT_NAME="\$MAX_ASSISTANT_NAME"
+export MAX_CLOUD="${cloud}"
 echo "Downloading install script from ${platformUrl}/install.sh..."
 curl -fsSL ${platformUrl}/install.sh -o ${INSTALL_SCRIPT_REMOTE_PATH}
 echo "Install script downloaded (\$(wc -c < ${INSTALL_SCRIPT_REMOTE_PATH}) bytes)"
@@ -193,19 +193,19 @@ function parseArgs(): HatchArgs {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--help" || arg === "-h") {
-      console.log("Usage: vellum hatch [species] [options]");
+      console.log("Usage: max hatch [species] [options]");
       console.log("");
       console.log("Create a new assistant instance.");
       console.log("");
       console.log("Species:");
-      console.log("  vellum       Default assistant (default)");
+      console.log("  max       Default assistant (default)");
       console.log("  openclaw     OpenClaw adapter");
       console.log("");
       console.log("Options:");
       console.log("  -d                        Run in detached mode");
       console.log("  --name <name>             Custom instance name");
       console.log(
-        "  --remote <host>           Remote host (local, gcp, aws, docker, custom, vellum)",
+        "  --remote <host>           Remote host (local, gcp, aws, docker, custom, max)",
       );
       console.log(
         "  --watch                   Run assistant and gateway in watch mode (hot reload on source changes)",
@@ -506,7 +506,7 @@ function getCliVersion(): string {
 
 export async function hatch(): Promise<void> {
   const cliVersion = getCliVersion();
-  console.log(`@vellumai/cli v${cliVersion}`);
+  console.log(`@maxai/cli v${cliVersion}`);
 
   const { species, detached, keepAlive, name, remote, watch, configValues } =
     parseArgs();
@@ -545,8 +545,8 @@ export async function hatch(): Promise<void> {
     return;
   }
 
-  if (remote === "vellum") {
-    await hatchVellumPlatform();
+  if (remote === "max") {
+    await hatchMaxPlatform();
     return;
   }
 
@@ -554,20 +554,20 @@ export async function hatch(): Promise<void> {
   process.exit(1);
 }
 
-async function hatchVellumPlatform(): Promise<void> {
+async function hatchMaxPlatform(): Promise<void> {
   const token = readPlatformToken();
   if (!token) {
-    console.error("Not logged in. Run `vellum login --token <token>` first.");
+    console.error("Not logged in. Run `max login --token <token>` first.");
     process.exit(1);
   }
 
-  const config = SPECIES_CONFIG.vellum;
+  const config = SPECIES_CONFIG.max;
   console.log("");
   for (const line of config.art) {
     console.log(`   ${line}`);
   }
   console.log("");
-  console.log("   Hatching assistant on Vellum platform...");
+  console.log("   Hatching assistant on Max platform...");
   console.log("");
 
   const { assistant: result } = await hatchAssistant(token);
@@ -577,8 +577,8 @@ async function hatchVellumPlatform(): Promise<void> {
   saveAssistantEntry({
     assistantId: result.id,
     runtimeUrl: platformUrl,
-    cloud: "vellum",
-    species: "vellum",
+    cloud: "max",
+    species: "max",
     hatchedAt: new Date().toISOString(),
   });
   setActiveAssistant(result.id);

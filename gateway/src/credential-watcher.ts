@@ -17,7 +17,7 @@ import {
   type FSWatcher,
 } from "node:fs";
 import { dirname } from "node:path";
-import { createCesHttpCredentialClient } from "@vellumai/ces-client/http-credentials";
+import { createCesHttpCredentialClient } from "@maxai/ces-client/http-credentials";
 import { getLogger } from "./logger.js";
 import {
   readServiceCredentials,

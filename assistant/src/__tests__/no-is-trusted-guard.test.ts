@@ -6,7 +6,7 @@
  * ensures the legacy pattern is never reintroduced in production source files.
  *
  * The invariant: `actor.guardianPrincipalId === request.guardianPrincipalId`
- * (with cross-channel fallback via the vellum canonical principal).
+ * (with cross-channel fallback via the max canonical principal).
  *
  * Allowed exceptions:
  *   - Variable names like `isTrustedActor` or `isTrustedContact` that refer

@@ -1,11 +1,11 @@
 /**
- * Package boundary tests for @vellumai/credential-storage.
+ * Package boundary tests for @maxai/credential-storage.
  *
  * Ensures the package:
  * 1. Does NOT import from the assistant daemon or CES modules.
- * 2. Does NOT import from x-client packages (@vellumai/assistant-client,
- *    @vellumai/ces-client, @vellumai/gateway-client).
- * 3. Does NOT import from @vellumai/service-contracts runtime/internal modules
+ * 2. Does NOT import from x-client packages (@maxai/assistant-client,
+ *    @maxai/ces-client, @maxai/gateway-client).
+ * 3. Does NOT import from @maxai/service-contracts runtime/internal modules
  *    (the aggregate root or any subpath beyond what credential-storage needs
  *    for pure type definitions is not required at all).
  * 4. Exposes only local storage/runtime abstractions.
@@ -44,14 +44,14 @@ function collectSourceFiles(dir: string): string[] {
  */
 const FORBIDDEN_IMPORT_PATTERNS = [
   // Assistant daemon internals (blocks both sub-path and root entrypoint imports)
-  /from\s+["'](?:\.\.\/)*(?:assistant|@vellumai\/assistant)(?:\/|["'])/,
-  /require\s*\(\s*["'](?:\.\.\/)*(?:assistant|@vellumai\/assistant)(?:\/|["'])/,
+  /from\s+["'](?:\.\.\/)*(?:assistant|@maxai\/assistant)(?:\/|["'])/,
+  /require\s*\(\s*["'](?:\.\.\/)*(?:assistant|@maxai\/assistant)(?:\/|["'])/,
 
   // CES modules (credential execution service)
   /from\s+["'].*\/ces\//,
   /require\s*\(\s*["'].*\/ces\//,
-  /from\s+["']@vellumai\/ces/,
-  /require\s*\(\s*["']@vellumai\/ces/,
+  /from\s+["']@maxai\/ces/,
+  /require\s*\(\s*["']@maxai\/ces/,
 
   // Direct runtime/daemon imports
   /from\s+["'].*\/runtime\//,
@@ -66,19 +66,19 @@ const FORBIDDEN_IMPORT_PATTERNS = [
   /from\s+["'].*\/security\/secure-keys/,
 
   // x-client packages (must not depend on any typed service client)
-  /from\s+["']@vellumai\/assistant-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/assistant-client(?:\/|["'])/,
-  /from\s+["']@vellumai\/ces-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/ces-client(?:\/|["'])/,
-  /from\s+["']@vellumai\/gateway-client(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/gateway-client(?:\/|["'])/,
+  /from\s+["']@maxai\/assistant-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/assistant-client(?:\/|["'])/,
+  /from\s+["']@maxai\/ces-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/ces-client(?:\/|["'])/,
+  /from\s+["']@maxai\/gateway-client(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/gateway-client(?:\/|["'])/,
 
   // service-contracts aggregate root or internal subpaths
   // credential-storage is a lower-layer package and must not depend on
   // service-contracts (which sits at the same layer but deals with RPC
   // protocol types, not storage abstractions).
-  /from\s+["']@vellumai\/service-contracts(?:\/|["'])/,
-  /require\s*\(\s*["']@vellumai\/service-contracts(?:\/|["'])/,
+  /from\s+["']@maxai\/service-contracts(?:\/|["'])/,
+  /require\s*\(\s*["']@maxai\/service-contracts(?:\/|["'])/,
 ];
 
 describe("package boundary", () => {
@@ -135,11 +135,11 @@ describe("package boundary", () => {
         dep.includes("assistant") ||
         dep.includes("daemon") ||
         [
-          "@vellumai/ces-client",
-          "@vellumai/ces-contracts",
-          "@vellumai/service-contracts",
-          "@vellumai/assistant-client",
-          "@vellumai/gateway-client",
+          "@maxai/ces-client",
+          "@maxai/ces-contracts",
+          "@maxai/service-contracts",
+          "@maxai/assistant-client",
+          "@maxai/gateway-client",
         ].includes(dep),
     );
     expect(forbidden).toEqual([]);
@@ -164,11 +164,15 @@ describe("public API surface", () => {
     // Should export the credentialKey utility
     expect(exportedNames).toContain("credentialKey");
 
-    // Should NOT export anything CES-specific or assistant-specific
+    // Should NOT export anything CES-specific or assistant-specific.
+    // "CES" is matched as the capitalized acronym (CES / Ces…) so it flags
+    // CES-coupled exports without false-positiving on the "ces" substring
+    // inside *AccessToken* names (ac-ces-s).
     const forbidden = exportedNames.filter(
       (name) =>
         name.toLowerCase().includes("daemon") ||
-        name.toLowerCase().includes("ces") ||
+        name.includes("CES") ||
+        name.includes("Ces") ||
         name.toLowerCase().includes("agentloop") ||
         name.toLowerCase().includes("toolexecutor"),
     );

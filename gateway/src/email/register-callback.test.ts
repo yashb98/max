@@ -14,7 +14,7 @@ import {
 
 afterEach(() => {
   resetMockFetch();
-  delete process.env.VELLUM_PLATFORM_URL;
+  delete process.env.MAX_PLATFORM_URL;
   delete process.env.ASSISTANT_API_KEY;
 });
 
@@ -37,17 +37,17 @@ function makeCaches(opts: {
   const store = new Map<string, string>();
   if (opts.platformBaseUrl)
     store.set(
-      credentialKey("vellum", "platform_base_url"),
+      credentialKey("max", "platform_base_url"),
       opts.platformBaseUrl,
     );
   if (opts.assistantApiKey)
     store.set(
-      credentialKey("vellum", "assistant_api_key"),
+      credentialKey("max", "assistant_api_key"),
       opts.assistantApiKey,
     );
   if (opts.platformAssistantId)
     store.set(
-      credentialKey("vellum", "platform_assistant_id"),
+      credentialKey("max", "platform_assistant_id"),
       opts.platformAssistantId,
     );
 
@@ -119,7 +119,7 @@ describe("registerEmailCallbackRoute", () => {
   });
 
   test("uses env assistant key with credential cache for assistant ID", async () => {
-    process.env.VELLUM_PLATFORM_URL = "https://env-platform.example.com";
+    process.env.MAX_PLATFORM_URL = "https://env-platform.example.com";
     process.env.ASSISTANT_API_KEY = "env-key";
 
     const callbackUrl =

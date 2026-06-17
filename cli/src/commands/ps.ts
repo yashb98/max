@@ -134,9 +134,9 @@ const SSH_OPTS = [
 ];
 
 const REMOTE_PS_CMD = [
-  // List vellum-related processes: daemon, gateway, qdrant, and any bun children
+  // List max-related processes: daemon, gateway, qdrant, and any bun children
   "ps ax -o pid=,ppid=,args=",
-  "| grep -E 'vellum|vellum-gateway|qdrant|openclaw'",
+  "| grep -E 'max|max-gateway|qdrant|openclaw'",
   "| grep -v grep",
 ].join(" ");
 
@@ -268,11 +268,11 @@ async function getLocalProcesses(entry: AssistantEntry): Promise<TableRow[]> {
     );
   }
   const resources = entry.resources;
-  const vellumDir = join(resources.instanceDir, ".vellum");
+  const maxDir = join(resources.instanceDir, ".max");
 
   const assistantSpec: ProcessSpec = {
     name: "assistant",
-    pgrepName: "vellum-daemon",
+    pgrepName: "max-daemon",
     port: resources.daemonPort,
     pidFile: getDaemonPidPath(resources),
   };
@@ -281,20 +281,20 @@ async function getLocalProcesses(entry: AssistantEntry): Promise<TableRow[]> {
       name: "├─ qdrant",
       pgrepName: "qdrant",
       port: resources.qdrantPort,
-      pidFile: join(vellumDir, "workspace", "data", "qdrant", "qdrant.pid"),
+      pidFile: join(maxDir, "workspace", "data", "qdrant", "qdrant.pid"),
     },
     {
       name: "└─ embed-worker",
       pgrepName: "embed-worker",
       port: 0,
-      pidFile: join(vellumDir, "workspace", "embed-worker.pid"),
+      pidFile: join(maxDir, "workspace", "embed-worker.pid"),
     },
   ];
   const gatewaySpec: ProcessSpec = {
     name: "gateway",
-    pgrepName: "vellum-gateway",
+    pgrepName: "max-gateway",
     port: resources.gatewayPort,
-    pidFile: join(vellumDir, "gateway.pid"),
+    pidFile: join(maxDir, "gateway.pid"),
   };
 
   const allSpecs = [assistantSpec, ...subSpecs, gatewaySpec];
@@ -391,7 +391,7 @@ async function showAssistantProcesses(entry: AssistantEntry): Promise<void> {
     return;
   }
 
-  if (cloud === "vellum") {
+  if (cloud === "max") {
     console.log(`  Platform ID: ${entry.assistantId}\n`);
 
     const psData = await fetchManagedPs(entry.runtimeUrl, entry.assistantId);
@@ -401,7 +401,7 @@ async function showAssistantProcesses(entry: AssistantEntry): Promise<void> {
         {
           name: "assistant",
           status: withStatusEmoji("unreachable"),
-          info: "could not reach platform API — run `vellum login`",
+          info: "could not reach platform API — run `max login`",
         },
       ];
       printTable(rows);
@@ -458,7 +458,7 @@ async function showAssistantProcesses(entry: AssistantEntry): Promise<void> {
   const procs = parseRemotePs(output);
 
   if (procs.length === 0) {
-    console.log("No vellum processes found on the remote instance.");
+    console.log("No max processes found on the remote instance.");
     return;
   }
 
@@ -477,8 +477,8 @@ export async function listAllAssistants(verbose: boolean): Promise<void> {
   const { name: envName, source: envSource } = resolveEnvironmentSource();
   const sourceLabels: Record<typeof envSource, string> = {
     flag: "--environment flag",
-    env: "VELLUM_ENVIRONMENT",
-    config: "~/.config/vellum/environment",
+    env: "MAX_ENVIRONMENT",
+    config: "~/.config/max/environment",
     default: "default",
   };
   console.log(`Environment: ${envName} (${sourceLabels[envSource]})`);
@@ -533,7 +533,7 @@ export async function listAllAssistants(verbose: boolean): Promise<void> {
       }));
       printTable(rows);
       console.log(
-        `\nHint: Run \`vellum clean\` to clean up orphaned processes.`,
+        `\nHint: Run \`max clean\` to clean up orphaned processes.`,
       );
     }
 
@@ -601,7 +601,7 @@ export async function listAllAssistants(verbose: boolean): Promise<void> {
         health = a.runtimeUrl
           ? await checkHealth(a.runtimeUrl, token)
           : { status: "unknown" as const, detail: "no runtime URL" };
-      } else if (a.cloud === "vellum") {
+      } else if (a.cloud === "max") {
         health = await checkManagedHealth(a.runtimeUrl, a.assistantId);
       } else {
         const token = loadGuardianToken(a.assistantId)?.accessToken;
@@ -638,7 +638,7 @@ export async function listAllAssistants(verbose: boolean): Promise<void> {
 export async function ps(): Promise<void> {
   const args = process.argv.slice(3);
   if (args.includes("--help") || args.includes("-h")) {
-    console.log("Usage: vellum ps [<name>] [--verbose]");
+    console.log("Usage: max ps [<name>] [--verbose]");
     console.log("");
     console.log(
       "List all assistants, or show processes for a specific assistant.",

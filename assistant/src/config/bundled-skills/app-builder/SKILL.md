@@ -1,10 +1,10 @@
 ---
 name: app-builder
 description: Build interactive apps, dashboards, calculators, games, trackers, tools, landing pages, and data visualizations with Preact/TypeScript/CSS
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🏗️"
-  vellum:
+  max:
     display-name: "App Builder"
     activation-hints:
       - "User asks to build an app, landing page, website, dashboard, tool, calculator, game, tracker, or interactive page"
@@ -164,13 +164,13 @@ export const Header: FunctionComponent<Props> = ({ title, count }) => {
 
 **CSS:** Import CSS files directly in TSX (`import './styles.css'`). You can also use inline styles via the `style` attribute on JSX elements.
 
-**Custom routes in TSX:** Use `window.vellum.fetch()` to call custom route handlers from components — see the [Custom route handlers](#custom-route-handlers-user-defined-routes) section for full details:
+**Custom routes in TSX:** Use `window.max.fetch()` to call custom route handlers from components — see the [Custom route handlers](#custom-route-handlers-user-defined-routes) section for full details:
 
 ```tsx
 const [items, setItems] = useState<Item[]>([]);
 
 useEffect(() => {
-  window.vellum.fetch("/v1/x/items")
+  window.max.fetch("/v1/x/items")
     .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
     .then(setItems)
     .catch(console.error);
@@ -205,7 +205,7 @@ export const App: FunctionComponent = () => {
   const [records, setRecords] = useState([]);
 
   useEffect(() => {
-    window.vellum.fetch("/v1/x/projects")
+    window.max.fetch("/v1/x/projects")
       .then((res) => res.ok ? res.json() : Promise.reject(res.status))
       .then(setRecords)
       .catch(console.error);
@@ -281,28 +281,28 @@ Utility classes: `.v-button` (`.secondary`/`.danger`/`.ghost`), `.v-card`, `.v-l
 **Theme detection in JavaScript:**
 
 ```javascript
-console.log(window.vellum.theme.mode); // 'light' or 'dark'
-window.addEventListener("vellum-theme-change", (e) => {
+console.log(window.max.theme.mode); // 'light' or 'dark'
+window.addEventListener("max-theme-change", (e) => {
   console.log("Theme:", e.detail.mode);
 });
 ```
 
 #### Widget component library
 
-A CSS/JS widget library is auto-injected alongside the design system. Use `.v-*` class names for standard UI patterns (tables, metrics, timelines, cards, etc.) and `window.vellum.widgets.*` JS utilities for charts, data formatting, and interactive behaviors. **ALWAYS use `vellum.widgets.*` chart functions** instead of hand-coding SVG/CSS charts.
+A CSS/JS widget library is auto-injected alongside the design system. Use `.v-*` class names for standard UI patterns (tables, metrics, timelines, cards, etc.) and `window.max.widgets.*` JS utilities for charts, data formatting, and interactive behaviors. **ALWAYS use `max.widgets.*` chart functions** instead of hand-coding SVG/CSS charts.
 
 For the full widget reference (class names, JS APIs, chart functions, formatting utilities), see **[Widget Component Library](references/WIDGETS.md)**.
 
 #### Data bridge API (deprecated)
 
-> **Prefer custom route handlers** for new apps. The data bridge (`window.vellum.data`) only works for assistants that run on the same machine as the desktop app, which will also be deprecated soon.
+> **Prefer custom route handlers** for new apps. The data bridge (`window.max.data`) only works for assistants that run on the same machine as the desktop app, which will also be deprecated soon.
 
-The native WebView can read and write app records via `window.vellum.data`. All methods return Promises.
+The native WebView can read and write app records via `window.max.data`. All methods return Promises.
 
-- `window.vellum.data.query()` - Returns all records: `{ id, appId, data, createdAt, updatedAt }[]`
-- `window.vellum.data.create(data)` - Creates a record. Returns the created record.
-- `window.vellum.data.update(recordId, data)` - Updates a record by ID. Returns updated record.
-- `window.vellum.data.delete(recordId)` - Deletes a record by ID. Returns void.
+- `window.max.data.query()` - Returns all records: `{ id, appId, data, createdAt, updatedAt }[]`
+- `window.max.data.create(data)` - Creates a record. Returns the created record.
+- `window.max.data.update(recordId, data)` - Updates a record by ID. Returns updated record.
+- `window.max.data.delete(recordId)` - Deletes a record by ID. Returns void.
 
 Important:
 
@@ -314,7 +314,7 @@ Important:
 
 #### Custom route handlers (user-defined routes)
 
-When the app needs server-side persistence, custom API logic, or workspace file access, use **user-defined routes**. Route handlers are TypeScript/JavaScript files in the workspace `routes/` directory, served under `/v1/x/`. Call them from the frontend via `window.vellum.fetch("/v1/x/...")`. **Never use raw `fetch()` for `/v1/x/` routes** — it will fail in the sandboxed origin.
+When the app needs server-side persistence, custom API logic, or workspace file access, use **user-defined routes**. Route handlers are TypeScript/JavaScript files in the workspace `routes/` directory, served under `/v1/x/`. Call them from the frontend via `window.max.fetch("/v1/x/...")`. **Never use raw `fetch()` for `/v1/x/` routes** — it will fail in the sandboxed origin.
 
 For handler conventions, examples, key rules, and frontend usage patterns, see **[Custom Route Handlers](references/CUSTOM_ROUTES.md)**.
 
@@ -353,8 +353,8 @@ Apps should have multiple source files under `src/` (`styles.css`, components, h
 
 Every app must meet these baselines:
 
-- **Feedback for every action:** Use `vellum.widgets.toast()` after creates, deletes, updates, and errors.
-- **Confirmation for destructive actions:** Use `window.vellum.confirm(title, message)` before deleting or resetting. Returns `Promise<boolean>`.
+- **Feedback for every action:** Use `max.widgets.toast()` after creates, deletes, updates, and errors.
+- **Confirmation for destructive actions:** Use `window.max.confirm(title, message)` before deleting or resetting. Returns `Promise<boolean>`.
 - **Form validation:** Validate before submit, show errors inline, disable submit during async operations.
 - **Loading states:** Never show a blank screen while data loads. Use skeleton shimmer or spinners.
 - **Keyboard navigation:** `Tab` between elements, `Enter` to submit, `Escape` to close/cancel.
@@ -374,14 +374,14 @@ Slides are a different domain from apps. Skip app-specific patterns (contextual 
 
 ## Error Handling
 
-- All `window.vellum.fetch()` calls to custom routes must be wrapped in `try/catch` with user-friendly feedback. Always check `res.ok` before parsing the response body.
+- All `window.max.fetch()` calls to custom routes must be wrapped in `try/catch` with user-friendly feedback. Always check `res.ok` before parsing the response body.
 - Never let a failed operation silently pass - always show a toast or inline error.
 - If the page loads with no data, show a designed empty state (`.v-empty-state`).
 - For forms, show validation errors inline next to the relevant field.
 
 ## App Interaction Hooks
 
-Proactively wire `window.vellum.sendAction()` hooks so the assistant stays aware of meaningful user interactions. Two patterns: **reactive** hooks (trigger assistant response) and **silent** hooks (`state_update` — accumulate context without interrupting). Wire hooks during the initial build, don't wait for the user to ask.
+Proactively wire `window.max.sendAction()` hooks so the assistant stays aware of meaningful user interactions. Two patterns: **reactive** hooks (trigger assistant response) and **silent** hooks (`state_update` — accumulate context without interrupting). Wire hooks during the initial build, don't wait for the user to ask.
 
 For examples, reactive vs silent guidance, and per-app-type recommendations, see **[App Interaction Hooks](references/INTERACTION_HOOKS.md)**.
 
@@ -393,8 +393,8 @@ When the user wants to triage or bulk-act on items, generate an interactive UI w
 2. Render a `dynamic_page` with selectable items and action buttons
 3. User selects + clicks action - UI sends `surfaceAction` with action ID and selected IDs
 4. Execute tools, update UI with `ui_update`, show feedback via `widgets.toast()`
-5. Use `window.vellum.confirm()` for destructive actions
+5. Use `window.max.confirm()` for destructive actions
 
 ## External Links
 
-Use `vellum.openLink(url, metadata)` to make items clickable. Construct deep-link URLs when possible. Include `metadata.provider` and `metadata.type` for context.
+Use `max.openLink(url, metadata)` to make items clickable. Construct deep-link URLs when possible. Include `metadata.provider` and `metadata.type` for context.

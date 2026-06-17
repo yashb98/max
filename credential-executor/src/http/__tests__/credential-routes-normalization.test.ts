@@ -1,9 +1,9 @@
 /**
  * Tests for credential account key normalization in the HTTP routes.
  *
- * Verifies that colon-separated account names (e.g. `vellum:platform_organization_id`)
+ * Verifies that colon-separated account names (e.g. `max:platform_organization_id`)
  * are transparently normalized to the internal slash-separated format
- * (e.g. `credential/vellum/platform_organization_id`) so that credentials
+ * (e.g. `credential/max/platform_organization_id`) so that credentials
  * stored via direct HTTP are findable by the gateway and assistant.
  */
 
@@ -11,7 +11,7 @@ import { describe, it, expect } from "bun:test";
 
 import { handleCredentialRoute } from "../credential-routes.js";
 import type { CredentialRouteDeps } from "../credential-routes.js";
-import type { SecureKeyBackend } from "@vellumai/credential-storage";
+import type { SecureKeyBackend } from "@maxai/credential-storage";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,7 +64,7 @@ describe("credential route key normalization", () => {
 
     const req = makeRequest(
       "POST",
-      "/v1/credentials/vellum%3Aplatform_organization_id",
+      "/v1/credentials/max%3Aplatform_organization_id",
       { value: "org-uuid-123" },
     );
     const res = await handleCredentialRoute(req, deps);
@@ -73,20 +73,20 @@ describe("credential route key normalization", () => {
     expect(res!.status).toBe(200);
     const body = await res!.json();
     expect(body.ok).toBe(true);
-    expect(body.account).toBe("credential/vellum/platform_organization_id");
+    expect(body.account).toBe("credential/max/platform_organization_id");
 
     // Verify it was stored under the normalized key
-    expect(store.get("credential/vellum/platform_organization_id")).toBe("org-uuid-123");
-    expect(store.has("vellum:platform_organization_id")).toBe(false);
+    expect(store.get("credential/max/platform_organization_id")).toBe("org-uuid-123");
+    expect(store.has("max:platform_organization_id")).toBe(false);
   });
 
   it("normalizes colon-separated key on GET", async () => {
     const { deps, store } = makeDeps();
-    store.set("credential/vellum/platform_user_id", "user-uuid-456");
+    store.set("credential/max/platform_user_id", "user-uuid-456");
 
     const req = makeRequest(
       "GET",
-      "/v1/credentials/vellum%3Aplatform_user_id",
+      "/v1/credentials/max%3Aplatform_user_id",
     );
     const res = await handleCredentialRoute(req, deps);
 
@@ -98,17 +98,17 @@ describe("credential route key normalization", () => {
 
   it("normalizes colon-separated key on DELETE", async () => {
     const { deps, store } = makeDeps();
-    store.set("credential/vellum/temp_cred", "temp-value");
+    store.set("credential/max/temp_cred", "temp-value");
 
     const req = makeRequest(
       "DELETE",
-      "/v1/credentials/vellum%3Atemp_cred",
+      "/v1/credentials/max%3Atemp_cred",
     );
     const res = await handleCredentialRoute(req, deps);
 
     expect(res).not.toBeNull();
     expect(res!.status).toBe(200);
-    expect(store.has("credential/vellum/temp_cred")).toBe(false);
+    expect(store.has("credential/max/temp_cred")).toBe(false);
   });
 
   it("passes through keys already in credential/ format", async () => {
@@ -116,14 +116,14 @@ describe("credential route key normalization", () => {
 
     const req = makeRequest(
       "POST",
-      "/v1/credentials/credential%2Fvellum%2Fassistant_api_key",
+      "/v1/credentials/credential%2Fmax%2Fassistant_api_key",
       { value: "api-key-789" },
     );
     const res = await handleCredentialRoute(req, deps);
 
     expect(res).not.toBeNull();
     expect(res!.status).toBe(200);
-    expect(store.get("credential/vellum/assistant_api_key")).toBe("api-key-789");
+    expect(store.get("credential/max/assistant_api_key")).toBe("api-key-789");
   });
 
   it("passes through oauth/ prefixed keys", async () => {
@@ -146,9 +146,9 @@ describe("credential route key normalization", () => {
 
     const req = makeRequest("POST", "/v1/credentials/bulk", {
       credentials: [
-        { account: "vellum:platform_organization_id", value: "org-1" },
-        { account: "vellum:platform_user_id", value: "user-1" },
-        { account: "credential/vellum/assistant_api_key", value: "key-1" },
+        { account: "max:platform_organization_id", value: "org-1" },
+        { account: "max:platform_user_id", value: "user-1" },
+        { account: "credential/max/assistant_api_key", value: "key-1" },
       ],
     });
     const res = await handleCredentialRoute(req, deps);
@@ -158,13 +158,13 @@ describe("credential route key normalization", () => {
     const body = await res!.json();
 
     expect(body.results).toHaveLength(3);
-    expect(body.results[0].account).toBe("credential/vellum/platform_organization_id");
-    expect(body.results[1].account).toBe("credential/vellum/platform_user_id");
-    expect(body.results[2].account).toBe("credential/vellum/assistant_api_key");
+    expect(body.results[0].account).toBe("credential/max/platform_organization_id");
+    expect(body.results[1].account).toBe("credential/max/platform_user_id");
+    expect(body.results[2].account).toBe("credential/max/assistant_api_key");
 
-    expect(store.get("credential/vellum/platform_organization_id")).toBe("org-1");
-    expect(store.get("credential/vellum/platform_user_id")).toBe("user-1");
-    expect(store.get("credential/vellum/assistant_api_key")).toBe("key-1");
+    expect(store.get("credential/max/platform_organization_id")).toBe("org-1");
+    expect(store.get("credential/max/platform_user_id")).toBe("user-1");
+    expect(store.get("credential/max/assistant_api_key")).toBe("key-1");
   });
 
   it("splits multi-colon keys at the last colon", async () => {

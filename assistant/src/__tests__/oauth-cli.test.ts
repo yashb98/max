@@ -17,7 +17,7 @@
  * Follow-up opportunities for CLI-layer coverage:
  *   - `exitFromIpcResult` exit-code mapping
  *   - `shouldOutputJson` / `writeOutput` output formatting
- *   - `oauth token` shell-lockdown guard (`VELLUM_UNTRUSTED_SHELL=1`)
+ *   - `oauth token` shell-lockdown guard (`MAX_UNTRUSTED_SHELL=1`)
  *   - per-subcommand argument parsing & help text
  */
 
@@ -29,7 +29,7 @@ let mockPlatformClientCreate: () => Promise<Record<string, unknown> | null> =
   async () => null;
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: () => mockPlatformClientCreate(),
   },
 }));
@@ -87,7 +87,7 @@ describe("requirePlatformConnection", () => {
       const output = stdoutChunks.join("");
       const parsed = JSON.parse(output);
       expect(parsed.ok).toBe(false);
-      expect(parsed.error).toContain("vellum platform connect");
+      expect(parsed.error).toContain("max platform connect");
       expect(parsed.error).toContain("Not connected");
     } finally {
       process.stdout.write = originalWrite;

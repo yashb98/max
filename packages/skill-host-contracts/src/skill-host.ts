@@ -103,8 +103,8 @@ export interface IdentityFacet {
 export interface PlatformFacet {
   /** Absolute path to the current workspace directory (`getWorkspaceDir()`). */
   workspaceDir(): string;
-  /** Absolute path to the Vellum data root (`vellumRoot()`). */
-  vellumRoot(): string;
+  /** Absolute path to the Max data root (`maxRoot()`). */
+  maxRoot(): string;
   /** Current runtime mode (bare-metal vs Docker). */
   runtimeMode(): DaemonRuntimeMode;
 }

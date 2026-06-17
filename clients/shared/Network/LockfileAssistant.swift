@@ -106,7 +106,7 @@ public struct LockfileAssistant {
     public var isManaged: Bool {
         let normalizedCloud = cloud.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         // `platform` is a legacy managed marker used by older lockfiles.
-        return normalizedCloud == "vellum" || normalizedCloud == "platform"
+        return normalizedCloud == "max" || normalizedCloud == "platform"
     }
 
     /// Whether this managed assistant belongs to the current build's platform environment.
@@ -115,7 +115,7 @@ public struct LockfileAssistant {
     public var isCurrentEnvironment: Bool {
         guard isManaged else { return true }
         guard let runtimeUrl = runtimeUrl, !runtimeUrl.isEmpty else { return true }
-        let expected = VellumEnvironment.resolvedPlatformURL
+        let expected = MaxEnvironment.resolvedPlatformURL
             .lowercased().replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
         let actual = runtimeUrl.lowercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -137,10 +137,10 @@ public struct LockfileAssistant {
     /// the canonical `instanceDir` (post-migration) and legacy `baseDataDir`.
     public var workspaceDir: String? {
         if let instanceDir {
-            return instanceDir + "/.vellum/workspace"
+            return instanceDir + "/.max/workspace"
         }
         if let baseDataDir {
-            // Legacy: baseDataDir already includes the .vellum segment
+            // Legacy: baseDataDir already includes the .max segment
             return baseDataDir + "/workspace"
         }
         return nil
@@ -256,7 +256,7 @@ public struct LockfileAssistant {
 
     /// Posted when the active assistant changes, either from a programmatic
     /// `setActiveAssistantId()` call or when the lockfile watcher detects an
-    /// external modification (e.g. CLI ran `vellum use`).
+    /// external modification (e.g. CLI ran `max use`).
     public static let activeAssistantDidChange = Notification.Name("LockfileAssistant.activeAssistantDidChange")
 
     /// Writes the `activeAssistant` field in the lockfile. Passing `nil`
@@ -533,8 +533,8 @@ public struct LockfileAssistant {
                 didUpdate = true
             }
 
-            if (existingEntry["cloud"] as? String) != "vellum" {
-                existingEntry["cloud"] = "vellum"
+            if (existingEntry["cloud"] as? String) != "max" {
+                existingEntry["cloud"] = "max"
                 didUpdate = true
             }
 
@@ -554,7 +554,7 @@ public struct LockfileAssistant {
             let newEntry: [String: Any] = [
                 "assistantId": assistantId,
                 "runtimeUrl": runtimeUrl,
-                "cloud": "vellum",
+                "cloud": "max",
                 "hatchedAt": hatchedAt,
             ]
             assistants.append(newEntry)

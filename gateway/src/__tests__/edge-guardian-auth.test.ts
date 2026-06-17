@@ -2,10 +2,10 @@
  * Tests for the `requireEdgeGuardianAuth` middleware — both modes:
  *
  *  1. Platform-managed (DISABLE_HTTP_AUTH=true + IS_PLATFORM=true): identity
- *     asserted via `X-Vellum-User-Id` header cross-referenced against the
- *     stored `vellum:platform_user_id` credential.
+ *     asserted via `X-Max-User-Id` header cross-referenced against the
+ *     stored `max:platform_user_id` credential.
  *  2. Default (laptop / docker / bare-metal): edge JWT validated, then
- *     actor principal is matched against the bound vellum guardian.
+ *     actor principal is matched against the bound max guardian.
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
@@ -21,11 +21,11 @@ mock.module("../credential-reader.js", () => ({
   readCredential: (key: string) => mockReadCredential(key),
 }));
 
-let mockFindVellumGuardian = mock(
+let mockFindMaxGuardian = mock(
   async (): Promise<{ principalId: string } | null> => null,
 );
 mock.module("../auth/guardian-bootstrap.js", () => ({
-  findVellumGuardian: () => mockFindVellumGuardian(),
+  findMaxGuardian: () => mockFindMaxGuardian(),
 }));
 
 let mockValidateEdgeToken = mock(
@@ -62,7 +62,7 @@ function makeReq(headers: Record<string, string> = {}): Request {
 
 beforeEach(() => {
   mockReadCredential = mock(async () => undefined);
-  mockFindVellumGuardian = mock(async () => null);
+  mockFindMaxGuardian = mock(async () => null);
   mockValidateEdgeToken = mock(() => ({ ok: false, reason: "noop" }));
 });
 
@@ -81,7 +81,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     process.env.IS_PLATFORM = "true";
   });
 
-  test("returns 401 when X-Vellum-User-Id header is missing", async () => {
+  test("returns 401 when X-Max-User-Id header is missing", async () => {
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(makeReq());
     expect(res?.status).toBe(401);
@@ -93,7 +93,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     });
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res?.status).toBe(503);
   });
@@ -102,7 +102,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     mockReadCredential = mock(async () => undefined);
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res?.status).toBe(403);
   });
@@ -111,7 +111,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     mockReadCredential = mock(async () => PLATFORM_USER_ID);
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(
-      makeReq({ "x-vellum-user-id": "different-user" }),
+      makeReq({ "x-max-user-id": "different-user" }),
     );
     expect(res?.status).toBe(403);
   });
@@ -120,7 +120,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     mockReadCredential = mock(async () => PLATFORM_USER_ID);
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res).toBeNull();
   });
@@ -131,7 +131,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
     process.env.IS_PLATFORM = "false";
     const { requireEdgeGuardianAuth } = makeMiddleware();
     const res = await requireEdgeGuardianAuth(
-      makeReq({ "x-vellum-user-id": PLATFORM_USER_ID }),
+      makeReq({ "x-max-user-id": PLATFORM_USER_ID }),
     );
     expect(res?.status).toBe(401);
   });
@@ -142,7 +142,7 @@ describe("requireEdgeGuardianAuth — platform header mode", () => {
 // =========================================================================
 
 describe("requireEdgeGuardianAuth — actor principal mode", () => {
-  test("returns 503 when findVellumGuardian throws (transient assistant DB outage)", async () => {
+  test("returns 503 when findMaxGuardian throws (transient assistant DB outage)", async () => {
     mockValidateEdgeToken = mock(() => ({
       ok: true,
       claims: {
@@ -150,7 +150,7 @@ describe("requireEdgeGuardianAuth — actor principal mode", () => {
         scope_profile: "actor_client_v1",
       },
     }));
-    mockFindVellumGuardian = mock(async () => {
+    mockFindMaxGuardian = mock(async () => {
       throw new Error("assistant DB IPC failed");
     });
     const { requireEdgeGuardianAuth } = makeMiddleware();
@@ -168,7 +168,7 @@ describe("requireEdgeGuardianAuth — actor principal mode", () => {
         scope_profile: "actor_client_v1",
       },
     }));
-    mockFindVellumGuardian = mock(async () => ({
+    mockFindMaxGuardian = mock(async () => ({
       principalId: GUARDIAN_PRINCIPAL,
     }));
     const { requireEdgeGuardianAuth } = makeMiddleware();
@@ -186,7 +186,7 @@ describe("requireEdgeGuardianAuth — actor principal mode", () => {
         scope_profile: "actor_client_v1",
       },
     }));
-    mockFindVellumGuardian = mock(async () => ({
+    mockFindMaxGuardian = mock(async () => ({
       principalId: GUARDIAN_PRINCIPAL,
     }));
     const { requireEdgeGuardianAuth } = makeMiddleware();

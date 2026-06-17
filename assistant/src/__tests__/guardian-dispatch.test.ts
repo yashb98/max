@@ -39,10 +39,10 @@ let mockEmitResult: {
   reason: "ok",
   deliveryResults: [
     {
-      channel: "vellum",
-      destination: "vellum",
+      channel: "max",
+      destination: "max",
       status: "sent",
-      conversationId: "conv-vellum-1",
+      conversationId: "conv-max-1",
     },
   ],
 };
@@ -97,9 +97,9 @@ function resetTables(): void {
   db.run("DELETE FROM contact_channels");
   db.run("DELETE FROM contacts");
 
-  // Seed the vellum guardian binding (gateway does this at startup in production)
+  // Seed the max guardian binding (gateway does this at startup in production)
   createGuardianBinding({
-    channel: "vellum",
+    channel: "max",
     guardianExternalUserId: "test-principal-id",
     guardianDeliveryChatId: "local",
     guardianPrincipalId: "test-principal-id",
@@ -114,10 +114,10 @@ function resetTables(): void {
     reason: "ok",
     deliveryResults: [
       {
-        channel: "vellum",
-        destination: "vellum",
+        channel: "max",
+        destination: "max",
         status: "sent",
-        conversationId: "conv-vellum-1",
+        conversationId: "conv-max-1",
       },
     ],
   };
@@ -128,7 +128,7 @@ describe("guardian-dispatch", () => {
     resetTables();
   });
 
-  test("creates a guardian action request and vellum delivery from pipeline results", async () => {
+  test("creates a guardian action request and max delivery from pipeline results", async () => {
     const convId = "conv-dispatch-1";
     ensureConversation(convId);
 
@@ -161,16 +161,16 @@ describe("guardian-dispatch", () => {
     expect(request!.status).toBe("pending");
     expect(request!.question_text).toBe("What is the gate code?");
 
-    const vellumDelivery = raw
+    const maxDelivery = raw
       .query(
         "SELECT * FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
       )
-      .get(request!.id, "vellum") as
+      .get(request!.id, "max") as
       | { status: string; destination_conversation_id: string | null }
       | undefined;
-    expect(vellumDelivery).toBeDefined();
-    expect(vellumDelivery!.status).toBe("sent");
-    expect(vellumDelivery!.destination_conversation_id).toBe("conv-vellum-1");
+    expect(maxDelivery).toBeDefined();
+    expect(maxDelivery!.status).toBe("sent");
+    expect(maxDelivery!.destination_conversation_id).toBe("conv-max-1");
 
     const signalParams = emitCalls[0] as Record<string, unknown>;
     expect(typeof signalParams.onConversationCreated).toBe("function");
@@ -187,10 +187,10 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
-          conversationId: "conv-vellum-2",
+          conversationId: "conv-max-2",
         },
         {
           channel: "telegram",
@@ -246,11 +246,11 @@ describe("guardian-dispatch", () => {
       reason: "partial",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "failed",
           errorMessage: "delivery unavailable",
-          conversationId: "conv-vellum-3",
+          conversationId: "conv-max-3",
         },
       ],
     };
@@ -278,13 +278,13 @@ describe("guardian-dispatch", () => {
         "SELECT * FROM canonical_guardian_requests WHERE call_session_id = ?",
       )
       .get(session.id) as { id: string } | undefined;
-    const vellumDelivery = raw
+    const maxDelivery = raw
       .query(
         "SELECT * FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
       )
-      .get(request!.id, "vellum") as { status: string } | undefined;
-    expect(vellumDelivery).toBeDefined();
-    expect(vellumDelivery!.status).toBe("failed");
+      .get(request!.id, "max") as { status: string } | undefined;
+    expect(maxDelivery).toBeDefined();
+    expect(maxDelivery!.status).toBe("failed");
   });
 
   test("uses onConversationCreated callback conversation when delivery result omits conversationId", async () => {
@@ -303,8 +303,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
         },
       ],
@@ -333,15 +333,15 @@ describe("guardian-dispatch", () => {
         "SELECT * FROM canonical_guardian_requests WHERE call_session_id = ?",
       )
       .get(session.id) as { id: string } | undefined;
-    const vellumDelivery = raw
+    const maxDelivery = raw
       .query(
         "SELECT * FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
       )
-      .get(request!.id, "vellum") as
+      .get(request!.id, "max") as
       | { destination_conversation_id: string | null }
       | undefined;
-    expect(vellumDelivery).toBeDefined();
-    expect(vellumDelivery!.destination_conversation_id).toBe(
+    expect(maxDelivery).toBeDefined();
+    expect(maxDelivery!.destination_conversation_id).toBe(
       "conv-from-thread-created",
     );
   });
@@ -457,7 +457,7 @@ describe("guardian-dispatch", () => {
     const convId = "conv-dispatch-reuse-1";
     ensureConversation(convId);
 
-    // Both dispatches deliver to the same vellum conversation (simulating thread reuse)
+    // Both dispatches deliver to the same max conversation (simulating thread reuse)
     const sharedConversationId = "conv-shared-guardian";
 
     const session = createCallSession({
@@ -476,8 +476,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -501,8 +501,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -535,7 +535,7 @@ describe("guardian-dispatch", () => {
         .query(
           "SELECT * FROM canonical_guardian_deliveries WHERE request_id = ? AND destination_channel = ?",
         )
-        .get(req.id, "vellum") as
+        .get(req.id, "max") as
         | { status: string; destination_conversation_id: string | null }
         | undefined;
       expect(delivery).toBeDefined();
@@ -579,8 +579,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -608,8 +608,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -625,7 +625,7 @@ describe("guardian-dispatch", () => {
 
     const secondParams = emitCalls[0] as Record<string, unknown>;
     expect(secondParams.conversationAffinityHint).toEqual({
-      vellum: sharedConversationId,
+      max: sharedConversationId,
     });
   });
 
@@ -654,8 +654,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -686,8 +686,8 @@ describe("guardian-dispatch", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: sharedConversationId,
         },
@@ -704,7 +704,7 @@ describe("guardian-dispatch", () => {
 
     const secondParams = emitCalls[0] as Record<string, unknown>;
     expect(secondParams.conversationAffinityHint).toEqual({
-      vellum: sharedConversationId,
+      max: sharedConversationId,
     });
   });
 
@@ -732,8 +732,8 @@ describe("guardian-dispatch", () => {
         reason: "ok",
         deliveryResults: [
           {
-            channel: "vellum",
-            destination: "vellum",
+            channel: "max",
+            destination: "max",
             status: "sent",
             conversationId: sharedConversationId,
           },
@@ -754,7 +754,7 @@ describe("guardian-dispatch", () => {
       } else {
         // Subsequent dispatches — affinity hint points to the shared conversation
         expect(params.conversationAffinityHint).toEqual({
-          vellum: sharedConversationId,
+          max: sharedConversationId,
         });
       }
     }

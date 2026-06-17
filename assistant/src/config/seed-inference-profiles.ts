@@ -34,7 +34,7 @@ type ManagedProfileTemplate = Omit<
 };
 
 /**
- * Managed Anthropic profiles. Overwritten on every daemon boot so Vellum can
+ * Managed Anthropic profiles. Overwritten on every daemon boot so Max can
  * push model/config updates to customers in new releases. Platform overlays
  * (`preserveProfileNames`) take precedence when present.
  */
@@ -132,7 +132,7 @@ export type SeedInferenceProfilesOptions = {
  * Runs on every daemon startup. Two responsibilities:
  *
  * 1. **Managed profiles** (`balanced`, `quality-optimized`, `cost-optimized`):
- *    overwritten on every boot so Vellum can push model/config updates to
+ *    overwritten on every boot so Max can push model/config updates to
  *    customers. Each carries `provider_connection: "anthropic-managed"`.
  *    Platform overlays (`preserveProfileNames`) take precedence.
  *
@@ -171,7 +171,7 @@ export async function seedInferenceProfiles(
   // boot.
   const isByokMode = !isPlatform;
 
-  // 1. Managed profiles. Off-platform: overwrite on every boot so Vellum can
+  // 1. Managed profiles. Off-platform: overwrite on every boot so Max can
   //    push model/config updates in new releases. On-platform: insert only if
   //    absent — the platform controls profiles through overlays, and the
   //    overlay fragment is authoritative even when it omits fields the local

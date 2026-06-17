@@ -25,7 +25,7 @@ import { join } from "node:path";
 
 export const description = "Item CRUD — stores records as a JSON file";
 
-const DATA_DIR = join(process.env.VELLUM_WORKSPACE_DIR!, "data");
+const DATA_DIR = join(process.env.MAX_WORKSPACE_DIR!, "data");
 const DATA_FILE = join(DATA_DIR, "items.json");
 
 function loadItems(): Array<Record<string, unknown>> {
@@ -59,16 +59,16 @@ export async function POST(request: Request): Promise<Response> {
 
 ## Calling routes from the app frontend
 
-Apps call custom routes via `window.vellum.fetch()` using the `/v1/x/` prefix. This authenticated wrapper automatically injects the gateway URL and auth headers so requests reach the assistant runtime. **Never use raw `fetch()` for `/v1/x/` routes** — it will fail because the app runs in a sandboxed origin.
+Apps call custom routes via `window.max.fetch()` using the `/v1/x/` prefix. This authenticated wrapper automatically injects the gateway URL and auth headers so requests reach the assistant runtime. **Never use raw `fetch()` for `/v1/x/` routes** — it will fail because the app runs in a sandboxed origin.
 
 ```typescript
 // In a TSX component or HTML script
-const res = await window.vellum.fetch("/v1/x/items");
+const res = await window.max.fetch("/v1/x/items");
 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 const items = await res.json();
 
 // Create a new item
-const createRes = await window.vellum.fetch("/v1/x/items", {
+const createRes = await window.max.fetch("/v1/x/items", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ name: "New item", status: "active" }),
@@ -128,7 +128,7 @@ Legacy handlers that only accept `(request)` continue to work — the context is
 const [items, setItems] = useState<Item[]>([]);
 
 useEffect(() => {
-  window.vellum
+  window.max
     .fetch("/v1/x/items")
     .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
     .then(setItems)
@@ -138,4 +138,4 @@ useEffect(() => {
 
 ## Error handling
 
-All `window.vellum.fetch()` calls to custom routes must be wrapped in `try/catch` with user-friendly feedback. Always check `res.ok` before parsing the response body. Never let a failed operation silently pass — always show a toast or inline error.
+All `window.max.fetch()` calls to custom routes must be wrapped in `try/catch` with user-friendly feedback. Always check `res.ok` before parsing the response body. Never let a failed operation silently pass — always show a toast or inline error.

@@ -11,7 +11,7 @@ import { PROVIDER_CATALOG } from "../model-catalog.js";
  *
  * v1 runtime-supported variants:
  *   - api_key: look up `credential` in vault, inject as bearer/provider header.
- *   - platform: route via Vellum managed proxy; no client-side credential.
+ *   - platform: route via Max managed proxy; no client-side credential.
  *   - none: no auth (e.g. Ollama running locally).
  *
  * v2 schema-accepted variants (runtime rejects with a clear "not yet shipped" error):
@@ -99,11 +99,11 @@ export const ProviderConnectionSchema = z.object({
   createdAt: z.number().int(),
   updatedAt: z.number().int(),
   /**
-   * Whether this row is a Vellum-managed connection (`anthropic-managed`,
+   * Whether this row is a Max-managed connection (`anthropic-managed`,
    * `openai-managed`, `gemini-managed`). Derived from
    * `MANAGED_CONNECTION_NAMES` in `connections.ts` at serialize time; the
    * DB column does not exist. Clients use this to render the read-only
-   * "Vellum" badge + view-only editor and to disable the delete affordance
+   * "Max" badge + view-only editor and to disable the delete affordance
    * without mirroring the canonical name list locally.
    */
   isManaged: z.boolean(),

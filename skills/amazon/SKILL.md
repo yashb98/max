@@ -1,12 +1,12 @@
 ---
 name: amazon
 description: Shop on Amazon and Amazon Fresh through your browser
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🛒"
-  vellum:
+  max:
     display-name: "Amazon"
-    includes: ["vellum-browser-use"]
+    includes: ["max-browser-use"]
 ---
 
 Use browser automation for all Amazon actions. All browser operations are executed through the `assistant browser` CLI, invoked via `host_bash`. Use helper scripts with `host_bash` to normalize extraction results and decide the next step.

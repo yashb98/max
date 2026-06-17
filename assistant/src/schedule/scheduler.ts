@@ -533,7 +533,7 @@ export async function runScheduleOnce(
         jobName: `schedule:${job.id}`,
         source: "schedule",
         prompt: job.message,
-        trustContext: { sourceChannel: "vellum", trustClass: "guardian" },
+        trustContext: { sourceChannel: "max", trustClass: "guardian" },
         callSite: "mainAgent",
         timeoutMs: SCHEDULE_TALK_TIMEOUT_MS,
         origin: "schedule",

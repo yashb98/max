@@ -78,7 +78,7 @@ has three key properties:
 - **Per-plugin isolation.** If one plugin throws at import time, the error
   is logged with the plugin directory and the loader moves on. Other
   plugins still load. One broken plugin cannot brick the assistant.
-- **Per-instance.** The scan runs under `vellumRoot()`. Each assistant
+- **Per-instance.** The scan runs under `maxRoot()`. Each assistant
   instance loads its own plugin set.
 
 The loader runs after first-party plugin registrations and before
@@ -108,7 +108,7 @@ export interface PluginManifest {
 | `requiresFlag`       | no       | Assistant feature-flag keys that must all be ON for the plugin to activate. If any listed flag is disabled at bootstrap, the plugin is skipped entirely: `init()` is not invoked and no tools, routes, skills, or shutdown hooks are registered for it. See [Feature-flag gating](#feature-flag-gating) below. |
 | `config`             | no       | A parser-like validator (Zod schema, or any object with a `.parse(input)` method). If supplied, the bootstrap validates `config.plugins.<name>` through it before passing the result into `init()`.                                                                                                            |
 
-### Host-compat: `peerDependencies["@vellumai/plugin-api"]`
+### Host-compat: `peerDependencies["@maxai/plugin-api"]`
 
 Plugins declare which assistant versions they support via standard
 `peerDependencies` in their `package.json`:
@@ -118,7 +118,7 @@ Plugins declare which assistant versions they support via standard
   "name": "@me/my-logger",
   "version": "1.2.3",
   "peerDependencies": {
-    "@vellumai/plugin-api": "^0.8.0"
+    "@maxai/plugin-api": "^0.8.0"
   }
 }
 ```
@@ -132,7 +132,7 @@ flow is in flux:
 - **Range not satisfied** — loader logs an error (`log.error`) and loads
   the plugin anyway.
 - **Range unparseable** — loader logs an error and loads the plugin anyway.
-- **`@vellumai/plugin-api` peerDep absent** — loader logs a warning and
+- **`@maxai/plugin-api` peerDep absent** — loader logs a warning and
   loads the plugin without a host-compat claim.
 
 Once the install flow settles, the two error-logging branches above will
@@ -193,24 +193,24 @@ Feature Flags" section for the full procedure.
 ## Registration
 
 A plugin's `register.ts` calls `registerPlugin()` at module load time. The
-function is exposed via the `globalThis.__vellumPluginRuntime` bridge so the
+function is exposed via the `globalThis.__maxPluginRuntime` bridge so the
 plugin file does not need to import from the daemon's source tree:
 
 ```typescript
 import type { Plugin } from "<path-to-assistant>/src/plugins/types.js";
 
-interface VellumPluginRuntime {
+interface MaxPluginRuntime {
   readonly version: 1;
   readonly registerPlugin: (plugin: Plugin) => void;
   readonly assistantEventHub: import("<path-to-assistant>/src/runtime/assistant-event-hub.js").AssistantEventHub;
   readonly getSecureKeyAsync: (account: string) => Promise<string | undefined>;
 }
 
-const runtime = (globalThis as { __vellumPluginRuntime?: VellumPluginRuntime })
-  .__vellumPluginRuntime;
+const runtime = (globalThis as { __maxPluginRuntime?: MaxPluginRuntime })
+  .__maxPluginRuntime;
 if (!runtime || runtime.version !== 1) {
   throw new Error(
-    "vellum plugin runtime not available — install a recent assistant build",
+    "max plugin runtime not available — install a recent assistant build",
   );
 }
 const { registerPlugin } = runtime;
@@ -233,7 +233,7 @@ are bundled into the executable. Plugins that import the daemon's modules by
 absolute path (`/abs/path/to/assistant/src/plugins/registry.js`) reload fresh
 disk copies into a separate module graph, and any `registerPlugin()` call in
 the plugin lands in a registry the daemon never reads. The
-`globalThis.__vellumPluginRuntime` handle is the same instance the daemon's
+`globalThis.__maxPluginRuntime` handle is the same instance the daemon's
 bundled code holds onto, so plugin registrations always reach the right
 place — whether the daemon was built with `bun --compile` or is running from
 source.
@@ -684,7 +684,7 @@ inside a single assistant process.
 startup only. To pick up a new or modified plugin:
 
 ```bash
-vellum restart
+max restart
 ```
 
 The registry's internal state is not mutable at runtime. `init()` and
@@ -696,26 +696,26 @@ loop externally.
 
 ## Troubleshooting
 
-### `external plugin X: peerDependencies["@vellumai/plugin-api"] requires "<range>" but assistant is <version> — loading anyway`
+### `external plugin X: peerDependencies["@maxai/plugin-api"] requires "<range>" but assistant is <version> — loading anyway`
 
 Logged at `error` level. Your plugin's declared
-`peerDependencies["@vellumai/plugin-api"]` range does not include the
+`peerDependencies["@maxai/plugin-api"]` range does not include the
 running assistant's version. The plugin still loads while the install
 flow is being shaped, but a future release will turn this into a hard
 rejection. Either widen the range in your `package.json` (typically by
 bumping the major in `^X.Y.Z`) or upgrade the assistant.
 
-### `external plugin X: peerDependencies["@vellumai/plugin-api"] is not a valid semver range — loading anyway`
+### `external plugin X: peerDependencies["@maxai/plugin-api"] is not a valid semver range — loading anyway`
 
 Logged at `error` level, same lenient policy as above. The value declared
-under `peerDependencies["@vellumai/plugin-api"]` is not parseable as a
+under `peerDependencies["@maxai/plugin-api"]` is not parseable as a
 semver range. Use a standard range expression such as `^0.8.0`,
 `>=0.8.0 <0.10`, or an exact version.
 
 ### `external plugin X missing plugin-api peerDependency — loading without host-compat claim`
 
 Warning, not an error. Your plugin's `package.json` does not declare a
-`peerDependencies["@vellumai/plugin-api"]` entry, so the loader has no
+`peerDependencies["@maxai/plugin-api"]` entry, so the loader has no
 host-compat range to check and loads the plugin without that guard. Add
 the peerDep so future assistant upgrades surface incompatibility before
 the plugin runs.
@@ -731,7 +731,7 @@ restart the assistant.
 The credential named in `requiresCredential` is not set. Run:
 
 ```bash
-vellum credentials set Y
+max credentials set Y
 ```
 
 …and restart the assistant.
@@ -769,20 +769,20 @@ Every pipeline invocation emits one structured line tagged
 Pipe the assistant's stderr through `jq` to filter and inspect:
 
 ```bash
-tail -f ~/.vellum/daemon.log | jq 'select(.event == "plugin.pipeline")'
+tail -f ~/.max/daemon.log | jq 'select(.event == "plugin.pipeline")'
 ```
 
 To isolate slow pipelines:
 
 ```bash
-tail -f ~/.vellum/daemon.log \
+tail -f ~/.max/daemon.log \
   | jq 'select(.event == "plugin.pipeline" and .durationMs > 1000)'
 ```
 
 To isolate errors and timeouts:
 
 ```bash
-tail -f ~/.vellum/daemon.log \
+tail -f ~/.max/daemon.log \
   | jq 'select(.event == "plugin.pipeline" and .outcome != "success")'
 ```
 

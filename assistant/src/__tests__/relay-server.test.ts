@@ -39,7 +39,7 @@ mock.module("../util/logger.js", () => ({
 
 // ── Identity helpers mock ─────────────────────────────────────────────
 
-let mockAssistantName: string | null = "Vellum";
+let mockAssistantName: string | null = "Max";
 mock.module("../daemon/identity-helpers.js", () => ({
   getAssistantName: () => mockAssistantName,
 }));
@@ -392,9 +392,9 @@ function getLatestAssistantText(conversationId: string): string | null {
 describe("relay-server", () => {
   beforeEach(() => {
     resetTables();
-    // Seed the vellum guardian binding (gateway does this at startup in production)
+    // Seed the max guardian binding (gateway does this at startup in production)
     createGuardianBinding({
-      channel: "vellum",
+      channel: "max",
       guardianExternalUserId: "test-principal-id",
       guardianDeliveryChatId: "local",
       guardianPrincipalId: "test-principal-id",
@@ -402,7 +402,7 @@ describe("relay-server", () => {
     });
     activeRelayConnections.clear();
     mockUserReference = "my human";
-    mockAssistantName = "Vellum";
+    mockAssistantName = "Max";
     mockSendMessage.mockImplementation(createMockProviderResponse(["Hello"]));
     mockConfig.calls.verification.enabled = false;
     mockConfig.calls.verification.maxAttempts = 3;
@@ -2285,7 +2285,7 @@ describe("relay-server", () => {
       .map((raw) => JSON.parse(raw) as { type: string; token?: string })
       .filter((m) => m.type === "text");
     expect(
-      textMessages.some((m) => (m.token ?? "").includes("Hi, this is Vellum,")),
+      textMessages.some((m) => (m.token ?? "").includes("Hi, this is Max,")),
     ).toBe(true);
     expect(
       textMessages.some((m) =>
@@ -2458,7 +2458,7 @@ describe("relay-server", () => {
         .filter((m) => m.type === "text");
       const promptText = textMessages.map((m) => m.token ?? "").join("");
       expect(promptText).toContain("Hi, this is my human's assistant.");
-      expect(promptText).not.toContain("Vellum");
+      expect(promptText).not.toContain("Max");
       expect(promptText).toContain("don't recognize this number");
       expect(promptText).toContain("Can I get your name");
 
@@ -2549,8 +2549,8 @@ describe("relay-server", () => {
     expect(relay.getConnectionState()).toBe("awaiting_guardian_decision");
 
     // Should have sent the hold message with guardian label and hold instruction.
-    // After the access request self-heals a vellum binding, the guardian label
-    // resolves to the vellum principal's display name rather than the static
+    // After the access request self-heals a max binding, the guardian label
+    // resolves to the max principal's display name rather than the static
     // "my human" fallback, so we check structural copy without a specific label.
     const textMessages = ws.sentMessages
       .map((raw) => JSON.parse(raw) as { type: string; token?: string })
@@ -4321,7 +4321,7 @@ describe("relay-server", () => {
       initiatedFromConversationId: "conv-outbound-invite-origin",
     });
 
-    mockAssistantName = "Vellum";
+    mockAssistantName = "Max";
 
     const { ws, relay } = createMockWs(session.id);
 
@@ -4344,7 +4344,7 @@ describe("relay-server", () => {
     expect(
       textMessages.some(
         (m) =>
-          (m.token ?? "").includes("this is Vellum") &&
+          (m.token ?? "").includes("this is Max") &&
           (m.token ?? "").includes("Hank's assistant"),
       ),
     ).toBe(true);
@@ -4625,7 +4625,7 @@ describe("relay-server", () => {
       expect(playMessages.length).toBe(0);
 
       // Reset
-      mockAssistantName = "Vellum";
+      mockAssistantName = "Max";
       relay.destroy();
     });
 
@@ -4681,7 +4681,7 @@ describe("relay-server", () => {
       expect(mockTtsSynthesizeStream).toHaveBeenCalled();
 
       // Reset
-      mockAssistantName = "Vellum";
+      mockAssistantName = "Max";
       relay.destroy();
     });
 

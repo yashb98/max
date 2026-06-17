@@ -11,11 +11,11 @@ import {
   writeKimiAgentFiles,
 } from "../agent-file.js";
 
-// Vellum-native posture with ONE exception: kimi's free `SearchWeb` is enabled.
+// Max-native posture with ONE exception: kimi's free `SearchWeb` is enabled.
 // Write/exec built-ins and `FetchURL` (SSRF) must NEVER be registered natively.
 const FORBIDDEN_BUILTINS = ["Shell", "WriteFile", "StrReplaceFile", "FetchURL"];
 
-describe("kimi-agent agent-file (Vellum-native + free SearchWeb isolation spec)", () => {
+describe("kimi-agent agent-file (Max-native + free SearchWeb isolation spec)", () => {
   test("allowlist enables ONLY kimi's free SearchWeb", () => {
     // Load-bearing invariant. If this changes, you MUST re-run
     // scripts/kimi-agent/isolation-agentfile.mjs and confirm the forbidden

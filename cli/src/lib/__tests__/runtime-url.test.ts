@@ -49,35 +49,35 @@ describe("resolveRuntimeMigrationUrl", () => {
     );
   });
 
-  test("vellum (platform-managed) cloud uses wildcard-proxy /v1/assistants/<id>/migrations/<subpath>", () => {
+  test("max (platform-managed) cloud uses wildcard-proxy /v1/assistants/<id>/migrations/<subpath>", () => {
     const entry = makeEntry({
-      cloud: "vellum",
-      runtimeUrl: "https://platform.vellum.ai",
+      cloud: "max",
+      runtimeUrl: "https://platform.max.ai",
       assistantId: "11111111-2222-3333-4444-555555555555",
     });
     expect(resolveRuntimeMigrationUrl(entry, "export-to-gcs")).toBe(
-      "https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/export-to-gcs",
+      "https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/export-to-gcs",
     );
     expect(resolveRuntimeMigrationUrl(entry, "import-from-gcs")).toBe(
-      "https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/import-from-gcs",
+      "https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/import-from-gcs",
     );
     expect(resolveRuntimeMigrationUrl(entry, "jobs/job-xyz")).toBe(
-      "https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/jobs/job-xyz",
+      "https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/migrations/jobs/job-xyz",
     );
   });
 
   test("dev platform URL still routes through the wildcard prefix", () => {
     const entry = makeEntry({
-      cloud: "vellum",
-      runtimeUrl: "https://dev-platform.vellum.ai",
+      cloud: "max",
+      runtimeUrl: "https://dev-platform.max.ai",
       assistantId: "ast-dev-1",
     });
     expect(resolveRuntimeMigrationUrl(entry, "export-to-gcs")).toBe(
-      "https://dev-platform.vellum.ai/v1/assistants/ast-dev-1/migrations/export-to-gcs",
+      "https://dev-platform.max.ai/v1/assistants/ast-dev-1/migrations/export-to-gcs",
     );
   });
 
-  test("a non-vellum, non-local cloud (e.g. gcp) uses the local-shape URL", () => {
+  test("a non-max, non-local cloud (e.g. gcp) uses the local-shape URL", () => {
     const entry = makeEntry({
       cloud: "gcp",
       runtimeUrl: "http://10.0.0.5:7821",
@@ -112,14 +112,14 @@ describe("resolveRuntimeUrl", () => {
     );
   });
 
-  test("vellum cloud uses wildcard-proxy /v1/assistants/<id>/<subpath>", () => {
+  test("max cloud uses wildcard-proxy /v1/assistants/<id>/<subpath>", () => {
     const entry = makeEntry({
-      cloud: "vellum",
-      runtimeUrl: "https://platform.vellum.ai",
+      cloud: "max",
+      runtimeUrl: "https://platform.max.ai",
       assistantId: "11111111-2222-3333-4444-555555555555",
     });
     expect(resolveRuntimeUrl(entry, "identity")).toBe(
-      "https://platform.vellum.ai/v1/assistants/11111111-2222-3333-4444-555555555555/identity",
+      "https://platform.max.ai/v1/assistants/11111111-2222-3333-4444-555555555555/identity",
     );
   });
 });

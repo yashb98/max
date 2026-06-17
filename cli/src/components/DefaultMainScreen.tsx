@@ -55,8 +55,8 @@ const DEFAULT_TERMINAL_ROWS = 24;
 const LEFT_PANEL_WIDTH = 36;
 
 const COMPACT_THRESHOLD = 60;
-const HEADER_PREFIX_UNICODE = "── Vellum ";
-const HEADER_PREFIX_ASCII = "-- Vellum ";
+const HEADER_PREFIX_UNICODE = "── Max ";
+const HEADER_PREFIX_ASCII = "-- Max ";
 
 // Left panel structure: HEADER lines + art + FOOTER lines
 const LEFT_HEADER_LINES = 4; // spacer + eyebrow + title + spacer
@@ -77,7 +77,7 @@ const RIGHT_PANEL_LINE_COUNT =
   RIGHT_PANEL_INFO_SECTIONS * 2;
 
 // Header chrome (borders around panel content)
-const HEADER_TOP_BORDER_LINES = 1; // "── Vellum ───..." line
+const HEADER_TOP_BORDER_LINES = 1; // "── Max ───..." line
 const HEADER_BOTTOM_BORDER_LINES = 2; // bottom rule + blank line
 const HEADER_CHROME_LINES =
   HEADER_TOP_BORDER_LINES + HEADER_BOTTOM_BORDER_LINES;
@@ -241,7 +241,7 @@ async function sendMessage(
       body: JSON.stringify({
         conversationKey: assistantId,
         content,
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         interface: "cli",
       }),
       signal,
@@ -822,7 +822,7 @@ function ConnectionScreen({
   });
 
   const config = SPECIES_CONFIG[species];
-  const title = `Vellum ${config.hatchedEmoji} ${species}`;
+  const title = `Max ${config.hatchedEmoji} ${species}`;
   const width = Math.min(terminalColumns, MAX_TOTAL_WIDTH);
 
   return (
@@ -896,7 +896,7 @@ function CompactHeader({
   const compactIdentity =
     identity.length > 18 ? `${identity.slice(0, 15)}...` : identity;
   const label = ` ${compactIdentity} ${statusEmoji(status)} `;
-  const prefix = "── Vellum";
+  const prefix = "── Max";
   const suffix = "──";
   const fillLen = Math.max(
     0,
@@ -1389,7 +1389,7 @@ interface ChatAppProps {
   assistantName?: string;
   species: Species;
   /** Pre-built auth headers (e.g. { Authorization: "Bearer ..." } for local,
-   *  { "X-Session-Token": "...", "Vellum-Organization-Id": "..." } for platform). */
+   *  { "X-Session-Token": "...", "Max-Organization-Id": "..." } for platform). */
   auth?: Record<string, string>;
   project?: string;
   zone?: string;

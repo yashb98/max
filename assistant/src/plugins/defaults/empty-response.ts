@@ -20,11 +20,12 @@
  * The terminal inspects the turn snapshot and returns one of:
  *
  * 1. `"nudge"`  — the turn produced no visible text, no tool calls, follows
- *                 at least one prior tool-use turn, no earlier turn in this
- *                 run() has already delivered visible text, AND the retry
- *                 counter is below `maxEmptyResponseRetries`. The loop
- *                 appends `nudgeText` (the `<system_notice>…` message below)
- *                 as a `user` turn and re-queries the model.
+ *                 at least one prior tool-use turn (outer `toolUseTurns` or
+ *                 bridged tool activity from an agentic provider), no earlier
+ *                 turn in this run() has already delivered visible text, AND
+ *                 the retry counter is below `maxEmptyResponseRetries`. The
+ *                 loop appends `nudgeText` (the `<system_notice>…` message
+ *                 below) as a `user` turn and re-queries the model.
  * 2. `"accept"` — every other case. The turn either legitimately ended
  *                 (model said its piece earlier), is still in progress
  *                 (tool calls pending), or exhausted its retry budget. The
@@ -76,7 +77,7 @@ export function defaultEmptyResponseTerminal(
   const isEmptyTurn =
     !hasVisibleText &&
     args.toolUseBlocksLength === 0 &&
-    args.toolUseTurns > 0 &&
+    (args.toolUseTurns > 0 || args.bridgedToolCalls > 0) &&
     !args.priorAssistantHadVisibleText;
 
   if (isEmptyTurn && args.emptyResponseRetries < args.maxEmptyResponseRetries) {

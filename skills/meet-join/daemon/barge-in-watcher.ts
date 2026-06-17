@@ -42,7 +42,7 @@ import type {
   Logger,
   SkillHost,
   Subscription as AssistantEventSubscription,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 import type {
   MeetBotEvent,

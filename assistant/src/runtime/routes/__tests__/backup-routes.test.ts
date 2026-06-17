@@ -220,7 +220,7 @@ function writeBackupFile(
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  ROOT = mkdtempSync(join(tmpdir(), "vellum-backup-routes-"));
+  ROOT = mkdtempSync(join(tmpdir(), "max-backup-routes-"));
   LOCAL_DIR = join(ROOT, "local");
   mockBackupConfig = makeConfig({ localDirectory: LOCAL_DIR });
   mockWorkspaceDir = join(ROOT, "workspace");

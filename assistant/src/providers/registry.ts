@@ -132,17 +132,22 @@ export async function initializeProviders(
   // the function's typed signature without plumbing a second config shape.
   const flagConfig = config as unknown as AssistantConfig;
 
+  // Map of provider ids to the feature flags that gate their registration.
+  // When a provider's flag is off, it is skipped at boot entirely.
+  const FLAG_GATED_PROVIDERS: Record<string, string> = {
+    "claude-subscription": "claude-subscription-provider",
+    "kimi-agent": "kimi-agent-provider",
+  };
+
   for (const entry of PROVIDER_CATALOG) {
     // Feature-flag gate: providers behind a flag are skipped at boot
-    // when the flag is off. Currently only `claude-subscription`. Off-
-    // by-default while the bridge architecture is dogfood-validated.
-    if (
-      entry.id === "claude-subscription" &&
-      !isAssistantFeatureFlagEnabled("claude-subscription-provider", flagConfig)
-    ) {
+    // when the flag is off. Off-by-default while the bridge architecture
+    // is dogfood-validated.
+    const gateFlag = FLAG_GATED_PROVIDERS[entry.id];
+    if (gateFlag && !isAssistantFeatureFlagEnabled(gateFlag, flagConfig)) {
       log.info(
         { providerId: entry.id },
-        "Skipping provider registration — feature flag claude-subscription-provider is off",
+        `Skipping provider registration — feature flag ${gateFlag} is off`,
       );
       continue;
     }

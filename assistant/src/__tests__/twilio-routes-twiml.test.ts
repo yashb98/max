@@ -407,10 +407,10 @@ describe("generateTwiML with voice quality profile", () => {
         ttsProvider: "ElevenLabs",
         voice: "voice123",
       },
-      speechConfig("Deepgram", "nova-3", "low", "Alice,Bob,Vellum"),
+      speechConfig("Deepgram", "nova-3", "low", "Alice,Bob,Max"),
     );
 
-    expect(twiml).toContain('hints="Alice,Bob,Vellum"');
+    expect(twiml).toContain('hints="Alice,Bob,Max"');
   });
 
   test("hints attribute omitted when speech config has no hints", () => {

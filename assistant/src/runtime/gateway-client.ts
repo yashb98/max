@@ -5,7 +5,7 @@
  * handled by `messaging/providers/index.ts` without touching the gateway.
  *
  * Managed outbound callbacks (platform-routed phone/SMS) are handled by
- * `@vellumai/gateway-client/http-delivery` with retry/idempotency semantics.
+ * `@maxai/gateway-client/http-delivery` with retry/idempotency semantics.
  * Those callbacks carry their own `callback_token` in the URL — no daemon
  * bearer token is needed.
  */
@@ -13,11 +13,11 @@
 import type {
   ChannelDeliveryResult,
   ChannelReplyPayload,
-} from "@vellumai/gateway-client";
+} from "@maxai/gateway-client";
 import {
   ChannelDeliveryError,
   deliverChannelReply as _deliverChannelReply,
-} from "@vellumai/gateway-client/http-delivery";
+} from "@maxai/gateway-client/http-delivery";
 
 import {
   deliverDirect,

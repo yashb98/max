@@ -1,10 +1,10 @@
 ---
 name: guardian-verify-setup
 description: Set up channel verification for phone, Telegram, or Slack channels via outbound verification flow
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🔐"
-  vellum:
+  max:
     display-name: "Guardian Verify Setup"
     activation-hints:
       - "Any guardian verification intent -> load this skill exclusively"
@@ -93,7 +93,7 @@ Report the exact next action based on the channel:
 - **Phone**: The response includes a `secret` field with the verification code. Tell the user the code BEFORE the call connects: "I'm calling [number] now. Your verification code is [secret]. When you answer the call, enter this code using your phone's keypad." The `create` command already initiates the voice call. Do NOT place a separate `call_start` call. **After delivering the code, immediately begin the voice auto-check polling loop** (see [Voice Auto-Check Polling](#voice-auto-check-polling) below).
 - **Telegram with chat ID** (no `telegramBootstrapUrl` in response): The response includes a `secret` field. Show it in the current chat: "Your verification code is **[secret]**. I've also sent it to your Telegram. Open the Telegram bot chat and reply with that 6-digit code to complete verification." If the response does not contain a `secret` field, treat this as a control-plane error: tell the user something went wrong and ask them to retry from Step 3 or resend (Step 4).
 - **Telegram with handle** (`telegramBootstrapUrl` present in response): "Tap this deep-link first: [telegramBootstrapUrl]. After Telegram binds your identity, I'll send your verification code."
-- **Slack**: The response includes a `secret` field with the verification code. Show it in the current chat: "Your verification code is **[secret]**. I've also sent it to you as a Slack DM. Open the DM from the Vellum bot in Slack and reply with that 6-digit code to complete verification." The DM channel ID is captured automatically during this process for future message delivery. If the response does not contain a `secret` field, treat this as a control-plane error: tell the user something went wrong and ask them to retry from Step 3 or resend (Step 4). **After delivering the code, immediately begin the Slack auto-check polling loop** (see [Slack Auto-Check Polling](#slack-auto-check-polling) below).
+- **Slack**: The response includes a `secret` field with the verification code. Show it in the current chat: "Your verification code is **[secret]**. I've also sent it to you as a Slack DM. Open the DM from the Max bot in Slack and reply with that 6-digit code to complete verification." The DM channel ID is captured automatically during this process for future message delivery. If the response does not contain a `secret` field, treat this as a control-plane error: tell the user something went wrong and ask them to retry from Step 3 or resend (Step 4). **After delivering the code, immediately begin the Slack auto-check polling loop** (see [Slack Auto-Check Polling](#slack-auto-check-polling) below).
 
 After reporting the bootstrap URL for Telegram handle flows, wait for the user to confirm they clicked the link. Then check verification status (Step 6) to see if the bootstrap completed and a code was sent.
 
@@ -153,7 +153,7 @@ For **voice** verification only: after telling the user their code and instructi
 **Polling procedure:**
 
 1. Wait ~15 seconds after delivering the code (to give the user time to answer the call and enter the code).
-2. Check the binding status via Vellum CLI:
+2. Check the binding status via Max CLI:
 
 ```bash
 assistant channel-verification-sessions status --channel phone --json
@@ -184,7 +184,7 @@ For **Slack** verification: after telling the user their code and instructing th
 **Polling procedure:**
 
 1. Wait ~15 seconds after delivering the code (to give the user time to open the Slack DM and reply with the code).
-2. Check the binding status via Vellum CLI:
+2. Check the binding status via Max CLI:
 
 ```bash
 assistant channel-verification-sessions status --channel slack --json

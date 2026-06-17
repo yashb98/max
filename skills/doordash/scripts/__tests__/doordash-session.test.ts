@@ -48,8 +48,8 @@ describe("DoorDash session helpers", () => {
   describe("session persistence", () => {
     it("writes session directory and file with restrictive permissions", () => {
       const tempDir = mkdtempSync(join(tmpdir(), "doordash-session-"));
-      const previousWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-      process.env.VELLUM_WORKSPACE_DIR = tempDir;
+      const previousWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+      process.env.MAX_WORKSPACE_DIR = tempDir;
 
       try {
         saveSession(makeSession());
@@ -62,8 +62,8 @@ describe("DoorDash session helpers", () => {
         expect(loadSession()).not.toBeNull();
       } finally {
         if (previousWorkspaceDir === undefined)
-          delete process.env.VELLUM_WORKSPACE_DIR;
-        else process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceDir;
+          delete process.env.MAX_WORKSPACE_DIR;
+        else process.env.MAX_WORKSPACE_DIR = previousWorkspaceDir;
         rmSync(tempDir, { recursive: true, force: true });
       }
     });
@@ -72,8 +72,8 @@ describe("DoorDash session helpers", () => {
       const tempDir = mkdtempSync(
         join(tmpdir(), "doordash-session-overwrite-"),
       );
-      const previousWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
-      process.env.VELLUM_WORKSPACE_DIR = tempDir;
+      const previousWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
+      process.env.MAX_WORKSPACE_DIR = tempDir;
 
       try {
         // First save creates the file correctly
@@ -88,8 +88,8 @@ describe("DoorDash session helpers", () => {
         expect(statSync(sessionPath).mode & 0o777).toBe(0o600);
       } finally {
         if (previousWorkspaceDir === undefined)
-          delete process.env.VELLUM_WORKSPACE_DIR;
-        else process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceDir;
+          delete process.env.MAX_WORKSPACE_DIR;
+        else process.env.MAX_WORKSPACE_DIR = previousWorkspaceDir;
         rmSync(tempDir, { recursive: true, force: true });
       }
     });

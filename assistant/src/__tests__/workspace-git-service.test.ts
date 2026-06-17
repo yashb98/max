@@ -29,7 +29,7 @@ describe("WorkspaceGitService", () => {
     // Create a unique test directory for each test
     testDir = join(
       tmpdir(),
-      `vellum-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      `max-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(testDir, { recursive: true });
     _resetGitServiceRegistry();
@@ -83,8 +83,8 @@ describe("WorkspaceGitService", () => {
         encoding: "utf-8",
       }).trim();
 
-      expect(userName).toBe("Vellum Assistant");
-      expect(userEmail).toBe("assistant@vellum.ai");
+      expect(userName).toBe("Max Assistant");
+      expect(userEmail).toBe("assistant@max.ai");
     });
 
     test("multiple ensureInitialized calls are idempotent", async () => {
@@ -412,7 +412,7 @@ describe("WorkspaceGitService", () => {
     });
 
     test("returns different instances for different workspaces", () => {
-      const testDir2 = join(tmpdir(), `vellum-test-${Date.now()}-other`);
+      const testDir2 = join(tmpdir(), `max-test-${Date.now()}-other`);
       mkdirSync(testDir2, { recursive: true });
 
       try {
@@ -440,7 +440,7 @@ describe("WorkspaceGitService", () => {
       // Create a service pointing to a directory that doesn't exist yet
       const retryDir = join(
         tmpdir(),
-        `vellum-retry-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        `max-retry-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       );
       const service = new WorkspaceGitService(retryDir);
 
@@ -652,7 +652,7 @@ describe("WorkspaceGitService", () => {
         cwd: testDir,
       });
       const oldGitignore =
-        "# Runtime state - excluded from git tracking\ndata/\nlogs/\n*.log\n*.sock\n*.pid\n*.sqlite\n*.sqlite-journal\n*.sqlite-wal\n*.sqlite-shm\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\nvellum.pid\nsession-token\n";
+        "# Runtime state - excluded from git tracking\ndata/\nlogs/\n*.log\n*.sock\n*.pid\n*.sqlite\n*.sqlite-journal\n*.sqlite-wal\n*.sqlite-shm\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\nmax.pid\nsession-token\n";
       writeFileSync(join(testDir, ".gitignore"), oldGitignore);
       writeFileSync(join(testDir, "file.txt"), "content");
       execFileSync("git", ["add", "-A"], { cwd: testDir });
@@ -707,21 +707,21 @@ describe("WorkspaceGitService", () => {
         encoding: "utf-8",
       }).trim();
 
-      expect(userName).toBe("Vellum Assistant");
-      expect(userEmail).toBe("assistant@vellum.ai");
+      expect(userName).toBe("Max Assistant");
+      expect(userEmail).toBe("assistant@max.ai");
     });
 
     test("existing repo with correct config is idempotent", async () => {
       // Set up a repo that already has everything configured correctly
       execFileSync("git", ["init", "-b", "main"], { cwd: testDir });
-      execFileSync("git", ["config", "user.name", "Vellum Assistant"], {
+      execFileSync("git", ["config", "user.name", "Max Assistant"], {
         cwd: testDir,
       });
-      execFileSync("git", ["config", "user.email", "assistant@vellum.ai"], {
+      execFileSync("git", ["config", "user.email", "assistant@max.ai"], {
         cwd: testDir,
       });
       const gitignoreContent =
-        "# Runtime state - excluded from git tracking\ndata/db/\ndata/qdrant/\nlogs/\n*.log\n*.sock\n*.pid\n*.sqlite\n*.sqlite-journal\n*.sqlite-wal\n*.sqlite-shm\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\nvellum.pid\nsession-token\n";
+        "# Runtime state - excluded from git tracking\ndata/db/\ndata/qdrant/\nlogs/\n*.log\n*.sock\n*.pid\n*.sqlite\n*.sqlite-journal\n*.sqlite-wal\n*.sqlite-shm\n*.db\n*.db-journal\n*.db-wal\n*.db-shm\nmax.pid\nsession-token\n";
       writeFileSync(join(testDir, ".gitignore"), gitignoreContent);
       writeFileSync(join(testDir, "file.txt"), "content");
       execFileSync("git", ["add", "-A"], { cwd: testDir });
@@ -744,7 +744,7 @@ describe("WorkspaceGitService", () => {
         cwd: testDir,
         encoding: "utf-8",
       }).trim();
-      expect(userName).toBe("Vellum Assistant");
+      expect(userName).toBe("Max Assistant");
 
       const branch = execFileSync("git", ["symbolic-ref", "--short", "HEAD"], {
         cwd: testDir,

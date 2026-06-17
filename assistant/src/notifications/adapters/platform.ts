@@ -14,7 +14,7 @@
  * scope APNs fan-out to guardian-bound devices, mirroring the macOS adapter.
  */
 
-import { VellumPlatformClient } from "../../platform/client.js";
+import { MaxPlatformClient } from "../../platform/client.js";
 import { getLogger } from "../../util/logger.js";
 import {
   isRetryableNetworkError,
@@ -52,7 +52,7 @@ export class PlatformPushAdapter implements ChannelAdapter {
     payload: ChannelDeliveryPayload,
     destination: ChannelDestination,
   ): Promise<DeliveryResult> {
-    const client = await VellumPlatformClient.create();
+    const client = await MaxPlatformClient.create();
     if (!client) {
       log.warn(
         { sourceEventName: payload.sourceEventName },

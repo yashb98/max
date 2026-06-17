@@ -15,7 +15,7 @@
  */
 
 import { getLogger } from "../util/logger.js";
-import { VellumPlatformClient } from "./client.js";
+import { MaxPlatformClient } from "./client.js";
 
 const log = getLogger("sync-identity");
 
@@ -66,7 +66,7 @@ async function doSync(name: string, requestSeq: number): Promise<void> {
     // Re-check after awaiting the previous request in the chain.
     if (name === lastSyncedName) return;
 
-    const client = await VellumPlatformClient.create();
+    const client = await MaxPlatformClient.create();
     if (!client) {
       clearRequestedIfLatest(requestSeq);
       return;

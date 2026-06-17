@@ -35,7 +35,7 @@ public enum LockfileReconciler {
     @discardableResult
     public static func reconcile(
         platformAssistants: [PlatformAssistant],
-        runtimeUrl: String = VellumEnvironment.resolvedPlatformURL,
+        runtimeUrl: String = MaxEnvironment.resolvedPlatformURL,
         lockfilePath: String? = nil,
         now: () -> String = { Date().iso8601String }
     ) -> Result {

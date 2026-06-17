@@ -1,5 +1,5 @@
 /**
- * Tests for @vellumai/service-contracts
+ * Tests for @maxai/service-contracts
  *
  * These tests verify:
  * 1. The package can be consumed independently (no assistant/ or CES imports).

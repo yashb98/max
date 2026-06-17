@@ -97,7 +97,7 @@ mock.module("@qdrant/js-client-rest", () => ({
   },
 }));
 
-import { VellumQdrantClient } from "../memory/qdrant-client.js";
+import { MaxQdrantClient } from "../memory/qdrant-client.js";
 
 beforeEach(() => {
   resetMockState();
@@ -109,7 +109,7 @@ describe("Qdrant collection migration", () => {
     mockUseNamedVectors = true;
     mockCollectionSize = 384; // Current collection has 384-dim vectors
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768, // New config expects 768-dim vectors
@@ -134,7 +134,7 @@ describe("Qdrant collection migration", () => {
       embedding_model: "gemini:gemini-embedding-001", // Old model
     };
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768, // Same dimension
@@ -161,7 +161,7 @@ describe("Qdrant collection migration", () => {
       embedding_model: "gemini:gemini-embedding-2",
     };
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768,
@@ -183,7 +183,7 @@ describe("Qdrant collection migration", () => {
     mockCollectionSize = 768;
     mockSentinelPayload = null; // No sentinel — pre-existing collection
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768,
@@ -203,7 +203,7 @@ describe("Qdrant collection migration", () => {
   test("writes sentinel point when creating a new collection", async () => {
     mockCollectionExists = false;
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768,
@@ -226,7 +226,7 @@ describe("Qdrant collection migration", () => {
     mockUseNamedVectors = false; // Legacy unnamed vectors
     mockCollectionSize = 768;
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 768, // Same dimension
@@ -248,7 +248,7 @@ describe("Qdrant collection migration", () => {
   test("does not write sentinel when embeddingModel is not provided", async () => {
     mockCollectionExists = false;
 
-    const client = new VellumQdrantClient({
+    const client = new MaxQdrantClient({
       url: "http://localhost:6333",
       collection: "memory",
       vectorSize: 384,

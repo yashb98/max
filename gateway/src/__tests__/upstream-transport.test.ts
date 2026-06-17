@@ -1,6 +1,6 @@
 /**
  * Integration tests verifying that gateway routes use the shared
- * @vellumai/assistant-client helpers correctly for upstream transport
+ * @maxai/assistant-client helpers correctly for upstream transport
  * construction. Asserts URL/token generation, close/error behavior,
  * and that route-specific security gates remain untouched.
  */
@@ -14,7 +14,7 @@ import {
   createTimeoutController,
   isTimeoutError,
   stripHopByHop,
-} from "@vellumai/assistant-client";
+} from "@maxai/assistant-client";
 
 // ---------------------------------------------------------------------------
 // HTTP proxy route patterns — upstream URL construction

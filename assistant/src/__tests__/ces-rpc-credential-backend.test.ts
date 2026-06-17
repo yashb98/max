@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import { CesRpcMethod } from "@vellumai/service-contracts/credential-rpc";
+import { CesRpcMethod } from "@maxai/service-contracts/credential-rpc";
 
 // ---------------------------------------------------------------------------
 // Mock state

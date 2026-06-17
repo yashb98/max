@@ -4,9 +4,9 @@
  * Verifies:
  * - Untrusted bash rejects proxied credential sessions when lockdown is active.
  * - Untrusted bash rejects non-empty credential-ref mode when lockdown is active.
- * - VELLUM_UNTRUSTED_SHELL env flag is injected for untrusted actors.
+ * - MAX_UNTRUSTED_SHELL env flag is injected for untrusted actors.
  * - host_bash sets forcePromptSideEffects for untrusted actors under lockdown.
- * - CLI commands deny raw secret/token reveal when VELLUM_UNTRUSTED_SHELL=1.
+ * - CLI commands deny raw secret/token reveal when MAX_UNTRUSTED_SHELL=1.
  */
 
 import { describe, expect, test } from "bun:test";
@@ -36,49 +36,49 @@ describe("trust class categorization for CES lockdown", () => {
 });
 
 // ---------------------------------------------------------------------------
-// VELLUM_UNTRUSTED_SHELL env flag detection
+// MAX_UNTRUSTED_SHELL env flag detection
 // ---------------------------------------------------------------------------
 
-describe("VELLUM_UNTRUSTED_SHELL env flag", () => {
+describe("MAX_UNTRUSTED_SHELL env flag", () => {
   test("isUntrustedShell pattern matches env value '1'", () => {
     // This tests the pattern used by CLI guards — not importing the
     // function directly since it's module-private, but verifying the
     // env-checking pattern.
-    const original = process.env.VELLUM_UNTRUSTED_SHELL;
+    const original = process.env.MAX_UNTRUSTED_SHELL;
     try {
-      process.env.VELLUM_UNTRUSTED_SHELL = "1";
-      expect(process.env.VELLUM_UNTRUSTED_SHELL === "1").toBe(true);
+      process.env.MAX_UNTRUSTED_SHELL = "1";
+      expect(process.env.MAX_UNTRUSTED_SHELL === "1").toBe(true);
     } finally {
       if (original === undefined) {
-        delete process.env.VELLUM_UNTRUSTED_SHELL;
+        delete process.env.MAX_UNTRUSTED_SHELL;
       } else {
-        process.env.VELLUM_UNTRUSTED_SHELL = original;
+        process.env.MAX_UNTRUSTED_SHELL = original;
       }
     }
   });
 
   test("isUntrustedShell pattern does not match when env is unset", () => {
-    const original = process.env.VELLUM_UNTRUSTED_SHELL;
+    const original = process.env.MAX_UNTRUSTED_SHELL;
     try {
-      delete process.env.VELLUM_UNTRUSTED_SHELL;
-      expect(process.env.VELLUM_UNTRUSTED_SHELL === "1").toBe(false);
+      delete process.env.MAX_UNTRUSTED_SHELL;
+      expect(process.env.MAX_UNTRUSTED_SHELL === "1").toBe(false);
     } finally {
       if (original !== undefined) {
-        process.env.VELLUM_UNTRUSTED_SHELL = original;
+        process.env.MAX_UNTRUSTED_SHELL = original;
       }
     }
   });
 
   test("isUntrustedShell pattern does not match when env is '0'", () => {
-    const original = process.env.VELLUM_UNTRUSTED_SHELL;
+    const original = process.env.MAX_UNTRUSTED_SHELL;
     try {
-      process.env.VELLUM_UNTRUSTED_SHELL = "0";
-      expect(process.env.VELLUM_UNTRUSTED_SHELL === "1").toBe(false);
+      process.env.MAX_UNTRUSTED_SHELL = "0";
+      expect(process.env.MAX_UNTRUSTED_SHELL === "1").toBe(false);
     } finally {
       if (original === undefined) {
-        delete process.env.VELLUM_UNTRUSTED_SHELL;
+        delete process.env.MAX_UNTRUSTED_SHELL;
       } else {
-        process.env.VELLUM_UNTRUSTED_SHELL = original;
+        process.env.MAX_UNTRUSTED_SHELL = original;
       }
     }
   });

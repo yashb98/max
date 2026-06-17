@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Decoding contract for the per-conversation `inferenceProfile` field across
 /// the conversation transport DTOs surfaced to the macOS client.

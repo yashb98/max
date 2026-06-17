@@ -1,7 +1,7 @@
 /**
- * Workspace migration 059: Move vellum.pid from root to workspace.
+ * Workspace migration 059: Move max.pid from root to workspace.
  *
- * The PID file previously lived at ~/.vellum/vellum.pid (the root dir).
+ * The PID file previously lived at ~/.max/max.pid (the root dir).
  * This migration moves it into the workspace directory so that the root
  * dir can eventually be eliminated on platform deployments.
  */
@@ -10,15 +10,15 @@ import { existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 
 import type { WorkspaceMigration } from "./types.js";
-import { getVellumRoot } from "./utils.js";
+import { getMaxRoot } from "./utils.js";
 
 export const movePidToWorkspaceMigration: WorkspaceMigration = {
   id: "059-move-pid-to-workspace",
-  description: "Move vellum.pid from root to workspace",
+  description: "Move max.pid from root to workspace",
 
   run(workspaceDir: string): void {
-    const oldPath = join(getVellumRoot(), "vellum.pid");
-    const newPath = join(workspaceDir, "vellum.pid");
+    const oldPath = join(getMaxRoot(), "max.pid");
+    const newPath = join(workspaceDir, "max.pid");
     if (!existsSync(oldPath)) return;
     if (existsSync(newPath)) {
       try {
@@ -32,8 +32,8 @@ export const movePidToWorkspaceMigration: WorkspaceMigration = {
   },
 
   down(workspaceDir: string): void {
-    const oldPath = join(getVellumRoot(), "vellum.pid");
-    const newPath = join(workspaceDir, "vellum.pid");
+    const oldPath = join(getMaxRoot(), "max.pid");
+    const newPath = join(workspaceDir, "max.pid");
     if (!existsSync(newPath)) return;
     if (existsSync(oldPath)) {
       try {

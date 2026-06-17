@@ -190,7 +190,7 @@ export function createTwilioVoiceWebhookHandler(
     try {
       const platformAssistantId = (
         await caches?.credentials?.get(
-          credentialKey("vellum", "platform_assistant_id"),
+          credentialKey("max", "platform_assistant_id"),
         )
       )?.trim();
       const runtimeResponse = await forwardTwilioVoiceWebhook(

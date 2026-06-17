@@ -7,7 +7,7 @@
 // collection is separate from the v1 `memory` collection so v2 retrieval can
 // roll out (and roll back) without disturbing the v1 graph + PKB hot path.
 //
-// Mirrors the dense + sparse named-vectors layout used by `VellumQdrantClient`
+// Mirrors the dense + sparse named-vectors layout used by `MaxQdrantClient`
 // in `qdrant-client.ts` (the v1 PKB collection setup pattern). Connection
 // settings — URL, vector size, on-disk storage — flow through the same env →
 // config precedence as v1 via `resolveQdrantUrl` and `config.memory.qdrant.*`,
@@ -153,7 +153,7 @@ function getClient(): QdrantRestClient {
  * `{ migrated: true }` so they can enqueue a backfill — pre-#29823
  * collections lack `summary_dense` / `summary_sparse` and every query
  * referencing those named vectors fails with HTTP 400 until the collection
- * is rebuilt. Mirrors `VellumQdrantClient.ensureCollection` for v1.
+ * is rebuilt. Mirrors `MaxQdrantClient.ensureCollection` for v1.
  */
 export async function ensureConceptPageCollection(): Promise<{
   migrated: boolean;
@@ -185,7 +185,7 @@ async function ensureConceptPageCollectionOnce(): Promise<{
     const exists = await client.collectionExists(MEMORY_V2_COLLECTION);
     if (exists.exists) {
       // Assume compatible on probe failure rather than risk a destructive
-      // recreate — mirrors v1's posture in `VellumQdrantClient.ensureCollection`.
+      // recreate — mirrors v1's posture in `MaxQdrantClient.ensureCollection`.
       let info: Awaited<ReturnType<typeof client.getCollection>>;
       try {
         info = await client.getCollection(MEMORY_V2_COLLECTION);

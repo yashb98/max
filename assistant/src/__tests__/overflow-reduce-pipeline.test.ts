@@ -90,7 +90,7 @@ const CONTEXT_WINDOW = {
 };
 
 const TRUST: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

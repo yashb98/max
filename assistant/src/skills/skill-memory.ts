@@ -35,10 +35,10 @@ export function fromSkillSummary(entry: SkillSummary): SkillCapabilityInput {
 export function fromCatalogSkill(entry: CatalogSkill): SkillCapabilityInput {
   return {
     id: entry.id,
-    displayName: entry.metadata?.vellum?.["display-name"] ?? entry.name,
+    displayName: entry.metadata?.max?.["display-name"] ?? entry.name,
     description: entry.description,
-    activationHints: entry.metadata?.vellum?.["activation-hints"],
-    avoidWhen: entry.metadata?.vellum?.["avoid-when"],
+    activationHints: entry.metadata?.max?.["activation-hints"],
+    avoidWhen: entry.metadata?.max?.["avoid-when"],
   };
 }
 

@@ -16,8 +16,8 @@ import Database from "bun:sqlite";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import type { OAuthConnectionRecord } from "@vellumai/credential-storage";
-import { oauthConnectionAccessTokenPath } from "@vellumai/credential-storage";
+import type { OAuthConnectionRecord } from "@maxai/credential-storage";
+import { oauthConnectionAccessTokenPath } from "@maxai/credential-storage";
 import type { OAuthConnectionLookup } from "../subjects/local.js";
 
 // ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ function rowToRecord(row: OAuthConnectionRow): OAuthConnectionRecord {
  * Create a read-only OAuth connection lookup backed by the assistant's
  * SQLite database.
  *
- * @param workspaceDir - The workspace directory (e.g. `~/.vellum/workspace`).
+ * @param workspaceDir - The workspace directory (e.g. `~/.max/workspace`).
  */
 export function createLocalOAuthLookup(
   workspaceDir: string,

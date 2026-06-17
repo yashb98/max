@@ -7,7 +7,7 @@ import {
   TWILIO_RELAY_WEBHOOK_PATH,
   TWILIO_STATUS_WEBHOOK_PATH,
   TWILIO_VOICE_WEBHOOK_PATH,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 import { buildSchema } from "../schema.js";
 
 /** A route extracted from source: path + optional HTTP method. */

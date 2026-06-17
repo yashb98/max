@@ -2,8 +2,8 @@ import Foundation
 
 /// Resolves the platform assistant ID for the current assistant, regardless of hosting mode.
 ///
-/// - **Managed (cloud = "vellum")**: The lockfile `assistantId` IS the platform UUID — return it directly.
-/// - **Self-hosted local**: The lockfile `assistantId` is a runtime slug (e.g., `vellum-cool-heron`),
+/// - **Managed (cloud = "max")**: The lockfile `assistantId` IS the platform UUID — return it directly.
+/// - **Self-hosted local**: The lockfile `assistantId` is a runtime slug (e.g., `max-cool-heron`),
 ///   not the platform UUID. The platform ID is persisted during bootstrap via `persist()` and looked
 ///   up by `(runtimeAssistantId, organizationId, userId)`.
 ///
@@ -18,7 +18,7 @@ public enum PlatformAssistantIdResolver {
         organizationId: String,
         userId: String
     ) -> String {
-        "vellum_platform_id_\(runtimeAssistantId)_\(organizationId)_\(userId)"
+        "max_platform_id_\(runtimeAssistantId)_\(organizationId)_\(userId)"
     }
 
     // MARK: - Persist

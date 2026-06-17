@@ -14,10 +14,10 @@ import {
 const TEST_SIGNING_KEY = Buffer.from("test-signing-key-at-least-32-bytes-long");
 initSigningKey(TEST_SIGNING_KEY);
 
-/** Mint a valid edge JWT (aud=vellum-gateway) for test requests. */
+/** Mint a valid edge JWT (aud=max-gateway) for test requests. */
 function mintEdgeToken(): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: "svc:gateway:self",
     scope_profile: "gateway_service_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,

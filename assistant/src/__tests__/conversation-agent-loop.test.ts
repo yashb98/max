@@ -622,8 +622,8 @@ function makeCtx(
     drainQueue: () => {},
     getTurnInterfaceContext: () => null,
     getTurnChannelContext: () => ({
-      userMessageChannel: "vellum" as const,
-      assistantMessageChannel: "vellum" as const,
+      userMessageChannel: "max" as const,
+      assistantMessageChannel: "max" as const,
     }),
 
     graphMemory: {
@@ -906,7 +906,7 @@ describe("session-agent-loop", () => {
       expect(classifyDiskPressureTurnPolicyMock).toHaveBeenCalledWith(
         mockDiskPressureStatus,
         expect.objectContaining({
-          sourceChannel: "vellum",
+          sourceChannel: "max",
           sourceInterface: "web",
           trustContext: null,
         }),

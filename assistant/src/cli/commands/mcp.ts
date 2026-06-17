@@ -122,7 +122,7 @@ server uses one of three transport types:
   streamable-http   Remote server using Streamable HTTP transport
 
 MCP server configuration changes are detected automatically by the running
-assistant. You can also run 'vellum mcp reload' to trigger a manual reload.
+assistant. You can also run 'max mcp reload' to trigger a manual reload.
 
 Examples:
   $ assistant mcp list
@@ -205,9 +205,9 @@ using the current configuration from disk. Active sessions pick up new tools
 on their next turn automatically. The assistant must be running.
 
 Examples:
-  $ vellum mcp reload
-  $ vellum mcp reload   # after editing config.json to add a new server
-  $ vellum mcp reload   # after running "vellum mcp auth <server>"`,
+  $ max mcp reload
+  $ max mcp reload   # after editing config.json to add a new server
+  $ max mcp reload   # after running "max mcp auth <server>"`,
     )
     .action(async () => {
       const result = await cliIpcCall("internal_mcp_reload", { body: {} });
@@ -319,7 +319,7 @@ immediately without opening a browser. Tokens are cached locally for future use
 by the assistant.
 
 After successful authentication, the running assistant detects the change
-automatically. You can also run 'vellum mcp reload' to apply immediately.
+automatically. You can also run 'max mcp reload' to apply immediately.
 
 Examples:
   $ assistant mcp auth my-server
@@ -406,7 +406,7 @@ sse/streamable-http servers. If no OAuth credentials exist, the cleanup is
 silently skipped.
 
 After removal, the running assistant detects the change automatically. You
-can also run 'vellum mcp reload' to apply immediately.
+can also run 'max mcp reload' to apply immediately.
 
 Examples:
   $ assistant mcp remove my-server
@@ -427,7 +427,7 @@ Examples:
       log.info(`Removed MCP server "${name}".`);
       log.info(
         "The running assistant will pick up this change automatically. " +
-          "Or run 'vellum mcp reload' to apply now.",
+          "Or run 'max mcp reload' to apply now.",
       );
     });
     },

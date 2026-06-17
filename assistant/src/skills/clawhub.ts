@@ -149,8 +149,8 @@ interface ClawhubSearchResultItem {
   installs: number;
   version: string;
   createdAt: number;
-  /** Where this skill comes from: "vellum" (first-party) or "clawhub" (community). */
-  source: "vellum" | "clawhub";
+  /** Where this skill comes from: "max" (first-party) or "clawhub" (community). */
+  source: "max" | "clawhub";
 }
 
 interface ClawhubSearchResult {

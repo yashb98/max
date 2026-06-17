@@ -1,7 +1,7 @@
 {
   "version": "0.577.0",
   "tag": "0.577.0",
-  "description": "Lucide icon subset vendored for Vellum Assistant",
+  "description": "Lucide icon subset vendored for Max Assistant",
   "icons": [
     "app-window",
     "archive",

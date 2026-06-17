@@ -4,7 +4,7 @@
 
 Phase 2 of browser automation introduced a three-tier backend selection chain for macOS-originated turns, enabling the assistant to prefer the user's real Chrome session over a sandboxed Playwright instance. Two transport paths exist for the top-priority "extension" backend:
 
-1. **Chrome Extension Registry (WebSocket)**: When the user has the Vellum Chrome Extension installed and paired, `host_browser_request` frames route through the `ChromeExtensionRegistry` singleton over a dedicated `/v1/browser-relay` WebSocket.
+1. **Chrome Extension Registry (WebSocket)**: When the user has the Max Chrome Extension installed and paired, `host_browser_request` frames route through the `ChromeExtensionRegistry` singleton over a dedicated `/v1/browser-relay` WebSocket.
 2. **macOS Host Browser Proxy (SSE)**: When the macOS desktop client is connected but the Chrome extension is absent, `host_browser_request` frames travel through `assistantEventHub` (SSE). The desktop client receives the frames via its SSE connection, executes CDP commands against the local Chrome, and POSTs results back to `/v1/host-browser-result`.
 
 When neither transport is available, the system falls back through cdp-inspect (direct Chrome DevTools Protocol attach) before resorting to the local Playwright browser.
@@ -213,5 +213,5 @@ CDP factory: candidate succeeded, backend is now sticky
 Filter runtime logs with:
 
 ```bash
-grep "cdp-factory" ~/.vellum/workspace/data/logs/vellum.log
+grep "cdp-factory" ~/.max/workspace/data/logs/max.log
 ```

@@ -30,9 +30,9 @@ const { KNOWN_EXTENSION_ORIGINS } = await import(
 // Simulate a loopback peer IP as supplied by the gateway server to the handler.
 const LOOPBACK_IP = "127.0.0.1";
 
-// A valid Vellum extension origin (production).
+// A valid Max extension origin (production).
 const PROD_ORIGIN = "chrome-extension://hphbdmpffeigpcdjkckleobjmhhokpne";
-// A non-Vellum extension origin.
+// A non-Max extension origin.
 const MALICIOUS_ORIGIN = "chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 function makePairRequest(overrides: {
@@ -50,7 +50,7 @@ function makePairRequest(overrides: {
     headers["origin"] = origin ?? PROD_ORIGIN;
   }
   if (interfaceId !== null) {
-    headers["x-vellum-interface-id"] = interfaceId;
+    headers["x-max-interface-id"] = interfaceId;
   }
   if (xForwardedFor) {
     headers["x-forwarded-for"] = xForwardedFor;
@@ -68,7 +68,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("resolveExtensionOrigin", () => {
-  test("returns origin for every known Vellum extension ID", () => {
+  test("returns origin for every known Max extension ID", () => {
     for (const origin of KNOWN_EXTENSION_ORIGINS) {
       const req = new Request("http://localhost:7830/v1/events", {
         headers: { origin },

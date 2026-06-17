@@ -8,7 +8,7 @@ export function registerPlatformConnectCommand(platform: Command): void {
   platform
     .command("connect")
     .description(
-      "Connect this assistant to the Vellum Platform by storing credentials",
+      "Connect this assistant to the Max Platform by storing credentials",
     )
     .addHelpText(
       "after",

@@ -1,7 +1,7 @@
 /**
  * Workspace migration 026: Backfill install-meta.json for existing skills
  *
- * Scans ~/.vellum/workspace/skills/ for installed skill directories and writes
+ * Scans ~/.max/workspace/skills/ for installed skill directories and writes
  * an install-meta.json for each skill that lacks one, inferring the origin
  * from legacy version.json and .integrity.json files.
  *
@@ -37,7 +37,7 @@ const SKILL_MD_FILENAME = "SKILL.md";
 // ---------------------------------------------------------------------------
 
 interface SkillInstallMeta {
-  origin: "vellum" | "clawhub" | "skillssh" | "custom";
+  origin: "max" | "clawhub" | "skillssh" | "custom";
   installedAt: string;
   installedBy?: string;
   backfilledBy?: string;
@@ -153,7 +153,7 @@ function loadIntegrityManifest(skillsDir: string): IntegrityManifest {
  * 1. version.json with `origin: "skills.sh"` -> skillssh
  * 2. version.json with `version` but no `origin` field:
  *    - Has entry in .integrity.json -> clawhub
- *    - Otherwise -> vellum
+ *    - Otherwise -> max
  * 3. version.json exists but doesn't match above -> custom
  * 4. No version.json:
  *    - Has entry in .integrity.json -> clawhub
@@ -196,7 +196,7 @@ function inferInstallMeta(
     // Case 2: has version but no origin field
     if (typeof raw.version === "string" && !("origin" in raw)) {
       return {
-        origin: hasIntegrityEntry ? "clawhub" : "vellum",
+        origin: hasIntegrityEntry ? "clawhub" : "max",
         installedAt:
           typeof raw.installedAt === "string"
             ? raw.installedAt

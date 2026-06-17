@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Lifecycle regression tests for `EventStreamClient`.
 ///

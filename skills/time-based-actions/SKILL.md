@@ -1,10 +1,10 @@
 ---
 name: time-based-actions
 description: Unified routing guide for reminders, schedules, notifications, and tasks - prevents common misrouting
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "⏰"
-  vellum:
+  max:
     display-name: "Time-Based Actions"
 ---
 
@@ -132,7 +132,7 @@ Use the following heuristics to pick `routing_intent`:
   2. **`interface` fallback** — if `source_channel` is absent (common for guardian/direct users), map the `interface` value to a channel name:
      | `interface` value | Channel name |
      | --- | --- |
-     | `macos`, `ios` | `vellum` |
+     | `macos`, `ios` | `max` |
      | `telegram` | `telegram` |
      | `slack` | `slack` |
      | `cli` | _(omit — no routable channel)_ |
@@ -152,8 +152,8 @@ Use the following heuristics to pick `routing_intent`:
 | Scenario                                   | routing_intent   | routing_hints                          |
 | ------------------------------------------ | ---------------- | -------------------------------------- |
 | `source_channel: telegram` in turn_context | `all_channels`   | `{ preferred_channels: ["telegram"] }` |
-| No `source_channel`, `interface: macos`    | `all_channels`   | `{ preferred_channels: ["vellum"] }`   |
-| No `source_channel`, `interface: ios`      | `all_channels`   | `{ preferred_channels: ["vellum"] }`   |
+| No `source_channel`, `interface: macos`    | `all_channels`   | `{ preferred_channels: ["max"] }`   |
+| No `source_channel`, `interface: ios`      | `all_channels`   | `{ preferred_channels: ["max"] }`   |
 | User says "remind me on Telegram"          | `single_channel` | `{ preferred_channels: ["telegram"] }` |
 | No `source_channel`, `interface: cli`      | `all_channels`   | `{}`                                   |
 | No channel info available                  | `all_channels`   | `{}`                                   |

@@ -1,10 +1,10 @@
 ---
 name: schedule
 description: Recurring and one-shot scheduling - cron, RRULE, or single fire-at time
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📅"
-  vellum:
+  max:
     display-name: "Schedule"
 ---
 
@@ -117,7 +117,7 @@ Optionally pass `routing_hints` (a JSON object) to influence routing decisions (
   2. **`interface` fallback** — if `source_channel` is absent (common for guardian/direct users), map the `interface` value to a channel name:
      | `interface` value | Channel name |
      | --- | --- |
-     | `macos`, `ios` | `vellum` |
+     | `macos`, `ios` | `max` |
      | `telegram` | `telegram` |
      | `slack` | `slack` |
      | `cli` | _(omit — no routable channel)_ |

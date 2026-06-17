@@ -15,7 +15,7 @@ import { acpSessionHistory } from "../memory/schema.js";
 import * as pendingInteractions from "../runtime/pending-interactions.js";
 import { getLogger } from "../util/logger.js";
 import { AcpAgentProcess } from "./agent-process.js";
-import { VellumAcpClientHandler } from "./client-handler.js";
+import { MaxAcpClientHandler } from "./client-handler.js";
 import type { AcpAgentConfig, AcpSessionState } from "./types.js";
 
 const log = getLogger("acp:session-manager");
@@ -35,9 +35,9 @@ interface BufferedAcpUpdate {
 interface SessionEntry {
   process: AcpAgentProcess;
   state: AcpSessionState;
-  clientHandler: VellumAcpClientHandler;
+  clientHandler: MaxAcpClientHandler;
   /** Wrapped sender that also appends to the ring buffer. */
-  sendToVellum: (msg: ServerMessage) => void;
+  sendToMax: (msg: ServerMessage) => void;
   currentPrompt: Promise<unknown> | null;
   parentConversationId: string;
   cwd: string;
@@ -103,7 +103,7 @@ export class AcpSessionManager {
     task: string,
     cwd: string,
     parentConversationId: string,
-    sendToVellum: (msg: ServerMessage) => void,
+    sendToMax: (msg: ServerMessage) => void,
   ): Promise<{ acpSessionId: string; protocolSessionId: string }> {
     if (this.sessions.size >= this.maxConcurrent) {
       throw new Error(
@@ -134,10 +134,10 @@ export class AcpSessionManager {
       if (msg.type === "acp_session_update") {
         this.appendToBuffer(acpSessionId, msg);
       }
-      sendToVellum(msg);
+      sendToMax(msg);
     };
 
-    const clientHandler = new VellumAcpClientHandler(
+    const clientHandler = new MaxAcpClientHandler(
       acpSessionId,
       wrappedSend,
       parentConversationId,
@@ -164,7 +164,7 @@ export class AcpSessionManager {
       process: agentProcess,
       state,
       clientHandler,
-      sendToVellum: wrappedSend,
+      sendToMax: wrappedSend,
       currentPrompt: null,
       parentConversationId,
       cwd,
@@ -433,7 +433,7 @@ export class AcpSessionManager {
             { acpSessionId, stopReason: response.stopReason },
             "ACP prompt completed",
           );
-          current.sendToVellum({
+          current.sendToMax({
             type: "acp_session_completed",
             acpSessionId,
             stopReason: response.stopReason,
@@ -500,7 +500,7 @@ export class AcpSessionManager {
           }
           current.currentPrompt = null;
           log.error({ acpSessionId, error: err.message }, "ACP prompt failed");
-          current.sendToVellum({
+          current.sendToMax({
             type: "acp_session_error",
             acpSessionId,
             error: err.message,

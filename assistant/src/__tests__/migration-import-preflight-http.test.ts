@@ -24,7 +24,7 @@ function toArrayBuffer(data: Uint8Array): ArrayBuffer {
   ) as ArrayBuffer;
 }
 
-const testDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDir = process.env.MAX_WORKSPACE_DIR!;
 const testDbDir = join(testDir, "data", "db");
 const testDbPath = join(testDbDir, "assistant.db");
 const testConfigPath = join(testDir, "config.json");
@@ -641,7 +641,7 @@ describe("analyzeImport", () => {
 // DefaultPathResolver unit tests
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = "/home/user/.vellum/workspace";
+const WORKSPACE_DIR = "/home/user/.max/workspace";
 
 describe("DefaultPathResolver", () => {
   test("resolves data/db/assistant.db to workspace db path (backward compat)", () => {

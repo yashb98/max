@@ -1,5 +1,5 @@
 /**
- * Tests for @vellumai/gateway-client
+ * Tests for @maxai/gateway-client
  *
  * Covers:
  * 1. Package independence — no imports from assistant/ or gateway/.
@@ -29,7 +29,6 @@ describe("package independence", () => {
     "../types.ts",
     "../http-delivery.ts",
     "../ipc-client.ts",
-    "../trust-rules.ts",
   ];
 
   for (const file of sourceFiles) {
@@ -72,9 +71,11 @@ function createTestLogger(): Logger & {
   };
 }
 
-/** Create a temporary Unix socket path for tests. */
+/** Create a temporary Unix socket path for tests.
+ * Kept short: macOS caps sockaddr_un.sun_path at ~104 bytes, and the long
+ * `/var/folders/.../T/` tmpdir + a full UUID overran it. */
 function tmpSocketPath(): string {
-  return join(tmpdir(), `gw-client-test-${randomUUID()}.sock`);
+  return join(tmpdir(), `gwc-${randomUUID().slice(0, 8)}.sock`);
 }
 
 // ---------------------------------------------------------------------------

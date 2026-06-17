@@ -91,8 +91,8 @@ describe("buildSttHints", () => {
 
   test("static hints included verbatim", () => {
     const input = emptyInput();
-    input.staticHints = ["Vellum", "Acme"];
-    expect(buildSttHints(input)).toBe("Vellum,Acme");
+    input.staticHints = ["Max", "Acme"];
+    expect(buildSttHints(input)).toBe("Max,Acme");
   });
 
   test("assistant name included", () => {
@@ -178,11 +178,11 @@ describe("buildSttHints", () => {
 
   test("duplicates removed (case-insensitive)", () => {
     const input = emptyInput();
-    input.staticHints = ["Vellum", "vellum", "VELLUM"];
-    input.recentContactNames = ["Vellum"];
+    input.staticHints = ["Max", "max", "MAX"];
+    input.recentContactNames = ["Max"];
     const result = buildSttHints(input);
     // Should appear only once — the first occurrence is kept
-    expect(result).toBe("Vellum");
+    expect(result).toBe("Max");
   });
 
   test("empty and whitespace-only entries filtered", () => {

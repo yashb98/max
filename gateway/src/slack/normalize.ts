@@ -1,4 +1,4 @@
-import { renderSlackTextForModel } from "@vellumai/slack-text";
+import { renderSlackTextForModel } from "@maxai/slack-text";
 import type { GatewayConfig } from "../config.js";
 import { fetchImpl } from "../fetch.js";
 import { resolveAssistant, isRejection } from "../routing/resolve-assistant.js";

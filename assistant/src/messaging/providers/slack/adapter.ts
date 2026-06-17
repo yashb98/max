@@ -8,7 +8,7 @@
 import {
   buildSlackUserLabelMap,
   renderSlackTextForModel,
-} from "@vellumai/slack-text";
+} from "@maxai/slack-text";
 
 import { findContactChannel } from "../../../contacts/contact-store.js";
 import type { OAuthConnection } from "../../../oauth/connection.js";

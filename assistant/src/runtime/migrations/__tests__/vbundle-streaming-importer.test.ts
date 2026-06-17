@@ -64,7 +64,7 @@ const CUSTOMIZED_PERSONA_FIXTURE = `_ Lines starting with _ are comments - they 
 - Work role: Staff Engineer
 - Goals: Ship drop-user-md
 - Hobbies/fun: Reading papers
-- Daily tools: Terminal, Vellum
+- Daily tools: Terminal, Max
 `;
 
 // ---------------------------------------------------------------------------

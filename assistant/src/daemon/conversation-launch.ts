@@ -92,7 +92,7 @@ export async function launchConversation(
     params.seedPrompt,
     undefined,
     undefined,
-    "vellum",
+    "max",
     "cli",
   ).catch((err) => {
     log.error(

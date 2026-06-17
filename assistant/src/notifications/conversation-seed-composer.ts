@@ -3,7 +3,7 @@
  *
  * Generates richer seed content for notification conversations than the concise
  * title/body used in native notification popups. Verbosity adapts to the
- * delivery surface: vellum/macos gets flowing prose, telegram gets compact.
+ * delivery surface: max/macos gets flowing prose, telegram gets compact.
  *
  * Composes from `copy.title/body` rather than hardcoded English templates
  * so LLM-localized copy is preserved for non-English users.
@@ -21,7 +21,7 @@ import type { NotificationChannel, RenderedChannelCopy } from "./types.js";
 export type SurfaceVerbosity = "rich" | "compact";
 
 const CHANNEL_DEFAULT_INTERFACE: Record<string, InterfaceId> = {
-  vellum: "macos",
+  max: "macos",
   telegram: "telegram",
 };
 
@@ -33,7 +33,7 @@ const RICH_INTERFACES = new Set<InterfaceId>(["macos", "ios", "web"]);
  * Inference strategy:
  *   1. Explicit `interfaceHint` in contextPayload if valid InterfaceId.
  *   2. `sourceInterface` from the originating conversation if valid.
- *   3. Channel default (vellum → macos → rich, telegram → compact).
+ *   3. Channel default (max → macos → rich, telegram → compact).
  */
 export function resolveVerbosity(
   channel: NotificationChannel,

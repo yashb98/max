@@ -10,8 +10,8 @@ const metadataDeletes: Array<{ service: string; field: string }> = [];
 let providerRefreshCalls = 0;
 
 const PLATFORM_BASE_URL = "https://platform.example.com";
-const ASSISTANT_API_KEY_PATH = credentialKey("vellum", "assistant_api_key");
-const PLATFORM_BASE_URL_PATH = credentialKey("vellum", "platform_base_url");
+const ASSISTANT_API_KEY_PATH = credentialKey("max", "assistant_api_key");
+const PLATFORM_BASE_URL_PATH = credentialKey("max", "platform_base_url");
 const MANAGED_PROVIDERS = ["anthropic", "openai", "gemini"] as const;
 
 let platformBaseUrlOverride: string | undefined;
@@ -173,21 +173,31 @@ describe("secret routes managed proxy registry sync", () => {
     await initializeProviders(mockConfig);
   });
 
-  test("adding vellum:assistant_api_key bootstraps managed fallback providers immediately", async () => {
-    expect(listProviders()).toEqual([]);
+  test("adding max:assistant_api_key bootstraps managed fallback providers immediately", async () => {
+    // claude-subscription + kimi-agent are defaultEnabled cli-login providers that
+    // always register; "empty" here means no managed/key-based providers.
+    expect(
+      listProviders().filter(
+        (p) => p !== "claude-subscription" && p !== "kimi-agent",
+      ),
+    ).toEqual([]);
 
     const result = await addCredential(
-      "vellum:assistant_api_key",
+      "max:assistant_api_key",
       "ast-managed-key",
     );
 
     expect(result).toEqual(expect.objectContaining({ success: true }));
     expect(secureKeyStore[ASSISTANT_API_KEY_PATH]).toBe("ast-managed-key");
     expect(metadataUpserts).toEqual([
-      { service: "vellum", field: "assistant_api_key" },
+      { service: "max", field: "assistant_api_key" },
     ]);
 
-    const providers = listProviders();
+    // Exclude always-on cli-login providers (claude-subscription, kimi-agent)
+    // to assert the managed-proxy provider set.
+    const providers = listProviders().filter(
+      (p) => p !== "claude-subscription" && p !== "kimi-agent",
+    );
     expect(providers).toHaveLength(MANAGED_PROVIDERS.length);
     for (const provider of MANAGED_PROVIDERS) {
       expect(providers).toContain(provider);
@@ -207,7 +217,7 @@ describe("secret routes managed proxy registry sync", () => {
     expect(providerRefreshCalls).toBe(2);
   });
 
-  test("deleting vellum:assistant_api_key clears managed fallback providers immediately", async () => {
+  test("deleting max:assistant_api_key clears managed fallback providers immediately", async () => {
     secureKeyStore[ASSISTANT_API_KEY_PATH] = "ast-managed-key";
     await initializeProviders(mockConfig);
 
@@ -216,28 +226,34 @@ describe("secret routes managed proxy registry sync", () => {
       expect(getProviderRoutingSource(provider)).toBe("managed-proxy");
     }
 
-    await deleteCredential("vellum:assistant_api_key");
+    await deleteCredential("max:assistant_api_key");
 
     expect(secureKeyStore[ASSISTANT_API_KEY_PATH]).toBeUndefined();
     expect(metadataDeletes).toEqual([
-      { service: "vellum", field: "assistant_api_key" },
+      { service: "max", field: "assistant_api_key" },
     ]);
-    expect(listProviders()).toEqual([]);
+    // claude-subscription + kimi-agent are defaultEnabled cli-login providers that
+    // always register; "empty" here means no managed/key-based providers.
+    expect(
+      listProviders().filter(
+        (p) => p !== "claude-subscription" && p !== "kimi-agent",
+      ),
+    ).toEqual([]);
   });
 
   test("managed proxy credential writes notify live-conversation refresh listeners", async () => {
-    await addCredential("vellum:assistant_api_key", "ast-managed-key");
+    await addCredential("max:assistant_api_key", "ast-managed-key");
 
     expect(providerRefreshCalls).toBe(1);
 
-    await deleteCredential("vellum:assistant_api_key");
+    await deleteCredential("max:assistant_api_key");
 
     expect(providerRefreshCalls).toBe(2);
   });
 
-  test("storing vellum:platform_base_url sets override and triggers initializeProviders", async () => {
+  test("storing max:platform_base_url sets override and triggers initializeProviders", async () => {
     await addCredential(
-      "vellum:platform_base_url",
+      "max:platform_base_url",
       "https://managed.example.com",
     );
 
@@ -246,22 +262,32 @@ describe("secret routes managed proxy registry sync", () => {
     );
     expect(platformBaseUrlOverride).toBe("https://managed.example.com");
     expect(metadataUpserts).toEqual([
-      { service: "vellum", field: "platform_base_url" },
+      { service: "max", field: "platform_base_url" },
     ]);
   });
 
-  test("storing both vellum:platform_base_url and vellum:assistant_api_key enables managed proxy", async () => {
-    expect(listProviders()).toEqual([]);
+  test("storing both max:platform_base_url and max:assistant_api_key enables managed proxy", async () => {
+    // claude-subscription + kimi-agent are defaultEnabled cli-login providers that
+    // always register; "empty" here means no managed/key-based providers.
+    expect(
+      listProviders().filter(
+        (p) => p !== "claude-subscription" && p !== "kimi-agent",
+      ),
+    ).toEqual([]);
 
     await addCredential(
-      "vellum:platform_base_url",
+      "max:platform_base_url",
       "https://managed.example.com",
     );
     expect(platformBaseUrlOverride).toBe("https://managed.example.com");
 
-    await addCredential("vellum:assistant_api_key", "ast-managed-key");
+    await addCredential("max:assistant_api_key", "ast-managed-key");
 
-    const providers = listProviders();
+    // Exclude always-on cli-login providers (claude-subscription, kimi-agent)
+    // to assert the managed-proxy provider set.
+    const providers = listProviders().filter(
+      (p) => p !== "claude-subscription" && p !== "kimi-agent",
+    );
     expect(providers).toHaveLength(MANAGED_PROVIDERS.length);
     for (const provider of MANAGED_PROVIDERS) {
       expect(providers).toContain(provider);
@@ -269,16 +295,16 @@ describe("secret routes managed proxy registry sync", () => {
     }
   });
 
-  test("deleting vellum:platform_base_url clears override and re-initializes providers", async () => {
+  test("deleting max:platform_base_url clears override and re-initializes providers", async () => {
     secureKeyStore[PLATFORM_BASE_URL_PATH] = "https://managed.example.com";
     platformBaseUrlOverride = "https://managed.example.com";
 
-    await deleteCredential("vellum:platform_base_url");
+    await deleteCredential("max:platform_base_url");
 
     expect(secureKeyStore[PLATFORM_BASE_URL_PATH]).toBeUndefined();
     expect(platformBaseUrlOverride).toBeUndefined();
     expect(metadataDeletes).toEqual([
-      { service: "vellum", field: "platform_base_url" },
+      { service: "max", field: "platform_base_url" },
     ]);
   });
 });

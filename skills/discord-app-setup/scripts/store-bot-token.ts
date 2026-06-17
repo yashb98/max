@@ -9,7 +9,7 @@
 
 const species = process.env.SPECIES;
 
-async function storeVellum(): Promise<void> {
+async function storeMax(): Promise<void> {
   const args = [
     "credentials",
     "prompt",
@@ -51,12 +51,12 @@ async function storeVellum(): Promise<void> {
 
 async function main(): Promise<void> {
   switch (species) {
-    case "vellum":
-      await storeVellum();
+    case "max":
+      await storeMax();
       break;
     default:
       console.error(
-        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=vellum.`,
+        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=max.`,
       );
       process.exitCode = 1;
   }

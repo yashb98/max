@@ -174,7 +174,7 @@ export interface WakeOptions {
    * loop runs. Required for internal background jobs that need elevated
    * trust to invoke side-effect tools — without it the loop falls back to
    * `trustClass: "unknown"` and side-effect tools are blocked. Caller
-   * should pass `{ sourceChannel: "vellum", trustClass: "guardian" }` for
+   * should pass `{ sourceChannel: "max", trustClass: "guardian" }` for
    * assistant-self-maintenance jobs.
    */
   trustContext?: TrustContext;
@@ -184,7 +184,7 @@ export interface WakeOptions {
    * pressure even when they otherwise carry internal guardian trust.
    */
   sourceChannel?: TrustContext["sourceChannel"];
-  sourceInterface?: InterfaceId | "vellum";
+  sourceInterface?: InterfaceId | "max";
   /**
    * LLM call site to route this wake through. Defaults to `"mainAgent"` so
    * conversation wakes share the user's chat-model selection. Background jobs
@@ -356,7 +356,7 @@ function buildWakeTurnContext(
     trust:
       opts.trustContext ??
       ({
-        sourceChannel: opts.sourceChannel ?? "vellum",
+        sourceChannel: opts.sourceChannel ?? "max",
         trustClass: "guardian",
       } satisfies TrustContext),
     injectionInputs: {

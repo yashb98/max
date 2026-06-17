@@ -26,7 +26,7 @@ let workspaceDir: string;
 let dbPath: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "vellum-migration-075-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "max-migration-075-test-"));
   const dbDir = join(workspaceDir, "data", "db");
   mkdirSync(dbDir, { recursive: true });
   dbPath = join(dbDir, "assistant.db");

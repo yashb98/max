@@ -228,7 +228,7 @@ export function createMockChromeExtension(
           // result-route check. The daemon will reject targeted host_browser
           // results without this header (or where it doesn't match the
           // captured target client).
-          "X-Vellum-Client-Id": clientId,
+          "X-Max-Client-Id": clientId,
         },
         body: JSON.stringify(body),
       });
@@ -275,8 +275,8 @@ export function createMockChromeExtension(
       headers: {
         Accept: "text/event-stream",
         Authorization: `Bearer ${options.sseToken ?? options.token}`,
-        "X-Vellum-Client-Id": clientId,
-        "X-Vellum-Interface-Id": "chrome-extension",
+        "X-Max-Client-Id": clientId,
+        "X-Max-Interface-Id": "chrome-extension",
       },
       signal: sseAbort.signal,
     });

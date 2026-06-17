@@ -93,7 +93,7 @@ describe("schedule run-now trust propagation", () => {
     expect(result.schedules).toBeDefined();
     expect(getOrCreateCalls).toHaveLength(1);
     expect(getOrCreateCalls[0].options?.trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     expect(processCalls).toHaveLength(1);
@@ -131,7 +131,7 @@ describe("schedule run-now trust propagation", () => {
     expect(result.schedules).toBeDefined();
     expect(getOrCreateCalls).toHaveLength(1);
     expect(getOrCreateCalls[0].options?.trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     expect(processCalls).toHaveLength(1);

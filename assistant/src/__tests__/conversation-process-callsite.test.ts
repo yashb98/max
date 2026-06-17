@@ -424,7 +424,7 @@ describe("processMessage callSite threading", () => {
       "conv-store-client-timezone",
       {
         transport: {
-          channelId: "vellum",
+          channelId: "max",
           interfaceId: "macos",
           clientTimezone: "america/new_york",
         },
@@ -435,7 +435,7 @@ describe("processMessage callSite threading", () => {
 
     await getOrCreateConversation("conv-store-client-timezone", {
       transport: {
-        channelId: "vellum",
+        channelId: "max",
         interfaceId: "ios",
         clientTimezone: "europe/london",
       },

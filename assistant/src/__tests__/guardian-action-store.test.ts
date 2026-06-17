@@ -82,7 +82,7 @@ describe("guardian-action-store", () => {
     });
     const delivery = createGuardianActionDelivery({
       requestId: request.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: deliveryConvId,
     });
     updateDeliveryStatus(delivery.id, "sent");
@@ -247,7 +247,7 @@ describe("guardian-action-store", () => {
 
     const pendingDelivery = createGuardianActionDelivery({
       requestId: request.id,
-      destinationChannel: "vellum",
+      destinationChannel: "max",
       destinationConversationId: "conv-mac-guardian",
     });
     const sentDelivery = createGuardianActionDelivery({

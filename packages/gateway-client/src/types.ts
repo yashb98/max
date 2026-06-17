@@ -1,5 +1,5 @@
 /**
- * @vellumai/gateway-client — shared types
+ * @maxai/gateway-client — shared types
  *
  * Type definitions for assistant-to-gateway communication. These are
  * intentionally decoupled from the assistant's internal types so the

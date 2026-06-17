@@ -2,7 +2,7 @@ import { mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-const TEST_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const TEST_DIR = process.env.MAX_WORKSPACE_DIR!;
 
 // Build a mock that covers every export from platform.ts — any function not
 // explicitly mapped returns a no-op stub so that transitive imports don't fail.
@@ -51,7 +51,7 @@ function writeSkillWithIncludes(
   writeFileSync(
     join(skillDir, "SKILL.md"),
     `---\nname: "${name}"\ndescription: "${description}"\nmetadata: ${JSON.stringify(
-      { vellum: { includes } },
+      { max: { includes } },
     )}\n---\n\n${body}\n`,
   );
 }
@@ -324,7 +324,7 @@ describe("skill_load tool", () => {
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(
       join(skillDir, "SKILL.md"),
-      '---\nname: "Marker Missing"\ndescription: "test"\nmetadata: {"vellum":{"includes":["nonexistent"]}}\n---\n\nBody.\n',
+      '---\nname: "Marker Missing"\ndescription: "test"\nmetadata: {"max":{"includes":["nonexistent"]}}\n---\n\nBody.\n',
     );
     writeFileSync(join(TEST_DIR, "skills", "SKILLS.md"), "- marker-missing\n");
 
@@ -345,11 +345,11 @@ describe("skill_load tool", () => {
     mkdirSync(dirB, { recursive: true });
     writeFileSync(
       join(dirA, "SKILL.md"),
-      '---\nname: "Cycle A"\ndescription: "test"\nmetadata: {"vellum":{"includes":["cycle-b"]}}\n---\n\nBody A.\n',
+      '---\nname: "Cycle A"\ndescription: "test"\nmetadata: {"max":{"includes":["cycle-b"]}}\n---\n\nBody A.\n',
     );
     writeFileSync(
       join(dirB, "SKILL.md"),
-      '---\nname: "Cycle B"\ndescription: "test"\nmetadata: {"vellum":{"includes":["cycle-a"]}}\n---\n\nBody B.\n',
+      '---\nname: "Cycle B"\ndescription: "test"\nmetadata: {"max":{"includes":["cycle-a"]}}\n---\n\nBody B.\n',
     );
     writeFileSync(
       join(TEST_DIR, "skills", "SKILLS.md"),
@@ -397,7 +397,7 @@ describe("skill_load tool", () => {
     mkdirSync(parentDir, { recursive: true });
     writeFileSync(
       join(parentDir, "SKILL.md"),
-      '---\nname: "Parent"\ndescription: "Has children"\nmetadata: {"vellum":{"includes":["child-skill"]}}\n---\n\nParent body.\n',
+      '---\nname: "Parent"\ndescription: "Has children"\nmetadata: {"max":{"includes":["child-skill"]}}\n---\n\nParent body.\n',
     );
     writeFileSync(
       join(TEST_DIR, "skills", "SKILLS.md"),
@@ -693,7 +693,7 @@ describe("skill_load tool", () => {
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(
       join(skillDir, "SKILL.md"),
-      '---\nname: "Empty Includes"\ndescription: "Has empty array"\nmetadata: {"vellum":{"includes":[]}}\n---\n\nBody.\n',
+      '---\nname: "Empty Includes"\ndescription: "Has empty array"\nmetadata: {"max":{"includes":[]}}\n---\n\nBody.\n',
     );
     writeFileSync(join(TEST_DIR, "skills", "SKILLS.md"), "- empty-includes\n");
 

@@ -1,5 +1,5 @@
-import { buildWsUpstreamUrl } from "@vellumai/assistant-client";
-import { TWILIO_MEDIA_STREAM_WEBHOOK_PATH } from "@vellumai/service-contracts/twilio-ingress";
+import { buildWsUpstreamUrl } from "@maxai/assistant-client";
+import { TWILIO_MEDIA_STREAM_WEBHOOK_PATH } from "@maxai/service-contracts/twilio-ingress";
 
 import {
   validateEdgeToken,

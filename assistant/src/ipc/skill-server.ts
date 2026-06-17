@@ -43,7 +43,7 @@ import { createServer, type Server, type Socket } from "node:net";
 import {
   ensureSocketDir,
   SocketWatchdog,
-} from "@vellumai/ipc-server-utils";
+} from "@maxai/ipc-server-utils";
 
 import {
   type SkillRouteHandle,

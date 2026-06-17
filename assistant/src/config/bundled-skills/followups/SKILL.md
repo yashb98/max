@@ -1,10 +1,10 @@
 ---
 name: followups
 description: Track sent messages awaiting responses across communication channels
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📨"
-  vellum:
+  max:
     display-name: "Followups"
 ---
 

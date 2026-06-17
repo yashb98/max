@@ -49,7 +49,7 @@ import {
 // needs a fresh tmp dir that the importer can swap into place.
 // ---------------------------------------------------------------------------
 
-const originalWorkspaceDir = process.env.VELLUM_WORKSPACE_DIR;
+const originalWorkspaceDir = process.env.MAX_WORKSPACE_DIR;
 
 function freshWorkspaceRoot(): string {
   const parent = realpathSync(
@@ -61,7 +61,7 @@ function freshWorkspaceRoot(): string {
 }
 
 function setWorkspaceDir(dir: string): void {
-  process.env.VELLUM_WORKSPACE_DIR = dir;
+  process.env.MAX_WORKSPACE_DIR = dir;
 }
 
 // ---------------------------------------------------------------------------
@@ -246,7 +246,7 @@ beforeAll(() => {
 afterAll(() => {
   _setUrlImportValidatorOptionsForTests(undefined);
   if (originalWorkspaceDir !== undefined) {
-    process.env.VELLUM_WORKSPACE_DIR = originalWorkspaceDir;
+    process.env.MAX_WORKSPACE_DIR = originalWorkspaceDir;
   }
 });
 

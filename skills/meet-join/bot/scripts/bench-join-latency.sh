@@ -28,7 +28,7 @@
 # window is the dominant cost and the right thing to chart.
 #
 # Usage:
-#   BOT_IMAGE=vellum-meet-bot:latest \
+#   BOT_IMAGE=max-meet-bot:latest \
 #     bench-join-latency.sh https://meet.google.com/xxx-yyyy-zzz [iterations]
 #
 # Env:
@@ -54,7 +54,7 @@ if [[ -z "${MEET_URL}" ]]; then
   exit 2
 fi
 if [[ -z "${BOT_IMAGE:-}" ]]; then
-  echo "BOT_IMAGE env var is required (e.g. vellum-meet-bot:latest)" >&2
+  echo "BOT_IMAGE env var is required (e.g. max-meet-bot:latest)" >&2
   exit 2
 fi
 

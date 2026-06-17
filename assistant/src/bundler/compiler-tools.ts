@@ -2,7 +2,7 @@
  * JIT download and cache of esbuild binary + preact for app compilation.
  *
  * Instead of shipping these in the .app bundle (~11 MB), we download them
- * on first compile to ~/.vellum/workspace/compiler-tools/. Follows the
+ * on first compile to ~/.max/workspace/compiler-tools/. Follows the
  * same pattern as EmbeddingRuntimeManager.
  */
 

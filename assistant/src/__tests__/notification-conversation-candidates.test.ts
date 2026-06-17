@@ -22,26 +22,26 @@ describe("serializeCandidatesForPrompt", () => {
   });
 
   test("returns null when all channels have empty arrays", () => {
-    const set: ConversationCandidateSet = { vellum: [] };
+    const set: ConversationCandidateSet = { max: [] };
     expect(serializeCandidatesForPrompt(set)).toBeNull();
   });
 
   test("serializes a single channel with one candidate", () => {
     const set: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-001",
           title: "Reminder thread",
           updatedAt: 1700000000000,
           latestSourceEventName: "schedule.notify",
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
         },
       ],
     };
 
     const result = serializeCandidatesForPrompt(set);
     expect(result).not.toBeNull();
-    expect(result).toContain("Channel: vellum");
+    expect(result).toContain("Channel: max");
     expect(result).toContain("id=conv-001");
     expect(result).toContain('title="Reminder thread"');
     expect(result).toContain('lastEvent="schedule.notify"');
@@ -49,13 +49,13 @@ describe("serializeCandidatesForPrompt", () => {
 
   test("serializes untitled conversations with placeholder", () => {
     const set: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-002",
           title: null,
           updatedAt: 1700000000000,
           latestSourceEventName: null,
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
         },
       ],
     };
@@ -67,13 +67,13 @@ describe("serializeCandidatesForPrompt", () => {
 
   test("includes guardian context when present", () => {
     const set: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-003",
           title: "Guardian thread",
           updatedAt: 1700000000000,
           latestSourceEventName: "guardian.question",
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
           guardianContext: { pendingUnresolvedRequestCount: 3 },
         },
       ],
@@ -85,13 +85,13 @@ describe("serializeCandidatesForPrompt", () => {
 
   test("serializes multiple channels", () => {
     const set: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-001",
-          title: "Vellum thread",
+          title: "Max thread",
           updatedAt: 1700000000000,
           latestSourceEventName: "schedule.notify",
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
         },
       ],
       telegram: [
@@ -106,7 +106,7 @@ describe("serializeCandidatesForPrompt", () => {
     };
 
     const result = serializeCandidatesForPrompt(set)!;
-    expect(result).toContain("Channel: vellum");
+    expect(result).toContain("Channel: max");
     expect(result).toContain("Channel: telegram");
     expect(result).toContain("id=conv-001");
     expect(result).toContain("id=conv-002");
@@ -114,20 +114,20 @@ describe("serializeCandidatesForPrompt", () => {
 
   test("serializes multiple candidates per channel", () => {
     const set: ConversationCandidateSet = {
-      vellum: [
+      max: [
         {
           conversationId: "conv-001",
           title: "First thread",
           updatedAt: 1700000000000,
           latestSourceEventName: "schedule.notify",
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
         },
         {
           conversationId: "conv-002",
           title: "Second thread",
           updatedAt: 1699999000000,
           latestSourceEventName: "guardian.question",
-          channel: "vellum" as NotificationChannel,
+          channel: "max" as NotificationChannel,
           guardianContext: { pendingUnresolvedRequestCount: 1 },
         },
       ],
@@ -149,7 +149,7 @@ describe("ConversationCandidate type", () => {
       title: "Test",
       updatedAt: Date.now(),
       latestSourceEventName: "test.event",
-      channel: "vellum" as NotificationChannel,
+      channel: "max" as NotificationChannel,
     };
     expect(candidate.conversationId).toBe("conv-test");
     expect(candidate.guardianContext).toBeUndefined();
@@ -161,7 +161,7 @@ describe("ConversationCandidate type", () => {
       title: "Test",
       updatedAt: Date.now(),
       latestSourceEventName: "guardian.question",
-      channel: "vellum" as NotificationChannel,
+      channel: "max" as NotificationChannel,
       guardianContext: { pendingUnresolvedRequestCount: 5 },
     };
     expect(candidate.guardianContext?.pendingUnresolvedRequestCount).toBe(5);

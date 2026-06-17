@@ -104,7 +104,7 @@ export function resolveTurnChannel(
     }
     return parsed;
   }
-  return "vellum";
+  return "max";
 }
 
 export function resolveTurnInterface(sourceInterface?: string): InterfaceId {

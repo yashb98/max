@@ -4,7 +4,7 @@
  *
  * These tests use the real DB (via `initializeDb()`) and the real
  * `ensureGuardianPersonaFile` helper. The test preload sets
- * `VELLUM_WORKSPACE_DIR` to a per-file temp directory, so all filesystem
+ * `MAX_WORKSPACE_DIR` to a per-file temp directory, so all filesystem
  * writes land under that temp dir and are cleaned up automatically.
  */
 
@@ -31,10 +31,10 @@ function resetContactTables(): void {
 }
 
 function workspaceDir(): string {
-  const dir = process.env.VELLUM_WORKSPACE_DIR;
+  const dir = process.env.MAX_WORKSPACE_DIR;
   if (!dir) {
     throw new Error(
-      "VELLUM_WORKSPACE_DIR should be set by the test preload — aborting",
+      "MAX_WORKSPACE_DIR should be set by the test preload — aborting",
     );
   }
   return dir;

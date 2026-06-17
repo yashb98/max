@@ -90,7 +90,7 @@ const GATEWAY_RETRIEVAL_BANLIST: Array<{
     bannedSnippets: [
       'curl -s "$INTERNAL_GATEWAY_BASE_URL/v1/',
       "security find-generic-password",
-      "secret-tool lookup service vellum-assistant account credential/ngrok/authtoken",
+      "secret-tool lookup service max-assistant account credential/ngrok/authtoken",
     ],
   },
   {
@@ -118,8 +118,8 @@ const CREDENTIAL_LOOKUP_ALLOWLIST = new Set<string>([
 
 const CREDENTIAL_LOOKUP_PATTERNS = [
   "security find-generic-password",
-  "secret-tool lookup service vellum-assistant account credential:",
-  "secret-tool lookup service vellum-assistant account credential/",
+  "secret-tool lookup service max-assistant account credential:",
+  "secret-tool lookup service max-assistant account credential/",
 ];
 
 const HOST_BASH_RETRIEVAL_ALLOWLIST = new Set<string>([
@@ -191,7 +191,7 @@ describe("bundled skill retrieval guard", () => {
     }
   });
 
-  test("skills do not require host_bash for Vellum CLI retrieval commands", () => {
+  test("skills do not require host_bash for Max CLI retrieval commands", () => {
     const violations: string[] = [];
 
     for (const skillFile of ALL_SKILL_FILES) {
@@ -205,13 +205,13 @@ describe("bundled skill retrieval guard", () => {
       );
       if (!hasRetrievalMarker) continue;
       violations.push(
-        `${rel}: contains host_bash with Vellum CLI retrieval markers (${RETRIEVAL_MARKERS.join(", ")})`,
+        `${rel}: contains host_bash with Max CLI retrieval markers (${RETRIEVAL_MARKERS.join(", ")})`,
       );
     }
 
     if (violations.length > 0) {
       const message = [
-        "Skills must not require host_bash for Vellum CLI retrieval commands.",
+        "Skills must not require host_bash for Max CLI retrieval commands.",
         "Use sandboxed bash for retrieval flows unless an explicit exception is documented.",
         "",
         "Violations:",

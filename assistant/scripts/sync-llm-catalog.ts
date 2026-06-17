@@ -12,7 +12,7 @@
  *   - `meta/llm-provider-catalog.json` — primary checked-in artifact, read
  *      by web codegen (§D) and any non-Swift consumer.
  *   - `clients/shared/Resources/llm-provider-catalog.json` — SwiftPM resource
- *      bundled into `VellumAssistantShared`. SwiftPM cannot reach files
+ *      bundled into `MaxAssistantShared`. SwiftPM cannot reach files
  *      outside a target's source directory, so this mirror is necessary;
  *      both files are produced by the same generator and asserted equal by
  *      the parity test, making drift impossible.

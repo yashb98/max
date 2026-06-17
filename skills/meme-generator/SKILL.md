@@ -4,9 +4,9 @@ description: Generate memes from 170+ classic templates using the free Memegen.l
 compatibility: "Requires curl and python3. Works on macOS and Linux."
 metadata:
   emoji: "🐸"
-  author: vellum-ai
+  author: max-ai
   version: "0.1"
-  vellum:
+  max:
     display-name: "Meme Generator"
     activation-hints:
       - "User asks to create or generate a meme"

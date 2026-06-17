@@ -85,7 +85,7 @@ export type LLMCallSite = z.infer<typeof LLMCallSiteEnum>;
 // ---------------------------------------------------------------------------
 
 /**
- * Reasoning/thinking effort tier. `"none"` is a Vellum-specific value meaning
+ * Reasoning/thinking effort tier. `"none"` is a Max-specific value meaning
  * "the user has opted out of provider-side reasoning". Each provider
  * translates it however actually disables reasoning on that wire format:
  * OpenAI Responses sends `reasoning.effort: "none"` and Chat Completions
@@ -310,7 +310,7 @@ export const LLMConfigBase = z.object({
    * field never clobbers preset behavior. Forwarded by `RetryProvider`'s
    * resolver only to providers that consume it.
    */
-  maxTurns: z.number().int().min(1).max(200).optional(),
+  maxTurns: z.number().int().min(1).max(100000).optional(),
   contextWindow: ContextWindowSchema.default(ContextWindowSchema.parse({})),
   openrouter: OpenRouterSchema.default(OpenRouterSchema.parse({})),
 });
@@ -332,7 +332,7 @@ const LLMConfigFragment = z.object({
   temperature: TemperatureSchema.optional(),
   thinking: ThinkingFragmentSchema.optional(),
   /** See `LLMConfigBase.maxTurns` — agentic step budget, kimi-agent only. */
-  maxTurns: z.number().int().min(1).max(200).optional(),
+  maxTurns: z.number().int().min(1).max(100000).optional(),
   contextWindow: ContextWindowDeepPartialSchema.optional(),
   openrouter: OpenRouterDeepPartialSchema.optional(),
 });

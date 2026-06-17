@@ -1,5 +1,5 @@
 /**
- * Embedded handle for `@vellumai/plugin-api`.
+ * Embedded handle for `@maxai/plugin-api`.
  *
  * Standard `import * as pluginApi from "../plugin-api/index.ts"` lets Bun's
  * normal bundler walk the plugin-api module graph at build time — relative
@@ -11,9 +11,9 @@
  * The loaded namespace is then installed on `globalThis` under a versioned
  * symbol. The boot-time shim writer (`ensurePluginApiShim`) enumerates
  * {@link PLUGIN_API_EXPORTS} and generates a tiny ESM module at
- * `<workspaceDir>/node_modules/@vellumai/plugin-api/index.js` that
+ * `<workspaceDir>/node_modules/@maxai/plugin-api/index.js` that
  * re-binds each runtime export from `globalThis`. User plugins that
- * `import { ... } from "@vellumai/plugin-api"` walk up to that shim and
+ * `import { ... } from "@maxai/plugin-api"` walk up to that shim and
  * pick up the bindings.
  *
  * Type-only exports erase before this module loads, so `Object.keys`
@@ -26,7 +26,7 @@
 import * as pluginApi from "../plugin-api/index.js";
 
 /** Symbol key under which the plugin-api namespace is published on globalThis. */
-export const PLUGIN_API_REGISTRY_KEY = Symbol.for("vellum.plugin-api.v1");
+export const PLUGIN_API_REGISTRY_KEY = Symbol.for("max.plugin-api.v1");
 
 // Install on globalThis once at module-load time. The shim writer reads
 // `PLUGIN_API_EXPORTS` to know which bindings to re-export; the shim's

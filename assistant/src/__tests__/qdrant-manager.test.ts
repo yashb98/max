@@ -19,7 +19,7 @@ import {
   test,
 } from "bun:test";
 
-const testDataDir = process.env.VELLUM_WORKSPACE_DIR!;
+const testDataDir = process.env.MAX_WORKSPACE_DIR!;
 
 mock.module("../util/logger.js", () => ({
   getLogger: () =>
@@ -392,14 +392,14 @@ describe("QdrantManager", () => {
 
   // ── Symlink Safety ────────────────────────────────────────────
 
-  describe("vellum-qdrant symlink safety", () => {
-    test("ignores pre-existing non-symlink vellum-qdrant file", async () => {
+  describe("max-qdrant symlink safety", () => {
+    test("ignores pre-existing non-symlink max-qdrant file", async () => {
       const realMarkerPath = join(qdrantDir, "real-executed.txt");
       const hijackMarkerPath = join(qdrantDir, "hijack-executed.txt");
 
       placeFakeBinary(`#!/bin/sh\necho real > "${realMarkerPath}"\nexit 1`);
 
-      const hijackPath = join(qdrantBinDir, "vellum-qdrant");
+      const hijackPath = join(qdrantBinDir, "max-qdrant");
       writeFileSync(
         hijackPath,
         `#!/bin/sh\necho hijack > "${hijackMarkerPath}"\nexit 0`,
@@ -430,8 +430,8 @@ describe("QdrantManager", () => {
       );
       chmodSync(evilBinaryPath, 0o755);
 
-      const vellumQdrantPath = join(qdrantBinDir, "vellum-qdrant");
-      symlinkSync(evilBinaryPath, vellumQdrantPath);
+      const maxQdrantPath = join(qdrantBinDir, "max-qdrant");
+      symlinkSync(evilBinaryPath, maxQdrantPath);
 
       const port = getTestPort();
       const mgr = new QdrantManager({

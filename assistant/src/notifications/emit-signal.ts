@@ -15,7 +15,7 @@ import { getDeliverableChannels } from "../channels/config.js";
 import { findGuardianForChannel } from "../contacts/contact-store.js";
 import type { ConversationCreateType } from "../memory/conversation-crud.js";
 import { getLogger } from "../util/logger.js";
-import { type BroadcastFn, VellumAdapter } from "./adapters/macos.js";
+import { type BroadcastFn, MaxAdapter } from "./adapters/macos.js";
 import { PlatformPushAdapter } from "./adapters/platform.js";
 import { SlackAdapter } from "./adapters/slack.js";
 import { TelegramAdapter } from "./adapters/telegram.js";
@@ -52,7 +52,7 @@ let broadcasterInstance: NotificationBroadcaster | null = null;
 let registeredBroadcastFn: BroadcastFn | null = null;
 
 /**
- * Register the broadcast function so the vellum adapter can deliver
+ * Register the broadcast function so the max adapter can deliver
  * notifications to connected clients. Must be called once during
  * daemon startup (before any signals are emitted).
  */
@@ -70,12 +70,12 @@ function getBroadcaster(): NotificationBroadcaster {
       new PlatformPushAdapter(),
     ];
     if (registeredBroadcastFn) {
-      adapters.unshift(new VellumAdapter(registeredBroadcastFn));
+      adapters.unshift(new MaxAdapter(registeredBroadcastFn));
     }
     broadcasterInstance = new NotificationBroadcaster(adapters);
 
     // Wire the conversation-created callback so the macOS client is notified
-    // immediately when a vellum notification conversation is paired — before
+    // immediately when a max notification conversation is paired — before
     // slower channel deliveries (e.g. Telegram) delay the push.
     if (registeredBroadcastFn) {
       const broadcastFn = registeredBroadcastFn;
@@ -112,17 +112,17 @@ function getConnectedChannels(): NotificationChannel[] {
   // runtime. We iterate over the broad type and narrow via the switch.
   for (const channel of getDeliverableChannels()) {
     switch (channel) {
-      case "vellum":
-        // Vellum is always considered connected (the local transport is
+      case "max":
+        // Max is always considered connected (the local transport is
         // always available when the daemon is running).
         channels.push(channel);
         break;
       case "platform":
         // Platform push is connected when the daemon has a registered
         // broadcast function — i.e., full daemon mode where platform
-        // credentials are also available. Mirrors the vellum gate so
+        // credentials are also available. Mirrors the max gate so
         // the decision engine doesn't route to platform in standalone
-        // CLI contexts where VellumPlatformClient.create() returns null.
+        // CLI contexts where MaxPlatformClient.create() returns null.
         if (registeredBroadcastFn) {
           channels.push(channel);
         }
@@ -186,7 +186,7 @@ export interface EmitSignalParams<TEventName extends string = string> {
   /** Optional deduplication key. */
   dedupeKey?: string;
   /**
-   * Optional callback invoked immediately when the broadcaster pairs a vellum
+   * Optional callback invoked immediately when the broadcaster pairs a max
    * conversation and emits `notification_conversation_created`.
    */
   onConversationCreated?: (info: ConversationCreatedInfo) => void;
@@ -354,7 +354,7 @@ export async function emitNotificationSignal<TEventName extends string>(
 
     // Step 4: Dispatch through the broadcaster
     // Note: notification_conversation_created events are emitted eagerly inside
-    // the broadcaster as soon as vellum conversation pairing succeeds, rather
+    // the broadcaster as soon as max conversation pairing succeeds, rather
     // than after all channel deliveries complete. This avoids a race where
     // slow Telegram delivery delays the push past the macOS deep-link retry.
     const broadcaster = getBroadcaster();

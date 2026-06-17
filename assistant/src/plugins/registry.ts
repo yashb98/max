@@ -2,7 +2,7 @@
  * Plugin registry with manifest validation.
  *
  * Host-compat negotiation lives in the plugin's `package.json`
- * `peerDependencies["@vellumai/plugin-api"]` semver range — the
+ * `peerDependencies["@maxai/plugin-api"]` semver range — the
  * external-plugin loader checks it against the assistant version at
  * load time. This module owns the rest of the manifest validation
  * contract: name/version presence, duplicate-name detection, and the
@@ -61,7 +61,7 @@ let registrationClosed = false;
  * - registration has been closed by {@link closeRegistration}.
  *
  * Host-compat is checked upstream by the external-plugin loader against
- * the plugin's `peerDependencies["@vellumai/plugin-api"]` semver range —
+ * the plugin's `peerDependencies["@maxai/plugin-api"]` semver range —
  * the registry does not re-validate it here.
  *
  * On success the plugin is appended to the registry in the order this

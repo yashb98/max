@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import type { OutgoingHttpHeaders } from "node:http";
-import { buildUpstreamUrl, stripHopByHop } from "@vellumai/assistant-client";
+import { buildUpstreamUrl, stripHopByHop } from "@maxai/assistant-client";
 
 import type { VelayHeaders } from "./protocol.js";
 

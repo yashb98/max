@@ -18,7 +18,7 @@
  *   credential.
  */
 
-import { hashProposal, type HttpGrantProposal } from "@vellumai/service-contracts/credential-rpc";
+import { hashProposal, type HttpGrantProposal } from "@maxai/service-contracts/credential-rpc";
 
 import type { PersistentGrant, PersistentGrantStore } from "../grants/persistent-store.js";
 import type { TemporaryGrantStore } from "../grants/temporary-store.js";

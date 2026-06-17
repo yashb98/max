@@ -125,7 +125,7 @@ export async function runUpdateBulletinJobIfNeeded(): Promise<void> {
       origin: "updates_bulletin",
       prompt: updateBulletinHint(),
       trustContext: {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "guardian",
       },
       callSite: "mainAgent",

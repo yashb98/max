@@ -27,7 +27,7 @@ export type BuildAuthContextResult =
  * Parses the sub claim and resolves the scope profile into a concrete
  * set of scopes. Returns a failure result if the sub is malformed.
  *
- * When the token audience is `vellum-daemon`, the assistantId is forced
+ * When the token audience is `max-daemon`, the assistantId is forced
  * to DAEMON_INTERNAL_ASSISTANT_ID ('self') regardless of what the JWT
  * sub encodes. Daemon code must never derive internal scoping from
  * externally-provided assistant IDs.
@@ -44,7 +44,7 @@ export function buildAuthContext(claims: TokenClaims): BuildAuthContextResult {
   // preventing external assistant IDs from leaking into daemon-side
   // storage and routing.
   const assistantId =
-    claims.aud === "vellum-daemon"
+    claims.aud === "max-daemon"
       ? DAEMON_INTERNAL_ASSISTANT_ID
       : subResult.assistantId;
 

@@ -166,8 +166,8 @@ describe("SSE route — backpressure shed observability", () => {
       {
         queryParams: { conversationKey: "shed-client-test" },
         headers: {
-          "x-vellum-client-id": "client-abc",
-          "x-vellum-interface-id": "macos",
+          "x-max-client-id": "client-abc",
+          "x-max-interface-id": "macos",
         },
         abortSignal: ac.signal,
       },

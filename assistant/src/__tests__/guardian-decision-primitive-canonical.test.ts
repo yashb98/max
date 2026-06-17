@@ -620,7 +620,7 @@ describe("mintCanonicalRequestGrant", () => {
 
     const result = mintCanonicalRequestGrant({
       request: req,
-      actorChannel: "vellum",
+      actorChannel: "max",
       effectiveAction: "approve_once",
     });
 

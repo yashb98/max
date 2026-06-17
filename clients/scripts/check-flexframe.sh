@@ -58,9 +58,9 @@ done
 # Scope: performance-sensitive chat + main window feature directories.
 # Conservative by design; expand in a follow-up if this proves valuable.
 SCAN_DIRS=(
-  "clients/macos/vellum-assistant/Features/Chat/"
-  "clients/macos/vellum-assistant/Features/Home/"
-  "clients/macos/vellum-assistant/Features/MainWindow/"
+  "clients/macos/max-assistant/Features/Chat/"
+  "clients/macos/max-assistant/Features/Home/"
+  "clients/macos/max-assistant/Features/MainWindow/"
 )
 
 # Matches .frame(maxWidth: ...) / .frame(maxHeight: ...) / .frame(minWidth: ...)

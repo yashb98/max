@@ -34,7 +34,7 @@ import { _setStorePath } from "../security/encrypted-store.js";
 // Helpers
 // ---------------------------------------------------------------------------
 
-const WORKSPACE_DIR = process.env.VELLUM_WORKSPACE_DIR!;
+const WORKSPACE_DIR = process.env.MAX_WORKSPACE_DIR!;
 const CONFIG_PATH = join(WORKSPACE_DIR, "config.json");
 const UPDATES_PATH = join(WORKSPACE_DIR, "UPDATES.md");
 

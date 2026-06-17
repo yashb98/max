@@ -263,7 +263,7 @@ const CANONICAL_CONNECTIONS: Array<{
 ];
 
 /**
- * Names of the canonical Vellum-managed connections. These are seeded on every
+ * Names of the canonical Max-managed connections. These are seeded on every
  * daemon boot via `seedCanonicalConnections` and represent the platform-managed
  * inference route. They are write-protected at the route layer:
  *   - DELETE is blocked outright (would resurrect on next boot anyway, but
@@ -284,7 +284,7 @@ export const MANAGED_CONNECTION_NAMES: ReadonlySet<string> = new Set(
 
 /**
  * Upsert the three canonical connections on every boot. Existing rows are
- * updated to the latest provider/auth values so Vellum can push connection
+ * updated to the latest provider/auth values so Max can push connection
  * changes to customers in new releases.
  *
  * Label handling: the default label is seeded on initial INSERT so new
@@ -342,7 +342,7 @@ export function seedCanonicalConnections(db: DrizzleDb): void {
  * BYOK user doesn't have yet, so surfacing them as enabled in the picker
  * would let users pick an unusable option on day one. But this is a
  * first-time-only default — the moment the user explicitly flips one
- * back to active (e.g. after logging into Vellum), we never want a daemon
+ * back to active (e.g. after logging into Max), we never want a daemon
  * restart to revert that. `seedCanonicalConnections` leaves `status` alone
  * on the UPDATE path, and this helper is invoked ONLY from
  * `seedInferenceProfiles`'s `isHatch && !isPlatform` branch. Subsequent

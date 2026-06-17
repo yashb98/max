@@ -91,8 +91,8 @@ interface SlimSkillBase {
   status: "enabled" | "disabled" | "available";
 }
 
-interface VellumSlimSkill extends SlimSkillBase {
-  origin: "vellum";
+interface MaxSlimSkill extends SlimSkillBase {
+  origin: "max";
 }
 
 interface ClawhubSlimSkill extends SlimSkillBase {
@@ -119,7 +119,7 @@ interface CustomSlimSkill extends SlimSkillBase {
 }
 
 export type SlimSkillResponse =
-  | VellumSlimSkill
+  | MaxSlimSkill
   | ClawhubSlimSkill
   | SkillsshSlimSkill
   | CustomSlimSkill;
@@ -161,8 +161,8 @@ interface SkillDetailBase {
   status: "enabled" | "disabled" | "available";
 }
 
-interface VellumSkillDetail extends SkillDetailBase {
-  origin: "vellum";
+interface MaxSkillDetail extends SkillDetailBase {
+  origin: "max";
 }
 
 interface ClawhubSkillDetail extends SkillDetailBase {
@@ -200,7 +200,7 @@ interface CustomSkillDetail extends SkillDetailBase {
 }
 
 export type SkillDetailResponse =
-  | VellumSkillDetail
+  | MaxSkillDetail
   | ClawhubSkillDetail
   | SkillsshSkillDetail
   | CustomSkillDetail;

@@ -323,13 +323,13 @@ export function createHostBrowserDispatcher(
     const ownController = abort;
     inFlight.set(requestId, ownController);
     try {
-      // Handle synthetic Vellum.* methods that use chrome extension APIs
+      // Handle synthetic Max.* methods that use chrome extension APIs
       // directly instead of routing through chrome.debugger. These methods
       // do not require a resolved CDP target, so they must be dispatched
       // BEFORE `resolveTarget()` — otherwise `resolveTarget(undefined)`
       // falls back to querying for the active tab, which throws when no
       // focused window/tab exists (minimized, no active tab, etc.).
-      if (envelope.cdpMethod === 'Vellum.findTab') {
+      if (envelope.cdpMethod === 'Max.findTab') {
         const urlPattern = (envelope.cdpParams as { urlPattern?: string } | undefined)?.urlPattern;
         if (!urlPattern) {
           await deps.postResult({
@@ -358,10 +358,10 @@ export function createHostBrowserDispatcher(
         return;
       }
 
-      // Synthetic Vellum.attach — explicitly establish the debugger session
+      // Synthetic Max.attach — explicitly establish the debugger session
       // without requiring a CDP command to be sent first. Resolves the
       // target, attaches if not already cached, and returns a success payload.
-      if (envelope.cdpMethod === 'Vellum.attach') {
+      if (envelope.cdpMethod === 'Max.attach') {
         const target = await deps.resolveTarget(envelope.cdpSessionId);
         if (abort.signal.aborted || cancelledRequestIds.has(requestId)) return;
         const key = targetKey(target);
@@ -389,10 +389,10 @@ export function createHostBrowserDispatcher(
         return;
       }
 
-      // Synthetic Vellum.detach — explicitly detach the debugger from the
+      // Synthetic Max.detach — explicitly detach the debugger from the
       // resolved target so the Chrome debugging banner clears. Idempotent:
       // tolerates already-detached / not-attached errors.
-      if (envelope.cdpMethod === 'Vellum.detach') {
+      if (envelope.cdpMethod === 'Max.detach') {
         const target = await deps.resolveTarget(envelope.cdpSessionId);
         if (abort.signal.aborted || cancelledRequestIds.has(requestId)) return;
         const key = targetKey(target);

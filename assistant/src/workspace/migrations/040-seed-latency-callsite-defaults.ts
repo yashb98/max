@@ -31,13 +31,13 @@ import type { WorkspaceMigration } from "./types.js";
  * defaults to `{}` and nothing else seeds the latency-optimized entries.
  *
  * **Provider gating.** `mergeDefaultWorkspaceConfig()` applies
- * `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH` *after* migrations run, so a
+ * `MAX_DEFAULT_WORKSPACE_CONFIG_PATH` *after* migrations run, so a
  * platform-provided override that sets `llm.default.provider = openai`
  * (or any non-Anthropic provider) without also setting `llm.callSites`
  * would otherwise leave the workspace with OpenAI as the default but
  * Anthropic model IDs in the seeded call sites — guaranteed
  * invalid-model errors. Skip seeding when:
- *   - `VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH` is set (defer to that
+ *   - `MAX_DEFAULT_WORKSPACE_CONFIG_PATH` is set (defer to that
  *     config to own the call-site seeds), or
  *   - `llm.default.provider` is explicitly set to a non-Anthropic value.
  */
@@ -49,7 +49,7 @@ export const seedLatencyCallSiteDefaultsMigration: WorkspaceMigration = {
     // If a platform default-config overlay is in play, it runs after
     // migrations and is the authoritative source for both provider and
     // call-site seeds. Skip to avoid mismatched provider/model pairs.
-    if (process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH) return;
+    if (process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH) return;
 
     const configPath = join(workspaceDir, "config.json");
     const configExisted = existsSync(configPath);

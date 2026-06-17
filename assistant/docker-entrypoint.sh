@@ -5,12 +5,12 @@ set -eu
 # processes (the `assistant` user, bun's tmpdir, scratch writes) can use it.
 chmod 1777 /tmp 2>/dev/null || true
 
-if [ "${VELLUM_SANDBOX_RUNTIME:-}" = "kata" ] && [ -x /app/assistant/docker-init-apt-root.sh ]; then
+if [ "${MAX_SANDBOX_RUNTIME:-}" = "kata" ] && [ -x /app/assistant/docker-init-apt-root.sh ]; then
   . /app/assistant/docker-kata-apt-env.sh
   /app/assistant/docker-init-apt-root.sh
 fi
 
-if [ "$(id -u)" = "0" ] && [ "${VELLUM_WORKSPACE_DIR:-}" = "/workspace" ] && [ -d /workspace ]; then
+if [ "$(id -u)" = "0" ] && [ "${MAX_WORKSPACE_DIR:-}" = "/workspace" ] && [ -d /workspace ]; then
   git config --global --add safe.directory /workspace >/dev/null 2>&1 || true
   git config --global --add safe.directory '/workspace/*' >/dev/null 2>&1 || true
 fi
@@ -28,15 +28,15 @@ if [ -d /workspace/.entrypoint.d ]; then
 fi
 
 # ── Bun profiler bootstrap ──────────────────────────────────────────────
-# When VELLUM_PROFILER_RUN_ID and VELLUM_PROFILER_MODE are set, prepare the
+# When MAX_PROFILER_RUN_ID and MAX_PROFILER_MODE are set, prepare the
 # run directory on the workspace volume and append the appropriate Bun
 # profiler flags to BUN_OPTIONS. Bun's native --cpu-prof / --heap-prof
 # flags write Chrome-compatible .cpuprofile and .heapsnapshot artifacts.
 BUN_OPTIONS="${BUN_OPTIONS:-}"
 
-if [ -n "${VELLUM_PROFILER_RUN_ID:-}" ] && [ -n "${VELLUM_PROFILER_MODE:-}" ]; then
-  PROFILER_WORKSPACE="${VELLUM_WORKSPACE_DIR:-$HOME/.vellum/workspace}"
-  PROFILER_RUN_DIR="${PROFILER_WORKSPACE}/data/profiler/runs/${VELLUM_PROFILER_RUN_ID}"
+if [ -n "${MAX_PROFILER_RUN_ID:-}" ] && [ -n "${MAX_PROFILER_MODE:-}" ]; then
+  PROFILER_WORKSPACE="${MAX_WORKSPACE_DIR:-$HOME/.max/workspace}"
+  PROFILER_RUN_DIR="${PROFILER_WORKSPACE}/data/profiler/runs/${MAX_PROFILER_RUN_ID}"
   PROFILER_HEAP_DIR="${PROFILER_RUN_DIR}"
 
   # Ensure the run directory exists
@@ -51,7 +51,7 @@ if [ -n "${VELLUM_PROFILER_RUN_ID:-}" ] && [ -n "${VELLUM_PROFILER_MODE:-}" ]; t
     )"
   fi
 
-  case "${VELLUM_PROFILER_MODE}" in
+  case "${MAX_PROFILER_MODE}" in
     cpu)
       BUN_OPTIONS="${BUN_OPTIONS} --cpu-prof --cpu-prof-md --cpu-prof-dir=${PROFILER_RUN_DIR}"
       ;;
@@ -62,7 +62,7 @@ if [ -n "${VELLUM_PROFILER_RUN_ID:-}" ] && [ -n "${VELLUM_PROFILER_MODE:-}" ]; t
       BUN_OPTIONS="${BUN_OPTIONS} --cpu-prof --cpu-prof-md --cpu-prof-dir=${PROFILER_RUN_DIR} --heap-prof --heap-prof-md --heap-prof-dir=${PROFILER_HEAP_DIR}"
       ;;
     *)
-      echo "Warning: unknown VELLUM_PROFILER_MODE '${VELLUM_PROFILER_MODE}', skipping profiler flags" >&2
+      echo "Warning: unknown MAX_PROFILER_MODE '${MAX_PROFILER_MODE}', skipping profiler flags" >&2
       ;;
   esac
 fi

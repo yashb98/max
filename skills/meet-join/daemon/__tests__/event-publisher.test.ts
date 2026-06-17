@@ -25,8 +25,8 @@ import type {
   ServerMessage,
   SkillHost,
   Subscription,
-} from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+import { buildAssistantEvent } from "@maxai/skill-host-contracts";
 
 import type { MeetBotEvent } from "../../contracts/index.js";
 
@@ -93,7 +93,7 @@ function makeTestHost(): {
     },
     platform: {
       workspaceDir: () => "/tmp/test-workspace",
-      vellumRoot: () => "/tmp/test-vellum",
+      maxRoot: () => "/tmp/test-max",
       runtimeMode: () => "bare-metal" as never,
     },
     providers: {

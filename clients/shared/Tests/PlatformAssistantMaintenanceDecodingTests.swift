@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 // MARK: - URLProtocol stub for recovery-mode network calls
 

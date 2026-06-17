@@ -214,7 +214,7 @@ describe("notifications send", () => {
     expect(ipcCalls).toHaveLength(0);
   });
 
-  test("send --conversation-id pins the vellum affinity hint", async () => {
+  test("send --conversation-id pins the max affinity hint", async () => {
     const { parsed, exitCode } = await runCommand([
       "send",
       "--source-channel",
@@ -231,7 +231,7 @@ describe("notifications send", () => {
     expect(parsed.ok).toBe(true);
 
     const callBody = ipcCalls[0].params?.body as Record<string, unknown>;
-    expect(callBody.conversationAffinityHint).toEqual({ vellum: "conv-123" });
+    expect(callBody.conversationAffinityHint).toEqual({ max: "conv-123" });
   });
 
   test("send omits conversationAffinityHint when --conversation-id not passed", async () => {

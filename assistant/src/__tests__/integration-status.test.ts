@@ -47,7 +47,7 @@ mock.module("../oauth/oauth-store.js", () => ({
 }));
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => ({
       platformAssistantId: "test-assistant",
       fetch: async (path: string) => {

@@ -59,6 +59,7 @@ import {
 } from "./conversation-error.js";
 import { isProviderOrderingError } from "./conversation-slash.js";
 import type { ServerMessage } from "./message-protocol.js";
+import { activateBridgedSkill } from "./conversation-skill-tools.js";
 
 const log = getLogger("agent-loop-handlers");
 
@@ -84,7 +85,7 @@ function buildHandlerTurnContext(deps: EventHandlerDeps): TurnContext {
     turnIndex: deps.ctx.turnCount,
     trust: deps.ctx.currentTurnTrustContext ??
       deps.ctx.trustContext ?? {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         trustClass: "unknown",
       },
   };
@@ -601,6 +602,51 @@ export function handleToolResult(
     deps.ctx.markWorkspaceTopLevelDirty();
   }
 
+  // When a bridged provider (e.g. kimi-agent) executes `skill_load` inside
+  // its own inner SDK loop, no `tool_use`/`tool_result` pair is appended to
+  // the outer `history` array. This means `deriveActiveSkills` (which scans
+  // history) never sees the `<loaded_skill>` marker and the skill's tools
+  // stay out of `ctx.allowedToolNames`. Fix: detect the completion of a
+  // bridged skill_load here and immediately activate the skill so:
+  //   1. Its tools are registered in the global registry.
+  //   2. `ctx.allowedToolNames` is updated so skill_execute calls that arrive
+  //      in the same bridged turn pass the approval check.
+  //   3. The skill ID is recorded in `ctx.bridgedActiveSkillIds` so
+  //      `createResolveToolsCallback` keeps it active in subsequent turns.
+  if (
+    !event.isError &&
+    (toolName === "skill_load" || toolName?.endsWith("__skill_load")) &&
+    typeof event.content === "string"
+  ) {
+    const LOADED_SKILL_RE =
+      /<loaded_skill\s+id="([^"]+)"(?:\s+version="([^"]*)")?\s*\/>/g;
+    let m: RegExpExecArray | null;
+    while ((m = LOADED_SKILL_RE.exec(event.content)) !== null) {
+      const skillId = m[1];
+      if (!skillId) continue;
+
+      // Persist across turns (guard for test mocks that may not wire this field)
+      deps.ctx.bridgedActiveSkillIds?.add(skillId);
+
+      // Activate immediately and patch allowedToolNames so skill_execute
+      // calls in the same bridged turn are not blocked.
+      const newToolNames = activateBridgedSkill(
+        skillId,
+        deps.ctx.skillProjectionState,
+        deps.ctx.skillProjectionCache,
+      );
+      if (newToolNames.size > 0 && deps.ctx.allowedToolNames) {
+        for (const name of newToolNames) {
+          deps.ctx.allowedToolNames.add(name);
+        }
+        log.info(
+          { skillId, toolCount: newToolNames.size },
+          "Bridged skill_load: patched allowedToolNames in-turn",
+        );
+      }
+    }
+  }
+
   if (event.contentBlocks) {
     for (const cb of event.contentBlocks) {
       if (cb.type === "image" || cb.type === "file") {
@@ -1007,6 +1053,28 @@ export async function handleMessageComplete(
     }
     return block;
   });
+
+  // Zero-content guard: never persist a silently-empty assistant message.
+  // Agentic bridge providers (kimi-agent) can end a turn with zero content
+  // blocks (e.g. an approval denial terminates the inner turn before any
+  // text). The provider and agent-loop layers each try to recover first;
+  // this is the last-resort backstop so the user always sees SOMETHING
+  // rather than a blank reply. Directive-only turns are excluded — their
+  // text is stripped here but they add attachments to the message later.
+  if (contentForPersistence.length === 0 && msgDirectives.length === 0) {
+    const fallbackText =
+      "I wasn't able to generate a response for this turn — the model returned empty output. Please try again.";
+    deps.rlog.error(
+      { conversationId: deps.ctx.conversationId },
+      "Assistant turn produced zero content blocks — persisting fallback notice",
+    );
+    contentForPersistence.push({ type: "text", text: fallbackText });
+    deps.onEvent({
+      type: "assistant_text_delta",
+      text: fallbackText,
+      conversationId: deps.ctx.conversationId,
+    });
+  }
 
   // Route the assistant-message persistence through the `persistence`
   // pipeline. No `syncToDisk` here — the orchestrator separately invokes

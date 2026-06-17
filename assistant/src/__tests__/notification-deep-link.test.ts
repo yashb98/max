@@ -1,7 +1,7 @@
 /**
- * Regression tests for Vellum notification deep-link metadata.
+ * Regression tests for Max notification deep-link metadata.
  *
- * Validates that the VellumAdapter broadcasts notification_intent with
+ * Validates that the MaxAdapter broadcasts notification_intent with
  * deepLinkMetadata, and that the broadcaster correctly passes deepLinkTarget
  * from the decision through to the adapter payload — regardless of whether
  * the conversation was newly created or reused.
@@ -68,7 +68,7 @@ mock.module("../notifications/conversation-pairing.js", () => ({
 }));
 
 import type { ServerMessage } from "../daemon/message-protocol.js";
-import { VellumAdapter } from "../notifications/adapters/macos.js";
+import { MaxAdapter } from "../notifications/adapters/macos.js";
 import { NotificationBroadcaster } from "../notifications/broadcaster.js";
 import type { NotificationSignal } from "../notifications/signal.js";
 import type {
@@ -107,10 +107,10 @@ function makeDecision(
 ): NotificationDecision {
   return {
     shouldNotify: true,
-    selectedChannels: ["vellum"],
+    selectedChannels: ["max"],
     reasoningSummary: "Deep-link test decision",
     renderedCopy: {
-      vellum: { title: "Test Alert", body: "Something happened" },
+      max: { title: "Test Alert", body: "Something happened" },
     },
     dedupeKey: "deeplink-test-001",
     confidence: 0.9,
@@ -143,10 +143,10 @@ describe("notification deep-link metadata", () => {
     nextPairingResult = null;
   });
 
-  describe("VellumAdapter", () => {
+  describe("MaxAdapter", () => {
     test("broadcasts notification_intent with deepLinkMetadata from payload", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       await adapter.send(
         {
@@ -157,7 +157,7 @@ describe("notification deep-link metadata", () => {
             conversationType: "notification",
           },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       expect(messages).toHaveLength(1);
@@ -173,14 +173,14 @@ describe("notification deep-link metadata", () => {
 
     test("broadcasts notification_intent without deepLinkMetadata when absent", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       await adapter.send(
         {
           sourceEventName: "test.event",
           copy: { title: "Alert", body: "No deep link" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       expect(messages).toHaveLength(1);
@@ -191,7 +191,7 @@ describe("notification deep-link metadata", () => {
 
     test("includes conversationId in deepLinkMetadata for navigation", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       const conversationId = "conv-deep-link-test";
       await adapter.send(
@@ -200,7 +200,7 @@ describe("notification deep-link metadata", () => {
           copy: { title: "Guardian Question", body: "What is the code?" },
           deepLinkTarget: { conversationId },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -209,21 +209,21 @@ describe("notification deep-link metadata", () => {
     });
 
     test("returns success: true on successful broadcast", async () => {
-      const adapter = new VellumAdapter(() => {});
+      const adapter = new MaxAdapter(() => {});
 
       const result = await adapter.send(
         {
           sourceEventName: "test.event",
           copy: { title: "T", body: "B" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       expect(result.success).toBe(true);
     });
 
     test("returns success: false when broadcast throws", async () => {
-      const adapter = new VellumAdapter(() => {
+      const adapter = new MaxAdapter(() => {
         throw new Error("connection lost");
       });
 
@@ -232,7 +232,7 @@ describe("notification deep-link metadata", () => {
           sourceEventName: "test.event",
           copy: { title: "T", body: "B" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       expect(result.success).toBe(false);
@@ -241,14 +241,14 @@ describe("notification deep-link metadata", () => {
 
     test("sourceEventName is included in the event payload", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       await adapter.send(
         {
           sourceEventName: "guardian.question",
           copy: { title: "Alert", body: "Body" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -257,7 +257,7 @@ describe("notification deep-link metadata", () => {
 
     test("deepLinkMetadata with conversationId enables client-side navigation", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       // Simulate a notification that should deep-link to a specific conversation
       await adapter.send(
@@ -269,7 +269,7 @@ describe("notification deep-link metadata", () => {
             workItemId: "work-item-7",
           },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -280,7 +280,7 @@ describe("notification deep-link metadata", () => {
 
     test("deep-link payload includes messageId when present", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       await adapter.send(
         {
@@ -288,7 +288,7 @@ describe("notification deep-link metadata", () => {
           copy: { title: "Question", body: "Body" },
           deepLinkTarget: { conversationId: "conv-1", messageId: "msg-1" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -300,7 +300,7 @@ describe("notification deep-link metadata", () => {
 
     test("deep-link payload includes conversationId for a newly created conversation", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       // Simulates the broadcaster merging pairing.conversationId into deep-link
       // for a newly created notification conversation (start_new path)
@@ -310,7 +310,7 @@ describe("notification deep-link metadata", () => {
           copy: { title: "Reminder", body: "Take out the trash" },
           deepLinkTarget: { conversationId: "conv-new-convo-001" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -320,7 +320,7 @@ describe("notification deep-link metadata", () => {
 
     test("deep-link payload includes conversationId for a reused conversation", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       // Simulates the broadcaster merging pairing.conversationId into deep-link
       // for a reused notification conversation (reuse_existing path)
@@ -333,7 +333,7 @@ describe("notification deep-link metadata", () => {
           },
           deepLinkTarget: { conversationId: "conv-reused-convo-042" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const msg = messages[0] as unknown as Record<string, unknown>;
@@ -345,7 +345,7 @@ describe("notification deep-link metadata", () => {
 
     test("reused conversation preserves the same conversationId across follow-up notifications", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       const stableConversationId = "conv-bound-telegram-dest-001";
 
@@ -359,7 +359,7 @@ describe("notification deep-link metadata", () => {
             messageId: "msg-seed-1",
           },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       // Follow-up notification reuses the same bound conversation
@@ -372,7 +372,7 @@ describe("notification deep-link metadata", () => {
             messageId: "msg-seed-2",
           },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       expect(messages).toHaveLength(2);
@@ -393,7 +393,7 @@ describe("notification deep-link metadata", () => {
 
     test("reused conversation deep-link messageId changes per delivery for scroll targeting", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       const conversationId = "conv-reused-scroll-test";
 
@@ -403,7 +403,7 @@ describe("notification deep-link metadata", () => {
           copy: { title: "Reminder", body: "First" },
           deepLinkTarget: { conversationId, messageId: "msg-a" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       await adapter.send(
@@ -412,7 +412,7 @@ describe("notification deep-link metadata", () => {
           copy: { title: "Reminder", body: "Second" },
           deepLinkTarget: { conversationId, messageId: "msg-b" },
         },
-        { channel: "vellum" },
+        { channel: "max" },
       );
 
       const meta1 = (messages[0] as unknown as Record<string, unknown>)
@@ -428,7 +428,7 @@ describe("notification deep-link metadata", () => {
 
     test("deep-link metadata is stable when conversation is reused via binding-key continuation", async () => {
       const messages: ServerMessage[] = [];
-      const adapter = new VellumAdapter((msg) => messages.push(msg));
+      const adapter = new MaxAdapter((msg) => messages.push(msg));
 
       // Simulates the binding-key continuation path: multiple notifications
       // to the same voice destination reuse the same bound conversation, and
@@ -443,7 +443,7 @@ describe("notification deep-link metadata", () => {
             copy: { title: "Activity", body },
             deepLinkTarget: { conversationId: boundConvId },
           },
-          { channel: "vellum" },
+          { channel: "max" },
         );
       }
 
@@ -467,9 +467,9 @@ describe("notification deep-link metadata", () => {
   // would miss (e.g. broadcaster stops merging pairing results).
 
   describe("NotificationBroadcaster deep-link injection", () => {
-    test("broadcaster merges pairing conversationId into deepLinkTarget for vellum", async () => {
-      const vellumAdapter = new MockAdapter("vellum");
-      const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    test("broadcaster merges pairing conversationId into deepLinkTarget for max", async () => {
+      const maxAdapter = new MockAdapter("max");
+      const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
       nextPairingResult = {
         conversationId: "conv-paired-abc",
@@ -484,15 +484,15 @@ describe("notification deep-link metadata", () => {
 
       await broadcaster.broadcastDecision(signal, decision);
 
-      expect(vellumAdapter.sent).toHaveLength(1);
-      const deepLink = vellumAdapter.sent[0].deepLinkTarget;
+      expect(maxAdapter.sent).toHaveLength(1);
+      const deepLink = maxAdapter.sent[0].deepLinkTarget;
       expect(deepLink).toBeDefined();
       expect(deepLink!.conversationId).toBe("conv-paired-abc");
     });
 
-    test("broadcaster merges pairing messageId into deepLinkTarget for vellum", async () => {
-      const vellumAdapter = new MockAdapter("vellum");
-      const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+    test("broadcaster merges pairing messageId into deepLinkTarget for max", async () => {
+      const maxAdapter = new MockAdapter("max");
+      const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
       nextPairingResult = {
         conversationId: "conv-paired-def",
@@ -507,15 +507,15 @@ describe("notification deep-link metadata", () => {
 
       await broadcaster.broadcastDecision(signal, decision);
 
-      expect(vellumAdapter.sent).toHaveLength(1);
-      const deepLink = vellumAdapter.sent[0].deepLinkTarget;
+      expect(maxAdapter.sent).toHaveLength(1);
+      const deepLink = maxAdapter.sent[0].deepLinkTarget;
       expect(deepLink).toBeDefined();
       expect(deepLink!.messageId).toBe("msg-paired-def");
     });
 
     test("reused conversation deep-link points to the reused conversationId", async () => {
-      const vellumAdapter = new MockAdapter("vellum");
-      const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+      const maxAdapter = new MockAdapter("max");
+      const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
       nextPairingResult = {
         conversationId: "conv-reused-xyz",
@@ -528,7 +528,7 @@ describe("notification deep-link metadata", () => {
       const signal = makeSignal();
       const decision = makeDecision({
         conversationActions: {
-          vellum: {
+          max: {
             action: "reuse_existing",
             conversationId: "conv-original-placeholder",
           },
@@ -537,16 +537,16 @@ describe("notification deep-link metadata", () => {
 
       await broadcaster.broadcastDecision(signal, decision);
 
-      expect(vellumAdapter.sent).toHaveLength(1);
-      const deepLink = vellumAdapter.sent[0].deepLinkTarget;
+      expect(maxAdapter.sent).toHaveLength(1);
+      const deepLink = maxAdapter.sent[0].deepLinkTarget;
       expect(deepLink).toBeDefined();
       // The deep-link should use the pairing result, not the original placeholder
       expect(deepLink!.conversationId).toBe("conv-reused-xyz");
     });
 
     test("deep-link conversationId is stable across multiple deliveries to the same reused conversation", async () => {
-      const vellumAdapter = new MockAdapter("vellum");
-      const broadcaster = new NotificationBroadcaster([vellumAdapter]);
+      const maxAdapter = new MockAdapter("max");
+      const broadcaster = new NotificationBroadcaster([maxAdapter]);
 
       const stableConvId = "conv-stable-reuse-001";
 
@@ -572,10 +572,10 @@ describe("notification deep-link metadata", () => {
 
       await broadcaster.broadcastDecision(makeSignal(), makeDecision());
 
-      expect(vellumAdapter.sent).toHaveLength(2);
+      expect(maxAdapter.sent).toHaveLength(2);
 
-      const deepLink1 = vellumAdapter.sent[0].deepLinkTarget;
-      const deepLink2 = vellumAdapter.sent[1].deepLinkTarget;
+      const deepLink1 = maxAdapter.sent[0].deepLinkTarget;
+      const deepLink2 = maxAdapter.sent[1].deepLinkTarget;
 
       // Both deliveries point to the same stable conversation
       expect(deepLink1!.conversationId).toBe(stableConvId);

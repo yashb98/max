@@ -139,7 +139,7 @@ fallback when no relay socket is available.
 
 The cloud transport is used by users who do **not** run their own
 assistant. The extension talks to the production gateway directly and
-the runtime runs on infrastructure managed by Vellum.
+the runtime runs on infrastructure managed by Max.
 
 Handshake:
 
@@ -185,15 +185,15 @@ Handshake:
    native messaging as part of the one-click flow — no separate "Pair"
    step is needed.
 2. The service worker calls
-   `chrome.runtime.connectNative("com.vellum.daemon")`, which spawns
+   `chrome.runtime.connectNative("com.max.daemon")`, which spawns
    `clients/chrome-extension/native-host/` (a tiny CLI helper bundled
    into the macOS `.app` at
-   `Contents/MacOS/vellum-chrome-native-host`).
+   `Contents/MacOS/max-chrome-native-host`).
 3. The helper:
    a. Parses the calling extension's origin from `argv[1]` and rejects
       anything not in `ALLOWED_EXTENSION_IDS`.
    b. Resolves the assistant's HTTP port from (in order)
-      `--assistant-port`, `~/.vellum/runtime-port`, then `7821`.
+      `--assistant-port`, `~/.max/runtime-port`, then `7821`.
    c. POSTs to `http://127.0.0.1:<port>/v1/browser-extension-pair` to
       mint a scoped capability token bound to the caller's guardian.
    d. Writes a `token_response` frame to stdout and exits.
@@ -220,7 +220,7 @@ Token lifecycle:
 
 `/v1/browser-extension-pair` is loopback-only and refuses requests
 from any non-private peer. The capability token is HMAC-SHA256 signed
-with a long-lived random secret persisted under `~/.vellum/protected/`
+with a long-lived random secret persisted under `~/.max/protected/`
 with 0600 permissions (see `capability-tokens.ts`).
 
 ## Components
@@ -356,7 +356,7 @@ the extension or who need broad session-level CDP access; see
 
 When the Chrome extension calls
 `chrome.debugger.attach(target, requiredVersion)`, Chrome displays a
-persistent yellow infobar at the top of the affected tab saying "Vellum
+persistent yellow infobar at the top of the affected tab saying "Max
 started debugging this browser." This is an intentional security
 mitigation — it cannot be suppressed via the public MV3 API.
 
@@ -378,7 +378,7 @@ Investigation notes (Phase 2):
 Decision: accept the infobar. The TDD already concluded this; Phase 2
 confirms no public API exists to suppress it. End-user messaging in the
 Mac app popup should explain that the banner is expected and normal
-when Vellum is driving the browser.
+when Max is driving the browser.
 
 Alternatives considered:
 

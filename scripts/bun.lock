@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@vellumai/scripts",
+      "name": "@maxai/scripts",
       "dependencies": {
         "@anthropic-ai/sdk": "0.39.0",
       },

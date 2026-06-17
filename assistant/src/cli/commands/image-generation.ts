@@ -63,7 +63,7 @@ export function registerImageGenerationCommand(program: Command): void {
         "after",
         `
 Modes:
-  managed    — Uses platform-managed credentials (requires login to Vellum).
+  managed    — Uses platform-managed credentials (requires login to Max).
   your-own   — Uses your own Gemini or OpenAI API key depending on the configured model.
 
 Supported models:

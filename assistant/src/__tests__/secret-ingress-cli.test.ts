@@ -97,7 +97,7 @@ describe("secret ingress — CLI signal path", () => {
     const result = await callback({
       conversationKey: "test-key",
       content: "Here is my token: ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij1234",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 
@@ -114,7 +114,7 @@ describe("secret ingress — CLI signal path", () => {
     const result = await callback({
       conversationKey: "test-key",
       content: "Hello, how are you?",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 
@@ -131,7 +131,7 @@ describe("secret ingress — CLI signal path", () => {
     await callback({
       conversationKey: "test-key",
       content: "AWS key: AKIAIOSFODNN7EXAMPLE",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 
@@ -146,7 +146,7 @@ describe("secret ingress — CLI signal path", () => {
     const result = await callback({
       conversationKey: "test-key",
       content: `Key: ${key}`,
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 
@@ -161,7 +161,7 @@ describe("secret ingress — CLI signal path", () => {
       conversationKey: "test-key",
       content:
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 
@@ -182,7 +182,7 @@ describe("secret ingress — CLI signal path", () => {
     const result = await callback({
       conversationKey: "test-key",
       content: "ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij1234",
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       sourceInterface: "cli",
     });
 

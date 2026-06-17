@@ -6,7 +6,7 @@ import { join } from "node:path";
 // Point lockfile operations at a temp directory before importing anything that
 // would otherwise resolve real on-host paths.
 const testDir = mkdtempSync(join(tmpdir(), "cli-orphan-detection-test-"));
-process.env.VELLUM_LOCKFILE_DIR = testDir;
+process.env.MAX_LOCKFILE_DIR = testDir;
 
 import {
   detectOrphanedProcesses,
@@ -20,7 +20,7 @@ import type { EnvironmentDefinition } from "../lib/environments/types.js";
 
 afterAll(() => {
   rmSync(testDir, { recursive: true, force: true });
-  delete process.env.VELLUM_LOCKFILE_DIR;
+  delete process.env.MAX_LOCKFILE_DIR;
 });
 
 function makeLocalEntry(
@@ -33,24 +33,24 @@ function makeLocalEntry(
     embed?: string;
   } = {},
 ): AssistantEntry {
-  const vellumDir = join(instanceDir, ".vellum");
-  mkdirSync(join(vellumDir, "workspace", "data", "qdrant"), {
+  const maxDir = join(instanceDir, ".max");
+  mkdirSync(join(maxDir, "workspace", "data", "qdrant"), {
     recursive: true,
   });
   if (pids.daemon !== undefined) {
-    writeFileSync(join(vellumDir, "workspace", "vellum.pid"), pids.daemon);
+    writeFileSync(join(maxDir, "workspace", "max.pid"), pids.daemon);
   }
   if (pids.gateway !== undefined) {
-    writeFileSync(join(vellumDir, "gateway.pid"), pids.gateway);
+    writeFileSync(join(maxDir, "gateway.pid"), pids.gateway);
   }
   if (pids.qdrant !== undefined) {
     writeFileSync(
-      join(vellumDir, "workspace", "data", "qdrant", "qdrant.pid"),
+      join(maxDir, "workspace", "data", "qdrant", "qdrant.pid"),
       pids.qdrant,
     );
   }
   if (pids.embed !== undefined) {
-    writeFileSync(join(vellumDir, "workspace", "embed-worker.pid"), pids.embed);
+    writeFileSync(join(maxDir, "workspace", "embed-worker.pid"), pids.embed);
   }
   return {
     assistantId: id,
@@ -105,8 +105,8 @@ describe("getKnownPidsFromAssistants", () => {
   test("ignores non-local entries without watcherPid", () => {
     const entry: AssistantEntry = {
       assistantId: "managed-1",
-      runtimeUrl: "https://platform.vellum.ai/foo",
-      cloud: "vellum",
+      runtimeUrl: "https://platform.max.ai/foo",
+      cloud: "max",
     };
     const pids = getKnownPidsFromAssistants([entry]);
     expect(pids.size).toBe(0);
@@ -261,7 +261,7 @@ describe("detectOrphanedProcesses", () => {
   test("excludes PIDs passed via excludePids", async () => {
     // The orphan detector calls `ps ax` and filters by regex. The process
     // running this test (bun) is itself a node-family process whose pid will
-    // not match the vellum/qdrant/openclaw regex, so the natural result of
+    // not match the max/qdrant/openclaw regex, so the natural result of
     // the scan is "no rows". To assert exclusion semantics deterministically,
     // we just confirm the function accepts an excludePids option and returns
     // an array — the meaningful behavior assertion lives in the integration

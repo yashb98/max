@@ -16,7 +16,7 @@ import { PLATFORM_PROVIDER_META } from "./constants.js";
 
 /** Storage key for the assistant API key credential. */
 const ASSISTANT_API_KEY_STORAGE_KEY = credentialKey(
-  "vellum",
+  "max",
   "assistant_api_key",
 );
 

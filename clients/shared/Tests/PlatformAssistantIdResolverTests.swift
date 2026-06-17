@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// In-memory credential storage for testing.
 /// Marked `@unchecked Sendable` because tests drive it single-threaded; the
@@ -80,14 +80,14 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testResolveLocalAssistantReturnsPersistedMapping() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-uuid-5678",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-1",
@@ -98,7 +98,7 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
 
     func testResolveLocalAssistantReturnsNilWhenNotPersisted() {
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-1",
@@ -110,14 +110,14 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testResolveLocalAssistantReturnsNilWithoutOrgId() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-uuid-5678",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: nil,
             userId: "user-1",
@@ -129,14 +129,14 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testResolveLocalAssistantReturnsNilWithoutUserId() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-uuid-5678",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: nil,
@@ -150,28 +150,28 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testDifferentOrgIdReturnsDifferentMapping() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-org-A",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-A",
             userId: "user-1",
             credentialStorage: storage
         )
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-org-B",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-B",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let resultA = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-A",
             userId: "user-1",
             credentialStorage: storage
         )
         let resultB = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-B",
             userId: "user-1",
@@ -185,28 +185,28 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testDifferentUserIdReturnsDifferentMapping() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-user-1",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-user-2",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-2",
             credentialStorage: storage
         )
 
         let result1 = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
         let result2 = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-2",
@@ -222,21 +222,21 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testClearRemovesPersistedMapping() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-uuid-5678",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         PlatformAssistantIdResolver.clear(
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-1",
@@ -248,21 +248,21 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testClearDoesNotAffectOtherScopes() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-A",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "platform-B",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-2",
             userId: "user-1",
             credentialStorage: storage
         )
 
         PlatformAssistantIdResolver.clear(
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
@@ -270,7 +270,7 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
 
         // org-2 mapping should still be present
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-2",
             userId: "user-1",
@@ -284,21 +284,21 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     func testPersistOverwritesExistingMapping() {
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "old-platform-id",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
         PlatformAssistantIdResolver.persist(
             platformAssistantId: "new-platform-id",
-            runtimeAssistantId: "vellum-cool-heron",
+            runtimeAssistantId: "max-cool-heron",
             organizationId: "org-1",
             userId: "user-1",
             credentialStorage: storage
         )
 
         let result = PlatformAssistantIdResolver.resolve(
-            lockfileAssistantId: "vellum-cool-heron",
+            lockfileAssistantId: "max-cool-heron",
             isManaged: false,
             organizationId: "org-1",
             userId: "user-1",
@@ -314,7 +314,7 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     @MainActor
     func testClearBootstrapCredentialRemovesCachedKey() {
         // GIVEN a bootstrap credential is stored
-        let assistantId = "vellum-cool-heron"
+        let assistantId = "max-cool-heron"
         let account = LocalAssistantBootstrapService.credentialAccount(for: assistantId)
         _ = storage.set(account: account, value: "some-api-key")
         XCTAssertNotNil(storage.get(account: account))
@@ -340,7 +340,7 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
 
         // WHEN clearing the bootstrap credential
         let deleted = LocalAssistantBootstrapService.clearBootstrapCredential(
-            runtimeAssistantId: "vellum-nonexistent",
+            runtimeAssistantId: "max-nonexistent",
             credentialStorage: storage
         )
 
@@ -353,8 +353,8 @@ final class PlatformAssistantIdResolverTests: XCTestCase {
     @MainActor
     func testClearBootstrapCredentialDoesNotAffectOtherAssistants() {
         // GIVEN credentials are stored for two assistants
-        let assistantA = "vellum-cool-heron"
-        let assistantB = "vellum-swift-eagle"
+        let assistantA = "max-cool-heron"
+        let assistantB = "max-swift-eagle"
         let accountA = LocalAssistantBootstrapService.credentialAccount(for: assistantA)
         let accountB = LocalAssistantBootstrapService.credentialAccount(for: assistantB)
         _ = storage.set(account: accountA, value: "key-a")

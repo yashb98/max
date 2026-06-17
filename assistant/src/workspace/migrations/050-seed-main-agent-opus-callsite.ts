@@ -28,7 +28,7 @@ export const seedMainAgentOpusCallsiteMigration: WorkspaceMigration = {
   description: "Seed callSites.mainAgent to claude-opus-4-7 for Anthropic",
   run(workspaceDir: string): void {
     // Defer to platform-provided overlays.
-    if (process.env.VELLUM_DEFAULT_WORKSPACE_CONFIG_PATH) return;
+    if (process.env.MAX_DEFAULT_WORKSPACE_CONFIG_PATH) return;
 
     const configPath = join(workspaceDir, "config.json");
     const configExisted = existsSync(configPath);

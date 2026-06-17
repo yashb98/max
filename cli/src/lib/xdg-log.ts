@@ -18,10 +18,10 @@ import { getCurrentEnvironment } from "./environments/resolve.js";
 const PINO_TIME_RE = /^\[\d{2}:\d{2}:\d{2}\.\d{3}\]\s*/;
 
 /**
- * Returns the XDG-compatible log directory for Vellum CLI logs.
+ * Returns the XDG-compatible log directory for Max CLI logs.
  *
- * Environment-aware: production uses `$XDG_CONFIG_HOME/vellum/logs`,
- * non-production environments use `$XDG_CONFIG_HOME/vellum-<env>/logs`.
+ * Environment-aware: production uses `$XDG_CONFIG_HOME/max/logs`,
+ * non-production environments use `$XDG_CONFIG_HOME/max-<env>/logs`.
  */
 export function getLogDir(): string {
   return join(getConfigDir(getCurrentEnvironment()), "logs");

@@ -14,11 +14,11 @@ import {
 
 const SERVICE_ALIASES: Record<string, ServiceName> = {
   assistant: "assistant",
-  "vellum-assistant": "assistant",
+  "max-assistant": "assistant",
   gateway: "gateway",
-  "vellum-gateway": "gateway",
+  "max-gateway": "gateway",
   "credential-executor": "credential-executor",
-  "vellum-credential-executor": "credential-executor",
+  "max-credential-executor": "credential-executor",
 };
 
 function normalizeService(raw: string): ServiceName {
@@ -51,7 +51,7 @@ export async function exec(): Promise<void> {
   const rawArgs = process.argv.slice(3);
 
   // Only check for help flags before the -- separator so that
-  // `vellum exec -- curl --help` passes through correctly.
+  // `max exec -- curl --help` passes through correctly.
   const dashDashIndex = rawArgs.indexOf("--");
   const preArgs =
     dashDashIndex === -1 ? rawArgs : rawArgs.slice(0, dashDashIndex);
@@ -62,7 +62,7 @@ export async function exec(): Promise<void> {
     rawArgs.length === 0
   ) {
     console.log(
-      "Usage: vellum exec [<name>] [--service <svc>] [-it] -- <command...>",
+      "Usage: max exec [<name>] [--service <svc>] [-it] -- <command...>",
     );
     console.log("");
     console.log("Execute a command inside an assistant's container.");
@@ -88,22 +88,22 @@ export async function exec(): Promise<void> {
     );
     console.log("");
     console.log("Services:");
-    console.log("  assistant (or vellum-assistant)");
-    console.log("  gateway (or vellum-gateway)");
-    console.log("  credential-executor (or vellum-credential-executor)");
+    console.log("  assistant (or max-assistant)");
+    console.log("  gateway (or max-gateway)");
+    console.log("  credential-executor (or max-credential-executor)");
     console.log("");
     console.log("Examples:");
-    console.log("  vellum exec -- ls -la /workspace");
-    console.log("  vellum exec -- cat /workspace/NOW.md");
-    console.log("  vellum exec -it -- /bin/bash");
-    console.log("  vellum exec --service gateway -- cat /tmp/gateway.log");
+    console.log("  max exec -- ls -la /workspace");
+    console.log("  max exec -- cat /workspace/NOW.md");
+    console.log("  max exec -it -- /bin/bash");
+    console.log("  max exec --service gateway -- cat /tmp/gateway.log");
     process.exit(0);
   }
 
   if (dashDashIndex === -1) {
     console.error(
       "Error: missing '--' separator before command.\n" +
-        "Usage: vellum exec [<name>] -- <command...>",
+        "Usage: max exec [<name>] -- <command...>",
     );
     process.exit(1);
   }
@@ -148,7 +148,7 @@ export async function exec(): Promise<void> {
     if (nameArg) {
       console.error(`No assistant instance found with name '${nameArg}'.`);
     } else {
-      console.error("No assistant instance found. Run `vellum hatch` first.");
+      console.error("No assistant instance found. Run `max hatch` first.");
     }
     process.exit(1);
   }
@@ -172,7 +172,7 @@ export async function exec(): Promise<void> {
   }
 
   if (cloud === "apple-container") {
-    const fullServiceName = `vellum-${service}`;
+    const fullServiceName = `max-${service}`;
     if (interactive) {
       await sshAppleContainer(entry, command, fullServiceName);
     } else {
@@ -201,11 +201,11 @@ export async function exec(): Promise<void> {
     return;
   }
 
-  if (cloud === "vellum") {
+  if (cloud === "max") {
     const token = readPlatformToken();
     if (!token) {
       console.error(
-        "Not logged in. Run `vellum login` first to authenticate with the platform.",
+        "Not logged in. Run `max login` first to authenticate with the platform.",
       );
       process.exit(1);
     }
@@ -234,7 +234,7 @@ export async function exec(): Promise<void> {
   }
 
   console.error(
-    `Error: 'vellum exec' is not supported for ${cloud} instances.`,
+    `Error: 'max exec' is not supported for ${cloud} instances.`,
   );
   process.exit(1);
 }

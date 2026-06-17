@@ -530,8 +530,8 @@ function makeCtx(
     drainQueue: () => {},
     getTurnInterfaceContext: () => null,
     getTurnChannelContext: () => ({
-      userMessageChannel: "vellum" as const,
-      assistantMessageChannel: "vellum" as const,
+      userMessageChannel: "max" as const,
+      assistantMessageChannel: "max" as const,
     }),
 
     graphMemory: {

@@ -12,7 +12,7 @@ Throw an exception (using the error hierarchy from `util/errors.ts`) when:
 - The failure is unrecoverable and the caller cannot meaningfully continue.
 - An external dependency is completely unavailable and there is no fallback.
 
-Use the existing `VellumError` hierarchy (`ToolError`, `ConfigError`, `ProviderError`, etc.) rather than bare `Error`. This ensures structured error codes propagate to logging and monitoring.
+Use the existing `MaxError` hierarchy (`ToolError`, `ConfigError`, `ProviderError`, etc.) rather than bare `Error`. This ensures structured error codes propagate to logging and monitoring.
 
 ```typescript
 // Good: typed error for a precondition violation

@@ -173,6 +173,14 @@ export class Conversation {
   /** @internal */ coreToolNames: Set<string>;
   /** @internal */ readonly skillProjectionState = new Map<string, string>();
   /** @internal */ readonly skillProjectionCache: SkillProjectionCache = {};
+  /**
+   * Skill IDs activated during bridged tool calls (e.g. kimi-agent running
+   * `skill_load` inside its inner SDK loop). Populated by handleToolResult;
+   * merged into effectivePreactivated by createResolveToolsCallback.
+   * Not cleared at turn end — persists across turns so a skill loaded in a
+   * prior kimi turn stays active in subsequent turns.
+   */
+  /** @internal */ readonly bridgedActiveSkillIds: Set<string> = new Set();
   /** @internal */ usageStats: UsageStats = {
     inputTokens: 0,
     outputTokens: 0,
@@ -652,7 +660,7 @@ export class Conversation {
     const currentTrustClass = this.trustContext?.trustClass;
     // `loadFromDb` gates personal-memory rehydration on `sourceChannel` too
     // (via `shouldExposePersonalMemory`), so a same-trust-class reuse from a
-    // different channel (e.g. internal `vellum` → remote channel) must also
+    // different channel (e.g. internal `max` → remote channel) must also
     // trigger a reload. Otherwise stale personal-memory blocks can leak to
     // an untrusted remote turn, or be hidden when they should be present.
     const currentPersonalMemoryAllowed = shouldExposePersonalMemory({

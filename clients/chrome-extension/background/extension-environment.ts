@@ -1,10 +1,10 @@
 /**
- * Canonical environment contract for the Vellum Chrome extension.
+ * Canonical environment contract for the Max Chrome extension.
  *
  * This module is the single source of truth for:
  *   - the set of valid extension environments
  *   - parsing / normalizing raw environment strings (including aliases)
- *   - resolving the build-time default from `process.env.VELLUM_ENVIRONMENT`
+ *   - resolving the build-time default from `process.env.MAX_ENVIRONMENT`
  *   - mapping each environment to its cloud API and web base URLs
  *
  * All other extension code that needs environment awareness should import
@@ -65,20 +65,20 @@ export function parseExtensionEnvironment(raw: string | undefined): ExtensionEnv
 
 /**
  * Resolve the build-time default environment from the bundler-defined
- * `process.env.VELLUM_ENVIRONMENT` constant.
+ * `process.env.MAX_ENVIRONMENT` constant.
  *
  * Falls back to `"production"` when the variable is missing, empty, or
  * set to an unrecognized value, ensuring released extensions always
  * target production even if the build pipeline omits the variable.
  */
 export function resolveBuildDefaultEnvironment(): ExtensionEnvironment {
-  // `process.env.VELLUM_ENVIRONMENT` is replaced at bundle time by the
+  // `process.env.MAX_ENVIRONMENT` is replaced at bundle time by the
   // build tool (e.g. `bun build --define`). At runtime in a bundled
   // extension it becomes a string literal. In tests or unbundled
   // contexts it may be the actual env var or undefined.
   let raw: string | undefined;
   try {
-    raw = process.env.VELLUM_ENVIRONMENT;
+    raw = process.env.MAX_ENVIRONMENT;
   } catch {
     // In some browser runtimes `process` is not defined at all.
     raw = undefined;
@@ -94,36 +94,36 @@ export function resolveBuildDefaultEnvironment(): ExtensionEnvironment {
 // ── Cloud URL mapping ───────────────────────────────────────────────
 
 export interface CloudUrls {
-  /** Gateway / API base URL (e.g. `https://api.vellum.ai`). */
+  /** Gateway / API base URL (e.g. `https://api.max.ai`). */
   apiBaseUrl: string;
-  /** Web app base URL for browser-facing pages (e.g. `https://www.vellum.ai`). */
+  /** Web app base URL for browser-facing pages (e.g. `https://www.max.ai`). */
   webBaseUrl: string;
 }
 
 /**
  * Return the cloud API and web base URLs for the given environment.
  *
- * Production uses the canonical Vellum production hosts. Non-production
+ * Production uses the canonical Max production hosts. Non-production
  * environments use environment-prefixed subdomains following the
- * convention `<env>-api.vellum.ai` / `<env>-assistant.vellum.ai`, with
+ * convention `<env>-api.max.ai` / `<env>-assistant.max.ai`, with
  * `local` using `localhost` origins for both.
  */
 export function cloudUrlsForEnvironment(env: ExtensionEnvironment): CloudUrls {
   switch (env) {
     case 'production':
       return {
-        apiBaseUrl: 'https://platform.vellum.ai',
-        webBaseUrl: 'https://www.vellum.ai',
+        apiBaseUrl: 'https://platform.max.ai',
+        webBaseUrl: 'https://www.max.ai',
       };
     case 'staging':
       return {
-        apiBaseUrl: 'https://staging-platform.vellum.ai',
-        webBaseUrl: 'https://staging-assistant.vellum.ai',
+        apiBaseUrl: 'https://staging-platform.max.ai',
+        webBaseUrl: 'https://staging-assistant.max.ai',
       };
     case 'dev':
       return {
-        apiBaseUrl: 'https://dev-platform.vellum.ai',
-        webBaseUrl: 'https://dev-assistant.vellum.ai',
+        apiBaseUrl: 'https://dev-platform.max.ai',
+        webBaseUrl: 'https://dev-assistant.max.ai',
       };
     case 'local':
       return {

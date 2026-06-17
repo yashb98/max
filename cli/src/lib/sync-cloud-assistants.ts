@@ -5,7 +5,7 @@
  * - Removes lockfile entries whose IDs are no longer returned by the platform
  *   (e.g. retired assistants).
  *
- * Used by both `vellum login` and `vellum ps` to keep the lockfile fresh.
+ * Used by both `max login` and `max ps` to keep the lockfile fresh.
  *
  * **Contract:** callers must verify the user is logged in (i.e. a non-empty
  * platform token exists) before invoking this helper. The "is there a token?"
@@ -93,7 +93,7 @@ export async function syncCloudAssistants(
 
   // Add new platform assistants not yet in the lockfile
   const existingCloudEntries = loadAllAssistants().filter(
-    (a) => a.cloud === "vellum",
+    (a) => a.cloud === "max",
   );
   const existingCloudById = new Map(
     existingCloudEntries.map((a) => [a.assistantId, a]),
@@ -115,8 +115,8 @@ export async function syncCloudAssistants(
         assistantId: pa.id,
         ...nameFields,
         runtimeUrl: getPlatformUrl(),
-        cloud: "vellum",
-        species: "vellum",
+        cloud: "max",
+        species: "max",
         hatchedAt: new Date().toISOString(),
       });
       added++;

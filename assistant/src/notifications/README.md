@@ -71,7 +71,7 @@ Hard invariants that the LLM cannot override:
 
 ### 6. Broadcast, Conversation Pairing, and Delivery
 
-The broadcaster (`broadcaster.ts`) iterates over selected channels (vellum first for fast SSE push), resolves destinations via `destination-resolver.ts`, pairs each delivery with a conversation via `conversation-pairing.ts`, pulls rendered copy from the decision (falling back to `copy-composer.ts` templates), and dispatches through channel adapters. Each delivery attempt is recorded in `notification_deliveries` with `conversation_id`, `message_id`, and `conversation_strategy` columns. The broadcaster emits `notification_conversation_created` SSE events for new vellum conversations.
+The broadcaster (`broadcaster.ts`) iterates over selected channels (max first for fast SSE push), resolves destinations via `destination-resolver.ts`, pairs each delivery with a conversation via `conversation-pairing.ts`, pulls rendered copy from the decision (falling back to `copy-composer.ts` templates), and dispatches through channel adapters. Each delivery attempt is recorded in `notification_deliveries` with `conversation_id`, `message_id`, and `conversation_strategy` columns. The broadcaster emits `notification_conversation_created` SSE events for new max conversations.
 
 ## Channel Policy Registry
 
@@ -88,7 +88,7 @@ Each policy defines:
 
 | Strategy                         | Behavior                                                                                                                                                                                                                                     | Used by                                  |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `start_new_conversation`         | Creates a fresh conversation per delivery. The conversation is surfaced via SSE.                                                                                                                                                             | `vellum`                                 |
+| `start_new_conversation`         | Creates a fresh conversation per delivery. The conversation is surfaced via SSE.                                                                                                                                                             | `max`                                 |
 | `continue_existing_conversation` | Looks up a previously bound conversation by binding key (sourceChannel + externalChatId) and appends to it. When no bound conversation exists (first delivery to a destination), creates a new one and upserts the binding for future reuse. | `telegram`, `whatsapp`, `slack`, `email` |
 | `not_deliverable`                | Channel cannot receive notifications. Pairing returns null IDs.                                                                                                                                                                              | `phone`                                  |
 
@@ -141,7 +141,7 @@ The system produces **three distinct copy outputs** per notification:
 
 1. The **decision engine** can produce `title`/`body` (popup copy), `deliveryText` (chat copy), and `conversationSeedMessage` (richer conversation content) per channel.
 2. **Adapters** use the surface-appropriate field:
-   - Vellum/macOS notifications use `title` + `body`.
+   - Max/macOS notifications use `title` + `body`.
    - Telegram delivery prefers `deliveryText` and falls back to `conversationSeedMessage`, then `body`, then `title`.
 3. **Conversation pairing** uses the conversation seed as the conversation's opening message:
    - If the LLM produced a valid `conversationSeedMessage`, it is used directly (after a sanity check rejects empty, too-short, JSON dumps, or excessively long values).
@@ -153,18 +153,18 @@ The conversation seed composer adapts verbosity to the delivery surface:
 
 | Channel    | Default Interface | Verbosity | Style                                          |
 | ---------- | ----------------- | --------- | ---------------------------------------------- |
-| `vellum`   | `macos`           | Rich      | 2-4 short sentences with context and next step |
+| `max`   | `macos`           | Rich      | 2-4 short sentences with context and next step |
 | `telegram` | `telegram`        | Compact   | 1-2 concise sentences                          |
 
 Interface inference strategy:
 
 1. Explicit `interfaceHint` in the signal's `contextPayload` (if valid `InterfaceId`).
 2. `sourceInterface` from the originating conversation (if valid `InterfaceId`).
-3. Channel default mapping (`vellum` → `macos` → rich, `telegram` → `telegram` → compact).
+3. Channel default mapping (`max` → `macos` → rich, `telegram` → `telegram` → compact).
 
 ### Example: Reminder Notification
 
-**Native popup (vellum/macos):**
+**Native popup (max/macos):**
 
 ```
 Title: Reminder
@@ -177,7 +177,7 @@ Body:  Take out the trash
 Take out the trash
 ```
 
-**Conversation seed on vellum/macos (rich):**
+**Conversation seed on max/macos (rich):**
 
 ```
 Reminder. Take out the trash. Action required.
@@ -201,7 +201,7 @@ if (
 }
 ```
 
-When a vellum notification conversation **is** newly created (strategy `start_new_conversation`), the broadcaster emits the SSE event **immediately**, before waiting for slower channel deliveries (e.g. Telegram). This avoids a race where a slow Telegram delivery delays the broadcast past the macOS deep-link retry window.
+When a max notification conversation **is** newly created (strategy `start_new_conversation`), the broadcaster emits the SSE event **immediately**, before waiting for slower channel deliveries (e.g. Telegram). This avoids a race where a slow Telegram delivery delays the broadcast past the macOS deep-link retry window.
 
 The SSE event payload:
 
@@ -218,11 +218,11 @@ The macOS client listens for this event and surfaces the conversation in the sid
 
 ### Per-Dispatch Conversation Callback
 
-`emitNotificationSignal()` accepts an optional `onConversationCreated` callback (`options.onConversationCreated`). This lets producers run domain side effects (for example, creating cross-channel guardian delivery rows) as soon as vellum pairing occurs, without introducing a second conversation-creation path.
+`emitNotificationSignal()` accepts an optional `onConversationCreated` callback (`options.onConversationCreated`). This lets producers run domain side effects (for example, creating cross-channel guardian delivery rows) as soon as max pairing occurs, without introducing a second conversation-creation path.
 
 **Important distinction between the two callbacks:**
 
-- **Per-dispatch `options.onConversationCreated`**: Fires for **both** new and reused vellum conversation pairings. Callers like `dispatchGuardianQuestion` rely on this to create delivery bookkeeping rows before `emitNotificationSignal()` returns, regardless of whether the conversation was newly created or reused.
+- **Per-dispatch `options.onConversationCreated`**: Fires for **both** new and reused max conversation pairings. Callers like `dispatchGuardianQuestion` rely on this to create delivery bookkeeping rows before `emitNotificationSignal()` returns, regardless of whether the conversation was newly created or reused.
 - **Class-level `this.onConversationCreated` (SSE broadcast)**: Fires **only** when a brand-new conversation is created (`createdNewConversation === true && strategy === 'start_new_conversation'`). This emits the `notification_conversation_created` SSE event so macOS clients surface the new conversation in the sidebar. Reused conversations do not trigger this event because the client already knows about the conversation.
 
 ## Schedule Routing Metadata and Trigger-Time Enforcement
@@ -265,7 +265,7 @@ The `enforceRoutingIntent()` function in `decision-engine.ts` runs after the LLM
 - **`multi_channel`**: If the LLM selected fewer than 2 channels but 2+ are connected, expands `selectedChannels` to at least two connected channels.
 - **`single_channel`**: No override -- the LLM's selection stands.
 
-When enforcement changes the decision, the updated channel selection is re-persisted to the `notification_decisions` table so the stored decision matches what was actually dispatched. The `reasoningSummary` is annotated with the enforcement action (e.g. `[routing_intent=all_channels enforced: vellum, telegram]`).
+When enforcement changes the decision, the updated channel selection is re-persisted to the `notification_decisions` table so the stored decision matches what was actually dispatched. The `reasoningSummary` is annotated with the enforcement action (e.g. `[routing_intent=all_channels enforced: max, telegram]`).
 
 ### Single-Schedule Fanout
 
@@ -287,9 +287,9 @@ schedule_jobs table (routing_intent, routing_hints_json)
 
 The notification system delivers to three channel types:
 
-### Vellum (always connected)
+### Max (always connected)
 
-Local SSE via the daemon's broadcast mechanism. The `VellumAdapter` emits a `notification_intent` message containing:
+Local SSE via the daemon's broadcast mechanism. The `MaxAdapter` emits a `notification_intent` message containing:
 
 - `sourceEventName` -- the event that triggered the notification
 - `title` and `body` -- rendered notification copy
@@ -305,7 +305,7 @@ HTTP POST to the gateway's `/deliver/telegram` endpoint. The `TelegramAdapter` s
 
 Connected channels are resolved at signal emission time by `getConnectedChannels()` in `emit-signal.ts`:
 
-- **Vellum** is always considered connected (HTTP transport is always available when the daemon is running)
+- **Max** is always considered connected (HTTP transport is always available when the daemon is running)
 - **Telegram** is considered connected only when an active guardian binding exists for the assistant (checked via `getActiveBinding()`)
 
 ## Conversation Materialization
@@ -314,9 +314,9 @@ The system uses a single conversation materialization path for **all** notificat
 
 1. `emitNotificationSignal()` evaluates the signal and dispatches to channels.
 2. `NotificationBroadcaster` pairs each delivery with a conversation via `pairDeliveryWithConversation()`, executing the per-channel conversation action (start_new or reuse_existing).
-3. For vellum deliveries, the broadcaster merges `conversationId` into `deepLinkMetadata` and emits `notification_conversation_created` only when a new conversation was created (not on reuse).
+3. For max deliveries, the broadcaster merges `conversationId` into `deepLinkMetadata` and emits `notification_conversation_created` only when a new conversation was created (not on reuse).
 
-Guardian dispatch follows this same path and uses the optional `onConversationCreated` callback to attach guardian-delivery bookkeeping to the canonical vellum conversation.
+Guardian dispatch follows this same path and uses the optional `onConversationCreated` callback to attach guardian-delivery bookkeeping to the canonical max conversation.
 
 ### Conversation Pairing Invariant
 
@@ -333,7 +333,7 @@ When the decision is persisted, a `conversationActions` summary is included in `
 ```json
 {
   "conversationActions": {
-    "vellum": "start_new",
+    "max": "start_new",
     "telegram": "reuse:conv-abc-123"
   }
 }
@@ -377,7 +377,7 @@ Each `guardian_action_request` is assigned a unique 6-character hex code (e.g. `
 
 ### Disambiguation Flow
 
-The disambiguation logic is identical on all channels — mac/vellum (`conversation-process.ts`) and Telegram (`inbound-message-handler.ts`):
+The disambiguation logic is identical on all channels — mac/max (`conversation-process.ts`) and Telegram (`inbound-message-handler.ts`):
 
 1. **Single pending delivery in the conversation**: The guardian's reply is matched to the sole pending request automatically. No request code prefix is needed. This is the **single-match fast path**.
 
@@ -389,7 +389,7 @@ The disambiguation logic is identical on all channels — mac/vellum (`conversat
 
 The disambiguation invariant is enforced identically across:
 
-- **Mac/Vellum** (`conversation-process.ts`): Intercepts user messages in conversations with pending guardian action deliveries before the agent loop runs.
+- **Mac/Max** (`conversation-process.ts`): Intercepts user messages in conversations with pending guardian action deliveries before the agent loop runs.
 - **Telegram** (`inbound-message-handler.ts`): Intercepts inbound messages matched to conversations with pending guardian action deliveries.
 
 All three paths use the same pattern: look up pending deliveries by conversation, apply single-match fast path or request-code prefix matching, and send disambiguation messages via the guardian action message composer when ambiguous.
@@ -420,8 +420,8 @@ All disambiguation messages are generated through `composeGuardianActionMessageG
 | `broadcaster.ts`                | Fan-out to channel adapters with delivery audit trail; emits `notification_conversation_created` SSE event |
 | `copy-composer.ts`              | Template-based fallback notification copy when LLM copy is unavailable                                     |
 | `conversation-seed-composer.ts` | Surface-aware conversation seed generation (richer than notification copy)                                 |
-| `destination-resolver.ts`       | Resolves per-channel endpoints (vellum SSE, Telegram chat ID)                                              |
-| `adapters/macos.ts`             | Vellum adapter -- broadcasts `notification_intent` via SSE with deep-link metadata                         |
+| `destination-resolver.ts`       | Resolves per-channel endpoints (max SSE, Telegram chat ID)                                              |
+| `adapters/macos.ts`             | Max adapter -- broadcasts `notification_intent` via SSE with deep-link metadata                         |
 | `adapters/telegram.ts`          | Telegram adapter -- POSTs to gateway `/deliver/telegram`                                                   |
 | `preference-extractor.ts`       | Detects notification preferences in conversation messages                                                  |
 | `preference-summary.ts`         | Builds preference context string for the decision engine prompt                                            |
@@ -480,7 +480,7 @@ Three SQLite tables form the audit chain:
 
 ### Client Delivery Ack
 
-For vellum (macOS) deliveries, the audit trail now extends past the SSE broadcast to the actual OS notification post. The `notification_intent` message carries an optional `deliveryId` that the client echoes back in a `notification_intent_result` ack after `UNUserNotificationCenter.add()` completes (or fails).
+For max (macOS) deliveries, the audit trail now extends past the SSE broadcast to the actual OS notification post. The `notification_intent` message carries an optional `deliveryId` that the client echoes back in a `notification_intent_result` ack after `UNUserNotificationCenter.add()` completes (or fails).
 
 The ack populates three columns on `notification_deliveries`:
 
@@ -490,7 +490,7 @@ The ack populates three columns on `notification_deliveries`:
 | `client_delivery_error`  | TEXT    | Error description when the post failed (e.g. authorization denied)             |
 | `client_delivery_at`     | INTEGER | Epoch ms timestamp of when the client reported the outcome                     |
 
-This means the audit trail can now answer three questions for each vellum delivery:
+This means the audit trail can now answer three questions for each max delivery:
 
 1. **Was the intent broadcast?** -- existing `status` column (`sent`)
 2. **Did the client attempt to post?** -- `client_delivery_status` is non-null
@@ -519,10 +519,10 @@ FROM notification_deliveries d
 WHERE d.conversation_id IS NOT NULL
 ORDER BY d.created_at DESC;
 
--- Vellum deliveries where the client failed to post the notification
+-- Max deliveries where the client failed to post the notification
 SELECT d.rendered_title, d.client_delivery_status, d.client_delivery_error, d.client_delivery_at
 FROM notification_deliveries d
-WHERE d.channel = 'vellum' AND d.client_delivery_status = 'client_failed'
+WHERE d.channel = 'max' AND d.client_delivery_status = 'client_failed'
 ORDER BY d.created_at DESC;
 ```
 

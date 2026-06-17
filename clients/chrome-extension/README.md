@@ -1,10 +1,10 @@
-# Vellum Assistant Chrome Extension
+# Max Assistant Chrome Extension
 
-MV3 Chrome extension that connects your browser to a running Vellum assistant via a WebSocket relay. It discovers assistants from the local lockfile, handles auth automatically, and maintains a persistent background connection.
+MV3 Chrome extension that connects your browser to a running Max assistant via a WebSocket relay. It discovers assistants from the local lockfile, handles auth automatically, and maintains a persistent background connection.
 
 ## Install from Chrome Web Store
 
-Install the [Vellum Assistant](https://chromewebstore.google.com/detail/vellum-assistant-browser/hphbdmpffeigpcdjkckleobjmhhokpne) extension directly from the Chrome Web Store. This is the recommended approach for most users — no developer mode required.
+Install the [Max Assistant](https://chromewebstore.google.com/detail/max-assistant-browser/hphbdmpffeigpcdjkckleobjmhhokpne) extension directly from the Chrome Web Store. This is the recommended approach for most users — no developer mode required.
 
 ## Development
 
@@ -51,10 +51,10 @@ To create a zip for manual upload to the [Chrome Web Store developer dashboard](
 ```bash
 cd clients/chrome-extension
 bash build.sh
-cd dist && zip -r ../vellum-browser-relay.zip .
+cd dist && zip -r ../max-browser-relay.zip .
 ```
 
-Upload `vellum-browser-relay.zip` through the dashboard.
+Upload `max-browser-relay.zip` through the dashboard.
 
 For automated publishing, the `release.yml` GitHub Actions workflow builds, packages, and uploads to CWS when a release tag is created.
 
@@ -77,7 +77,7 @@ The effective environment is resolved in this order:
 | Priority | Source | Description |
 |---|---|---|
 | 1 (highest) | Popup override | Selected in the dropdown, persisted in `chrome.storage.local` |
-| 2 | Build-time default | Injected via `--define process.env.VELLUM_ENVIRONMENT=...` at bundle time |
+| 2 | Build-time default | Injected via `--define process.env.MAX_ENVIRONMENT=...` at bundle time |
 | 3 (fallback) | Hard-coded default | `dev` |
 
 ### Expected defaults by context

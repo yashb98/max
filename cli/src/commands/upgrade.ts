@@ -68,10 +68,10 @@ function parseArgs(): UpgradeArgs {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--help" || arg === "-h") {
-      console.log("Usage: vellum upgrade [<name>] [options]");
+      console.log("Usage: max upgrade [<name>] [options]");
       console.log("");
       console.log("Upgrade an assistant to a newer version.");
-      console.log("To roll back to a previous version, use `vellum rollback`.");
+      console.log("To roll back to a previous version, use `max rollback`.");
       console.log("");
       console.log("Arguments:");
       console.log(
@@ -94,16 +94,16 @@ function parseArgs(): UpgradeArgs {
       console.log("");
       console.log("Examples:");
       console.log(
-        "  vellum upgrade                              # Upgrade the active assistant to the CLI's version",
+        "  max upgrade                              # Upgrade the active assistant to the CLI's version",
       );
       console.log(
-        "  vellum upgrade --latest                     # Upgrade CLI + assistant to the latest stable release",
+        "  max upgrade --latest                     # Upgrade CLI + assistant to the latest stable release",
       );
       console.log(
-        "  vellum upgrade my-assistant                  # Upgrade a specific assistant by name",
+        "  max upgrade my-assistant                  # Upgrade a specific assistant by name",
       );
       console.log(
-        "  vellum upgrade my-assistant --version v1.2.3 # Upgrade to a specific version",
+        "  max upgrade my-assistant --version v1.2.3 # Upgrade to a specific version",
       );
       process.exit(0);
     } else if (arg === "--version") {
@@ -161,7 +161,7 @@ function resolveCloud(entry: AssistantEntry): string {
 /**
  * Resolve which assistant to target for the upgrade command. Priority:
  * 1. Explicit name argument
- * 2. Active assistant set via `vellum use`
+ * 2. Active assistant set via `max use`
  * 3. Sole assistant (when exactly one exists)
  */
 function resolveTargetAssistant(nameArg: string | null): AssistantEntry {
@@ -188,12 +188,12 @@ function resolveTargetAssistant(nameArg: string | null): AssistantEntry {
   if (all.length === 1) return all[0];
 
   if (all.length === 0) {
-    const msg = "No assistants found. Run 'vellum hatch' first.";
+    const msg = "No assistants found. Run 'max hatch' first.";
     console.error(msg);
     emitCliError("ASSISTANT_NOT_FOUND", msg);
   } else {
     const msg =
-      "Multiple assistants found. Specify a name or set an active assistant with 'vellum use <name>'.";
+      "Multiple assistants found. Specify a name or set an active assistant with 'max use <name>'.";
     console.error(msg);
     emitCliError("ASSISTANT_NOT_FOUND", msg);
   }
@@ -262,8 +262,8 @@ async function upgradeDocker(
     // Best-effort — if we can't get migration state, rollback will skip migration reversal
   }
 
-  // Reject downgrades — `vellum upgrade` only handles forward version changes.
-  // Users should use `vellum rollback --version <version>` for downgrades.
+  // Reject downgrades — `max upgrade` only handles forward version changes.
+  // Users should use `max rollback --version <version>` for downgrades.
   if (!currentVersion && versionTag) {
     console.warn(
       "⚠️  Could not determine current version from health endpoint — skipping version-direction check.\n",
@@ -272,7 +272,7 @@ async function upgradeDocker(
   if (currentVersion && versionTag) {
     const cmp = compareVersions(versionTag, currentVersion);
     if (cmp !== null && cmp < 0) {
-      const msg = `Cannot upgrade to an older version (${versionTag} < ${currentVersion}). Use \`vellum rollback --version ${versionTag}\` instead.`;
+      const msg = `Cannot upgrade to an older version (${versionTag} < ${currentVersion}). Use \`max rollback --version ${versionTag}\` instead.`;
       console.error(msg);
       emitCliError("VERSION_DIRECTION", msg);
       process.exit(1);
@@ -280,7 +280,7 @@ async function upgradeDocker(
   }
 
   // Persist rollback state to lockfile BEFORE any destructive changes.
-  // This enables the `vellum rollback` command to restore the previous version.
+  // This enables the `max rollback` command to restore the previous version.
   if (entry.containerInfo) {
     const rollbackEntry: AssistantEntry = {
       ...entry,
@@ -404,7 +404,7 @@ async function upgradeDocker(
     console.warn("⚠️  Pre-upgrade backup failed (continuing with upgrade)\n");
   }
 
-  // Persist the backup path so `vellum rollback` can restore the exact backup
+  // Persist the backup path so `max rollback` can restore the exact backup
   // created for this upgrade attempt — never a stale backup from a prior cycle.
   // Re-read the entry to pick up the rollback state saved earlier.
   {
@@ -432,7 +432,7 @@ async function upgradeDocker(
   // buildServiceRunArgs are excluded to avoid duplicates.
   const envKeysSetByRunArgs = new Set(CONTAINER_ENV_EXCLUDE_KEYS);
   // Only exclude keys that buildServiceRunArgs will actually set
-  for (const envVar of ["ANTHROPIC_API_KEY", "VELLUM_PLATFORM_URL"]) {
+  for (const envVar of ["ANTHROPIC_API_KEY", "MAX_PLATFORM_URL"]) {
     if (process.env[envVar]) {
       envKeysSetByRunArgs.add(envVar);
     }
@@ -479,7 +479,7 @@ async function upgradeDocker(
       previousContainerInfo: entry.containerInfo,
       previousDbMigrationVersion: preMigrationState.dbVersion,
       previousWorkspaceMigrationId: preMigrationState.lastWorkspaceMigrationId,
-      // Preserve the backup path so `vellum rollback` can restore it later
+      // Preserve the backup path so `max rollback` can restore it later
       preUpgradeBackupPath: backupPath ?? undefined,
     };
     saveAssistantEntry(updatedEntry);
@@ -720,7 +720,7 @@ async function upgradePlatform(
   const token = readPlatformToken();
   if (!token) {
     const msg =
-      "Error: Not logged in. Run `vellum login --token <token>` first.";
+      "Error: Not logged in. Run `max login --token <token>` first.";
     console.error(msg);
     emitCliError("AUTH_FAILED", msg);
     process.exit(1);
@@ -745,7 +745,7 @@ async function upgradePlatform(
   if (response.status === 401 || response.status === 403) {
     const text = await response.text();
     console.error(
-      `Authentication failed (${response.status}). Run 'vellum login' to refresh.`,
+      `Authentication failed (${response.status}). Run 'max login' to refresh.`,
     );
     emitCliError("AUTH_FAILED", "Authentication failed", text);
     try {
@@ -933,7 +933,7 @@ async function resolveLatestAndMaybeSelfUpdate(
     console.log(`🔄 Updating CLI to ${latestTag}...`);
     const installResult = spawnSync(
       "bun",
-      ["install", "-g", `vellum@${latestVersion}`],
+      ["install", "-g", `max@${latestVersion}`],
       { stdio: "inherit" },
     );
     if (installResult.error || installResult.status !== 0) {
@@ -952,7 +952,7 @@ async function resolveLatestAndMaybeSelfUpdate(
     reexecArgs.push("--version", latestTag);
 
     console.log(`🚀 Re-running upgrade with updated CLI...\n`);
-    const reexecResult = spawnSync("vellum", reexecArgs, {
+    const reexecResult = spawnSync("max", reexecArgs, {
       stdio: "inherit",
     });
     process.exit(reexecResult.status ?? 1);
@@ -996,7 +996,7 @@ export async function upgrade(): Promise<void> {
       return;
     }
 
-    if (cloud === "vellum") {
+    if (cloud === "max") {
       await upgradePlatform(entry, effectiveVersion);
       return;
     }
@@ -1015,7 +1015,7 @@ export async function upgrade(): Promise<void> {
     process.exit(1);
   }
 
-  const msg = `Error: Upgrade is not supported for '${cloud}' assistants. Only 'docker' and 'vellum' assistants can be upgraded via the CLI.`;
+  const msg = `Error: Upgrade is not supported for '${cloud}' assistants. Only 'docker' and 'max' assistants can be upgraded via the CLI.`;
   console.error(msg);
   emitCliError("UNSUPPORTED_TOPOLOGY", msg);
   process.exit(1);

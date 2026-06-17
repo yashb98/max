@@ -1,6 +1,6 @@
 /**
  * Tests for `writeLocalSnapshot` and `pruneLocalSnapshots`. All tests run
- * against a temp directory to keep the real `~/.vellum/` tree untouched.
+ * against a temp directory to keep the real `~/.max/` tree untouched.
  */
 
 import {
@@ -21,7 +21,7 @@ describe("writeLocalSnapshot", () => {
   let root: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), "vellum-local-writer-"));
+    root = mkdtempSync(join(tmpdir(), "max-local-writer-"));
   });
 
   afterEach(() => {
@@ -132,7 +132,7 @@ describe("pruneLocalSnapshots", () => {
   let localDir: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), "vellum-prune-local-"));
+    root = mkdtempSync(join(tmpdir(), "max-prune-local-"));
     localDir = join(root, "local");
   });
 

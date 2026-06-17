@@ -7,12 +7,12 @@ const PANES = {
   microphone: {
     url: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone",
     label: "Microphone privacy",
-    instruction: "Please toggle Vellum Assistant on.",
+    instruction: "Please toggle Max Assistant on.",
   },
   speech_recognition: {
     url: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition",
     label: "Speech Recognition privacy",
-    instruction: "Please toggle Vellum Assistant on.",
+    instruction: "Please toggle Max Assistant on.",
   },
 } as const;
 

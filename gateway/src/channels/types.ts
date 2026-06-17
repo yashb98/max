@@ -1,7 +1,7 @@
 export const CHANNEL_IDS = [
   "telegram",
   "phone",
-  "vellum",
+  "max",
   "whatsapp",
   "slack",
   "email",
@@ -39,13 +39,13 @@ export type InterfaceId = (typeof INTERFACE_IDS)[number];
  * Maps legacy values to their canonical replacements.
  */
 const LEGACY_INTERFACE_ALIASES: Record<string, InterfaceId> = {
-  // The web client used to report "vellum" as its interface ID.
-  vellum: "web",
+  // The web client used to report "max" as its interface ID.
+  max: "web",
 };
 
 /**
  * Strict type guard — returns `true` only for canonical `InterfaceId`
- * values. Legacy aliases like `"vellum"` return `false`; use
+ * values. Legacy aliases like `"max"` return `false`; use
  * `parseInterfaceId` to accept and normalize those.
  */
 export function isInterfaceId(value: unknown): value is InterfaceId {

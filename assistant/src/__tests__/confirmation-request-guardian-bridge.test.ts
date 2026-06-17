@@ -279,7 +279,7 @@ describe("bridgeConfirmationRequestToGuardian", () => {
     );
   });
 
-  test("creates vellum delivery row via onConversationCreated callback", () => {
+  test("creates max delivery row via onConversationCreated callback", () => {
     const canonicalRequest = makeCanonicalRequest();
     const trustContext = makeTrustedContactContext();
 
@@ -301,7 +301,7 @@ describe("bridgeConfirmationRequestToGuardian", () => {
 
     const deliveries = listCanonicalGuardianDeliveries(canonicalRequest.id);
     expect(deliveries).toHaveLength(1);
-    expect(deliveries[0].destinationChannel).toBe("vellum");
+    expect(deliveries[0].destinationChannel).toBe("max");
     expect(deliveries[0].destinationConversationId).toBe(
       "guardian-conversation-1",
     );

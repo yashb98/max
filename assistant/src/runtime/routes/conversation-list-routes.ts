@@ -131,7 +131,7 @@ function handleRecordSeen({ body = {} }: RouteHandlerArgs) {
 
     recordConversationSeenSignal({
       conversationId,
-      sourceChannel: (body.sourceChannel as string) ?? "vellum",
+      sourceChannel: (body.sourceChannel as string) ?? "max",
       signalType: ((body.signalType as string) ??
         "macos_conversation_opened") as SignalType,
       confidence: ((body.confidence as string) ?? "explicit") as Confidence,

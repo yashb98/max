@@ -7,12 +7,12 @@
  *
  * The persisted client ID is separate from the `clientInstanceId` used
  * by the relay WebSocket handshake (which is scoped to the relay
- * connection lifecycle). This ID is sent as `X-Vellum-Client-Id` on all
+ * connection lifecycle). This ID is sent as `X-Max-Client-Id` on all
  * SSE streaming connections for client registration in the daemon.
  */
 
 const CHROME_EXT_INTERFACE_ID = 'chrome-extension';
-const CLIENT_ID_STORAGE_KEY = 'vellum.clientId';
+const CLIENT_ID_STORAGE_KEY = 'max.clientId';
 
 let cached: string | null = null;
 
@@ -54,7 +54,7 @@ export async function getClientId(): Promise<string> {
  */
 export async function getClientRegistrationHeaders(): Promise<Record<string, string>> {
   return {
-    'X-Vellum-Client-Id': await getClientId(),
-    'X-Vellum-Interface-Id': CHROME_EXT_INTERFACE_ID,
+    'X-Max-Client-Id': await getClientId(),
+    'X-Max-Interface-Id': CHROME_EXT_INTERFACE_ID,
   };
 }

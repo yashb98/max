@@ -87,69 +87,69 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("resolveChannelCapabilities", () => {
-  test("defaults to vellum when no source channel is provided", () => {
+  test("defaults to max when no source channel is provided", () => {
     const caps = resolveChannelCapabilities();
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     // Without a sourceInterface, desktop UI capabilities are false
     expect(caps.dashboardCapable).toBe(false);
     expect(caps.supportsDynamicUi).toBe(false);
     expect(caps.supportsVoiceInput).toBe(false);
   });
 
-  test("vellum channel with macos interface has full desktop capabilities", () => {
+  test("max channel with macos interface has full desktop capabilities", () => {
     const caps = resolveChannelCapabilities(undefined, "macos");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(true);
     expect(caps.supportsDynamicUi).toBe(true);
     expect(caps.supportsVoiceInput).toBe(true);
   });
 
-  test("vellum channel with vellum interface supports dynamic UI", () => {
-    const caps = resolveChannelCapabilities("vellum", "vellum");
-    expect(caps.channel).toBe("vellum");
+  test("max channel with max interface supports dynamic UI", () => {
+    const caps = resolveChannelCapabilities("max", "max");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
     expect(caps.supportsDynamicUi).toBe(true);
     expect(caps.supportsVoiceInput).toBe(false);
   });
 
-  test("defaults to vellum for null source channel", () => {
+  test("defaults to max for null source channel", () => {
     const caps = resolveChannelCapabilities(null);
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
   });
 
-  test('normalises "dashboard" to "vellum"', () => {
+  test('normalises "dashboard" to "max"', () => {
     const caps = resolveChannelCapabilities("dashboard");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     // Without macos interface, capabilities are false
     expect(caps.dashboardCapable).toBe(false);
     expect(caps.supportsDynamicUi).toBe(false);
     expect(caps.supportsVoiceInput).toBe(false);
   });
 
-  test('normalises "http-api" to "vellum"', () => {
+  test('normalises "http-api" to "max"', () => {
     const caps = resolveChannelCapabilities("http-api");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
     expect(caps.supportsDynamicUi).toBe(false);
     expect(caps.supportsVoiceInput).toBe(false);
   });
 
-  test('normalises "mac" to "vellum"', () => {
+  test('normalises "mac" to "max"', () => {
     const caps = resolveChannelCapabilities("mac");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
   });
 
-  test('normalises "macos" to "vellum"', () => {
+  test('normalises "macos" to "max"', () => {
     const caps = resolveChannelCapabilities("macos");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
   });
 
-  test('normalises "ios" to "vellum"', () => {
+  test('normalises "ios" to "max"', () => {
     const caps = resolveChannelCapabilities("ios");
-    expect(caps.channel).toBe("vellum");
+    expect(caps.channel).toBe("max");
     expect(caps.dashboardCapable).toBe(false);
   });
 
@@ -216,7 +216,7 @@ describe("injectChannelCapabilityContext", () => {
 
   test("skips injection entirely for desktop happy path (all capabilities true)", () => {
     const caps: ChannelCapabilities = {
-      channel: "vellum",
+      channel: "max",
       dashboardCapable: true,
       supportsDynamicUi: true,
       supportsVoiceInput: true,
@@ -590,8 +590,8 @@ describe("applyRuntimeInjections with channelCapabilities", () => {
 // ---------------------------------------------------------------------------
 
 describe("trust-gating via channel capabilities", () => {
-  test("vellum channel with macos interface injects macOS guidance", () => {
-    const caps = resolveChannelCapabilities("vellum", "macos");
+  test("max channel with macos interface injects macOS guidance", () => {
+    const caps = resolveChannelCapabilities("max", "macos");
     const message: Message = {
       role: "user",
       content: [{ type: "text", text: "Enable my microphone" }],
@@ -626,8 +626,8 @@ describe("trust-gating via channel capabilities", () => {
     expect(injected).toContain("desktop app");
   });
 
-  test("vellum web interface allows dynamic UI but constrains dashboard references", () => {
-    const caps = resolveChannelCapabilities("vellum", "vellum");
+  test("max web interface allows dynamic UI but constrains dashboard references", () => {
+    const caps = resolveChannelCapabilities("max", "max");
     const message: Message = {
       role: "user",
       content: [{ type: "text", text: "Show me a form" }],
@@ -965,7 +965,7 @@ describe("stripInjectionsForCompaction preserves persistent blocks", () => {
         content: [
           {
             type: "text",
-            text: "<workspace>\nRoot: /home/user/.vellum/workspace\nDirectories: src, tests\nFiles: README.md\n</workspace>",
+            text: "<workspace>\nRoot: /home/user/.max/workspace\nDirectories: src, tests\nFiles: README.md\n</workspace>",
           },
           { type: "text", text: "Hello" },
         ],
@@ -1206,11 +1206,11 @@ describe("buildUnifiedTurnContextBlock", () => {
     expect(text).toContain("</turn_context>");
   });
 
-  test("response discretion only for non-vellum channels", () => {
-    const vellumOptions: UnifiedTurnContextOptions = {
+  test("response discretion only for non-max channels", () => {
+    const maxOptions: UnifiedTurnContextOptions = {
       timestamp: "2026-04-02T12:00:00Z",
       interfaceName: "macos",
-      channelName: "vellum",
+      channelName: "max",
     };
 
     const telegramOptions: UnifiedTurnContextOptions = {
@@ -1219,22 +1219,22 @@ describe("buildUnifiedTurnContextBlock", () => {
       channelName: "telegram",
     };
 
-    const vellumText = buildUnifiedTurnContextBlock(vellumOptions);
+    const maxText = buildUnifiedTurnContextBlock(maxOptions);
     const telegramText = buildUnifiedTurnContextBlock(telegramOptions);
 
-    expect(vellumText).not.toContain("response_discretion:");
+    expect(maxText).not.toContain("response_discretion:");
     expect(telegramText).toContain("response_discretion:");
     expect(telegramText).toContain("<no_response/>");
   });
 
   test("dedup logic: fields matching canonical_actor_identity are omitted", () => {
-    const uuid = "vellum-principal-b77e94f5-67c0-4599-8baa-871b925b3da8";
+    const uuid = "max-principal-b77e94f5-67c0-4599-8baa-871b925b3da8";
     const options: UnifiedTurnContextOptions = {
       timestamp: "2026-04-02T12:00:00Z",
       interfaceName: "macos",
-      channelName: "vellum",
+      channelName: "max",
       actorContext: {
-        sourceChannel: "vellum",
+        sourceChannel: "max",
         canonicalActorIdentity: uuid,
         actorIdentifier: uuid,
         actorDisplayName: uuid,
@@ -1250,7 +1250,7 @@ describe("buildUnifiedTurnContextBlock", () => {
 
     const text = buildUnifiedTurnContextBlock(options);
     // Essential fields remain
-    expect(text).toContain("source_channel: vellum");
+    expect(text).toContain("source_channel: max");
     expect(text).toContain(`canonical_actor_identity: ${uuid}`);
     expect(text).toContain("trust_class: guardian");
     // Redundant fields are omitted
@@ -2615,13 +2615,13 @@ describe("Slack channel chronological rendering — multi-thread", () => {
   test("non-slack conversations bypass chronological rendering", async () => {
     const lastUserMessage: Message = {
       role: "user",
-      content: [{ type: "text", text: "vellum question" }],
+      content: [{ type: "text", text: "max question" }],
     };
     const { messages: result } = await applyRuntimeInjections(
       [lastUserMessage],
       {
         channelCapabilities: {
-          channel: "vellum",
+          channel: "max",
           dashboardCapable: true,
           supportsDynamicUi: true,
           supportsVoiceInput: true,
@@ -2641,7 +2641,7 @@ describe("Slack channel chronological rendering — multi-thread", () => {
       .filter((b): b is { type: "text"; text: string } => b.type === "text")
       .map((b) => b.text)
       .join("\n");
-    expect(allText).toContain("vellum question");
+    expect(allText).toContain("max question");
     expect(allText).not.toContain("should not appear");
   });
 
@@ -3570,10 +3570,10 @@ describe("Slack channel chronological rendering — multi-thread", () => {
     // `isSlackChannelConversation`). Even if a caller mistakenly forwards
     // a focus block on a non-Slack channel, it must NOT be appended.
     const { messages: result } = await applyRuntimeInjections(
-      [{ role: "user", content: [{ type: "text", text: "vellum question" }] }],
+      [{ role: "user", content: [{ type: "text", text: "max question" }] }],
       {
         channelCapabilities: {
-          channel: "vellum",
+          channel: "max",
           dashboardCapable: true,
           supportsDynamicUi: true,
           supportsVoiceInput: true,
@@ -3587,7 +3587,7 @@ describe("Slack channel chronological rendering — multi-thread", () => {
       .map((b) => b.text)
       .join("\n");
     expect(allText).not.toContain("<active_thread>");
-    expect(allText).toContain("vellum question");
+    expect(allText).toContain("max question");
   });
 
   test("slack DMs ignore slackActiveThreadFocusBlock", async () => {

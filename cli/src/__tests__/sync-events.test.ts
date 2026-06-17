@@ -14,7 +14,7 @@ function makeEvent(message: AssistantEvent["message"]): AssistantEvent {
 }
 
 describe("sync_changed events", () => {
-  test("renders sync tags clearly in vellum events markdown output", () => {
+  test("renders sync tags clearly in max events markdown output", () => {
     const consoleLog = spyOn(console, "log").mockImplementation(() => {});
     try {
       renderMarkdown(

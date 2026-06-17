@@ -28,12 +28,12 @@ import { parseFrontmatterFields } from "../skills/frontmatter.js";
 // Fixtures
 // ---------------------------------------------------------------------------
 
-/** A SKILL.md with `feature-flag: email-channel` declared in its vellum metadata. */
+/** A SKILL.md with `feature-flag: email-channel` declared in its max metadata. */
 const SKILL_MD_WITH_FLAG = `---
 name: "Email Setup"
 description: "Set up email integration"
 metadata:
-  vellum:
+  max:
     feature-flag: email-channel
 ---
 
@@ -45,7 +45,7 @@ const SKILL_MD_WITHOUT_FLAG = `---
 name: "Plain Skill"
 description: "A skill with no feature flag"
 metadata:
-  vellum: {}
+  max: {}
 ---
 
 Instructions for the plain skill.
@@ -92,12 +92,12 @@ function buildSkillSummary(
   let featureFlag: string | undefined;
   const metadataObj = parsed.fields.metadata;
   if (metadataObj != null && typeof metadataObj === "object") {
-    const vellum = (metadataObj as Record<string, unknown>).vellum as
+    const max = (metadataObj as Record<string, unknown>).max as
       | Record<string, unknown>
       | undefined;
     featureFlag =
-      typeof vellum?.["feature-flag"] === "string"
-        ? vellum["feature-flag"]
+      typeof max?.["feature-flag"] === "string"
+        ? max["feature-flag"]
         : undefined;
   }
 
@@ -127,8 +127,8 @@ describe("frontmatter feature-flag integration", () => {
     const metadataObj = parsed!.fields.metadata as Record<string, unknown>;
     expect(metadataObj).toBeTruthy();
 
-    const vellum = metadataObj.vellum as Record<string, unknown>;
-    expect(vellum["feature-flag"]).toBe("email-channel");
+    const max = metadataObj.max as Record<string, unknown>;
+    expect(max["feature-flag"]).toBe("email-channel");
   });
 
   test("skillFlagKey returns correct key for parsed skill", () => {
@@ -189,8 +189,8 @@ describe("frontmatter feature-flag integration", () => {
     const parsed = parseFrontmatterFields(SKILL_MD_WITH_FLAG);
     expect(parsed).not.toBeNull();
     const metadataObj = parsed!.fields.metadata as Record<string, unknown>;
-    const vellum = metadataObj.vellum as Record<string, unknown>;
-    const flagId = vellum["feature-flag"];
+    const max = metadataObj.max as Record<string, unknown>;
+    const flagId = max["feature-flag"];
     expect(flagId).toBe("email-channel");
 
     // Step 2: Build SkillSummary (as the catalog loader would)

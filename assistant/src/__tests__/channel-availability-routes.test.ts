@@ -30,7 +30,7 @@ let mockEmailAddressesResponse: {
 let mockFetchThrows = false;
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => ({
       platformAssistantId: mockPlatformAssistantId,
       fetch: async (_path: string) => {

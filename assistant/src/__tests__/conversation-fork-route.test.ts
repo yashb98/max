@@ -55,7 +55,7 @@ import { RuntimeHttpServer } from "../runtime/http-server.js";
 initializeDb();
 
 const CHAT_WRITE_JWT = mintToken({
-  aud: "vellum-daemon",
+  aud: "max-daemon",
   sub: "actor:self:fork-route-test",
   scope_profile: "actor_client_v1",
   policy_epoch: 1,
@@ -63,7 +63,7 @@ const CHAT_WRITE_JWT = mintToken({
 });
 
 const READ_ONLY_JWT = mintToken({
-  aud: "vellum-daemon",
+  aud: "max-daemon",
   sub: "actor:self:fork-route-read-only",
   scope_profile: "ui_page_v1",
   policy_epoch: 1,

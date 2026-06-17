@@ -421,8 +421,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-1",
         onEvent: (e) => events.push(e),
         doc,
@@ -436,7 +436,7 @@ describe("runJoinFlow (content-script port)", () => {
       selectors.PREJOIN_NAME_INPUT,
     ) as HTMLInputElement | null;
     expect(input).not.toBeNull();
-    expect(input?.value).toBe("Vellum Bot");
+    expect(input?.value).toBe("Max Bot");
 
     // Join now was clicked exactly once.
     expect(clicks).toEqual([selectors.PREJOIN_JOIN_NOW_BUTTON]);
@@ -487,8 +487,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-click-coords",
         onEvent: (e) => events.push(e),
         doc,
@@ -553,8 +553,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-screen-offset",
         onEvent: (e) => events.push(e),
         doc,
@@ -615,8 +615,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-no-chrome",
         onEvent: (e) => events.push(e),
         doc,
@@ -683,8 +683,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-devtools-bottom",
         onEvent: (e) => events.push(e),
         doc,
@@ -731,8 +731,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-2",
         onEvent: () => {},
         doc,
@@ -759,8 +759,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-3",
         onEvent: () => {},
         doc,
@@ -787,8 +787,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-4",
         onEvent: () => {},
         doc,
@@ -818,8 +818,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-consent",
         onEvent: (e) => events.push(e),
         doc,
@@ -839,7 +839,7 @@ describe("runJoinFlow (content-script port)", () => {
     );
     expect(typedEvents).toHaveLength(1);
     expect((typedEvents[0] as { text?: string }).text).toBe(
-      "Hi, Vellum is listening.",
+      "Hi, Max is listening.",
     );
     // The send button was clicked exactly once to submit the message.
     expect(sendClicks).toBe(1);
@@ -873,8 +873,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-consent-fail",
         onEvent: (e) => events.push(e),
         doc,
@@ -908,8 +908,8 @@ describe("runJoinFlow (content-script port)", () => {
     await expect(
       runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-5",
         onEvent: (e) => events.push(e),
         doc,
@@ -941,8 +941,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-admitted",
         onEvent: (e) => timeline.push({ kind: "event", data: e }),
         onAdmitted: () => timeline.push({ kind: "admitted" }),
@@ -990,8 +990,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-admitted-consent-fail",
         onEvent: () => {},
         onAdmitted: () => {
@@ -1015,8 +1015,8 @@ describe("runJoinFlow (content-script port)", () => {
     await expect(
       runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-admit-timeout",
         onEvent: () => {},
         onAdmitted: () => {
@@ -1047,8 +1047,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-ingame-fixture",
         onEvent: (e) => events.push(e),
         doc,
@@ -1099,8 +1099,8 @@ describe("runJoinFlow (content-script port)", () => {
     try {
       await runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-ghost-name",
         onEvent: () => {},
         doc,
@@ -1111,7 +1111,7 @@ describe("runJoinFlow (content-script port)", () => {
 
     // The ghost stays empty, the real input receives the displayName.
     expect(ghost.value).toBe("");
-    expect(real.value).toBe("Vellum Bot");
+    expect(real.value).toBe("Max Bot");
   });
 
   test("regression: a lone Leave button is NOT accepted as the in-meeting signal", async () => {
@@ -1134,8 +1134,8 @@ describe("runJoinFlow (content-script port)", () => {
     await expect(
       runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-leave-button-alone",
         onEvent: (e) => events.push(e),
         doc,
@@ -1177,8 +1177,8 @@ describe("runJoinFlow (content-script port)", () => {
     await expect(
       runJoinFlow({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
-        displayName: "Vellum Bot",
-        consentMessage: "Hi, Vellum is listening.",
+        displayName: "Max Bot",
+        consentMessage: "Hi, Max is listening.",
         meetingId: "mtg-lobby-mic-toggle-alone",
         onEvent: (e) => events.push(e),
         doc,

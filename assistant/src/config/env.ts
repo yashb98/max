@@ -137,34 +137,34 @@ export function getPlatformBaseUrl(): string {
   } catch {
     // Config not yet available (early bootstrap) — fall through
   }
-  // Resolve the default platform URL from VELLUM_ENVIRONMENT.
+  // Resolve the default platform URL from MAX_ENVIRONMENT.
   // `production`, `staging`, and `test` map to their respective hosted
   // platforms, `local` points at a developer's locally running platform,
   // and everything else (including unset) falls back to dev-platform.
-  const env = str("VELLUM_ENVIRONMENT")?.trim();
+  const env = str("MAX_ENVIRONMENT")?.trim();
   let defaultUrl: string;
   if (env === "production") {
-    defaultUrl = "https://platform.vellum.ai";
+    defaultUrl = "https://platform.max.ai";
   } else if (env === "staging") {
-    defaultUrl = "https://staging-platform.vellum.ai";
+    defaultUrl = "https://staging-platform.max.ai";
   } else if (env === "test") {
-    defaultUrl = "https://test-platform.vellum.ai";
+    defaultUrl = "https://test-platform.max.ai";
   } else if (env === "local") {
     defaultUrl = "http://localhost:8000";
   } else {
-    defaultUrl = "https://dev-platform.vellum.ai";
+    defaultUrl = "https://dev-platform.max.ai";
   }
   return (
     configUrl ||
-    str("VELLUM_PLATFORM_URL") ||
+    str("MAX_PLATFORM_URL") ||
     _platformBaseUrlOverride ||
     defaultUrl
   );
 }
 
 /**
- * Returns the environment-level apex domain (e.g. "vellum.me",
- * "dev.vellum.me", "staging.vellum.me"). Never includes the
+ * Returns the environment-level apex domain (e.g. "max.me",
+ * "dev.max.me", "staging.max.me"). Never includes the
  * assistant-specific subdomain.
  */
 export function getApexDomain(): string {
@@ -172,23 +172,23 @@ export function getApexDomain(): string {
     const url = getPlatformBaseUrl();
     const host = new URL(url).hostname;
 
-    if (host.endsWith("platform.vellum.ai")) {
-      const prefix = host.replace(/[-.]?platform\.vellum\.ai$/, "");
+    if (host.endsWith("platform.max.ai")) {
+      const prefix = host.replace(/[-.]?platform\.max\.ai$/, "");
       if (prefix) {
-        return `${prefix}.vellum.me`;
+        return `${prefix}.max.me`;
       }
-      return "vellum.me";
+      return "max.me";
     }
 
-    const env = str("VELLUM_ENVIRONMENT")?.trim();
+    const env = str("MAX_ENVIRONMENT")?.trim();
     if (env && env !== "production") {
-      return `${env}.vellum.me`;
+      return `${env}.max.me`;
     }
-    return "local.vellum.me";
+    return "local.max.me";
   } catch {
     // Fall through to default
   }
-  return "vellum.me";
+  return "max.me";
 }
 
 export function getAssistantDomain(): string {

@@ -19,7 +19,7 @@
  * in-memory DB, and asserts the on-disk side-effects (concept pages,
  * edges.json, promotions, sentinel) plus the enqueued embed jobs.
  *
- * Tests use temp workspaces (mkdtemp) and never touch `~/.vellum/`.
+ * Tests use temp workspaces (mkdtemp) and never touch `~/.max/`.
  * Sample content uses generic placeholders (Alice, Bob, user@example.com).
  */
 
@@ -118,7 +118,7 @@ let sqlite: Database;
 
 beforeEach(() => {
   workspaceDir = mkdtempSync(
-    join(tmpdir(), "vellum-memory-v2-migration-test-"),
+    join(tmpdir(), "max-memory-v2-migration-test-"),
   );
   mkdirSync(join(workspaceDir, "memory", "concepts"), { recursive: true });
   mkdirSync(join(workspaceDir, "memory", "archive"), { recursive: true });
@@ -250,7 +250,7 @@ describe("gatherV1State", () => {
 
   test("reads graph nodes from the v1 store", () => {
     const id = insertNode(database, {
-      content: "Alice ships to Vellum at end of day.",
+      content: "Alice ships to Max at end of day.",
       type: "semantic",
       significance: 0.8,
     });
@@ -258,7 +258,7 @@ describe("gatherV1State", () => {
     expect(items.length).toBe(1);
     expect(items[0]).toMatchObject({
       id,
-      text: "Alice ships to Vellum at end of day.",
+      text: "Alice ships to Max at end of day.",
       source: "graph_node",
       significance: 0.8,
       type: "semantic",
@@ -651,7 +651,7 @@ describe("runMemoryV2Migration", () => {
   test("end-to-end: gathers, synthesizes, promotes, collapses, embeds, sentinel", async () => {
     const a = insertNode(database, {
       id: "node-a",
-      content: "User is Alice and works at Vellum",
+      content: "User is Alice and works at Max",
       significance: 0.95,
     });
     const b = insertNode(database, {
@@ -662,14 +662,14 @@ describe("runMemoryV2Migration", () => {
     insertEdge(database, a, b);
     writeFileSync(
       join(workspaceDir, "pkb", "ides.md"),
-      "VS Code is preferred at Vellum.\n",
+      "VS Code is preferred at Max.\n",
       "utf-8",
     );
 
     const provider = buildStubProvider([
-      "Alice works at Vellum.\n",
+      "Alice works at Max.\n",
       "Alice prefers VS Code over Vim.\n",
-      "VS Code is preferred at Vellum.\n",
+      "VS Code is preferred at Max.\n",
     ]);
     const result = await runMemoryV2Migration({
       workspaceDir,
@@ -705,7 +705,7 @@ describe("runMemoryV2Migration", () => {
       join(workspaceDir, "memory", "essentials.md"),
       "utf-8",
     );
-    expect(essentials).toContain("User is Alice and works at Vellum");
+    expect(essentials).toContain("User is Alice and works at Max");
     expect(result.essentialsLines).toBe(1);
 
     // -- Embed jobs enqueued (one per page). No rebuild-edges follow-up:

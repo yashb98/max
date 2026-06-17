@@ -18,7 +18,7 @@ import { request as httpRequest, createServer, type IncomingMessage, type Server
 import { request as httpsRequest } from "node:https";
 import { connect, type Socket } from "node:net";
 
-import type { AllowedTarget, ManagedSession, SessionStartHooks } from "@vellumai/egress-proxy";
+import type { AllowedTarget, ManagedSession, SessionStartHooks } from "@maxai/egress-proxy";
 
 // ---------------------------------------------------------------------------
 // Host-pattern matching

@@ -27,7 +27,7 @@ const JPEG_QUALITY = 80;
 const CACHE_MAX_ENTRIES = 500;
 
 function getCacheDir(): string {
-  return join(tmpdir(), "vellum-optimized-images");
+  return join(tmpdir(), "max-optimized-images");
 }
 
 function readFromCache(
@@ -77,8 +77,8 @@ function evictIfNeeded(dir: string): void {
 }
 
 function runSips(inputBytes: Buffer): Buffer | null {
-  const srcPath = join(tmpdir(), `vellum-img-opt-${Date.now()}-src`);
-  const outPath = join(tmpdir(), `vellum-img-opt-${Date.now()}-out.jpg`);
+  const srcPath = join(tmpdir(), `max-img-opt-${Date.now()}-src`);
+  const outPath = join(tmpdir(), `max-img-opt-${Date.now()}-out.jpg`);
   try {
     writeFileSync(srcPath, inputBytes);
     execFileSync(

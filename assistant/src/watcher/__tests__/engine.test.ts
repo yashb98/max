@@ -177,7 +177,7 @@ describe("runWatchersOnce — Phase 2 runBackgroundJob integration", () => {
     expect(opts.callSite).toBe("mainAgent");
     expect(opts.timeoutMs).toBe(15 * 60 * 1000);
     expect(opts.trustContext).toEqual({
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
     });
     // The seed lives in the assistantSandwich, not the prompt.

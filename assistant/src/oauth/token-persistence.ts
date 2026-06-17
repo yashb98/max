@@ -10,14 +10,14 @@
  * `oauth_connection/{id}/...`).
  *
  * Token storage key paths and secure-key persistence are delegated to
- * the shared `@vellumai/credential-storage` package.
+ * the shared `@maxai/credential-storage` package.
  */
 
 import {
   oauthAppClientSecretPath,
   persistOAuthTokens,
   type SecureKeyBackend,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import type { OAuth2FlowResult } from "../security/oauth2.js";
 import {

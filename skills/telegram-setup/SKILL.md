@@ -1,10 +1,10 @@
 ---
 name: telegram-setup
-description: Connect a Telegram bot to the Vellum Assistant gateway with automated webhook registration and credential storage
-compatibility: "Designed for Vellum personal assistants"
+description: Connect a Telegram bot to the Max Assistant gateway with automated webhook registration and credential storage
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🤖"
-  vellum:
+  max:
     display-name: "Telegram Setup"
     activation-hints:
       - "Telegram bot setup, webhook configuration, or BotFather token"
@@ -13,7 +13,7 @@ metadata:
       - "User wants to send/receive Telegram messages (use messaging skill instead)"
 ---
 
-You are helping your user connect a Telegram bot to the Vellum Assistant gateway. Walk through each step below.
+You are helping your user connect a Telegram bot to the Max Assistant gateway. Walk through each step below.
 
 ## Value Classification
 

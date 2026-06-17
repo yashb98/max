@@ -42,11 +42,11 @@ mock.module("../memory/jobs/embed-pkb-file.js", () => ({
   },
 }));
 
-// Override workspace dir via VELLUM_WORKSPACE_DIR so PKB-root detection
+// Override workspace dir via MAX_WORKSPACE_DIR so PKB-root detection
 // targets a temp directory without having to mock platform.js wholesale
 // (which would destabilize the rest of the tool registry's dependency tree).
 function setWorkspaceDir(dir: string): void {
-  process.env.VELLUM_WORKSPACE_DIR = dir;
+  process.env.MAX_WORKSPACE_DIR = dir;
 }
 
 import { PKB_WORKSPACE_SCOPE } from "../memory/pkb/types.js";
@@ -75,21 +75,21 @@ afterEach(() => {
   }
 });
 
-const originalWorkspaceDirEnv = process.env.VELLUM_WORKSPACE_DIR;
+const originalWorkspaceDirEnv = process.env.MAX_WORKSPACE_DIR;
 
 beforeEach(() => {
   enqueueCalls.length = 0;
   enqueueThrows = false;
   // Reset to a stable tmp path so the sandbox tests (which don't use pkb/)
   // deterministically land outside any configured PKB root.
-  process.env.VELLUM_WORKSPACE_DIR = tmpdir();
+  process.env.MAX_WORKSPACE_DIR = tmpdir();
 });
 
 afterEach(() => {
   if (originalWorkspaceDirEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = originalWorkspaceDirEnv;
+    process.env.MAX_WORKSPACE_DIR = originalWorkspaceDirEnv;
   }
 });
 

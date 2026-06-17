@@ -1,10 +1,10 @@
 ---
 name: document-writer
 description: Create and edit long-form documents like blog posts, articles, essays, and reports using the built-in rich text editor
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📝"
-  vellum:
+  max:
     display-name: "Document Writer"
     includes:
       - "document"

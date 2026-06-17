@@ -54,7 +54,7 @@ mock.module("../identity-helpers.js", () => ({
 
 mock.module("../../util/platform.js", () => ({
   getWorkspaceDir: () => "/tmp/workspace",
-  vellumRoot: () => "/tmp/vellum",
+  maxRoot: () => "/tmp/max",
 }));
 
 mock.module("../../runtime/runtime-mode.js", () => ({
@@ -196,7 +196,7 @@ describe("createDaemonSkillHost", () => {
 
   test("platform methods return the stubbed values", () => {
     expect(host.platform.workspaceDir()).toBe("/tmp/workspace");
-    expect(host.platform.vellumRoot()).toBe("/tmp/vellum");
+    expect(host.platform.maxRoot()).toBe("/tmp/max");
     expect(host.platform.runtimeMode()).toBe("bare-metal");
   });
 

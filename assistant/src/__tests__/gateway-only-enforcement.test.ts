@@ -128,7 +128,7 @@ import { isPrivateAddress, RuntimeHttpServer } from "../runtime/http-server.js";
 
 /** Actor JWT for standard authenticated requests. */
 const TEST_JWT = mintToken({
-  aud: "vellum-daemon",
+  aud: "max-daemon",
   sub: "actor:self:test",
   scope_profile: "actor_client_v1",
   policy_epoch: 1,
@@ -138,7 +138,7 @@ const AUTH_HEADERS = { Authorization: `Bearer ${TEST_JWT}` };
 
 /** Gateway JWT for routes that require svc_gateway principal type. */
 const GATEWAY_JWT = mintToken({
-  aud: "vellum-daemon",
+  aud: "max-daemon",
   sub: "svc:gateway:self",
   scope_profile: "gateway_ingress_v1",
   policy_epoch: 1,

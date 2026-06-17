@@ -10,7 +10,10 @@ import { startFakeAssistantIpc } from "./fake-assistant-ipc.js";
 
 const TEST_SERVICE_TOKEN = "test-ces-service-token";
 
-const testDir = join(tmpdir(), `gw-managed-${Date.now()}-${Math.random()}`);
+// Kept short: the test's assistant.sock lives under this dir, and macOS caps
+// sockaddr_un.sun_path at ~104 bytes — the long tmpdir + Date.now()+Math.random()
+// suffix overran it. A short base-36 token stays well under the limit.
+const testDir = join(tmpdir(), `gwm-${Math.random().toString(36).slice(2, 10)}`);
 
 function metadataRecord(
   credentialId: string,
@@ -34,7 +37,7 @@ function writeCredentialMetadata(
     metadataRecord("test-ws", "telegram", "webhook_secret"),
   ],
 ): void {
-  const dir = join(testDir, ".vellum", "workspace", "data", "credentials");
+  const dir = join(testDir, ".max", "workspace", "data", "credentials");
   mkdirSync(dir, { recursive: true });
   const metadataPath = join(dir, "metadata.json");
   const tmpPath = join(dir, `.tmp-${Date.now()}-metadata.json`);
@@ -98,14 +101,14 @@ async function startGateway(): Promise<void> {
     );
   gatewayPort = await getFreePort();
 
-  const workspaceDir = join(testDir, ".vellum", "workspace");
+  const workspaceDir = join(testDir, ".max", "workspace");
   fakeAssistantIpc = startFakeAssistantIpc(workspaceDir);
 
   gatewayProc = spawn("bun", ["run", gatewayEntry], {
     env: {
       ...process.env,
-      GATEWAY_SECURITY_DIR: join(testDir, ".vellum", "protected"),
-      VELLUM_WORKSPACE_DIR: workspaceDir,
+      GATEWAY_SECURITY_DIR: join(testDir, ".max", "protected"),
+      MAX_WORKSPACE_DIR: workspaceDir,
       GATEWAY_PORT: String(gatewayPort),
       CES_CREDENTIAL_URL: `http://127.0.0.1:${cesPort}`,
       CES_SERVICE_TOKEN: TEST_SERVICE_TOKEN,

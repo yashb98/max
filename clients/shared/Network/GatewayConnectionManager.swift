@@ -69,7 +69,7 @@ public final class GatewayConnectionManager {
 
     /// Cached snapshot of the active assistant from the lockfile.
     /// Refreshed on connect, reconfigure, and when the active assistant changes
-    /// externally (e.g. CLI `vellum use`). Reads from this cache replace the
+    /// externally (e.g. CLI `max use`). Reads from this cache replace the
     /// synchronous `LockfileAssistant.loadAll()` calls that previously blocked
     /// the main thread on every health check cycle.
     @ObservationIgnored private var cachedAssistant: LockfileAssistant?

@@ -33,7 +33,7 @@
  * method — the real {@link MeetSessionManager} satisfies this naturally.
  */
 
-import type { Logger, SkillHost } from "@vellumai/skill-host-contracts";
+import type { Logger, SkillHost } from "@maxai/skill-host-contracts";
 
 import type {
   InboundChatEvent,

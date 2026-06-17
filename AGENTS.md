@@ -1,4 +1,4 @@
-# Vellum Assistant — Agent Instructions
+# Max Assistant — Agent Instructions
 
 ## Project Structure
 
@@ -12,7 +12,7 @@ Bun + TypeScript monorepo with multiple packages:
 - `packages/` — Shared internal packages (e.g. `service-contracts` for CES wire-protocol schemas)
 - `scripts/` — Utility scripts
 - `skills/` — First-party skill catalog (portable skill packages). See `skills/AGENTS.md` for contribution rules and portability requirements.
-- `.claude/` — Claude Code slash commands and helper scripts (see `.claude/README.md`). Most commands are shared from [`claude-skills`](https://github.com/vellum-ai/claude-skills) via symlinks; repo-local commands (`/update`, `/release`) live in `.claude/skills/<name>/` as local skill directories. The `/update` command uses `vellum ps`, `vellum sleep`, and `vellum wake` to manage assistant lifecycle.
+- `.claude/` — Claude Code slash commands and helper scripts (see `.claude/README.md`). Most commands are shared from [`claude-skills`](https://github.com/max-ai/max-claude-skills) via symlinks; repo-local commands (`/update`, `/release`) live in `.claude/skills/<name>/` as local skill directories. The `/update` command uses `max ps`, `max sleep`, and `max wake` to manage assistant lifecycle.
 
 **`meta/` is a parent package, NOT a shared package.** Its purpose is to be the root workspace that all service packages (`gateway/`, `assistant/`, etc.) descend from — it provides workspace-level tooling, CI configuration, and build scripts. It must never contain runtime code, constants, or configuration files that child services import. A gateway or assistant module importing from `../../meta/` is a layering violation. Static config files (e.g. allowlists, registries) that a service consumes at runtime belong in that service's own package directory. Existing `meta/` contents (feature flags, test infra) are either shared build/CI metadata or are being migrated out.
 
@@ -57,7 +57,7 @@ All `uses:` steps in `.github/workflows/**` and `.github/actions/**` must pin to
 
 ### iOS release dispatch
 
-The release workflows (`dev-release.yaml`, `release.yml`) include `dispatch-ios-release` jobs that fire a [`repository_dispatch`](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#repository_dispatch) event to [`vellum-assistant-platform`](https://github.com/vellum-ai/vellum-assistant-platform) to trigger iOS Capacitor builds. The dispatch carries `environment` (dev/staging/production) and `version` in the payload. The receiving workflow [`release-ios.yaml`](https://github.com/vellum-ai/vellum-assistant-platform/blob/main/.github/workflows/release-ios.yaml) handles those events. Full environment mapping is documented in [`web/ios/README.md`](https://github.com/vellum-ai/vellum-assistant-platform/blob/main/web/ios/README.md#ci--release-pipeline) in the platform repo.
+The release workflows (`dev-release.yaml`, `release.yml`) include `dispatch-ios-release` jobs that fire a [`repository_dispatch`](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#repository_dispatch) event to [`max-assistant-platform`](https://github.com/max-ai/max-assistant-platform) to trigger iOS Capacitor builds. The dispatch carries `environment` (dev/staging/production) and `version` in the payload. The receiving workflow [`release-ios.yaml`](https://github.com/max-ai/max-assistant-platform/blob/main/.github/workflows/release-ios.yaml) handles those events. Full environment mapping is documented in [`web/ios/README.md`](https://github.com/max-ai/max-assistant-platform/blob/main/web/ios/README.md#ci--release-pipeline) in the platform repo.
 
 ### Swift SPM
 
@@ -93,15 +93,15 @@ The full test suite is large and will hang or timeout if run unscoped. **Never r
 
 ## PR Workflow
 
-- **Every PR closes a GitHub issue.** Each PR uses `Closes #N` (or `Fixes` / `Resolves`) in its body and commit message so GitHub auto-closes the issue on merge. See GitHub's [linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) for the full list of closing keywords. If no issue exists yet, [open one](https://github.com/vellum-ai/vellum-assistant/issues/new/choose) before submitting the PR — retroactive issues are fine — so the work is traceable.
+- **Every PR closes a GitHub issue.** Each PR uses `Closes #N` (or `Fixes` / `Resolves`) in its body and commit message so GitHub auto-closes the issue on merge. See GitHub's [linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) for the full list of closing keywords. If no issue exists yet, [open one](https://github.com/max-ai/max-assistant/issues/new/choose) before submitting the PR — retroactive issues are fine — so the work is traceable.
 - **One PR = one issue.** Each PR is a distinct, mergeable unit of work. The resulting timeline reads as one issue → one merged change, which keeps review history easy to follow.
 - **Multi-step efforts.** Break the work into either [sub-issues under a parent](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues) (one coherent effort with phased steps) or sibling issues (independent efforts sharing a goal). Each PR still closes its own issue. To link a PR to a related issue without auto-closing it, use plain prose: `Part of #N` or `Related to #N` — GitHub renders the link but won't auto-close.
 - **Branch name**: include the issue number, e.g. `123-fix-stale-approvals`.
 - **Human attention comments**: After creating a PR with non-routine changes (architectural decisions, security, complex logic, deletions, low confidence), leave a `gh pr comment` highlighting where to focus review and the risk level. Skip for routine changes.
 
-### Notes for Vellum team members
+### Notes for Max team members
 
-When a Vellum [Linear](https://linear.app/) ticket also exists for the work, link it in the PR body and include the identifier in the branch name (e.g. `lum-nnn-fix-foo`). Linear's [GitHub integration](https://linear.app/docs/github#link-using-magic-words) recognizes the same closing keywords plus non-closing words like `Part of` and `Related to` — see the linked docs for the full magic-word list and status-sync behavior. Internal slash-command and tracking-file conventions live in [`.claude/`](./.claude/) docs, not here.
+When a Max [Linear](https://linear.app/) ticket also exists for the work, link it in the PR body and include the identifier in the branch name (e.g. `lum-nnn-fix-foo`). Linear's [GitHub integration](https://linear.app/docs/github#link-using-magic-words) recognizes the same closing keywords plus non-closing words like `Part of` and `Related to` — see the linked docs for the full magic-word list and status-sync behavior. Internal slash-command and tracking-file conventions live in [`.claude/`](./.claude/) docs, not here.
 
 ## Keep Docs Up to Date
 
@@ -144,7 +144,7 @@ We have real users — maintain backwards compatibility for all interfaces, pers
 
 | What changed | Migration type | Location |
 |---|---|---|
-| Workspace files (renames, moves, format changes under `~/.vellum/workspace/`) | Workspace migration | `assistant/src/workspace/migrations/` — append to `WORKSPACE_MIGRATIONS` in `registry.ts` |
+| Workspace files (renames, moves, format changes under `~/.max/workspace/`) | Workspace migration | `assistant/src/workspace/migrations/` — append to `WORKSPACE_MIGRATIONS` in `registry.ts` |
 | Database schema or data (columns, indexes, backfills) | DB migration | `assistant/src/memory/migrations/` — add function and register in `db-init.ts` |
 
 Migrations must be **idempotent** (safe to re-run if interrupted) and **append-only** (never reorder or remove existing entries). Test migrations — see `assistant/src/__tests__/workspace-migration-*.test.ts` and `assistant/src/__tests__/db-*.test.ts` for patterns. Flag breaking changes in PR descriptions. If a migration is infeasible, call it out explicitly for human review.
@@ -185,7 +185,7 @@ The daemon uses `DAEMON_INTERNAL_ASSISTANT_ID` (`'self'`) from `assistant/src/ru
 
 Feature flags use simple kebab-case keys (e.g., `browser`, `ces-tools`). Declare new flags in `meta/feature-flags/feature-flag-registry.json` with `scope: "assistant"`. The resolver in `assistant/src/config/assistant-feature-flags.ts` checks config overrides, then registry defaults, then defaults to enabled. Guard tests enforce format, registry declaration, and canonical keys.
 
-**Cross-repo requirement**: When adding a new flag, you must also open a PR in [`vellum-assistant-platform`](../vellum-assistant-platform) to add the flag to the LaunchDarkly Terraform configuration (`terraform/`) so it exists on the platform for remote sync. See `meta/feature-flags/AGENTS.md` for full steps.
+**Cross-repo requirement**: When adding a new flag, you must also open a PR in [`max-assistant-platform`](../max-assistant-platform) to add the flag to the LaunchDarkly Terraform configuration (`terraform/`) so it exists on the platform for remote sync. See `meta/feature-flags/AGENTS.md` for full steps.
 
 **Permission controls v2 rule**: Under `permission-controls-v2`, do not introduce new deterministic approval modes for assistant-owned actions beyond the conversation-scoped host computer access gate. That means no global toggles, no per-tool or per-command approvals, no 10-minute or conversation-wide approval verbs, no wildcard scopes, and no persistent trust-rule UI for v2 flows. If a new v2 path needs consent, prefer model-mediated conversation flow unless it is a true host-computer or identity-boundary enforcement case.
 
@@ -199,7 +199,7 @@ Each LLM call site has a stable identifier (`LLMCallSite` from `assistant/src/co
 
 The `assistant/` module must not import from `skills/` via relative paths (e.g. `../skills/meet-join/...`), and `skills/` must not import from `assistant/`. Both directions are enforced by `assistant/src/__tests__/skill-boundary-guard.test.ts`.
 
-First-party skills run as separate processes. The daemon ships their source tree alongside its binary (Docker build context whitelisted by the repo-root `.dockerignore`; macOS `.app` Resources/) plus a generated `manifest.json` that lists the skill's tools, routes, and shutdown hooks. At daemon startup, `assistant/src/daemon/meet-host-startup.ts` reads the manifest and installs proxy tools/routes/hooks; on first invocation, `MeetHostSupervisor` spawns the skill via `bun run` and dispatches via the `assistant-skill.sock` IPC socket. The skill speaks to the daemon through the `SkillHost` contract in `@vellumai/skill-host-contracts` — neither side imports the other. See `skills/meet-join/AGENTS.md` for the meet-join-specific shape.
+First-party skills run as separate processes. The daemon ships their source tree alongside its binary (Docker build context whitelisted by the repo-root `.dockerignore`; macOS `.app` Resources/) plus a generated `manifest.json` that lists the skill's tools, routes, and shutdown hooks. At daemon startup, `assistant/src/daemon/meet-host-startup.ts` reads the manifest and installs proxy tools/routes/hooks; on first invocation, `MeetHostSupervisor` spawns the skill via `bun run` and dispatches via the `assistant-skill.sock` IPC socket. The skill speaks to the daemon through the `SkillHost` contract in `@maxai/skill-host-contracts` — neither side imports the other. See `skills/meet-join/AGENTS.md` for the meet-join-specific shape.
 
 ## Tooling Direction
 
@@ -255,7 +255,7 @@ The assistant's container root (`/`) stores per-container ephemeral and persiste
 
 **Meet bot workspace mounts**: Bot containers receive a host-path bind of `<daemon-workspace>/meets/<id>/out` for recording output. Audio is streamed over TCP rather than a bind-mounted socket — the daemon binds an OS-assigned port on all interfaces (see `AUDIO_INGEST_BIND_HOST` in `skills/meet-join/daemon/audio-ingest.ts`) and the bot dials `host.docker.internal:<DAEMON_AUDIO_PORT>`. In bare-metal mode the `/out` path lives on the user's machine and is bound into sibling bot containers by the host's Docker engine.
 
-**Backup paths in Docker mode**: The backup system stores local snapshots at `VELLUM_BACKUP_DIR` (default: `/workspace/.backups/`) and the encryption key at `VELLUM_BACKUP_KEY_PATH` (default: `/workspace/.backup.key`) on the workspace volume. This means workspace volume destruction loses both data and backups. For stronger isolation, a dedicated backup volume could be added in a future iteration.
+**Backup paths in Docker mode**: The backup system stores local snapshots at `MAX_BACKUP_DIR` (default: `/workspace/.backups/`) and the encryption key at `MAX_BACKUP_KEY_PATH` (default: `/workspace/.backup.key`) on the workspace volume. This means workspace volume destruction loses both data and backups. For stronger isolation, a dedicated backup volume could be added in a future iteration.
 
 ## Workspace & Secrets
 
@@ -264,7 +264,7 @@ The assistant's container root (`/`) stores per-container ephemeral and persiste
 - **Local mode**: Use the credential store (`assistant credentials`) or `GATEWAY_SECURITY_DIR` (resolved by `getGatewaySecurityDir()` in `gateway/src/paths.ts`) for sensitive data. Do **not** create new secrets in the daemon's `protected/` directory — that directory is being phased out; all new security-sensitive files belong in the gateway security dir or CES.
 - **Docker mode**: Sensitive files are isolated on dedicated security volumes that only the owning service can access. Trust rules (`trust.json`, `actor-token-signing-key`), capability-token secrets, and other gateway-owned security material live on the gateway security volume (`/gateway-security`). Credential keys (`keys.enc`, `store.key`) live on the CES security volume (`/ces-security`). The assistant and gateway access credentials via the CES HTTP API (`CES_CREDENTIAL_URL`), and the assistant accesses trust rules via the gateway's trust HTTP API. Neither the assistant nor the gateway has direct filesystem access to the other service's security volume.
 - **The daemon must never read from `GATEWAY_SECURITY_DIR`** or any gateway-owned directory. Any data the daemon needs from the gateway (e.g. capability token verification, feature flags, trust rules) must flow through IPC or HTTP APIs.
-- **Do not access the user's `~/.vellum` directory from client packages** (`clients/chrome-extension/`, `clients/macos/`). Clients should read configuration from their own package directory or from `GATEWAY_SECURITY_DIR`. Existing `~/.vellum` references in client code are legacy and should be removed.
+- **Do not access the user's `~/.max` directory from client packages** (`clients/chrome-extension/`, `clients/macos/`). Clients should read configuration from their own package directory or from `GATEWAY_SECURITY_DIR`. Existing `~/.max` references in client code are legacy and should be removed.
 
 ## Release Update Hygiene
 
@@ -280,7 +280,7 @@ The guard test `assistant/src/__tests__/workspace-release-notes-feature-flag-gua
 2. Append the new migration's export to `WORKSPACE_MIGRATIONS` in `assistant/src/workspace/migrations/registry.ts`. Never reorder or remove existing entries.
 3. Skip the migration entirely for no-op releases — do not add an empty migration.
 
-**Idempotency requires both the runner AND an in-file marker.** The workspace-migration runner is the primary mechanism: `runWorkspaceMigrations()` in `assistant/src/workspace/migrations/runner.ts` records each successfully applied migration's `WorkspaceMigration.id` in `~/.vellum/workspace/data/.workspace-migrations.json` and skips any ID already in the `applied` set. However, the runner alone does not close two narrow duplicate-append windows, so release-notes migrations **must also** embed an in-file marker and short-circuit when it is present:
+**Idempotency requires both the runner AND an in-file marker.** The workspace-migration runner is the primary mechanism: `runWorkspaceMigrations()` in `assistant/src/workspace/migrations/runner.ts` records each successfully applied migration's `WorkspaceMigration.id` in `~/.max/workspace/data/.workspace-migrations.json` and skips any ID already in the `applied` set. However, the runner alone does not close two narrow duplicate-append windows, so release-notes migrations **must also** embed an in-file marker and short-circuit when it is present:
 
 1. **Crash mid-migration.** The runner marks a migration as `started` before `run()` executes and promotes it to `applied` only after `run()` returns. If the daemon crashes after `UPDATES.md` is appended but before the checkpoint is finalized, the next boot clears the `started` entry and re-runs the migration — producing a duplicate append.
 2. **Failed entries stay applied-adjacent.** Failed migrations persist in the checkpoint state and are not retried, but a migration that partially succeeded (appended, then threw) leaves `UPDATES.md` mutated without a guaranteed `applied` record, so subsequent hand-edits or reruns can double-write.
@@ -291,17 +291,17 @@ The guard test `assistant/src/__tests__/workspace-release-notes-feature-flag-gua
 
 ## Companion Repos
 
-- **[`vellum-assistant-platform`](../vellum-assistant-platform)** — Django backend that manages platform-hosted ("managed") assistants. Handles authentication (WorkOS OIDC), organization management, assistant lifecycle, and runtime proxying. The desktop app authenticates against it and proxies all runtime traffic through it. Stack: Python 3.14, Django, DRF, PostgreSQL, Redis/Valkey. See `../vellum-assistant-platform/AGENTS.md` for development instructions.
+- **[`max-assistant-platform`](../max-assistant-platform)** — Django backend that manages platform-hosted ("managed") assistants. Handles authentication (WorkOS OIDC), organization management, assistant lifecycle, and runtime proxying. The desktop app authenticates against it and proxies all runtime traffic through it. Stack: Python 3.14, Django, DRF, PostgreSQL, Redis/Valkey. See `../max-assistant-platform/AGENTS.md` for development instructions.
 
-When making changes that could affect the cloud platform, review the sibling `../vellum-assistant-platform` repo for compatibility and required follow-up updates. High-risk change areas include:
+When making changes that could affect the cloud platform, review the sibling `../max-assistant-platform` repo for compatibility and required follow-up updates. High-risk change areas include:
 - HTTP server behavior and API contracts.
 - Stored file and directory structure changes (workspace paths, on-disk formats, exports/imports, migrations).
 - Dockerfile or container runtime/build changes.
-- **Feature flags**: Adding a flag to `meta/feature-flags/feature-flag-registry.json` requires a companion PR in `vellum-assistant-platform` to provision the flag in Terraform. See the [Assistant Feature Flags](#assistant-feature-flags) section.
+- **Feature flags**: Adding a flag to `meta/feature-flags/feature-flag-registry.json` requires a companion PR in `max-assistant-platform` to provision the flag in Terraform. See the [Assistant Feature Flags](#assistant-feature-flags) section.
 
-## Build Environment (`VELLUM_ENVIRONMENT`)
+## Build Environment (`MAX_ENVIRONMENT`)
 
-The `VELLUM_ENVIRONMENT` environment variable identifies the runtime environment for all clients (macOS, CLI, Chrome extension). It is embedded into the app bundle's `LSEnvironment` (Info.plist) at build time by each platform's `build.sh`, or injected via `--define` for the Chrome extension bundler.
+The `MAX_ENVIRONMENT` environment variable identifies the runtime environment for all clients (macOS, CLI, Chrome extension). It is embedded into the app bundle's `LSEnvironment` (Info.plist) at build time by each platform's `build.sh`, or injected via `--define` for the Chrome extension bundler.
 
 | Value | Use cases |
 |---|---|
@@ -311,21 +311,21 @@ The `VELLUM_ENVIRONMENT` environment variable identifies the runtime environment
 | `staging` | QA against staging platform before production rollout. Default for release branch builds. |
 | `production` | Full production behavior, no developer shortcuts. Set explicitly for final production releases. |
 
-**Defaults**: `build.sh` sets the value automatically when `VELLUM_ENVIRONMENT` is unset:
+**Defaults**: `build.sh` sets the value automatically when `MAX_ENVIRONMENT` is unset:
 - `test` command => `test`
 - `release` / `release-application` => `staging` for `*-staging*` display versions, otherwise `production`
 - `run` command => `local` (for local full-stack development, e.g. `vel up`)
 - all other local build commands (plain `build`, etc.) => `dev`
 
-CI and developers can always override by exporting `VELLUM_ENVIRONMENT` before invoking the build script — the explicit value takes precedence.
+CI and developers can always override by exporting `MAX_ENVIRONMENT` before invoking the build script — the explicit value takes precedence.
 
 **Reading the value at runtime** (Swift):
 ```swift
-let env = ProcessInfo.processInfo.environment["VELLUM_ENVIRONMENT"] ?? "production"
+let env = ProcessInfo.processInfo.environment["MAX_ENVIRONMENT"] ?? "production"
 ```
 
 **Guidelines**:
-- Use `VELLUM_ENVIRONMENT` for behavior that varies by deployment target (e.g. local image builds, telemetry sampling, API base URLs).
+- Use `MAX_ENVIRONMENT` for behavior that varies by deployment target (e.g. local image builds, telemetry sampling, API base URLs).
 - Do **not** use it as a substitute for feature flags — flags gate features per-user/org, environments gate per-deployment.
 - Do **not** check for `DEBUG` / `RELEASE` compiler flags (`#if DEBUG`) when the distinction is really about deployment environment. A debug build pointed at staging is still `staging`, not `local`.
 

@@ -16,8 +16,8 @@ import type {
   ToolContext,
   ToolDefinition,
   ToolExecutionResult,
-} from "@vellumai/skill-host-contracts";
-import { RiskLevel } from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
+import { RiskLevel } from "@maxai/skill-host-contracts";
 import { z } from "zod";
 
 import { MeetSessionManager } from "../daemon/session-manager.js";

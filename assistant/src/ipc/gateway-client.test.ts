@@ -2,7 +2,7 @@
  * Tests for the assistant's gateway IPC wrapper layer.
  *
  * Transport-level behavior (NDJSON framing, reconnection, timeout) is
- * covered by the @vellumai/gateway-client package tests. These tests
+ * covered by the @maxai/gateway-client package tests. These tests
  * verify the assistant-specific wrapper: singleton lifecycle, feature
  * flag parsing, and socket path resolution.
  */

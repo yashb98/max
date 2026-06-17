@@ -26,20 +26,20 @@ export async function retireLocal(
     );
   }
   const resources = entry.resources;
-  const vellumDir = join(resources.instanceDir, ".vellum");
+  const maxDir = join(resources.instanceDir, ".max");
 
   // Check whether another local assistant shares the same data directory.
   const otherSharesDir = loadAllAssistants().some((other) => {
     if (other.cloud !== "local") return false;
     if (other.assistantId === name) return false;
     if (!other.resources) return false;
-    const otherVellumDir = join(other.resources.instanceDir, ".vellum");
-    return otherVellumDir === vellumDir;
+    const otherMaxDir = join(other.resources.instanceDir, ".max");
+    return otherMaxDir === maxDir;
   });
 
   if (otherSharesDir) {
     console.log(
-      `   Skipping process stop and archive — another local assistant shares ${vellumDir}.`,
+      `   Skipping process stop and archive — another local assistant shares ${maxDir}.`,
     );
     console.log("\u2705 Local instance retired (config entry removed only).");
     return;
@@ -50,7 +50,7 @@ export async function retireLocal(
 
   // Stop gateway via PID file — use a longer timeout because the gateway has a
   // drain window (5s) before it exits.
-  const gatewayPidFile = join(vellumDir, "gateway.pid");
+  const gatewayPidFile = join(maxDir, "gateway.pid");
   await stopProcessByPidFile(gatewayPidFile, "gateway", undefined, 7000);
 
   // Stop Qdrant — the daemon's graceful shutdown tries to stop it via
@@ -58,13 +58,13 @@ export async function retireLocal(
   // Qdrant may still be running as an orphan. Check both the current PID file
   // location and the legacy location.
   const qdrantPidFile = join(
-    vellumDir,
+    maxDir,
     "workspace",
     "data",
     "qdrant",
     "qdrant.pid",
   );
-  const qdrantLegacyPidFile = join(vellumDir, "qdrant.pid");
+  const qdrantLegacyPidFile = join(maxDir, "qdrant.pid");
   await stopProcessByPidFile(qdrantPidFile, "qdrant", undefined, 5000);
   await stopProcessByPidFile(qdrantLegacyPidFile, "qdrant", undefined, 5000);
 
@@ -76,9 +76,9 @@ export async function retireLocal(
 
   // For named instances (instanceDir differs from the base directory),
   // archive and remove the entire instance directory. For the default
-  // instance, archive only the .vellum subdirectory.
+  // instance, archive only the .max subdirectory.
   const isNamedInstance = resources.instanceDir !== homedir();
-  const dirToArchive = isNamedInstance ? resources.instanceDir : vellumDir;
+  const dirToArchive = isNamedInstance ? resources.instanceDir : maxDir;
 
   // Move the data directory out of the way so the path is immediately available
   // for the next hatch, then kick off the tar archive in the background.

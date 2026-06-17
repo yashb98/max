@@ -252,7 +252,7 @@ export async function deliverReplyViaCallback(
  *   correspond to independent Slack messages with their own ts and are not
  *   represented as separate DB rows).
  * - No-op when the row was not persisted with a `slackMeta` envelope (the
- *   channel was not Slack at write-time, e.g. vellum/telegram outbound).
+ *   channel was not Slack at write-time, e.g. max/telegram outbound).
  * - No-op when the row's existing `slackMeta` already parses cleanly via
  *   `readSlackMetadata` (channelTs already present, e.g. from a prior
  *   reconciliation).

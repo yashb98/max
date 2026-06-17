@@ -283,14 +283,14 @@ export function createCesProcessManager(
 /**
  * Build the environment for a locally-spawned CES child process.
  *
- * Inherits the daemon's process env (which already has VELLUM_WORKSPACE_DIR
+ * Inherits the daemon's process env (which already has MAX_WORKSPACE_DIR
  * and GATEWAY_SECURITY_DIR from the CLI) and adds CES-specific env vars:
  *
  * - `CREDENTIAL_SECURITY_DIR`: CES reads this to find its key store and
  *   encryption data. In local mode this is the same directory as the
- *   gateway security dir (both point to `<instance>/.vellum/protected`).
+ *   gateway security dir (both point to `<instance>/.max/protected`).
  *
- * - `VELLUM_WORKSPACE_DIR`: Forwarded so CES can locate the assistant
+ * - `MAX_WORKSPACE_DIR`: Forwarded so CES can locate the assistant
  *   workspace (credential metadata, OAuth DB, token refresh).
  */
 function buildLocalCesEnv(): Record<string, string | undefined> {
@@ -302,9 +302,9 @@ function buildLocalCesEnv(): Record<string, string | undefined> {
     CREDENTIAL_SECURITY_DIR:
       process.env["CREDENTIAL_SECURITY_DIR"] ||
       process.env["GATEWAY_SECURITY_DIR"],
-    // VELLUM_WORKSPACE_DIR is already in process.env from the CLI,
+    // MAX_WORKSPACE_DIR is already in process.env from the CLI,
     // but be explicit for clarity.
-    VELLUM_WORKSPACE_DIR: process.env["VELLUM_WORKSPACE_DIR"],
+    MAX_WORKSPACE_DIR: process.env["MAX_WORKSPACE_DIR"],
   };
 }
 

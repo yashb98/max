@@ -1,10 +1,10 @@
 ---
 name: app-control
 description: Drive a specific named macOS app via raw input bypassing the Accessibility tree
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎯"
-  vellum:
+  max:
     display-name: "App Control"
     feature-flag: "app-control"
     activation-hints:

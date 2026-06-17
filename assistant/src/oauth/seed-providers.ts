@@ -5,7 +5,7 @@ import { seedProviders } from "./oauth-store.js";
  * Protocol-level seed data for each well-known OAuth provider.
  *
  * These values are upserted into the `oauth_providers` SQLite table on
- * every startup. Only Vellum implementation fields (authorizeUrl, tokenExchangeUrl,
+ * every startup. Only Max implementation fields (authorizeUrl, tokenExchangeUrl,
  * refreshUrl, tokenEndpointAuthMethod, userinfoUrl, authorizeParams,
  * pingUrl, pingMethod, pingHeaders, pingBody, revokeUrl, revokeBodyTemplate,
  * managedServiceConfigKey, managedServiceIsPaid,

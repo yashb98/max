@@ -47,15 +47,15 @@ let previousWorkspaceEnv: string | undefined;
 
 beforeAll(() => {
   tmpWorkspace = mkdtempSync(join(tmpdir(), "memory-v2-prompt-test-"));
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 });
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
 });
@@ -120,7 +120,7 @@ describe("resolveConsolidationPrompt — with override", () => {
   });
 
   test("expands a leading ~/ to the home directory", () => {
-    const filename = `.vellum-prompt-test-${process.pid}.md`;
+    const filename = `.max-prompt-test-${process.pid}.md`;
     const path = join(homedir(), filename);
     writeFileSync(path, "Home dir {{CUTOFF}}\n");
     try {

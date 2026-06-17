@@ -5,28 +5,28 @@ import { dirname, join } from "node:path";
 import { getWorkspaceDirOverride } from "../config/env-registry.js";
 
 /**
- * The daemon's root data directory (`~/.vellum`).
+ * The daemon's root data directory (`~/.max`).
  *
- * Used as a fallback when `VELLUM_WORKSPACE_DIR` is not set, and as a
+ * Used as a fallback when `MAX_WORKSPACE_DIR` is not set, and as a
  * stable constant for paths (like `.env`) that intentionally live at the
  * host home directory regardless of workspace relocation.
  */
-const VELLUM_ROOT = join(homedir(), ".vellum");
+const MAX_ROOT = join(homedir(), ".max");
 
 /**
- * Returns the Vellum root directory.
+ * Returns the Max root directory.
  *
  * Resolution order (mirrors workspace/migrations/utils.ts):
- * 1. Parent of VELLUM_WORKSPACE_DIR — e.g. /data/.vellum/workspace → /data/.vellum
- * 2. If that parent is "/" (workspace at top level), fall back to ~/.vellum
+ * 1. Parent of MAX_WORKSPACE_DIR — e.g. /data/.max/workspace → /data/.max
+ * 2. If that parent is "/" (workspace at top level), fall back to ~/.max
  */
-export function vellumRoot(): string {
+export function maxRoot(): string {
   const override = getWorkspaceDirOverride();
   if (override) {
     const parent = dirname(override);
     if (parent !== "/") return parent;
   }
-  return VELLUM_ROOT;
+  return MAX_ROOT;
 }
 
 export function isMacOS(): boolean {
@@ -55,7 +55,7 @@ export function getPlatformName(): string {
  *
  * The system uses "self" as the canonical single-tenant identifier
  * (see migration 007-assistant-id-to-self). However, the desktop UI
- * sends the real assistant ID (e.g., "vellum-true-eel") while the
+ * sends the real assistant ID (e.g., "max-true-eel") while the
  * inbound call path resolves phone numbers to config keys (typically
  * "self"). This function maps the current assistant's ID to "self"
  * so both sides use a consistent DB key.
@@ -63,14 +63,14 @@ export function getPlatformName(): string {
 export function normalizeAssistantId(assistantId: string): string {
   if (assistantId === "self") return "self";
 
-  const ownName = process.env.VELLUM_ASSISTANT_NAME;
+  const ownName = process.env.MAX_ASSISTANT_NAME;
   if (ownName && assistantId === ownName) return "self";
 
   return assistantId;
 }
 
 /**
- * Returns the internal data directory (~/.vellum/workspace/data). Runtime
+ * Returns the internal data directory (~/.max/workspace/data). Runtime
  * databases, logs, memory indices, and other internal state live here.
  */
 export function getDataDir(): string {
@@ -78,7 +78,7 @@ export function getDataDir(): string {
 }
 
 /**
- * Returns the embedding models directory (~/.vellum/workspace/embedding-models).
+ * Returns the embedding models directory (~/.max/workspace/embedding-models).
  * Downloaded embedding runtime (onnxruntime-node, transformers bundle, model weights)
  * is stored here, downloaded post-hatch rather than shipped with the app.
  */
@@ -87,7 +87,7 @@ export function getEmbeddingModelsDir(): string {
 }
 
 /**
- * Returns the sandbox root directory (~/.vellum/data/sandbox).
+ * Returns the sandbox root directory (~/.max/data/sandbox).
  * Global sandbox state lives under this directory.
  */
 export function getSandboxRootDir(): string {
@@ -95,7 +95,7 @@ export function getSandboxRootDir(): string {
 }
 
 /**
- * Returns the default sandbox working directory (~/.vellum/workspace).
+ * Returns the default sandbox working directory (~/.max/workspace).
  * This is the workspace root — tool working directories should use this
  * path unless explicitly overridden.
  */
@@ -108,14 +108,14 @@ export function getInterfacesDir(): string {
 }
 
 /**
- * Returns the sounds directory (~/.vellum/workspace/data/sounds).
+ * Returns the sounds directory (~/.max/workspace/data/sounds).
  * Custom sound files and sound configuration live here.
  */
 export function getSoundsDir(): string {
   return join(getWorkspaceDir(), "data", "sounds");
 }
 
-/** Returns the avatar directory ($VELLUM_WORKSPACE_DIR/data/avatar). */
+/** Returns the avatar directory ($MAX_WORKSPACE_DIR/data/avatar). */
 export function getAvatarDir(): string {
   return join(getWorkspaceDir(), "data", "avatar");
 }
@@ -123,7 +123,7 @@ export function getAvatarDir(): string {
 /** Canonical filename for the custom avatar PNG. */
 export const AVATAR_IMAGE_FILENAME = "avatar-image.png";
 
-/** Returns the canonical avatar image path (~/.vellum/workspace/data/avatar/avatar-image.png). */
+/** Returns the canonical avatar image path (~/.max/workspace/data/avatar/avatar-image.png). */
 export function getAvatarImagePath(): string {
   return join(getAvatarDir(), AVATAR_IMAGE_FILENAME);
 }
@@ -142,20 +142,20 @@ const KNOWN_ENVIRONMENTS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Returns the env-scoped XDG config subdirectory name for Vellum
- * (`vellum` in production, `vellum-<env>` otherwise). Mirrors the Swift
- * side's `VellumPaths.configDir` and the CLI's
+ * Returns the env-scoped XDG config subdirectory name for Max
+ * (`max` in production, `max-<env>` otherwise). Mirrors the Swift
+ * side's `MaxPaths.configDir` and the CLI's
  * `environments/paths.ts:getConfigDir`.
  */
-export function getXdgVellumConfigDirName(): string {
-  const raw = process.env.VELLUM_ENVIRONMENT?.trim();
-  if (!raw || raw === "production") return "vellum";
-  if (!KNOWN_ENVIRONMENTS.has(raw)) return "vellum";
-  return `vellum-${raw}`;
+export function getXdgMaxConfigDirName(): string {
+  const raw = process.env.MAX_ENVIRONMENT?.trim();
+  if (!raw || raw === "production") return "max";
+  if (!KNOWN_ENVIRONMENTS.has(raw)) return "max";
+  return `max-${raw}`;
 }
 
 export function getPidPath(): string {
-  return join(getWorkspaceDir(), "vellum.pid");
+  return join(getWorkspaceDir(), "max.pid");
 }
 
 export function getDbPath(): string {
@@ -163,7 +163,7 @@ export function getDbPath(): string {
 }
 
 export function getLogPath(): string {
-  return join(getDataDir(), "logs", "vellum.log");
+  return join(getDataDir(), "logs", "max.log");
 }
 
 export function getHistoryPath(): string {
@@ -180,10 +180,10 @@ export function getHistoryPath(): string {
  * - Skipped in containerized mode (credentials via CES, trust via gateway)
  */
 export function getProtectedDir(): string {
-  return join(vellumRoot(), "protected");
+  return join(maxRoot(), "protected");
 }
 
-/** Returns ~/.vellum/workspace/signals — the directory for IPC signal files. */
+/** Returns ~/.max/workspace/signals — the directory for IPC signal files. */
 export function getSignalsDir(): string {
   return join(getWorkspaceDir(), "signals");
 }
@@ -192,32 +192,32 @@ export function getSignalsDir(): string {
 // These expose specific root-level file paths so callers don't need to
 // import getRootDir() directly. getRootDir() is intentionally unexported.
 
-/** Returns the path to the daemon stderr log (~/.vellum/workspace/logs/daemon-stderr.log). */
+/** Returns the path to the daemon stderr log (~/.max/workspace/logs/daemon-stderr.log). */
 export function getDaemonStderrLogPath(): string {
   return join(getWorkspaceDir(), "logs", "daemon-stderr.log");
 }
 
-/** Returns the path to the daemon startup lock file (~/.vellum/workspace/daemon-startup.lock). */
+/** Returns the path to the daemon startup lock file (~/.max/workspace/daemon-startup.lock). */
 export function getDaemonStartupLockPath(): string {
   return join(getWorkspaceDir(), "daemon-startup.lock");
 }
 
-/** Returns the directory for externally-installed packages (~/.vellum/workspace/external). */
+/** Returns the directory for externally-installed packages (~/.max/workspace/external). */
 export function getExternalDir(): string {
   return join(getWorkspaceDir(), "external");
 }
 
-/** Returns the directory for installed binaries (~/.vellum/workspace/bin). */
+/** Returns the directory for installed binaries (~/.max/workspace/bin). */
 export function getBinDir(): string {
   return join(getWorkspaceDir(), "bin");
 }
 
-/** Returns the path to the dot-env file (~/.vellum/.env). Stays at root because it contains secrets. */
+/** Returns the path to the dot-env file (~/.max/.env). Stays at root because it contains secrets. */
 export function getDotEnvPath(): string {
-  return join(vellumRoot(), ".env");
+  return join(maxRoot(), ".env");
 }
 
-/** Returns the path to the embed-worker PID file (~/.vellum/workspace/embed-worker.pid). */
+/** Returns the path to the embed-worker PID file (~/.max/workspace/embed-worker.pid). */
 export function getEmbedWorkerPidPath(): string {
   return join(getWorkspaceDir(), "embed-worker.pid");
 }
@@ -225,14 +225,14 @@ export function getEmbedWorkerPidPath(): string {
 /**
  * Returns the workspace root for user-facing state.
  *
- * When the VELLUM_WORKSPACE_DIR env var is set, returns that value (used in
+ * When the MAX_WORKSPACE_DIR env var is set, returns that value (used in
  * containerized deployments where the workspace is a separate volume).
- * Otherwise falls back to ~/.vellum/workspace.
+ * Otherwise falls back to ~/.max/workspace.
  */
 export function getWorkspaceDir(): string {
   const override = getWorkspaceDirOverride();
   if (override) return override;
-  return join(VELLUM_ROOT, "workspace");
+  return join(MAX_ROOT, "workspace");
 }
 
 /**
@@ -241,8 +241,8 @@ export function getWorkspaceDir(): string {
  * so paths stay concise and portable across machines.
  *
  * Examples:
- *   /Users/alice/.vellum/workspace → ~/.vellum/workspace
- *   /data/.vellum/workspace        → /data/.vellum/workspace
+ *   /Users/alice/.max/workspace → ~/.max/workspace
+ *   /data/.max/workspace        → /data/.max/workspace
  */
 export function getWorkspaceDirDisplay(): string {
   const abs = getWorkspaceDir();
@@ -253,17 +253,17 @@ export function getWorkspaceDirDisplay(): string {
   return abs;
 }
 
-/** Returns ~/.vellum/workspace/config.json */
+/** Returns ~/.max/workspace/config.json */
 export function getWorkspaceConfigPath(): string {
   return join(getWorkspaceDir(), "config.json");
 }
 
-/** Returns ~/.vellum/workspace/skills */
+/** Returns ~/.max/workspace/skills */
 export function getWorkspaceSkillsDir(): string {
   return join(getWorkspaceDir(), "skills");
 }
 
-/** Returns ~/.vellum/workspace/hooks */
+/** Returns ~/.max/workspace/hooks */
 export function getWorkspaceHooksDir(): string {
   return join(getWorkspaceDir(), "hooks");
 }
@@ -278,17 +278,17 @@ export function getWorkspacePluginsDir(): string {
   return join(getWorkspaceDir(), "plugins");
 }
 
-/** Returns $VELLUM_WORKSPACE_DIR/routes — user-defined HTTP route handlers. */
+/** Returns $MAX_WORKSPACE_DIR/routes — user-defined HTTP route handlers. */
 export function getWorkspaceRoutesDir(): string {
   return join(getWorkspaceDir(), "routes");
 }
 
-/** Returns ~/.vellum/workspace/deprecated — transitional files slated for removal. */
+/** Returns ~/.max/workspace/deprecated — transitional files slated for removal. */
 export function getDeprecatedDir(): string {
   return join(getWorkspaceDir(), "deprecated");
 }
 
-/** Returns ~/.vellum/workspace/conversations */
+/** Returns ~/.max/workspace/conversations */
 export function getConversationsDir(): string {
   return join(getWorkspaceDir(), "conversations");
 }
@@ -337,7 +337,7 @@ export function getProfilerRunDir(runId: string): string {
  * that helper locates the first-party skills root (validated by
  * `catalog.json`); this helper appends the skill id and validates the
  * per-skill entry point (`register.ts`). Returns `undefined` when the
- * root is unavailable (e.g. dev-mode build without `VELLUM_DEV=1`) or
+ * root is unavailable (e.g. dev-mode build without `MAX_DEV=1`) or
  * the skill directory has no `register.ts`.
  *
  * Implemented here instead of `skills/catalog-install.ts` to avoid
@@ -388,7 +388,7 @@ export function getBundledBunPath(): string | undefined {
 }
 
 export function ensureDataDir(): void {
-  const root = vellumRoot();
+  const root = maxRoot();
   const workspace = getWorkspaceDir();
   const wsData = join(workspace, "data");
   const dirs = [

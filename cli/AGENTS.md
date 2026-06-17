@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The `cli/` package (`@vellumai/cli`) manages the **lifecycle of Vellum assistant instances** — creating, starting, stopping, connecting to, and deleting them. Commands here operate on or across instances and typically require specifying which assistant to target.
+The `cli/` package (`@maxai/cli`) manages the **lifecycle of Max assistant instances** — creating, starting, stopping, connecting to, and deleting them. Commands here operate on or across instances and typically require specifying which assistant to target.
 
 This contrasts with `assistant/src/cli/`, where commands are scoped to a **single running assistant** and operate on its local state (config, memory, contacts, etc.).
 
@@ -43,15 +43,15 @@ Every command must have high-quality `--help` output. Follow the same standards 
 
 ## Boundary: No integration-specific references
 
-The CLI is a generic lifecycle manager. It must **never** contain references to specific skills, integrations, or features (e.g. "Meet", "Slack", "Telegram"). Environment variables, volume mounts, and device passthroughs defined here must use generic names (e.g. `VELLUM_AVATAR_DEVICE`, not `VELLUM_MEET_AVATAR_DEVICE`). The skill that uses a resource decides how to interpret it — the CLI just passes it through.
+The CLI is a generic lifecycle manager. It must **never** contain references to specific skills, integrations, or features (e.g. "Meet", "Slack", "Telegram"). Environment variables, volume mounts, and device passthroughs defined here must use generic names (e.g. `MAX_AVATAR_DEVICE`, not `MAX_MEET_AVATAR_DEVICE`). The skill that uses a resource decides how to interpret it — the CLI just passes it through.
 
 Cross-package imports into `skills/` are forbidden. The CLI is distributed as an npm package; anything outside `cli/` is not included in the tarball and will fail to resolve at runtime.
 
-## Boundary: No `.vellum/` directory access
+## Boundary: No `.max/` directory access
 
-The CLI must **never** read from or write to the `.vellum/` directory (e.g. `~/.vellum/protected/`, `<instanceDir>/.vellum/`). That directory structure is an **assistant daemon / gateway implementation detail**. The CLI's job is to spawn those processes and pass configuration via environment variables — not to reach into their internal storage.
+The CLI must **never** read from or write to the `.max/` directory (e.g. `~/.max/protected/`, `<instanceDir>/.max/`). That directory structure is an **assistant daemon / gateway implementation detail**. The CLI's job is to spawn those processes and pass configuration via environment variables — not to reach into their internal storage.
 
-For example, the signing key used for JWT auth between the daemon and gateway is persisted in the lockfile (`resources.signingKey`) so that client actor tokens survive daemon/gateway restarts. On first start (or when the key is missing), the CLI generates a new key via `generateLocalSigningKey()` in `lib/local.ts`, saves it to the lockfile entry, and passes it to both `startLocalDaemon` and `startGateway` as the `ACTOR_TOKEN_SIGNING_KEY` env var. The CLI does **not** read or write to the `.vellum/` directory for signing keys — it uses the lockfile instead.
+For example, the signing key used for JWT auth between the daemon and gateway is persisted in the lockfile (`resources.signingKey`) so that client actor tokens survive daemon/gateway restarts. On first start (or when the key is missing), the CLI generates a new key via `generateLocalSigningKey()` in `lib/local.ts`, saves it to the lockfile entry, and passes it to both `startLocalDaemon` and `startGateway` as the `ACTOR_TOKEN_SIGNING_KEY` env var. The CLI does **not** read or write to the `.max/` directory for signing keys — it uses the lockfile instead.
 
 ## Docker Volume Management
 

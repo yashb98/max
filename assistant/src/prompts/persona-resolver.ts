@@ -79,9 +79,9 @@ function resolveUserFilename(
 
   if (trustContext === undefined) {
     // Desktop / native (no gateway) — resolve via guardian contact,
-    // preferring the vellum-channel guardian when multiple exist.
-    const vellumGuardian = findGuardianForChannel("vellum");
-    const guardian = vellumGuardian ?? listGuardianChannels();
+    // preferring the max-channel guardian when multiple exist.
+    const maxGuardian = findGuardianForChannel("max");
+    const guardian = maxGuardian ?? listGuardianChannels();
     if (guardian) {
       filename = guardian.contact.userFile ?? "guardian.md";
     }
@@ -194,13 +194,13 @@ export function resolveUserPersona(
  * Resolve the per-channel persona file based on channel capabilities.
  *
  * Reads from `channels/<channel>.md` in the workspace directory.
- * Defaults to `"vellum"` when no channel capabilities are provided.
+ * Defaults to `"max"` when no channel capabilities are provided.
  * Returns null if the channel file does not exist.
  */
 export function resolveChannelPersona(
   channelCapabilities: ChannelCapabilities | undefined,
 ): string | null {
-  const channel = channelCapabilities?.channel ?? "vellum";
+  const channel = channelCapabilities?.channel ?? "max";
   const filePath = join(getWorkspaceDir(), "channels", channel + ".md");
   return readPersonaFile(filePath);
 }

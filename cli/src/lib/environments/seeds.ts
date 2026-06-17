@@ -26,7 +26,7 @@ function portBlock(base: number): PortMap {
 
 /**
  * Built-in environment definitions. Mirrors Swift's
- * `clients/macos/vellum-assistant/App/VellumEnvironment.swift` enum and is
+ * `clients/macos/max-assistant/App/MaxEnvironment.swift` enum and is
  * the TS-side source of truth for the set of known environment names.
  * One other TS site duplicates the name list:
  *   - `assistant/src/util/platform.ts` (`KNOWN_ENVIRONMENTS`)
@@ -42,27 +42,27 @@ function portBlock(base: number): PortMap {
 export const SEEDS: Record<string, EnvironmentDefinition> = {
   production: {
     name: "production",
-    platformUrl: "https://platform.vellum.ai",
-    webUrl: "https://www.vellum.ai",
+    platformUrl: "https://platform.max.ai",
+    webUrl: "https://www.max.ai",
   },
   staging: {
     name: "staging",
-    platformUrl: "https://staging-platform.vellum.ai",
-    webUrl: "https://staging-assistant.vellum.ai",
+    platformUrl: "https://staging-platform.max.ai",
+    webUrl: "https://staging-assistant.max.ai",
     portsOverride: portBlock(17000),
   },
   test: {
     name: "test",
     // Non-functional URL — used only by unit tests for URL resolution, never
     // hit in production.
-    platformUrl: "https://test-platform.vellum.ai",
-    webUrl: "https://dev-assistant.vellum.ai",
+    platformUrl: "https://test-platform.max.ai",
+    webUrl: "https://dev-assistant.max.ai",
     portsOverride: portBlock(19000),
   },
   dev: {
     name: "dev",
-    platformUrl: "https://dev-platform.vellum.ai",
-    webUrl: "https://dev-assistant.vellum.ai",
+    platformUrl: "https://dev-platform.max.ai",
+    webUrl: "https://dev-assistant.max.ai",
     portsOverride: portBlock(18000),
   },
   local: {

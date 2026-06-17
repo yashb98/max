@@ -37,7 +37,7 @@ async function run(
   return { stdout: stdout.trim(), exitCode };
 }
 
-async function setupVellum(): Promise<void> {
+async function setupMax(): Promise<void> {
   const domain = values.domain;
 
   // Step 1: Get the callback URL
@@ -156,12 +156,12 @@ async function setupVellum(): Promise<void> {
 
 async function main(): Promise<void> {
   switch (species) {
-    case "vellum":
-      await setupVellum();
+    case "max":
+      await setupMax();
       break;
     default:
       console.error(
-        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=vellum.`,
+        `Unsupported species: ${species ?? "(not set)"}. This skill currently only supports species=max.`,
       );
       process.exitCode = 1;
   }

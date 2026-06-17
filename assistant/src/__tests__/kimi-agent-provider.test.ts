@@ -99,8 +99,8 @@ mock.module("@moonshot-ai/kimi-agent-sdk", () => ({
 
 const {
   KimiAgentProvider,
-  clearVellumToolBridge,
-  setVellumToolBridge,
+  clearMaxToolBridge,
+  setMaxToolBridge,
   assembleHandlerOutput,
   combineBridgeOutput,
   _resetKimiAgentSemaphoreForTests,
@@ -143,7 +143,7 @@ const TURN_END = { type: "TurnEnd", payload: {} };
 beforeEach(() => {
   scriptedEvents = [TURN_END];
   createSession.mockClear();
-  clearVellumToolBridge();
+  clearMaxToolBridge();
   _resetKimiAgentSemaphoreForTests();
   // Clear the CLI-path cache so this file's `node:child_process` mock is
   // authoritative even when a sibling test file resolved the real path
@@ -457,7 +457,7 @@ describe("External tools (externalTools) from ToolDefinition", () => {
   test("options.toolBridge wins over the registry bridge", async () => {
     const registryCalls: string[] = [];
     const perCallCalls: string[] = [];
-    setVellumToolBridge(async () => {
+    setMaxToolBridge(async () => {
       registryCalls.push("registry");
       return { content: "from registry" };
     });
@@ -485,7 +485,7 @@ describe("External tools (externalTools) from ToolDefinition", () => {
 
   test("falls back to registry bridge when options.toolBridge is unset", async () => {
     const registryCalls: string[] = [];
-    setVellumToolBridge(async () => {
+    setMaxToolBridge(async () => {
       registryCalls.push("registry");
       return { content: "ok" };
     });
@@ -920,8 +920,8 @@ describe("systemPrompt → agentFile", () => {
     await p.sendMessage([userText("hi")], [], "You are pyxis.");
     // The agentFile is the YAML spec, NOT the raw prompt.
     expect(capturedSpec).toContain("system_prompt_path: ./system.md");
-    // Vellum-native posture + ONLY kimi's free SearchWeb enabled natively;
-    // write/exec and FetchURL excluded (those route through Vellum / stay off).
+    // Max-native posture + ONLY kimi's free SearchWeb enabled natively;
+    // write/exec and FetchURL excluded (those route through Max / stay off).
     expect(capturedSpec).toContain("kimi_cli.tools.web:SearchWeb");
     expect(capturedSpec).not.toContain("Shell");
     expect(capturedSpec).not.toContain("FetchURL");
@@ -994,8 +994,8 @@ describe("ApprovalRequest isolation (allowlist)", () => {
           id: "req-2",
           tool_call_id: "t2",
           sender: "my_tool",
-          action: "invoke Vellum tool",
-          description: "Calling registered Vellum tool my_tool",
+          action: "invoke Max tool",
+          description: "Calling registered Max tool my_tool",
         },
       },
       TURN_END,
@@ -1264,13 +1264,13 @@ describe("Session continuity via conversationKey", () => {
     content: [{ type: "text", text }],
   });
 
-  test("conversationKey → sessionId 'vellum-<key>-<bootEpoch>'; no key → no sessionId", async () => {
+  test("conversationKey → sessionId 'max-<key>-<bootEpoch>'; no key → no sessionId", async () => {
     const p = new KimiAgentProvider("kimi-k2");
     await p.sendMessage([userText("hi")], [], undefined, {
       conversationKey: "conv-1",
     });
     const withKey = lastSessionOptions();
-    expect(withKey.sessionId).toMatch(/^vellum-conv-1-[0-9a-f]{8}$/);
+    expect(withKey.sessionId).toMatch(/^max-conv-1-[0-9a-f]{8}$/);
 
     await p.sendMessage([userText("hi")], [], undefined);
     expect("sessionId" in lastSessionOptions()).toBe(false);

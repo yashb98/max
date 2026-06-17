@@ -11,15 +11,15 @@ import {
 
 // -- Test context -------------------------------------------------------------
 
-const MOCK_PROTECTED_DIR = join(homedir(), ".vellum", "protected");
+const MOCK_PROTECTED_DIR = join(homedir(), ".max", "protected");
 const MOCK_DEPRECATED_DIR = join(
   homedir(),
-  ".vellum",
+  ".max",
   "workspace",
   "deprecated",
 );
-const MOCK_HOOKS_DIR = join(homedir(), ".vellum", "workspace", "hooks");
-const MOCK_PLUGINS_DIR = join(homedir(), ".vellum", "workspace", "plugins");
+const MOCK_HOOKS_DIR = join(homedir(), ".max", "workspace", "hooks");
+const MOCK_PLUGINS_DIR = join(homedir(), ".max", "workspace", "plugins");
 
 /** Skill source paths managed per-test via the context's skillSourceDirs. */
 let testSkillSourceDirs: string[] = [];
@@ -101,7 +101,7 @@ describe("FileRiskClassifier", () => {
       testSkillSourceDirs = [];
       const legacyPath = join(
         homedir(),
-        ".vellum",
+        ".max",
         "protected",
         "actor-token-signing-key",
       );
@@ -253,7 +253,7 @@ describe("FileRiskClassifier", () => {
       testSkillSourceDirs = [];
       const result = await classifyInput({
         toolName: "file_write",
-        filePath: join(homedir(), ".vellum", "workspace", "plugins-data", "x"),
+        filePath: join(homedir(), ".max", "workspace", "plugins-data", "x"),
         workingDir: "/",
       });
       expect(result.riskLevel).toBe("low");

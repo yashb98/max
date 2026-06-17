@@ -574,6 +574,11 @@ const ACTOR_ENDPOINTS: Array<{ endpoint: string; scopes: Scope[] }> = [
   { endpoint: "stt/providers", scopes: ["settings.read"] },
   { endpoint: "stt/transcribe", scopes: ["chat.write"] },
 
+  // Provider availability (read) + login (mutating) — provider-management
+  // control plane, mirrors the inference/provider-connections + oauth/providers scopes.
+  { endpoint: "provider-availability", scopes: ["settings.read"] },
+  { endpoint: "provider-login", scopes: ["settings.write"] },
+
   // Inference provider connections
   { endpoint: "inference/provider-connections:GET", scopes: ["settings.read"] },
   {

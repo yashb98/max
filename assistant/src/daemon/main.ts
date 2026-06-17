@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-process.title = "vellum-daemon";
+process.title = "max-daemon";
 
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -25,7 +25,7 @@ runDaemon().catch(async (err) => {
   }
   console.error("Failed to start assistant:", err);
   console.error(
-    `Troubleshooting: check if another assistant is already running, verify ${join(homedir(), ".vellum")} permissions, and review logs at ${getDataDir()}/logs/`,
+    `Troubleshooting: check if another assistant is already running, verify ${join(homedir(), ".max")} permissions, and review logs at ${getDataDir()}/logs/`,
   );
   // Emit a structured error line as the last line of stderr so consumers
   // (e.g. the macOS app) can parse it reliably.

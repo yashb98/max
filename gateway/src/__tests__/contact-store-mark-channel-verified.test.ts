@@ -127,7 +127,7 @@ function seedAssistantChannel(opts: {
   fakeAssistantDb.channels.set(opts.id, {
     id: opts.id,
     contact_id: opts.contactId,
-    type: "vellum",
+    type: "max",
     address: `addr-${opts.id}`,
     is_primary: 0,
     external_user_id: null,
@@ -179,7 +179,7 @@ function seedChannel(opts: {
     .values({
       id: opts.id,
       contactId: opts.contactId,
-      type: "vellum",
+      type: "max",
       address: `addr-${opts.id}`,
       isPrimary: false,
       status: opts.status ?? "unverified",
@@ -303,7 +303,7 @@ describe("ContactStore.markChannelVerified", () => {
       .get();
     expect(channelInGateway).toBeTruthy();
     expect(channelInGateway!.contactId).toBe("c1");
-    expect(channelInGateway!.type).toBe("vellum");
+    expect(channelInGateway!.type).toBe("max");
     const contactInGateway = getGatewayDb()
       .select()
       .from(contacts)

@@ -5,16 +5,16 @@ import {
   TWILIO_RELAY_WEBHOOK_PATH,
   TWILIO_STATUS_WEBHOOK_PATH,
   TWILIO_VOICE_WEBHOOK_PATH,
-} from "@vellumai/service-contracts/twilio-ingress";
+} from "@maxai/service-contracts/twilio-ingress";
 
 export function buildSchema(): Record<string, unknown> {
   return {
     openapi: "3.1.0",
     info: {
-      title: "Vellum Gateway",
+      title: "Max Gateway",
       version: packageJson.version,
       description:
-        "HTTP gateway that bridges external channels (Telegram, WhatsApp, etc.) to the Vellum assistant runtime and provides an authenticated reverse proxy.",
+        "HTTP gateway that bridges external channels (Telegram, WhatsApp, etc.) to the Max assistant runtime and provides an authenticated reverse proxy.",
     },
     paths: {
       "/healthz": {
@@ -657,16 +657,16 @@ export function buildSchema(): Record<string, unknown> {
         post: {
           summary: "Email inbound webhook",
           description:
-            "Receives inbound email webhook events from the Vellum platform, verifies the HMAC signature, normalizes the message, and forwards it to the assistant runtime.",
+            "Receives inbound email webhook events from the Max platform, verifies the HMAC signature, normalizes the message, and forwards it to the assistant runtime.",
           operationId: "emailInboundWebhook",
-          security: [{ VellumSignature: [] }],
+          security: [{ MaxSignature: [] }],
           requestBody: {
             required: true,
             content: {
               "application/json": {
                 schema: {
                   type: "object",
-                  description: "Vellum email webhook payload.",
+                  description: "Max email webhook payload.",
                 },
               },
             },
@@ -1563,7 +1563,7 @@ export function buildSchema(): Record<string, unknown> {
         post: {
           summary: "Mark a contact channel as verified by guardian attestation",
           description:
-            "Guardian-only endpoint that attests a contact channel as verified without exchanging a challenge code. The caller must be the bound guardian — verified either by JWT actor principal (laptop / docker) or by `X-Vellum-User-Id` matching the stored platform user id (platform-managed). Idempotent: an already-verified channel returns 200 without re-writing. Mutation is gateway-DB primary with a best-effort dual-write to the assistant daemon DB for sync during the gateway-security-migration transition.",
+            "Guardian-only endpoint that attests a contact channel as verified without exchanging a challenge code. The caller must be the bound guardian — verified either by JWT actor principal (laptop / docker) or by `X-Max-User-Id` matching the stored platform user id (platform-managed). Idempotent: an already-verified channel returns 200 without re-writing. Mutation is gateway-DB primary with a best-effort dual-write to the assistant daemon DB for sync during the gateway-security-migration transition.",
           operationId: "contactsChannelVerify",
           security: [{ BearerAuth: [] }],
           parameters: [
@@ -1578,7 +1578,7 @@ export function buildSchema(): Record<string, unknown> {
             "200": { description: "Contact channel marked as verified" },
             "401": {
               description:
-                "Unauthorized — missing or invalid bearer token, or missing X-Vellum-User-Id when DISABLE_HTTP_AUTH=true",
+                "Unauthorized — missing or invalid bearer token, or missing X-Max-User-Id when DISABLE_HTTP_AUTH=true",
             },
             "403": {
               description: "Forbidden — caller is not the bound guardian",
@@ -4630,12 +4630,12 @@ export function buildSchema(): Record<string, unknown> {
           description:
             "HMAC-SHA1 signature computed by Twilio over the request URL and form parameters.",
         },
-        VellumSignature: {
+        MaxSignature: {
           type: "apiKey",
           in: "header",
-          name: "Vellum-Signature",
+          name: "Max-Signature",
           description:
-            "HMAC-SHA256 signature computed by the Vellum platform over the raw request body using the webhook secret. Format: sha256=<hex-digest>.",
+            "HMAC-SHA256 signature computed by the Max platform over the raw request body using the webhook secret. Format: sha256=<hex-digest>.",
         },
         WhatsAppHubSignature: {
           type: "apiKey",

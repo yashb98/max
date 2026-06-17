@@ -43,6 +43,13 @@ describe("provider registry (ollama)", () => {
 
     const provider = getProvider("ollama");
     expect(provider.name).toBe("ollama");
-    expect(listProviders()).toEqual(["ollama"]);
+    // claude-subscription and kimi-agent are defaultEnabled cli-login providers
+    // that always register regardless of API keys / selected provider; exclude
+    // them to assert the key-based/selected-provider fallback set.
+    expect(
+      listProviders().filter(
+        (p) => p !== "claude-subscription" && p !== "kimi-agent",
+      ),
+    ).toEqual(["ollama"]);
   });
 });

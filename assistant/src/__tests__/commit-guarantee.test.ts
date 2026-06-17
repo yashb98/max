@@ -28,7 +28,7 @@ describe("Commit guarantees", () => {
   beforeEach(() => {
     testDir = join(
       tmpdir(),
-      `vellum-commit-guarantee-${Date.now()}-${Math.random()
+      `max-commit-guarantee-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}`,
     );
@@ -298,7 +298,7 @@ describe("Commit guarantees", () => {
       // Use an uninitialized service that will fail when trying to commit
       const uninitDir = join(
         tmpdir(),
-        `vellum-uninit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        `max-uninit-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       );
       mkdirSync(uninitDir, { recursive: true });
       const uninitService = new WorkspaceGitService(uninitDir);

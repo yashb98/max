@@ -73,9 +73,9 @@ describe("upsertContact user_file selection", () => {
       principalId: "principal-abc",
       channels: [
         {
-          type: "vellum",
-          address: "vellum-principal-abc",
-          externalUserId: "vellum-principal-abc",
+          type: "max",
+          address: "max-principal-abc",
+          externalUserId: "max-principal-abc",
         },
       ],
     });

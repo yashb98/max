@@ -19,7 +19,7 @@ import { performDockerRollback } from "../lib/upgrade-lifecycle.js";
 
 function printUsage(): void {
   console.log(
-    "Usage: vellum restore <name> --from <path> [--version <version>] [--dry-run]",
+    "Usage: max restore <name> --from <path> [--version <version>] [--dry-run]",
   );
   console.log("");
   console.log("Restore data from a .vbundle backup into an assistant.");
@@ -40,11 +40,11 @@ function printUsage(): void {
   );
   console.log("");
   console.log("Examples:");
-  console.log("  vellum restore my-assistant --from backup.vbundle");
+  console.log("  max restore my-assistant --from backup.vbundle");
   console.log(
-    "  vellum restore my-assistant --from backup.vbundle --version v1.2.3",
+    "  max restore my-assistant --from backup.vbundle --version v1.2.3",
   );
-  console.log("  vellum restore my-assistant --from backup.vbundle --dry-run");
+  console.log("  max restore my-assistant --from backup.vbundle --dry-run");
 }
 
 function parseArgs(argv: string[]): {
@@ -113,7 +113,7 @@ async function getAccessToken(
       console.error(
         `Error: Could not connect to assistant '${displayName}'. Is it running?`,
       );
-      console.error(`Try: vellum wake ${displayName}`);
+      console.error(`Try: max wake ${displayName}`);
       process.exit(1);
     }
     throw err;
@@ -163,7 +163,7 @@ interface ImportResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Platform (Vellum-hosted) restore via Django migration import
+// Platform (Max-hosted) restore via Django migration import
 // ---------------------------------------------------------------------------
 
 async function restorePlatform(
@@ -175,7 +175,7 @@ async function restorePlatform(
   // Step 1 — Authenticate
   const token = readPlatformToken();
   if (!token) {
-    console.error("Not logged in. Run 'vellum login' first.");
+    console.error("Not logged in. Run 'max login' first.");
     process.exit(1);
   }
 
@@ -198,7 +198,7 @@ async function restorePlatform(
   if (opts.dryRun) {
     if (opts.version) {
       console.error(
-        "Dry-run is not supported with --version. Use `vellum restore --from <path> --dry-run` for data-only preflight.",
+        "Dry-run is not supported with --version. Use `max restore --from <path> --dry-run` for data-only preflight.",
       );
       process.exit(1);
     }
@@ -224,7 +224,7 @@ async function restorePlatform(
       preflightResult.statusCode === 401 ||
       preflightResult.statusCode === 403
     ) {
-      console.error("Authentication failed. Run 'vellum login' to refresh.");
+      console.error("Authentication failed. Run 'max login' to refresh.");
       process.exit(1);
     }
 
@@ -248,7 +248,7 @@ async function restorePlatform(
       preflightResult.statusCode === 504
     ) {
       console.error(
-        `Assistant is unreachable. Try 'vellum wake ${name}' first.`,
+        `Assistant is unreachable. Try 'max wake ${name}' first.`,
       );
       process.exit(1);
     }
@@ -324,7 +324,7 @@ async function restorePlatform(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("401") || msg.includes("403")) {
-        console.error("Authentication failed. Run 'vellum login' to refresh.");
+        console.error("Authentication failed. Run 'max login' to refresh.");
         process.exit(1);
       }
       console.error(`Error: Rollback failed — ${msg}`);
@@ -355,7 +355,7 @@ async function restorePlatform(
   }
 
   if (importResult.statusCode === 401 || importResult.statusCode === 403) {
-    console.error("Authentication failed. Run 'vellum login' to refresh.");
+    console.error("Authentication failed. Run 'max login' to refresh.");
     process.exit(1);
   }
 
@@ -378,7 +378,7 @@ async function restorePlatform(
     importResult.statusCode === 503 ||
     importResult.statusCode === 504
   ) {
-    console.error(`Assistant is unreachable. Try 'vellum wake ${name}' first.`);
+    console.error(`Assistant is unreachable. Try 'max wake ${name}' first.`);
     process.exit(1);
   }
 
@@ -514,7 +514,7 @@ export async function restore(): Promise<void> {
   // --dry-run is not supported with --version
   if (version && dryRun) {
     console.error(
-      "Dry-run is not supported with --version. Use `vellum restore --from <path> --dry-run` for data-only preflight.",
+      "Dry-run is not supported with --version. Use `max restore --from <path> --dry-run` for data-only preflight.",
     );
     process.exit(1);
   }
@@ -530,7 +530,7 @@ export async function restore(): Promise<void> {
   const entry = findAssistantByName(name);
   if (!entry) {
     console.error(`Error: No assistant found with name '${name}'.`);
-    console.error("Run 'vellum ps' to see available assistants.");
+    console.error("Run 'max ps' to see available assistants.");
     process.exit(1);
   }
 
@@ -556,7 +556,7 @@ export async function restore(): Promise<void> {
     process.exit(1);
   }
 
-  if (cloud === "vellum") {
+  if (cloud === "max") {
     await restorePlatform(entry, name, bundleData, { version, dryRun });
     return;
   }
@@ -604,7 +604,7 @@ export async function restore(): Promise<void> {
         console.error(
           `Error: Could not connect to assistant '${name}'. Is it running?`,
         );
-        console.error(`Try: vellum wake ${name}`);
+        console.error(`Try: max wake ${name}`);
         process.exit(1);
       }
       throw err;
@@ -706,7 +706,7 @@ export async function restore(): Promise<void> {
         console.error(
           `Error: Could not connect to assistant '${name}'. Is it running?`,
         );
-        console.error(`Try: vellum wake ${name}`);
+        console.error(`Try: max wake ${name}`);
         process.exit(1);
       }
       throw err;

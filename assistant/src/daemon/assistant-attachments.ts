@@ -183,12 +183,12 @@ interface DirectiveDisplayDrainResult {
 }
 
 /**
- * Match self-closing `<vellum-attachment ... />` tags.
+ * Match self-closing `<max-attachment ... />` tags.
  *
  * Captures the attribute string between the tag name and the `/>` close.
  * Non-greedy so multiple tags on separate lines are matched individually.
  */
-const DIRECTIVE_RE = /<vellum-attachment\s+([\s\S]*?)\/>/g;
+const DIRECTIVE_RE = /<max-attachment\s+([\s\S]*?)\/>/g;
 
 /**
  * Parse individual attribute key="value" pairs.
@@ -208,7 +208,7 @@ function parseAttributes(raw: string): Record<string, string> {
 }
 
 /**
- * Scan assistant text for `<vellum-attachment ... />` directives.
+ * Scan assistant text for `<max-attachment ... />` directives.
  *
  * Returns the text with successfully parsed directives stripped,
  * along with the parsed directive requests and any warnings for
@@ -223,7 +223,7 @@ export function parseDirectives(text: string): DirectiveParseResult {
 
     if (!attrs["path"]) {
       parseWarnings.push(
-        'Ignored <vellum-attachment />: missing required "path" attribute.',
+        'Ignored <max-attachment />: missing required "path" attribute.',
       );
       return fullMatch;
     }
@@ -231,7 +231,7 @@ export function parseDirectives(text: string): DirectiveParseResult {
     const sourceRaw = attrs["source"] ?? "sandbox";
     if (sourceRaw !== "sandbox" && sourceRaw !== "host") {
       parseWarnings.push(
-        `Ignored <vellum-attachment />: invalid source="${sourceRaw}". Must be "sandbox" or "host".`,
+        `Ignored <max-attachment />: invalid source="${sourceRaw}". Must be "sandbox" or "host".`,
       );
       return fullMatch;
     }
@@ -258,14 +258,14 @@ export function parseDirectives(text: string): DirectiveParseResult {
 
 /**
  * Drain streamed assistant text while stripping only valid, complete
- * self-closing `<vellum-attachment ... />` directives.
+ * self-closing `<max-attachment ... />` directives.
  *
  * - Valid complete directives are removed from emitted text.
  * - Invalid directives are preserved as plain text.
  * - Incomplete directives are retained in `bufferedRemainder` until more
  *   text arrives.
  */
-const DIRECTIVE_TAG_PREFIX = "<vellum-attachment";
+const DIRECTIVE_TAG_PREFIX = "<max-attachment";
 
 /**
  * Check whether `text` ends with a prefix of `tag` (e.g. "<", "<v", "<ve", …).
@@ -300,7 +300,7 @@ export function drainDirectiveDisplayBuffer(
     const start = buffer.indexOf(DIRECTIVE_TAG_PREFIX, cursor);
     if (start === -1) {
       // No full tag-prefix match — but the remaining text might end with a
-      // partial prefix of "<vellum-attachment" split across streaming chunks.
+      // partial prefix of "<max-attachment" split across streaming chunks.
       const remaining = buffer.slice(cursor);
       const split = splitTrailingPrefix(remaining, DIRECTIVE_TAG_PREFIX);
       emitText += split.safe;
@@ -710,7 +710,7 @@ export function cleanAssistantContent(content: readonly unknown[]): {
       // Only run the directive parser when the text actually contains a
       // potential tag. This avoids unintentional whitespace normalisation
       // (parseDirectives trims and collapses blank lines) on plain messages.
-      if (!text.includes("<vellum-attachment")) return block;
+      if (!text.includes("<max-attachment")) return block;
       const result = parseDirectives(text);
       directives.push(...result.directiveRequests);
       warnings.push(...result.parseWarnings);

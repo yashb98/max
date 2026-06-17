@@ -79,7 +79,7 @@ describe("identifyService", () => {
 
   it("does not identify GitHub from regular github.com pages", () => {
     expect(
-      identifyService("https://github.com/vellum-ai/vellum-assistant"),
+      identifyService("https://github.com/max-ai/max-assistant"),
     ).toBeUndefined();
     expect(identifyService("https://github.com/pulls")).toBeUndefined();
     expect(identifyService("https://github.com/")).toBeUndefined();
@@ -159,7 +159,7 @@ describe("isAuthUrl", () => {
   });
 
   it("does not treat regular github.com URLs as auth URLs", () => {
-    expect(isAuthUrl("https://github.com/vellum-ai/vellum-assistant")).toBe(
+    expect(isAuthUrl("https://github.com/max-ai/max-assistant")).toBe(
       false,
     );
     expect(isAuthUrl("https://github.com/pulls")).toBe(false);
@@ -373,7 +373,7 @@ describe("detectAuthChallenge - non-auth pages", () => {
 
   it("returns null for a regular github.com page with no auth elements", async () => {
     const cdp = fakeCdp({
-      urlValue: "https://github.com/vellum-ai/vellum-assistant",
+      urlValue: "https://github.com/max-ai/max-assistant",
       domResult: null,
     });
 

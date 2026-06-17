@@ -57,12 +57,12 @@ import {
 } from "../plugins/types.js";
 
 // Per-process temp tree so bootstrap's plugin-storage directory creation
-// doesn't touch the developer's real ~/.vellum.
+// doesn't touch the developer's real ~/.max.
 const TEST_WORKSPACE_DIR = join(
   tmpdir(),
-  `vellum-plugin-skill-test-${process.pid}`,
+  `max-plugin-skill-test-${process.pid}`,
 );
-process.env.VELLUM_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
+process.env.MAX_WORKSPACE_DIR = TEST_WORKSPACE_DIR;
 
 const fakeConfig = {} as unknown as AssistantConfig;
 const fakeCtx: DaemonContext = {
@@ -309,14 +309,14 @@ describe("plugin skill contributions", () => {
   test("managed (filesystem) skill with the same id overrides a plugin-contributed skill", async () => {
     // Plugin skills sit below managed/workspace in the catalog precedence
     // chain so a user can shadow a plugin-provided skill by dropping a
-    // SKILL.md with the same id under ~/.vellum/workspace/skills. The test
-    // harness configures VELLUM_WORKSPACE_DIR via the bun test preload, so
+    // SKILL.md with the same id under ~/.max/workspace/skills. The test
+    // harness configures MAX_WORKSPACE_DIR via the bun test preload, so
     // we can synthesize a filesystem skill for the same id and assert it
     // wins.
     const { mkdirSync, writeFileSync, rmSync, existsSync } =
       await import("node:fs");
 
-    const workspaceDir = process.env.VELLUM_WORKSPACE_DIR;
+    const workspaceDir = process.env.MAX_WORKSPACE_DIR;
     // Skip the filesystem override check when the harness did not provide a
     // workspace dir — the other tests in this file still cover catalog
     // visibility, which is the core of PR 33.

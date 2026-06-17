@@ -9,11 +9,11 @@
  *      consumed by:
  *        - `cli/src/__tests__/search-provider-env-var-parity.test.ts`
  *          (drift guard for the CLI's hardcoded env-var mirror).
- *        - Downstream `vellum-assistant-platform/web/src/lib/generated/
+ *        - Downstream `max-assistant-platform/web/src/lib/generated/
  *          web-search-provider-catalog.json` (manually sync'd today; the
  *          scheduled sync workflow is a planned follow-up).
  *   - `clients/shared/Resources/web-search-provider-catalog.json` — SwiftPM
- *      resource bundled into `VellumAssistantShared`. SwiftPM cannot reach
+ *      resource bundled into `MaxAssistantShared`. SwiftPM cannot reach
  *      files outside a target's source directory, so this mirror is
  *      necessary; both files are produced by the same generator and
  *      asserted equal by the parity test, making drift impossible.

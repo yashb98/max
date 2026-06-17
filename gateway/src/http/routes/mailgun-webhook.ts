@@ -6,7 +6,7 @@ import type { CredentialCache } from "../../credential-cache.js";
 import { credentialKey } from "../../credential-key.js";
 import { recordDenialReplyIfAllowed } from "../../db/denial-reply-rate-limiter.js";
 import { StringDedupCache } from "../../dedup-cache.js";
-import type { VellumEmailPayload } from "../../email/normalize.js";
+import type { MaxEmailPayload } from "../../email/normalize.js";
 import { normalizeEmailWebhook } from "../../email/normalize.js";
 import { handleInbound } from "../../handlers/handle-inbound.js";
 import { getLogger } from "../../logger.js";
@@ -127,11 +127,11 @@ async function parseMailgunBody(
 }
 
 /**
- * Normalize Mailgun inbound fields into a `VellumEmailPayload`.
+ * Normalize Mailgun inbound fields into a `MaxEmailPayload`.
  */
-function normalizeMailgunToVellumPayload(
+function normalizeMailgunToMaxPayload(
   fields: Record<string, string>,
-): VellumEmailPayload | null {
+): MaxEmailPayload | null {
   const fromRaw = fields["from"] ?? fields["sender"];
   const recipient = fields["recipient"];
   const messageId = fields["Message-Id"];
@@ -281,15 +281,15 @@ export function createMailgunWebhookHandler(
 
     // ── Normalize ───────────────────────────────────────────────────
 
-    const vellumPayload = normalizeMailgunToVellumPayload(fields);
-    if (!vellumPayload) {
+    const maxPayload = normalizeMailgunToMaxPayload(fields);
+    if (!maxPayload) {
       tlog.debug("Mailgun webhook missing required fields, acknowledging");
       if (token) dedupCache.mark(token);
       return Response.json({ ok: true });
     }
 
     const normalized = normalizeEmailWebhook(
-      vellumPayload as unknown as Record<string, unknown>,
+      maxPayload as unknown as Record<string, unknown>,
     );
     if (!normalized) {
       tlog.debug(
@@ -339,20 +339,20 @@ export function createMailgunWebhookHandler(
         transportMetadata: buildEmailTransportMetadata({
           senderAddress: gatewayEvent.actor.actorExternalId,
           recipientAddress,
-          subject: vellumPayload.subject,
-          inReplyTo: vellumPayload.inReplyTo,
+          subject: maxPayload.subject,
+          inReplyTo: maxPayload.inReplyTo,
         }),
         replyCallbackUrl: undefined,
         traceId,
         routingOverride: routing,
         sourceMetadata: {
-          emailSubject: vellumPayload.subject ?? undefined,
+          emailSubject: maxPayload.subject ?? undefined,
           emailRecipient: recipientAddress,
-          ...(vellumPayload.inReplyTo
-            ? { emailInReplyTo: vellumPayload.inReplyTo }
+          ...(maxPayload.inReplyTo
+            ? { emailInReplyTo: maxPayload.inReplyTo }
             : {}),
-          ...(vellumPayload.references
-            ? { emailReferences: vellumPayload.references }
+          ...(maxPayload.references
+            ? { emailReferences: maxPayload.references }
             : {}),
         },
       });
@@ -404,11 +404,11 @@ export function createMailgunWebhookHandler(
                 form.set("to", senderAddress);
                 form.set(
                   "subject",
-                  `Re: ${vellumPayload.subject ?? "(no subject)"}`,
+                  `Re: ${maxPayload.subject ?? "(no subject)"}`,
                 );
                 form.set("text", result.runtimeResponse.replyText);
-                if (vellumPayload.messageId) {
-                  form.set("h:In-Reply-To", vellumPayload.messageId);
+                if (maxPayload.messageId) {
+                  form.set("h:In-Reply-To", maxPayload.messageId);
                 }
 
                 const sendResponse = await fetch(

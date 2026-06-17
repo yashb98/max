@@ -37,7 +37,7 @@ import {
   platformOAuthHandle,
   UpdateManagedCredentialResponseSchema,
   UpdateManagedCredentialSchema,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import {
   CES_ASSISTANT_DATA_READONLY_MOUNT,
@@ -177,7 +177,7 @@ describe("UpdateManagedCredential RPC schema contract", () => {
   });
 
   test("request schema validates a well-formed payload", () => {
-    const payload = { assistantApiKey: "vellum_key_test_123" };
+    const payload = { assistantApiKey: "max_key_test_123" };
     const result = UpdateManagedCredentialSchema.safeParse(payload);
     expect(result.success).toBe(true);
   });
@@ -273,7 +273,7 @@ describe("managed CES bootstrap handshake contract", () => {
       type: "handshake_request",
       protocolVersion: CES_PROTOCOL_VERSION,
       sessionId: "test-session-123",
-      assistantApiKey: "vellum_key_test",
+      assistantApiKey: "max_key_test",
     });
     expect(result.success).toBe(true);
   });

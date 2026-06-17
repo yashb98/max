@@ -302,7 +302,7 @@ describe("resolvePublicBaseWssUrl", () => {
   test("uses velayBaseUrl + platformAssistantId when both are present", () => {
     const config = {
       ...baseConfig,
-      velayBaseUrl: "https://velay-dev.vellum.ai",
+      velayBaseUrl: "https://velay-dev.max.ai",
     };
     const result = resolvePublicBaseWssUrl(
       config,
@@ -310,7 +310,7 @@ describe("resolvePublicBaseWssUrl", () => {
       "abc12345-0000-0000-0000-000000000000",
     );
     expect(result).toBe(
-      "wss://velay-dev.vellum.ai/abc12345-0000-0000-0000-000000000000",
+      "wss://velay-dev.max.ai/abc12345-0000-0000-0000-000000000000",
     );
   });
 
@@ -338,24 +338,24 @@ describe("resolvePublicBaseWssUrl", () => {
   test("falls back to configFile publicBaseUrl when platformAssistantId is missing", () => {
     const config = {
       ...baseConfig,
-      velayBaseUrl: "https://velay-dev.vellum.ai",
+      velayBaseUrl: "https://velay-dev.max.ai",
     };
     const mockConfigFile = {
       getString: (section: string, key: string) =>
         section === "ingress" && key === "publicBaseUrl"
-          ? "https://velay-dev.vellum.ai/abc12345-0000-0000-0000-000000000000"
+          ? "https://velay-dev.max.ai/abc12345-0000-0000-0000-000000000000"
           : undefined,
     } as Parameters<typeof resolvePublicBaseWssUrl>[1];
     const result = resolvePublicBaseWssUrl(config, mockConfigFile, undefined);
     expect(result).toBe(
-      "wss://velay-dev.vellum.ai/abc12345-0000-0000-0000-000000000000",
+      "wss://velay-dev.max.ai/abc12345-0000-0000-0000-000000000000",
     );
   });
 
   test("strips trailing slash from velayBaseUrl before joining assistant ID", () => {
     const config = {
       ...baseConfig,
-      velayBaseUrl: "https://velay-dev.vellum.ai/",
+      velayBaseUrl: "https://velay-dev.max.ai/",
     };
     const result = resolvePublicBaseWssUrl(
       config,
@@ -363,7 +363,7 @@ describe("resolvePublicBaseWssUrl", () => {
       "abc12345-0000-0000-0000-000000000000",
     );
     expect(result).toBe(
-      "wss://velay-dev.vellum.ai/abc12345-0000-0000-0000-000000000000",
+      "wss://velay-dev.max.ai/abc12345-0000-0000-0000-000000000000",
     );
   });
 });

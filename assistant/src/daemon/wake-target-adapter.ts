@@ -185,9 +185,9 @@ export function conversationToWakeTarget(
       const turnInterfaceCtx = conversation.getTurnInterfaceContext();
       const metadata: Record<string, unknown> = {
         ...provenanceFromTrustContext(conversation.trustContext),
-        userMessageChannel: turnChannelCtx?.userMessageChannel ?? "vellum",
+        userMessageChannel: turnChannelCtx?.userMessageChannel ?? "max",
         assistantMessageChannel:
-          turnChannelCtx?.assistantMessageChannel ?? "vellum",
+          turnChannelCtx?.assistantMessageChannel ?? "max",
         userMessageInterface: turnInterfaceCtx?.userMessageInterface ?? "web",
         assistantMessageInterface:
           turnInterfaceCtx?.assistantMessageInterface ?? "web",

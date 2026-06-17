@@ -1,10 +1,10 @@
 ---
 name: voice-setup
 description: Complete voice configuration in chat - PTT key, microphone permissions, ElevenLabs TTS, and troubleshooting
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "🎙️"
-  vellum:
+  max:
     display-name: "Voice Setup"
     includes: ["elevenlabs-voice"]
     activation-hints:
@@ -20,7 +20,7 @@ You are helping the user set up and troubleshoot voice features (push-to-talk, t
 
 - `voice_config_update` - Change any voice setting (PTT key, conversation timeout, TTS voice ID)
 - `open_system_settings` - Open macOS System Settings to a specific privacy pane
-- `navigate_settings_tab` - Open the Vellum settings panel to the Voice tab
+- `navigate_settings_tab` - Open the Max settings panel to the Voice tab
 - `credential_store` - Collect API keys securely (for ElevenLabs TTS)
 
 ## Setup Flow
@@ -35,7 +35,7 @@ Check `<channel_capabilities>` for `microphone_permission_granted`.
 
 1. Explain that macOS requires microphone permission for voice features.
 2. Use `open_system_settings` with `pane: "microphone"` to open the right System Settings pane.
-3. Tell the user: "I've opened System Settings to the Microphone section. Please toggle **Vellum Assistant** on, then come back here."
+3. Tell the user: "I've opened System Settings to the Microphone section. Please toggle **Max Assistant** on, then come back here."
 4. After they confirm, verify by checking capabilities on the next turn.
 
 **If `true`:** Tell them microphone is already granted and move on.
@@ -82,7 +82,7 @@ When the user reports a problem, follow the appropriate decision tree:
 2. **Key check** - Ask what key they're using. Confirm it matches their configured PTT key.
 3. **Emoji picker conflict** - On newer Macs, Fn/Globe opens the emoji picker. If they're using Fn, suggest switching to Right Option or Right Command.
 4. **Speech Recognition permission** - Some voice features need this. Use `open_system_settings` with `pane: "speech_recognition"`.
-5. **App focus** - PTT may not work when Vellum is not the frontmost app or if another app has captured the key.
+5. **App focus** - PTT may not work when Max is not the frontmost app or if another app has captured the key.
 
 ### "Recording but no text" / "Transcription not working"
 
@@ -101,7 +101,7 @@ When the user reports a problem, follow the appropriate decision tree:
 For persistent issues, suggest checking system logs:
 
 ```bash
-log stream --predicate 'subsystem == "com.vellum.assistant"' --level debug
+log stream --predicate 'subsystem == "com.max.assistant"' --level debug
 ```
 
 Key log categories:

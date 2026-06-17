@@ -34,7 +34,7 @@ import type {
   SkillRoute,
   SkillRouteHandle,
   Tool,
-} from "@vellumai/skill-host-contracts";
+} from "@maxai/skill-host-contracts";
 
 /** Serialized tool entry in the manifest. */
 interface ToolManifestEntry {
@@ -115,7 +115,7 @@ function buildCollectorHost(captured: Captured): SkillHost {
     },
     platform: {
       workspaceDir: () => "/manifest-emitter/workspace",
-      vellumRoot: () => "/manifest-emitter/vellum",
+      maxRoot: () => "/manifest-emitter/max",
       runtimeMode: () => "bare-metal" as DaemonRuntimeMode,
     },
     providers: {

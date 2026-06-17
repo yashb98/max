@@ -31,7 +31,7 @@ import {
 // ── Mock state ────────────────────────────────────────────────────
 
 let mockWorkspaceDir: string = "";
-let mockVellumGuardian: {
+let mockMaxGuardian: {
   contact: { userFile: string | null };
   channel: Record<string, unknown>;
 } | null = null;
@@ -61,7 +61,7 @@ mock.module("../util/platform.js", () => ({
 mock.module("../contacts/contact-store.js", () => ({
   findContactByChannelExternalId: () => null,
   findGuardianForChannel: (channelType: string) =>
-    channelType === "vellum" ? mockVellumGuardian : null,
+    channelType === "max" ? mockMaxGuardian : null,
   listGuardianChannels: () => null,
 }));
 
@@ -87,7 +87,7 @@ afterAll(() => {
 
 beforeEach(() => {
   mockWorkspaceDir = mkdtempSync(join(testRoot, "ws-"));
-  mockVellumGuardian = null;
+  mockMaxGuardian = null;
 });
 
 afterEach(() => {
@@ -98,7 +98,7 @@ afterEach(() => {
 
 describe("writeOnboardingSection", () => {
   test("writes section to guardian persona file when it exists", () => {
-    mockVellumGuardian = {
+    mockMaxGuardian = {
       contact: { userFile: "alice.md" },
       channel: {},
     };
@@ -123,7 +123,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("falls back to users/default.md when guardian path is null", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     mkdirSync(workspacePath("users"), { recursive: true });
     writeFileSync(
       workspacePath("users/default.md"),
@@ -147,7 +147,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("falls back to USER.md when no users/ files exist", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
 
     writeOnboardingSection({
       preferredName: "Alice",
@@ -162,7 +162,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("creates file with header + section when target doesn't exist", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
 
     writeOnboardingSection({
       preferredName: "Alice",
@@ -179,7 +179,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("idempotent: calling twice produces the same file content", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     const normalized = {
       preferredName: "Alice",
       commonWork: ["builds code, apps, or tools"],
@@ -196,7 +196,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("replaces existing onboarding section with updated data", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
 
     writeOnboardingSection({
       preferredName: "Alice",
@@ -222,7 +222,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("preserves content outside the managed section", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     writeFileSync(
       workspacePath("USER.md"),
       "# User Profile\n\n- **Name:** Alice\n- **Role:** Engineer\n",
@@ -242,7 +242,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("omits empty fields", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
 
     writeOnboardingSection({
       commonWork: [],
@@ -257,7 +257,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("omits preferredName when undefined", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
 
     writeOnboardingSection({
       preferredName: undefined,
@@ -272,7 +272,7 @@ describe("writeOnboardingSection", () => {
   });
 
   test("preserves content after onboarding section when followed by another heading", () => {
-    mockVellumGuardian = null;
+    mockMaxGuardian = null;
     writeFileSync(
       workspacePath("USER.md"),
       [

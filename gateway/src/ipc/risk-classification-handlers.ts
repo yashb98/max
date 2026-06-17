@@ -422,7 +422,7 @@ export async function handleClassifyRisk(
       // When fileContext is not provided, use impossible sentinel paths so the
       // classifier never produces false-positive escalations (an empty string
       // for hooksDir would normalize to "/" and match every path).
-      const SENTINEL = "/__vellum_no_context__";
+      const SENTINEL = "/__max_no_context__";
       const fileCtx = params.fileContext;
       const context: FileClassificationContext = {
         protectedDir: fileCtx?.protectedDir ?? SENTINEL,

@@ -21,7 +21,7 @@
 import {
   SocketWatchdog,
   ensureSocketDir,
-} from "@vellumai/ipc-server-utils";
+} from "@maxai/ipc-server-utils";
 import { existsSync, unlinkSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
 

@@ -258,7 +258,7 @@ describe("handleSurfaceAction — launch_conversation dispatch", () => {
     nextKeyStoreResult = { conversationId: "conv-launched-1" };
     
     const originTrustContext: TrustContext = {
-      sourceChannel: "vellum",
+      sourceChannel: "max",
       trustClass: "guardian",
       guardianChatId: "chat-guardian",
       guardianPrincipalId: "principal-guardian",

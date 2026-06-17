@@ -9,7 +9,7 @@ public extension Notification.Name {
 /// Uses provider "session-token" to match the old credential storage account name
 /// so existing macOS users' stored sessions are preserved after upgrade.
 ///
-/// Also writes the token to `~/.config/vellum/platform-token` (XDG path)
+/// Also writes the token to `~/.config/max/platform-token` (XDG path)
 /// and to the instance-scoped path so the daemon and CLI can read it for
 /// authenticated platform API calls without round-trips.
 public enum SessionTokenManager {
@@ -66,17 +66,17 @@ public enum SessionTokenManager {
            let instanceDir = resources["instanceDir"] as? String {
             let trimmed = instanceDir.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
-                return trimmed + "/.vellum/platform-token"
+                return trimmed + "/.max/platform-token"
             }
         }
 
         return nil
     }
 
-    /// Env-scoped shared path (`~/.config/vellum{-env}/platform-token`).
+    /// Env-scoped shared path (`~/.config/max{-env}/platform-token`).
     /// Used by the CLI and desktop app as the canonical token location.
     private static func xdgPlatformTokenPath() -> String {
-        VellumPaths.current.platformTokenFile.path
+        MaxPaths.current.platformTokenFile.path
     }
 
     private static func writePlatformTokenFile(_ token: String) {

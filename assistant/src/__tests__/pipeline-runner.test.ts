@@ -56,7 +56,7 @@ function makeFakeLogger(): {
 let fakeLogger = makeFakeLogger();
 
 const trust: TrustContext = {
-  sourceChannel: "vellum",
+  sourceChannel: "max",
   trustClass: "guardian",
 };
 

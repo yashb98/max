@@ -10,7 +10,7 @@
  *   - Tool-call response shape mismatch → returns 0 without writes.
  *   - Empty entries are skipped (the model can't pad the buffer).
  *
- * Tests use temp workspaces (mkdtemp) and never touch `~/.vellum/`. Sample
+ * Tests use temp workspaces (mkdtemp) and never touch `~/.max/`. Sample
  * content uses generic placeholders (Alice, Bob, user@example.com).
  */
 import {
@@ -79,22 +79,22 @@ mock.module("../../../notifications/emit-signal.js", () => ({
   },
 }));
 
-// Workspace setup — temp dir per test run, pinned via VELLUM_WORKSPACE_DIR
+// Workspace setup — temp dir per test run, pinned via MAX_WORKSPACE_DIR
 // so `getWorkspaceDir()` resolves to the tmpdir.
 let tmpWorkspace: string;
 let previousWorkspaceEnv: string | undefined;
 
 beforeAll(() => {
   tmpWorkspace = mkdtempSync(join(tmpdir(), "memory-v2-sweep-test-"));
-  previousWorkspaceEnv = process.env.VELLUM_WORKSPACE_DIR;
-  process.env.VELLUM_WORKSPACE_DIR = tmpWorkspace;
+  previousWorkspaceEnv = process.env.MAX_WORKSPACE_DIR;
+  process.env.MAX_WORKSPACE_DIR = tmpWorkspace;
 });
 
 afterAll(() => {
   if (previousWorkspaceEnv === undefined) {
-    delete process.env.VELLUM_WORKSPACE_DIR;
+    delete process.env.MAX_WORKSPACE_DIR;
   } else {
-    process.env.VELLUM_WORKSPACE_DIR = previousWorkspaceEnv;
+    process.env.MAX_WORKSPACE_DIR = previousWorkspaceEnv;
   }
   rmSync(tmpWorkspace, { recursive: true, force: true });
 });

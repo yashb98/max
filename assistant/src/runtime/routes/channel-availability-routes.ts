@@ -23,7 +23,7 @@ import {
   type ChannelId,
   type ChannelInfo,
 } from "../../channels/types.js";
-import { VellumPlatformClient } from "../../platform/client.js";
+import { MaxPlatformClient } from "../../platform/client.js";
 import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 
 // Base list every assistant currently surfaces. Order is the display
@@ -46,7 +46,7 @@ interface EmailAddressListResponse {
  * platform is briefly unreachable.
  */
 async function hasRegisteredInbox(): Promise<boolean> {
-  const client = await VellumPlatformClient.create();
+  const client = await MaxPlatformClient.create();
   if (!client?.platformAssistantId) {
     return false;
   }

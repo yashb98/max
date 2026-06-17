@@ -1,5 +1,5 @@
 import XCTest
-@testable import VellumAssistantShared
+@testable import MaxAssistantShared
 
 /// Unit tests for GatewayConnectionManager — verifies initial state, connect/disconnect lifecycle,
 /// send recording, and emit-to-subscriber delivery.

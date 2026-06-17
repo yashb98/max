@@ -4,7 +4,7 @@ OAuth, messaging adapters, script proxy, and conversation disk view architecture
 
 ## Integrations — OAuth2 + Unified Messaging
 
-The integration framework lets Vellum connect to third-party services via OAuth2. The architecture follows these principles:
+The integration framework lets Max connect to third-party services via OAuth2. The architecture follows these principles:
 
 - **Secrets never reach the LLM** — OAuth tokens are stored in the credential vault and accessed exclusively through the `TokenManager`, which provides tokens to tool executors via `withValidToken()`. The LLM never sees raw tokens.
 - **PKCE or client_secret flows** — Desktop apps use PKCE by default (S256). Providers that require a client secret (e.g. Slack) pass it during the OAuth2 flow and store it in credential metadata for autonomous refresh.
@@ -486,14 +486,14 @@ The proxy subsystem is fully wired, including credential injection. The session 
 
 ## Conversation Disk View — Filesystem-Based Conversation Access
 
-The conversation disk view projects conversation metadata, messages, and attachments to a browsable filesystem layout under `~/.vellum/workspace/conversations/`. This enables the assistant to search, read, and manipulate conversation data (including media attachments) using standard file tools (`read_file`, `glob`, `grep`) rather than dedicated asset search tools.
+The conversation disk view projects conversation metadata, messages, and attachments to a browsable filesystem layout under `~/.max/workspace/conversations/`. This enables the assistant to search, read, and manipulate conversation data (including media attachments) using standard file tools (`read_file`, `glob`, `grep`) rather than dedicated asset search tools.
 
 ### Directory Layout
 
 Each conversation is projected to a directory named `{isoDate}_{id}`:
 
 ```
-~/.vellum/workspace/conversations/
+~/.max/workspace/conversations/
   2025-01-15T10-30-00.000Z_abc123/
     meta.json             # Conversation metadata (id, title, type, channel, timestamps)
     messages.jsonl        # Flattened message log (one JSON object per line)
@@ -506,7 +506,7 @@ Each conversation is projected to a directory named `{isoDate}_{id}`:
 
 The disk view is updated at the daemon level, not automatically by the DB CRUD layer. Conversation creation, metadata updates, and deletion are synced from `conversation-crud.ts`, but message sync (`syncMessageToDisk`) is only called from daemon-level code paths (e.g. `conversation-messaging.ts`) — not from the CRUD `addMessage()` function. This means `messages.jsonl` reflects messages processed through the daemon's messaging pipeline, not every message write. All disk writes are best-effort; failures are logged but never thrown, so the disk view cannot break DB operations.
 
-> **Privacy note:** Conversation disk-view files live under `~/.vellum/workspace/conversations/`. Workspace files are not included in diagnostic log exports ("Send logs to Vellum"). For conversation-scoped exports, conversation data is included as structured JSON tables (e.g. `messages.json`, `llm-request-logs.json`), not as a raw database dump.
+> **Privacy note:** Conversation disk-view files live under `~/.max/workspace/conversations/`. Workspace files are not included in diagnostic log exports ("Send logs to Max"). For conversation-scoped exports, conversation data is included as structured JSON tables (e.g. `messages.json`, `llm-request-logs.json`), not as a raw database dump.
 
 ```mermaid
 sequenceDiagram
@@ -569,7 +569,7 @@ Existing conversations created before the disk view was introduced are backfille
 
 ## Claude Subscription Bridge — Agentic Provider via Claude Max OAuth
 
-The `claude-subscription` provider lets users on a Claude Max plan drive a Vellum assistant — including skill execution, CES-protected tools, and audit — without an Anthropic API key. Instead of calling `api.anthropic.com` directly (those OAuth tokens are rejected as `429 rate_limit_error`), it spawns the user's local `claude` CLI via the `@anthropic-ai/claude-agent-sdk` package and routes the SDK's tool calls back into Vellum's `ToolExecutor` through an in-process MCP server.
+The `claude-subscription` provider lets users on a Claude Max plan drive a Max assistant — including skill execution, CES-protected tools, and audit — without an Anthropic API key. Instead of calling `api.anthropic.com` directly (those OAuth tokens are rejected as `429 rate_limit_error`), it spawns the user's local `claude` CLI via the `@anthropic-ai/claude-agent-sdk` package and routes the SDK's tool calls back into Max's `ToolExecutor` through an in-process MCP server.
 
 The full architecture, security audit, threat model, and test plan live in [`claude-subscription-bridge.md`](./claude-subscription-bridge.md). The picker UX (install/login/disabled-flag hints) is documented in [`claude-subscription-picker-setup-hint.md`](./claude-subscription-picker-setup-hint.md) with the implementation plan in [`claude-subscription-picker-setup-hint-plan.md`](./claude-subscription-picker-setup-hint-plan.md).
 
@@ -577,7 +577,7 @@ Operational runbook (diagnosing tool failures, falling back to API-key Anthropic
 
 ### Why it's an integration
 
-This provider is structurally closer to the OAuth integrations above than to other LLM providers: it depends on an out-of-band OAuth flow (`claude login`) the user runs in their terminal, a credential vault (macOS Keychain entry `Claude Code-credentials` or `~/.claude/.credentials.json` on Linux/Windows), and a separate process (`claude` CLI subprocess) that the daemon spawns for every send. The bridge enforces Vellum's tool-execution invariants on top of an SDK that has its own tool loop — see §3 of the bridge doc for the per-invariant verification status.
+This provider is structurally closer to the OAuth integrations above than to other LLM providers: it depends on an out-of-band OAuth flow (`claude login`) the user runs in their terminal, a credential vault (macOS Keychain entry `Claude Code-credentials` or `~/.claude/.credentials.json` on Linux/Windows), and a separate process (`claude` CLI subprocess) that the daemon spawns for every send. The bridge enforces Max's tool-execution invariants on top of an SDK that has its own tool loop — see §3 of the bridge doc for the per-invariant verification status.
 
 ### Files to know
 
@@ -588,7 +588,7 @@ This provider is structurally closer to the OAuth integrations above than to oth
 | `assistant/src/providers/provider-availability.ts`                  | CLI + Keychain probe (with `ClaudeSubscriptionProbes` DI for hermetic tests)                               |
 | `assistant/src/memory/bridged-tool-calls-store.ts`                  | Per-tool-call telemetry store (Phase 3.1)                                                                  |
 | `assistant/src/agent/loop.ts` (bridge closure)                      | Forwards `invocation.onChunk` + `sensitiveBindings`; emits `claude_subscription.tool_call` log + telemetry |
-| `clients/macos/vellum-assistant/Features/Chat/ComposerSettingsMenu.swift` | Picker row + setup-hint UX                                                                                 |
+| `clients/macos/max-assistant/Features/Chat/ComposerSettingsMenu.swift` | Picker row + setup-hint UX                                                                                 |
 | `meta/feature-flags/feature-flag-registry.json`                     | `claude-subscription-provider` flag                                                                        |
 
 ---

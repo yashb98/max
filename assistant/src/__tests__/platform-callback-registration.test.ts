@@ -55,11 +55,11 @@ describe("platform callback registration", () => {
   });
 
   test("resolves managed callback context from stored credentials", async () => {
-    mockSecureKeys[credentialKey("vellum", "platform_base_url")] =
+    mockSecureKeys[credentialKey("max", "platform_base_url")] =
       "https://platform.example.com";
-    mockSecureKeys[credentialKey("vellum", "platform_assistant_id")] =
+    mockSecureKeys[credentialKey("max", "platform_assistant_id")] =
       "11111111-2222-4333-8444-555555555555";
-    mockSecureKeys[credentialKey("vellum", "assistant_api_key")] =
+    mockSecureKeys[credentialKey("max", "assistant_api_key")] =
       "ast-managed-key";
 
     const context = await resolvePlatformCallbackRegistrationContext();
@@ -74,11 +74,11 @@ describe("platform callback registration", () => {
 
   test("self-hosted assistant with stored credentials is enabled without IS_PLATFORM", async () => {
     mockIsPlatform = false;
-    mockSecureKeys[credentialKey("vellum", "platform_base_url")] =
+    mockSecureKeys[credentialKey("max", "platform_base_url")] =
       "https://platform.example.com";
-    mockSecureKeys[credentialKey("vellum", "platform_assistant_id")] =
+    mockSecureKeys[credentialKey("max", "platform_assistant_id")] =
       "22222222-3333-4444-8555-666666666666";
-    mockSecureKeys[credentialKey("vellum", "assistant_api_key")] =
+    mockSecureKeys[credentialKey("max", "assistant_api_key")] =
       "ast-self-hosted-key";
 
     const context = await resolvePlatformCallbackRegistrationContext();
@@ -106,11 +106,11 @@ describe("platform callback registration", () => {
   });
 
   test("registerCallbackRoute falls back to assistant API key auth", async () => {
-    mockSecureKeys[credentialKey("vellum", "platform_base_url")] =
+    mockSecureKeys[credentialKey("max", "platform_base_url")] =
       "https://platform.example.com";
-    mockSecureKeys[credentialKey("vellum", "platform_assistant_id")] =
+    mockSecureKeys[credentialKey("max", "platform_assistant_id")] =
       "11111111-2222-4333-8444-555555555555";
-    mockSecureKeys[credentialKey("vellum", "assistant_api_key")] =
+    mockSecureKeys[credentialKey("max", "assistant_api_key")] =
       "ast-managed-key";
 
     globalThis.fetch = mock(

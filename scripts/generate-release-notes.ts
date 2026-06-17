@@ -31,7 +31,7 @@ const { values } = parseArgs({
 });
 
 const version = values.version;
-const repo = values.repo ?? "vellum-ai/vellum-assistant";
+const repo = values.repo ?? "max-ai/max-assistant";
 const outputPath = values.output ?? "/tmp/release-notes.md";
 
 if (!version) {
@@ -151,7 +151,7 @@ async function main(): Promise<void> {
     messages: [
       {
         role: "user",
-        content: `You are generating release notes for version ${version} of a software product called "Vellum" (an AI coding assistant). Below are the commit messages included in this release since the last version (${prevTag}). There are ${commits.length} commits total.
+        content: `You are generating release notes for version ${version} of a software product called "Max" (an AI coding assistant). Below are the commit messages included in this release since the last version (${prevTag}). There are ${commits.length} commits total.
 
 Analyze ALL of these commits holistically and produce release notes in the following exact markdown format:
 

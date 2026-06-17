@@ -19,7 +19,7 @@ let workspaceDir: string;
 function freshWorkspace(): void {
   workspaceDir = join(
     tmpdir(),
-    `vellum-migration-068-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-migration-068-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(workspaceDir, { recursive: true });
 }

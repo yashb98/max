@@ -41,8 +41,8 @@ import type {
   SpeakerChangeEvent,
 } from "../../contracts/index.js";
 
-import type { ServerMessage } from "@vellumai/skill-host-contracts";
-import { buildAssistantEvent } from "@vellumai/skill-host-contracts";
+import type { ServerMessage } from "@maxai/skill-host-contracts";
+import { buildAssistantEvent } from "@maxai/skill-host-contracts";
 
 import { InMemoryEventHub } from "../../__tests__/build-test-host.js";
 import {

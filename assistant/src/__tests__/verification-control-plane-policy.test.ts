@@ -30,7 +30,7 @@ const mockConfig = {
     enabled: false,
     backend: "native" as const,
     docker: {
-      image: "vellum-sandbox:latest",
+      image: "max-sandbox:latest",
       cpus: 1,
       memoryMb: 512,
       pidsLimit: 256,
@@ -314,7 +314,7 @@ describe("isVerificationControlPlaneInvocation", () => {
       test(`detects ${path}`, () => {
         expect(
           isVerificationControlPlaneInvocation("network_request", {
-            url: `https://api.vellum.ai${path}`,
+            url: `https://api.max.ai${path}`,
           }),
         ).toBe(true);
       });

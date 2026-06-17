@@ -217,7 +217,7 @@ export function ensurePromptFiles(): void {
 }
 
 /**
- * Build the system prompt from ~/.vellum prompt files.
+ * Build the system prompt from ~/.max prompt files.
  *
  * Composition:
  *   1. Base prompt: IDENTITY.md + SOUL.md (guaranteed to exist after ensurePromptFiles)

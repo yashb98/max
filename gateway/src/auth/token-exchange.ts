@@ -1,8 +1,8 @@
 /**
  * Token exchange module for the gateway's auth system.
  *
- * The gateway receives edge tokens (aud=vellum-gateway) from external clients
- * and mints short-lived exchange tokens (aud=vellum-daemon) for forwarding
+ * The gateway receives edge tokens (aud=max-gateway) from external clients
+ * and mints short-lived exchange tokens (aud=max-daemon) for forwarding
  * to the runtime. This exchange proves gateway origin — only the gateway
  * holds the signing key needed to mint daemon-audience tokens.
  *
@@ -27,7 +27,7 @@ const EXCHANGE_TOKEN_TTL_SECONDS = 60;
 // ---------------------------------------------------------------------------
 
 /**
- * Validate a JWT edge token intended for the gateway (aud=vellum-gateway).
+ * Validate a JWT edge token intended for the gateway (aud=max-gateway).
  *
  * Returns the verified claims on success, or a structured error on failure.
  * Pass `allowExpired: true` to accept expired-but-otherwise-valid tokens
@@ -39,7 +39,7 @@ export function validateEdgeToken(
   token: string,
   opts?: { allowExpired?: boolean },
 ): VerifyResult {
-  return verifyToken(token, "vellum-gateway", opts);
+  return verifyToken(token, "max-gateway", opts);
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export function validateEdgeToken(
 // ---------------------------------------------------------------------------
 
 /**
- * Mint a short-lived exchange token (aud=vellum-daemon) from validated
+ * Mint a short-lived exchange token (aud=max-daemon) from validated
  * edge claims. The sub claim's assistant segment is rewritten to 'self'
  * so the daemon always uses its internal scope constant.
  */
@@ -83,7 +83,7 @@ export function mintExchangeToken(
   }
 
   return mintToken({
-    aud: "vellum-daemon",
+    aud: "max-daemon",
     sub: exchangeSub,
     scope_profile: targetScopeProfile,
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -104,7 +104,7 @@ export function mintExchangeToken(
  */
 export function mintIngressToken(): string {
   return mintToken({
-    aud: "vellum-daemon",
+    aud: "max-daemon",
     sub: "svc:gateway:self",
     scope_profile: "gateway_ingress_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -121,7 +121,7 @@ export function mintIngressToken(): string {
  */
 export function mintServiceToken(): string {
   return mintToken({
-    aud: "vellum-daemon",
+    aud: "max-daemon",
     sub: "svc:gateway:self",
     scope_profile: "gateway_service_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -133,7 +133,7 @@ export function mintServiceToken(): string {
  * Mint a relay token for Twilio WebSocket connections.
  *
  * The gateway's relay/media-stream WS handlers validate these tokens via
- * {@link validateEdgeToken} (aud=vellum-gateway). Previously minted by the
+ * {@link validateEdgeToken} (aud=max-gateway). Previously minted by the
  * daemon and embedded in TwiML; now minted by the gateway and injected into
  * the TwiML response before it reaches Twilio.
  *
@@ -141,7 +141,7 @@ export function mintServiceToken(): string {
  */
 export function mintRelayToken(): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: "svc:gateway:self",
     scope_profile: "gateway_service_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,
@@ -159,7 +159,7 @@ export function mintRelayToken(): string {
  */
 export function mintUiPageToken(): string {
   return mintToken({
-    aud: "vellum-gateway",
+    aud: "max-gateway",
     sub: "svc:gateway:self",
     scope_profile: "ui_page_v1",
     policy_epoch: CURRENT_POLICY_EPOCH,

@@ -28,7 +28,7 @@ mock.module("../util/retry.js", () => ({
   },
 }));
 
-// ── VellumPlatformClient mock state ──────────────────────────────────────────
+// ── MaxPlatformClient mock state ──────────────────────────────────────────
 
 interface FetchCall {
   path: string;
@@ -41,7 +41,7 @@ const fetchResponses: Array<{ ok: boolean; status: number; body?: string }> = []
 let clientAvailable = true;
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => {
       if (!clientAvailable) return null;
       return {

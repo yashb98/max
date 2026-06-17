@@ -19,7 +19,7 @@ let testDataDir: string;
 function freshTempDir(): string {
   return join(
     tmpdir(),
-    `vellum-app-conv-id-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `max-app-conv-id-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
 }
 
@@ -37,7 +37,7 @@ function makeAppParams(name: string) {
 
 beforeEach(() => {
   testDataDir = freshTempDir();
-  process.env.VELLUM_WORKSPACE_DIR = testDataDir;
+  process.env.MAX_WORKSPACE_DIR = testDataDir;
 });
 
 afterEach(() => {

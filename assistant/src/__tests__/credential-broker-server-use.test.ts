@@ -32,7 +32,7 @@ import { _resetBackend } from "../security/secure-keys.js";
 
 const TEST_DIR = join(
   tmpdir(),
-  `vellum-broker-server-use-test-${randomBytes(4).toString("hex")}`,
+  `max-broker-server-use-test-${randomBytes(4).toString("hex")}`,
 );
 const STORE_PATH = join(TEST_DIR, "keys.enc");
 

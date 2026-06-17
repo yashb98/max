@@ -137,7 +137,7 @@ public final class SubagentDetailStore {
 
     #if DEBUG
     @ObservationIgnored
-    private static let perfLog = OSLog(subsystem: "com.vellum.assistant", category: "PerfCounters")
+    private static let perfLog = OSLog(subsystem: "com.max.assistant", category: "PerfCounters")
     @ObservationIgnored
     private var mutationCount = 0
     @ObservationIgnored

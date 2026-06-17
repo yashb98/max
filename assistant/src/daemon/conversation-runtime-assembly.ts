@@ -59,7 +59,7 @@ import type { TrustContext } from "./trust-context.js";
  * interacting.  Used to gate UI-specific references and permission asks.
  */
 export interface ChannelCapabilities {
-  /** The raw channel identifier (e.g. "vellum", "telegram"). */
+  /** The raw channel identifier (e.g. "max", "telegram"). */
   channel: string;
   /** Whether this channel can render the dashboard UI (apps, dynamic pages). */
   dashboardCapable: boolean;
@@ -169,7 +169,7 @@ export function resolveChannelCapabilities(
     case "mac":
     case "macos":
     case "ios":
-      channel = "vellum";
+      channel = "max";
       break;
     default:
       channel = sourceChannel;
@@ -195,7 +195,7 @@ export function resolveChannelCapabilities(
   const resolvedChatType = chatType ?? undefined;
 
   switch (channel) {
-    case "vellum": {
+    case "max": {
       const supportsDesktopUi = iface === "macos";
       return {
         channel,
@@ -808,7 +808,7 @@ export interface UnifiedTurnContextOptions {
  * - Always emits timestamp and interface (when provided).
  * - When `actorContext` is provided (non-guardian turns): emits full actor
  *   identity, trust fields, and behavioral guidance.
- * - When `channelName` is not `"vellum"`: emits response discretion.
+ * - When `channelName` is not `"max"`: emits response discretion.
  */
 export function buildUnifiedTurnContextBlock(
   options: UnifiedTurnContextOptions,
@@ -968,8 +968,8 @@ export function buildUnifiedTurnContextBlock(
     }
   }
 
-  // Response discretion for non-vellum channels.
-  if (options.channelName && options.channelName !== "vellum") {
+  // Response discretion for non-max channels.
+  if (options.channelName && options.channelName !== "max") {
     lines.push(
       `response_discretion: Not every message in a channel thread requires your response. If a message is clearly not directed at you (e.g. people talking among themselves, acknowledgements, reactions), output exactly <no_response/> as your entire reply to stay silent.`,
     );
@@ -2058,7 +2058,7 @@ function synthesizeFallbackTurnContext(
     trust: {
       sourceChannel: inputs.channelCapabilities?.channel
         ? (inputs.channelCapabilities.channel as TrustContext["sourceChannel"])
-        : "vellum",
+        : "max",
       trustClass: "unknown",
     },
     injectionInputs: inputs,

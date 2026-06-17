@@ -428,7 +428,7 @@ describe("LLM catalog parity: daemon vs client", () => {
     // `sync-llm-catalog.ts` writes both files from the same serializer; this
     // guard catches any case where one copy is regenerated without the other.
     // Byte equality is required because SwiftPM bundles the resource verbatim
-    // into `VellumAssistantShared` while the meta/ JSON is consumed as a
+    // into `MaxAssistantShared` while the meta/ JSON is consumed as a
     // cross-package artifact (web codegen, etc.).
     const metaBytes = readFileSync(META_JSON_PATH);
     const swiftPmBytes = readFileSync(SWIFTPM_MIRROR_PATH);

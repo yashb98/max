@@ -56,7 +56,7 @@ const GENERATED_OR_DEPENDENCY_DIR_NAMES = new Set([
   "target",
   "browser-profile",
   "embedding-models",
-  "vellum-assistant",
+  "max-assistant",
 ]);
 
 const SECRET_SEGMENT_NAMES = new Set([

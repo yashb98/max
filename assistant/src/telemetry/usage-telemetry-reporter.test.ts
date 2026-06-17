@@ -44,12 +44,12 @@ mock.module("../memory/turn-events-store.js", () => ({
 let mockPlatformClient: Record<string, unknown> | null = null;
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: async () => mockPlatformClient,
   },
 }));
 
-const mockGetPlatformBaseUrl = mock(() => "https://platform.vellum.ai");
+const mockGetPlatformBaseUrl = mock(() => "https://platform.max.ai");
 
 const mockGetPlatformOrganizationId = mock(() => "");
 const mockGetPlatformUserId = mock(() => "");
@@ -160,7 +160,7 @@ beforeEach(() => {
 
   // Defaults
   mockGetMemoryCheckpoint.mockReturnValue(null);
-  mockGetPlatformBaseUrl.mockReturnValue("https://platform.vellum.ai");
+  mockGetPlatformBaseUrl.mockReturnValue("https://platform.max.ai");
 
   mockFetch = mock(() =>
     Promise.resolve(new Response('{"accepted":0}', { status: 200 })),
@@ -182,7 +182,7 @@ describe("UsageTelemetryReporter", () => {
       return new Response('{"accepted":2}', { status: 200 });
     });
     mockPlatformClient = {
-      baseUrl: "https://test.vellum.ai",
+      baseUrl: "https://test.max.ai",
       assistantApiKey: "test-key",
       platformAssistantId: "asst-123",
       fetch: clientFetchMock,

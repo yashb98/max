@@ -90,15 +90,15 @@ import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 import { RouteResponse } from "./types.js";
 
 /**
- * CES account prefix for platform-identity (`vellum:*`) credentials. Entries
+ * CES account prefix for platform-identity (`max:*`) credentials. Entries
  * with an account that starts with this string are filtered out of any
  * imported bundle so they don't overwrite the target's own Django-provisioned
  * platform identity (most notably `assistant_api_key`).
  *
- * Derived from `credentialKey("vellum", "")` so the prefix automatically
- * tracks the real CES account format — the literal string `"credential/vellum/"`.
+ * Derived from `credentialKey("max", "")` so the prefix automatically
+ * tracks the real CES account format — the literal string `"credential/max/"`.
  */
-const PLATFORM_CREDENTIAL_PREFIX = credentialKey("vellum", "");
+const PLATFORM_CREDENTIAL_PREFIX = credentialKey("max", "");
 
 /**
  * Platform-identity fields that the managed runtime expects to see in CES.
@@ -112,7 +112,7 @@ const PLATFORM_CREDENTIAL_PREFIX = credentialKey("vellum", "");
  * reconcile metadata.json against CES so any field CES already holds a
  * value for gets a matching metadata entry.
  */
-const VELLUM_PLATFORM_IDENTITY_FIELDS = [
+const MAX_PLATFORM_IDENTITY_FIELDS = [
   "platform_base_url",
   "assistant_api_key",
   "platform_assistant_id",
@@ -122,29 +122,29 @@ const VELLUM_PLATFORM_IDENTITY_FIELDS = [
 ] as const;
 
 /**
- * Idempotent post-import reconciliation: for each vellum:* field, if CES
+ * Idempotent post-import reconciliation: for each max:* field, if CES
  * has a value but metadata.json doesn't list it, upsert the entry. Pure
  * add-only — never deletes anything. Safe to run whether or not Django's
  * post-hatch provisioning has completed (missing CES values are skipped).
  *
  * Exported for direct unit-testing.
  */
-export async function reconcileVellumMetadataFromCes(warningSink: {
+export async function reconcileMaxMetadataFromCes(warningSink: {
   warnings: string[];
 }): Promise<void> {
-  for (const field of VELLUM_PLATFORM_IDENTITY_FIELDS) {
+  for (const field of MAX_PLATFORM_IDENTITY_FIELDS) {
     try {
-      const value = await getSecureKeyAsync(credentialKey("vellum", field));
+      const value = await getSecureKeyAsync(credentialKey("max", field));
       if (!value) continue;
-      if (getCredentialMetadata("vellum", field)) continue;
-      upsertCredentialMetadata("vellum", field, {});
+      if (getCredentialMetadata("max", field)) continue;
+      upsertCredentialMetadata("max", field, {});
       log.info(
         { field },
-        "Reconciled vellum:* metadata entry from CES after import",
+        "Reconciled max:* metadata entry from CES after import",
       );
     } catch (err) {
       warningSink.warnings.push(
-        `Failed to reconcile vellum:${field} metadata: ${
+        `Failed to reconcile max:${field} metadata: ${
           err instanceof Error ? err.message : String(err)
         }`,
       );
@@ -180,7 +180,7 @@ async function resolveAssistantId(): Promise<string> {
   if (inMemory) return inMemory;
   try {
     const stored = await getSecureKeyAsync(
-      credentialKey("vellum", "platform_assistant_id"),
+      credentialKey("max", "platform_assistant_id"),
     );
     if (stored) return stored;
   } catch (err) {
@@ -925,10 +925,10 @@ export async function handleMigrationImport(
       );
     }
 
-    // Reconcile vellum:* metadata against CES so the gateway's
+    // Reconcile max:* metadata against CES so the gateway's
     // readServiceCredentials can still find platform identity values even
     // if Django's post-hatch provisioning raced with the import.
-    await reconcileVellumMetadataFromCes(result.report);
+    await reconcileMaxMetadataFromCes(result.report);
 
     // Invalidate in-process config cache so imported settings.json takes effect
     invalidateConfigCache();
@@ -974,7 +974,7 @@ const MigrationImportFromGcsBody = z.object({ bundle_url: z.string().url() });
  * `extraction_failed` for truncated bodies, matching the OpenAPI
  * contract.
  */
-const kFetchBodyError = Symbol.for("vellum.migrationImport.fetchBodyError");
+const kFetchBodyError = Symbol.for("max.migrationImport.fetchBodyError");
 
 /**
  * Sidecar flag on the wrapper PassThrough indicating that its upstream
@@ -983,7 +983,7 @@ const kFetchBodyError = Symbol.for("vellum.migrationImport.fetchBodyError");
  * in `result.reason = "extraction_failed"` but strips the tag.
  */
 const kFetchBodyTornDown = Symbol.for(
-  "vellum.migrationImport.fetchBodyTornDown",
+  "max.migrationImport.fetchBodyTornDown",
 );
 
 function tagFetchBodyError(err: NodeJS.ErrnoException): void {
@@ -1417,13 +1417,13 @@ async function runGcsImport(
     result.report.warnings.push(...credentialImportWarningSink.warnings);
   }
 
-  // Reconcile vellum:* metadata against CES so the gateway's
+  // Reconcile max:* metadata against CES so the gateway's
   // readServiceCredentials can still find platform identity values even
   // if Django's post-hatch provisioning raced with the streaming import
   // (its metadata upsert may have landed in the backup-dir copy that the
   // swap pushed aside, while its CES write survived on the separate
   // volume).
-  await reconcileVellumMetadataFromCes(result.report);
+  await reconcileMaxMetadataFromCes(result.report);
 
   // streamCommitImport already invalidated config + trust caches inside its
   // post-swap cleanup. We only need to check whether the newly-imported DB
@@ -1609,7 +1609,7 @@ interface CredentialWarningSink {
 }
 
 /**
- * Filter platform-identity (vellum:*) credentials out of the bundle, push
+ * Filter platform-identity (max:*) credentials out of the bundle, push
  * user credentials into CES via `bulkSetSecureKeysAsync`, and return a
  * structured summary. Never throws — CES failures become report warnings.
  */
@@ -1617,7 +1617,7 @@ async function importBundleCredentialsIntoCes(
   bundleCredentials: Array<{ account: string; value: string }>,
   warningSink: CredentialWarningSink,
 ): Promise<CredentialImportSummary | undefined> {
-  // Filter out platform-identity credentials (vellum:*) — these are
+  // Filter out platform-identity credentials (max:*) — these are
   // environment-specific and must not overwrite the target's own identity.
   const userCredentials = bundleCredentials.filter(
     (c) => !c.account.startsWith(PLATFORM_CREDENTIAL_PREFIX),

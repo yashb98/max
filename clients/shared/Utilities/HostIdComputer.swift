@@ -14,7 +14,7 @@ public enum HostIdComputer {
     /// Falls back to a random UUID if the platform UUID cannot be read.
     public static func computeHostId() -> String {
         let platformUUID = getPlatformUUID() ?? UUID().uuidString
-        let salt = "vellum-assistant-host-id"
+        let salt = "max-assistant-host-id"
         let input = Data((platformUUID + salt).utf8)
         let hash = SHA256.hash(data: input)
         return hash.compactMap { String(format: "%02x", $0) }.joined()

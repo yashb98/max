@@ -67,7 +67,7 @@ fi
 RULE_F=$(git grep -n -E '\.(white|black|red|orange|yellow|green|blue|gray)\b' -- "${SCOPE_PATHSPECS[@]}" \
   | grep -v 'shared/DesignSystem/Tokens/' \
   | grep -v 'Tests/' \
-  | grep -v 'VellumQLThumbnail/' \
+  | grep -v 'MaxQLThumbnail/' \
   | grep -v '// color-literal-ok' \
   || true)
 if [[ -n "$RULE_F" ]]; then

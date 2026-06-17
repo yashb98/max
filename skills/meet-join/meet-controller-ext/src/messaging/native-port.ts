@@ -1,5 +1,5 @@
 /**
- * Thin wrapper around `chrome.runtime.connectNative("com.vellum.meet")` that
+ * Thin wrapper around `chrome.runtime.connectNative("com.max.meet")` that
  *
  *   - validates every inbound frame as {@link BotToExtensionMessage} and every
  *     outbound frame as {@link ExtensionToBotMessage};
@@ -21,7 +21,7 @@ import {
 } from "../../../contracts/native-messaging.js";
 
 /** Name of the native-messaging host the extension connects to. */
-export const NATIVE_HOST_NAME = "com.vellum.meet";
+export const NATIVE_HOST_NAME = "com.max.meet";
 
 /** Default starting backoff between reconnect attempts. */
 export const DEFAULT_RECONNECT_BASE_MS = 500;

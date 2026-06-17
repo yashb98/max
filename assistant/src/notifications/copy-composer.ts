@@ -299,7 +299,7 @@ export function hasInviteFlowDirective(text: string | undefined): boolean {
  * `contextPayload` and works identically regardless of which channel
  * (Slack, Telegram, desktop, etc.) the notification is delivered to.
  * When `guardianResolutionSource` is present and not `"source-channel-contact"`,
- * the guardian was resolved via fallback (e.g. vellum anchor) rather than
+ * the guardian was resolved via fallback (e.g. max anchor) rather than
  * a verified same-channel contact — downstream copy or routing can use
  * this to append verification CTAs like "Was this you?".
  */
@@ -340,7 +340,7 @@ export function buildAccessRequestContractText(
   }
   lines.push(buildAccessRequestInviteDirective());
   if (
-    (guardianResolutionSource === "vellum-anchor" ||
+    (guardianResolutionSource === "max-anchor" ||
       guardianResolutionSource === "none") &&
     sourceChannel
   ) {

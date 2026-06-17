@@ -71,7 +71,7 @@ export class ToolExecutor {
       conversationId: context.conversationId,
       turnIndex: 0,
       trust: {
-        sourceChannel: parseChannelId(context.executionChannel) ?? "vellum",
+        sourceChannel: parseChannelId(context.executionChannel) ?? "max",
         trustClass: context.trustClass,
       },
     };

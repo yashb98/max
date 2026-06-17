@@ -80,7 +80,7 @@ initializeDb();
 const TEST_BEARER_TOKEN = "test-token";
 
 /**
- * Reset test state and return the vellum anchor principal ID.
+ * Reset test state and return the max anchor principal ID.
  * Guardian bindings created in tests must use this principal so the
  * assistant-anchored resolution check in access-request-helper passes.
  */
@@ -103,10 +103,10 @@ function resetState(): string {
     reason: "mock",
     deliveryResults: [],
   };
-  // Seed the vellum anchor binding (gateway does this at startup in production)
-  const principalId = `vellum-principal-${crypto.randomUUID()}`;
+  // Seed the max anchor binding (gateway does this at startup in production)
+  const principalId = `max-principal-${crypto.randomUUID()}`;
   createGuardianBinding({
-    channel: "vellum",
+    channel: "max",
     guardianExternalUserId: principalId,
     guardianDeliveryChatId: "local",
     guardianPrincipalId: principalId,
@@ -254,7 +254,7 @@ describe("non-member access request notification", () => {
   });
 
   test("access request is created with self-healed principal even without same-channel guardian binding", async () => {
-    // No guardian binding on any channel — self-heal creates a vellum binding
+    // No guardian binding on any channel — self-heal creates a max binding
     // so the access_request (now decisionable) has a guardianPrincipalId.
     const req = buildInboundRequest();
     const resp = await handleChannelInbound(req, undefined, TEST_BEARER_TOKEN);
@@ -281,15 +281,15 @@ describe("non-member access request notification", () => {
       kind: "access_request",
     });
     expect(pending.length).toBe(1);
-    // Self-heal bootstraps a vellum binding — guardianExternalUserId is now set
+    // Self-heal bootstraps a max binding — guardianExternalUserId is now set
     expect(pending[0].guardianExternalUserId).toBeDefined();
     expect(pending[0].guardianPrincipalId).toBeDefined();
   });
 
-  test("non-source-channel binding falls back to vellum anchor for Telegram access request", async () => {
+  test("non-source-channel binding falls back to max anchor for Telegram access request", async () => {
     // Only a voice guardian binding exists — no Telegram binding.
     // Since cross-channel fallback was removed, the access request resolves
-    // to the assistant's vellum anchor identity instead.
+    // to the assistant's max anchor identity instead.
     createGuardianBinding({
       channel: "phone",
       guardianExternalUserId: "guardian-voice-user",
@@ -311,10 +311,10 @@ describe("non-member access request notification", () => {
       string,
       unknown
     >;
-    // Falls back to vellum anchor, not the phone binding
-    expect(payload.guardianBindingChannel).toBe("vellum");
+    // Falls back to max anchor, not the phone binding
+    expect(payload.guardianBindingChannel).toBe("max");
 
-    // Canonical request uses the vellum anchor identity
+    // Canonical request uses the max anchor identity
     const pending = listCanonicalGuardianRequests({
       status: "pending",
       requesterExternalUserId: "user-unknown-456",
@@ -393,7 +393,7 @@ describe("access-request-helper unit tests", () => {
       kind: "access_request",
     });
     expect(pending.length).toBe(1);
-    // Self-heal bootstraps a vellum binding
+    // Self-heal bootstraps a max binding
     expect(pending[0].guardianExternalUserId).toBeDefined();
     expect(pending[0].guardianPrincipalId).toBeDefined();
 
@@ -401,7 +401,7 @@ describe("access-request-helper unit tests", () => {
     expect(emitSignalCalls.length).toBe(1);
   });
 
-  test("notifyGuardianOfAccessRequest falls back to assistant-anchored vellum identity when source-channel binding is missing", () => {
+  test("notifyGuardianOfAccessRequest falls back to assistant-anchored max identity when source-channel binding is missing", () => {
     // Only voice binding exists
     createGuardianBinding({
       channel: "phone",
@@ -433,10 +433,10 @@ describe("access-request-helper unit tests", () => {
       string,
       unknown
     >;
-    expect(payload.guardianBindingChannel).toBe("vellum");
+    expect(payload.guardianBindingChannel).toBe("max");
   });
 
-  test("notifyGuardianOfAccessRequest prefers source-channel binding over vellum anchor", () => {
+  test("notifyGuardianOfAccessRequest prefers source-channel binding over max anchor", () => {
     // Both Telegram and voice bindings exist with the anchor principal
     createGuardianBinding({
       channel: "telegram",
@@ -468,7 +468,7 @@ describe("access-request-helper unit tests", () => {
       kind: "access_request",
     });
     expect(pending.length).toBe(1);
-    // Should use the Telegram binding, not the vellum anchor
+    // Should use the Telegram binding, not the max anchor
     expect(pending[0].guardianExternalUserId).toBe("guardian-tg");
 
     const payload = emitSignalCalls[0].contextPayload as Record<
@@ -558,8 +558,8 @@ describe("access-request-helper unit tests", () => {
       reason: "ok",
       deliveryResults: [
         {
-          channel: "vellum",
-          destination: "vellum",
+          channel: "max",
+          destination: "max",
           status: "sent",
           conversationId: "conv-guardian-access-request",
         },
@@ -585,22 +585,22 @@ describe("access-request-helper unit tests", () => {
     await flushAsyncAccessRequestBookkeeping();
 
     const deliveries = listCanonicalGuardianDeliveries(result.requestId);
-    const vellum = deliveries.find((d) => d.destinationChannel === "vellum");
+    const max = deliveries.find((d) => d.destinationChannel === "max");
     const telegram = deliveries.find(
       (d) => d.destinationChannel === "telegram",
     );
 
-    expect(vellum).toBeDefined();
-    expect(vellum!.destinationConversationId).toBe(
+    expect(max).toBeDefined();
+    expect(max!.destinationConversationId).toBe(
       "conv-guardian-access-request",
     );
-    expect(vellum!.status).toBe("sent");
+    expect(max!.status).toBe("sent");
     expect(telegram).toBeDefined();
     expect(telegram!.destinationChatId).toBe("guardian-chat-123");
     expect(telegram!.status).toBe("sent");
   });
 
-  test("notifyGuardianOfAccessRequest skips vellum fallback for same-channel-only routing (telegram)", async () => {
+  test("notifyGuardianOfAccessRequest skips max fallback for same-channel-only routing (telegram)", async () => {
     // Set up a telegram guardian binding with the anchor principal so
     // guardianResolutionSource resolves to "source-channel-contact" and
     // sameChannelOnly is true.
@@ -613,7 +613,7 @@ describe("access-request-helper unit tests", () => {
     });
 
     mockEmitResult = {
-      signalId: "sig-no-vellum",
+      signalId: "sig-no-max",
       deduplicated: false,
       dispatched: true,
       reason: "telegram-only",
@@ -640,13 +640,13 @@ describe("access-request-helper unit tests", () => {
     await flushAsyncAccessRequestBookkeeping();
 
     const deliveries = listCanonicalGuardianDeliveries(result.requestId);
-    const vellum = deliveries.find((d) => d.destinationChannel === "vellum");
+    const max = deliveries.find((d) => d.destinationChannel === "max");
     const telegram = deliveries.find(
       (d) => d.destinationChannel === "telegram",
     );
 
-    // Guardian IS verified on telegram → sameChannelOnly, no vellum fallback
-    expect(vellum).toBeUndefined();
+    // Guardian IS verified on telegram → sameChannelOnly, no max fallback
+    expect(max).toBeUndefined();
     expect(telegram).toBeDefined();
     expect(telegram!.destinationChatId).toBe("guardian-chat-456");
     expect(telegram!.status).toBe("sent");

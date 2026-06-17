@@ -19,13 +19,13 @@ All assistant API requests from clients, CLI, skills, and user-facing tooling **
 **Exception boundary:** The gateway service itself may call the runtime internally. Tests may use direct runtime URLs for isolated unit/integration scenarios. Intentional local daemon-control paths are exempt:
 
 - `clients/shared/Network/DaemonClient.swift`
-- `clients/macos/vellum-assistant/Features/Settings/SettingsConnectTab.swift` (health probe)
+- `clients/macos/max-assistant/Features/Settings/SettingsConnectTab.swift` (health probe)
 
 **Migration rule:** If a needed endpoint is not available at the gateway, add a gateway route/proxy first, then consume it. Do not work around a missing gateway endpoint by hitting the runtime directly.
 
 **Ban on hardcoded runtime hosts/ports:** Do not embed `localhost:7821`, `127.0.0.1:7821`, or runtime-port-derived URLs in docs, skills, or user-facing guidance. Always reference gateway URLs instead. A CI guard test (`gateway-only-guard.test.ts`) enforces this — any new direct runtime URL reference in production code or skills will fail CI.
 
-**SKILL.md retrieval contract:** For config/status retrieval in bundled skills, use `bash` + canonical CLI surfaces. Start with `assistant config get` for generic config keys and secure credential surfaces (`credential_store`, `assistant keys`) for secrets. Do not use direct gateway `curl` for read-only retrieval paths. Do not use credential store lookup commands (`security find-generic-password`, `secret-tool`) in SKILL.md. `host_bash` is not allowed for Vellum CLI retrieval commands unless a documented exception is intentionally allowlisted.
+**SKILL.md retrieval contract:** For config/status retrieval in bundled skills, use `bash` + canonical CLI surfaces. Start with `assistant config get` for generic config keys and secure credential surfaces (`credential_store`, `assistant keys`) for secrets. Do not use direct gateway `curl` for read-only retrieval paths. Do not use credential store lookup commands (`security find-generic-password`, `secret-tool`) in SKILL.md. `host_bash` is not allowed for Max CLI retrieval commands unless a documented exception is intentionally allowlisted.
 
 **SKILL.md proxied outbound pattern:** For outbound third-party API calls from skills that require stored credentials, default to `bash` with `network_mode: "proxied"` and `credential_ids` instead of manual token/credential store plumbing. This keeps credentials out of chat and enforces credential policies consistently.
 

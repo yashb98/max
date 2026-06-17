@@ -77,7 +77,7 @@ function makeEmailPayload(overrides?: {
   return JSON.stringify({
     from: overrides?.from ?? "sender@example.com",
     fromName: overrides?.fromName,
-    to: overrides?.to ?? "assistant@vellum.me",
+    to: overrides?.to ?? "assistant@max.me",
     subject: overrides?.subject ?? "Hello",
     strippedText: overrides?.strippedText ?? "Hi, how are you?",
     bodyText:
@@ -97,7 +97,7 @@ function postRequest(body: string, secret?: string): Request {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "vellum-signature": computeSignature(body, sigSecret),
+      "max-signature": computeSignature(body, sigSecret),
     },
     body,
   });
@@ -106,7 +106,7 @@ function postRequest(body: string, secret?: string): Request {
 function makeCaches(secret?: string) {
   const credentials = {
     get: async (key: string) => {
-      if (key === credentialKey("vellum", "webhook_secret"))
+      if (key === credentialKey("max", "webhook_secret"))
         return secret ?? TEST_WEBHOOK_SECRET;
       return undefined;
     },
@@ -197,7 +197,7 @@ describe("email-webhook", () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "vellum-signature": computeSignature(body, TEST_WEBHOOK_SECRET),
+        "max-signature": computeSignature(body, TEST_WEBHOOK_SECRET),
       },
       body,
     });
@@ -258,7 +258,7 @@ describe("email-webhook", () => {
     const { handler } = createEmailWebhookHandler(baseConfig, makeCaches());
     const body = JSON.stringify({
       from: "test@example.com",
-      to: "bot@vellum.me",
+      to: "bot@max.me",
       messageId: "<fallback@example.com>",
       conversationId: "conv-fallback",
       bodyText: "Full body content here",
@@ -292,7 +292,7 @@ describe("email-webhook", () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "vellum-signature": computeSignature(body, "wrong-secret"),
+        "max-signature": computeSignature(body, "wrong-secret"),
       },
       body,
     });
@@ -335,7 +335,7 @@ describe("email-webhook", () => {
       };
     };
     expect(options.sourceMetadata.emailSubject).toBe("Re: Project Update");
-    expect(options.sourceMetadata.emailRecipient).toBe("assistant@vellum.me");
+    expect(options.sourceMetadata.emailRecipient).toBe("assistant@max.me");
     expect(options.sourceMetadata.emailInReplyTo).toBe("<parent@example.com>");
     expect(options.sourceMetadata.emailReferences).toBe(
       "<root@example.com> <parent@example.com>",
@@ -381,7 +381,7 @@ describe("email-webhook", () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "vellum-signature": computeSignature(body, "wrong-secret"),
+        "max-signature": computeSignature(body, "wrong-secret"),
       },
       body,
     });

@@ -1,5 +1,5 @@
 /**
- * @vellumai/gateway-client
+ * @maxai/gateway-client
  *
  * Shared client package for assistant-to-gateway communication. Provides
  * HTTP delivery, trust-rule CRUD, and Unix-socket IPC helpers that the

@@ -314,7 +314,7 @@ export class SkillHostClient implements SkillHost {
   private cachedAssistantName: string | undefined = undefined;
   private cachedPrefetchDone = false;
   private cachedWorkspaceDir: string | null = null;
-  private cachedVellumRoot: string | null = null;
+  private cachedMaxRoot: string | null = null;
   private cachedRuntimeMode: DaemonRuntimeMode | null = null;
 
   // ── Local dispatch state ────────────────────────────────────────────────
@@ -369,7 +369,7 @@ export class SkillHostClient implements SkillHost {
 
   /**
    * Connect to the skill IPC socket and prefetch sync-cacheable state
-   * (assistant id, workspace dir, vellum root, runtime mode, assistant
+   * (assistant id, workspace dir, max root, runtime mode, assistant
    * name). Safe to call multiple times — the first call initiates the
    * connection, concurrent calls await the same promise.
    */
@@ -783,16 +783,16 @@ export class SkillHostClient implements SkillHost {
   // ── Internal: bootstrap cache ───────────────────────────────────────────
 
   private async prefetchSyncState(): Promise<void> {
-    const [workspaceDir, vellumRootValue, runtimeMode, name] =
+    const [workspaceDir, maxRootValue, runtimeMode, name] =
       await Promise.all([
         this.call<string>("host.platform.workspaceDir"),
-        this.call<string>("host.platform.vellumRoot"),
+        this.call<string>("host.platform.maxRoot"),
         this.call<DaemonRuntimeMode>("host.platform.runtimeMode"),
         this.call<string | null>("host.identity.getAssistantName"),
       ]);
     this.cachedPrefetchDone = true;
     this.cachedWorkspaceDir = workspaceDir;
-    this.cachedVellumRoot = vellumRootValue;
+    this.cachedMaxRoot = maxRootValue;
     this.cachedRuntimeMode = runtimeMode;
     this.cachedAssistantName = name ?? undefined;
   }
@@ -864,9 +864,9 @@ export class SkillHostClient implements SkillHost {
         if (this.cachedWorkspaceDir === null) throw notConnected();
         return this.cachedWorkspaceDir;
       },
-      vellumRoot: () => {
-        if (this.cachedVellumRoot === null) throw notConnected();
-        return this.cachedVellumRoot;
+      maxRoot: () => {
+        if (this.cachedMaxRoot === null) throw notConnected();
+        return this.cachedMaxRoot;
       },
       runtimeMode: () => {
         if (this.cachedRuntimeMode === null) throw notConnected();
@@ -882,12 +882,12 @@ export class SkillHostClient implements SkillHost {
     return {
       getConfigured: async (callSite: string): Promise<Provider | null> =>
         ({
-          __vellumSkillHostClientHandle: "llm-provider",
+          __maxSkillHostClientHandle: "llm-provider",
           callSite,
         }) as unknown as Provider,
       userMessage: (text: string): UserMessage =>
         ({
-          __vellumSkillHostClientHandle: "user-message",
+          __maxSkillHostClientHandle: "user-message",
           text,
         }) as unknown as UserMessage,
       extractToolUse: (_response: unknown): ToolUse | null => {
@@ -927,7 +927,7 @@ export class SkillHostClient implements SkillHost {
       },
       resolveStreamingTranscriber: async (spec: unknown) =>
         ({
-          __vellumSkillHostClientHandle: "streaming-transcriber",
+          __maxSkillHostClientHandle: "streaming-transcriber",
           spec,
         }) as unknown,
     };
@@ -937,7 +937,7 @@ export class SkillHostClient implements SkillHost {
     return {
       get: (id: string): TtsProvider =>
         ({
-          __vellumSkillHostClientHandle: "tts-provider",
+          __maxSkillHostClientHandle: "tts-provider",
           id,
         }) as unknown as TtsProvider,
       resolveConfig: (): TtsConfig => {
@@ -1328,7 +1328,7 @@ export class SkillHostClient implements SkillHost {
     return {
       createTracker: () =>
         ({
-          __vellumSkillHostClientHandle: "speaker-tracker",
+          __maxSkillHostClientHandle: "speaker-tracker",
         }) as unknown,
     };
   }

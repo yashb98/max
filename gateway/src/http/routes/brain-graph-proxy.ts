@@ -14,7 +14,7 @@
  * themselves, eliminating the need for embedded tokens entirely. See ATL-307.
  */
 
-import { proxyForwardToResponse } from "@vellumai/assistant-client";
+import { proxyForwardToResponse } from "@maxai/assistant-client";
 
 import {
   mintServiceToken,

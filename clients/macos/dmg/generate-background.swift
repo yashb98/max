@@ -3,7 +3,7 @@
 // Usage: swift generate-background.swift [output-path]
 // Output: A 1320x1000 (Retina 2x) PNG suitable for a 660x500 DMG window.
 //
-// The background matches the Vellum onboarding style: warm cream surface
+// The background matches the Max onboarding style: warm cream surface
 // with the character illustration strip along the bottom edge.
 
 import AppKit
@@ -27,7 +27,7 @@ let leftIconX = 200 * 2   // 400
 let rightIconX = 460 * 2  // 920
 let iconCenterY = 200 * 2 // 400
 
-// --- Colors (Vellum onboarding: warm cream surface) ---
+// --- Colors (Max onboarding: warm cream surface) ---
 func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1.0) -> [CGFloat] {
     [r / 255.0, g / 255.0, b / 255.0, a]
 }
@@ -130,7 +130,7 @@ func loadFont(from path: String, size: CGFloat) -> CTFont? {
 
 // VFont.titleMedium = DM Sans weight 400 (Regular), size 20pt → 40px at 2x
 let fontSize: CGFloat = 40.0
-let fontDir = scriptDir + "/../vellum-assistant/Resources/Fonts"
+let fontDir = scriptDir + "/../max-assistant/Resources/Fonts"
 let dmSansFont = loadFont(from: fontDir + "/DMSans-SemiBold.ttf", size: fontSize)
     ?? CTFontCreateWithName("Helvetica Neue" as CFString, fontSize, nil) // fallback
 
@@ -160,7 +160,7 @@ let dragColor = CGColor(colorSpace: colorSpace, components: rgb(100, 95, 75, 0.5
 drawCenteredText("Drag to install", centerX: CGFloat(width) / 2.0, y: textY, font: dmSansFont, color: dragColor)
 
 // --- Draw characters image at the bottom ---
-let charactersPath = scriptDir + "/../vellum-assistant/Resources/welcome-characters.png"
+let charactersPath = scriptDir + "/../max-assistant/Resources/welcome-characters.png"
 if let charactersData = NSData(contentsOfFile: charactersPath) as Data?,
    let imageSource = CGImageSourceCreateWithData(charactersData as CFData, nil),
    let charactersImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) {

@@ -13,7 +13,7 @@
  *
  * This file exercises **production code** exclusively:
  * - `createCesClient` from `credential-execution/client.ts`
- * - Zod schemas from `@vellumai/service-contracts/credential-rpc` (HandshakeRequestSchema,
+ * - Zod schemas from `@maxai/service-contracts/credential-rpc` (HandshakeRequestSchema,
  *   CesRpcSchemas, CesRpcMethod)
  *
  * The `createMockTransport` helper is a mock of the **transport layer**
@@ -41,7 +41,7 @@ import {
   CesRpcMethod,
   CesRpcSchemas,
   HandshakeRequestSchema,
-} from "@vellumai/service-contracts/credential-rpc";
+} from "@maxai/service-contracts/credential-rpc";
 
 import {
   type CesTransport,

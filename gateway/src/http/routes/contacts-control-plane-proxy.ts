@@ -5,7 +5,7 @@
  * auth handling rather than falling through to the catch-all proxy.
  */
 
-import { proxyForward } from "@vellumai/assistant-client";
+import { proxyForward } from "@maxai/assistant-client";
 import { eq } from "drizzle-orm";
 
 import { mintServiceToken } from "../../auth/token-exchange.js";
@@ -28,7 +28,7 @@ const log = getLogger("contacts-control-plane-proxy");
 // ---------------------------------------------------------------------------
 
 const VALID_CONTACT_TYPES = ["human", "assistant"] as const;
-const VALID_ASSISTANT_SPECIES = ["vellum"] as const;
+const VALID_ASSISTANT_SPECIES = ["max"] as const;
 const VALID_CHANNEL_STATUSES = [
   "active",
   "pending",
@@ -66,12 +66,12 @@ function validateSpeciesMetadata(
 ): string | null {
   if (metadata == null) return null;
 
-  if (species === "vellum") {
+  if (species === "max") {
     if (typeof metadata.assistantId !== "string" || !metadata.assistantId) {
-      return 'Vellum assistant metadata requires a non-empty "assistantId" string';
+      return 'Max assistant metadata requires a non-empty "assistantId" string';
     }
     if (typeof metadata.gatewayUrl !== "string" || !metadata.gatewayUrl) {
-      return 'Vellum assistant metadata requires a non-empty "gatewayUrl" string';
+      return 'Max assistant metadata requires a non-empty "gatewayUrl" string';
     }
   }
 

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@vellumai/skill-host-contracts",
+      "name": "@maxai/skill-host-contracts",
       "devDependencies": {
         "@types/bun": "1.3.10",
         "typescript": "5.9.3",

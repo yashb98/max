@@ -70,18 +70,18 @@ export function buildSkillMarkdown(input: BuildSkillMarkdownInput): string {
 
   // Build metadata object matching the format parseFrontmatter expects:
   // metadata:
-  //   vellum:
+  //   max:
   //     emoji: "..."
-  const vellum: Record<string, unknown> = {};
+  const max: Record<string, unknown> = {};
   if (input.emoji) {
-    vellum.emoji = input.emoji;
+    max.emoji = input.emoji;
   }
   if (input.includes && input.includes.length > 0) {
-    vellum.includes = input.includes;
+    max.includes = input.includes;
   }
 
-  if (Object.keys(vellum).length > 0) {
-    const metadata = { vellum };
+  if (Object.keys(max).length > 0) {
+    const metadata = { max };
     const yamlBlock = stringifyYaml(metadata, { indent: 2 });
     lines.push("metadata:");
     for (const yamlLine of yamlBlock.trimEnd().split("\n")) {

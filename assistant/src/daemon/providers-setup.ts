@@ -52,7 +52,7 @@ export async function initializeProvidersAndTools(
   // proxy activation survives assistant restarts. The in-memory override is
   // normally only set by handleAddSecret/handleDeleteSecret at runtime.
   try {
-    const key = credentialKey("vellum", "platform_base_url");
+    const key = credentialKey("max", "platform_base_url");
     const persisted = await getSecureKeyAsync(key);
     if (persisted) {
       setPlatformBaseUrl(persisted);
@@ -68,7 +68,7 @@ export async function initializeProvidersAndTools(
   // Rehydrate the platform assistant ID from the credential store so
   // getPlatformAssistantId() returns the correct value after restarts.
   try {
-    const key = credentialKey("vellum", "platform_assistant_id");
+    const key = credentialKey("max", "platform_assistant_id");
     const persisted = await getSecureKeyAsync(key);
     const trimmed = persisted?.trim();
     if (trimmed) {
@@ -85,7 +85,7 @@ export async function initializeProvidersAndTools(
   // Rehydrate the platform organization ID from the credential store so
   // Sentry events include organization context after restarts.
   try {
-    const key = credentialKey("vellum", "platform_organization_id");
+    const key = credentialKey("max", "platform_organization_id");
     const persisted = await getSecureKeyAsync(key);
     const trimmed = persisted?.trim();
     if (trimmed) {
@@ -103,7 +103,7 @@ export async function initializeProvidersAndTools(
   // Rehydrate the platform user ID from the credential store so
   // telemetry events include user context after restarts.
   try {
-    const key = credentialKey("vellum", "platform_user_id");
+    const key = credentialKey("max", "platform_user_id");
     const persisted = await getSecureKeyAsync(key);
     const trimmed = persisted?.trim();
     if (trimmed) {

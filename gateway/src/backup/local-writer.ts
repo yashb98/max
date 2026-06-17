@@ -2,7 +2,7 @@
  * Local snapshot writer + retention pruner.
  *
  * The "local" destination is the on-device backup directory (typically under
- * `~/.vellum/backups/local`). It always stores plaintext `.vbundle` files —
+ * `~/.max/backups/local`). It always stores plaintext `.vbundle` files —
  * the encrypted variant is reserved for offsite destinations where the user
  * cannot rely on filesystem-level access controls.
  */

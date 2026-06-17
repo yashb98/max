@@ -203,7 +203,7 @@ describe("disableManagedConnectionsForByokHatch", () => {
 
   test("subsequent seedCanonicalConnections call does NOT re-flip a user-re-enabled connection", () => {
     // Models the post-hatch lifecycle: at hatch we disable; the user
-    // later flips one back to active (e.g. after Vellum login). Every
+    // later flips one back to active (e.g. after Max login). Every
     // subsequent daemon boot runs seedCanonicalConnections — and that
     // boot must NOT revert the user's choice. The hatch-disable helper
     // is only ever called from the seedInferenceProfiles hatch branch,

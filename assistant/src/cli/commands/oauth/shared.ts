@@ -7,7 +7,7 @@
 
 import type { Command } from "commander";
 
-import { VellumPlatformClient } from "../../../platform/client.js";
+import { MaxPlatformClient } from "../../../platform/client.js";
 import { writeOutput } from "../../output.js";
 
 // ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ import { writeOutput } from "../../output.js";
 // ---------------------------------------------------------------------------
 
 /**
- * Verify that the user has connected to the Vellum platform (has stored
+ * Verify that the user has connected to the Max platform (has stored
  * credentials). Unlike `requirePlatformClient`, this does NOT require a
  * platform assistant ID — it only checks that credentials exist.
  *
@@ -27,12 +27,12 @@ import { writeOutput } from "../../output.js";
 export async function requirePlatformConnection(
   cmd: Command,
 ): Promise<boolean> {
-  const client = await VellumPlatformClient.create();
+  const client = await MaxPlatformClient.create();
   if (!client) {
     writeOutput(cmd, {
       ok: false,
       error:
-        "Not connected to Vellum platform. Run `vellum platform connect` to connect first.",
+        "Not connected to Max platform. Run `max platform connect` to connect first.",
     });
     process.exitCode = 1;
     return false;

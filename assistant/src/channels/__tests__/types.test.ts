@@ -57,8 +57,8 @@ describe("isInterfaceId", () => {
     expect(isInterfaceId("safari-extension")).toBe(false);
   });
 
-  test("returns false for legacy alias 'vellum' (use parseInterfaceId to normalize)", () => {
-    expect(isInterfaceId("vellum")).toBe(false);
+  test("returns false for legacy alias 'max' (use parseInterfaceId to normalize)", () => {
+    expect(isInterfaceId("max")).toBe(false);
   });
 });
 
@@ -68,8 +68,8 @@ describe("parseInterfaceId", () => {
     expect(parseInterfaceId("macos")).toBe("macos");
   });
 
-  test("normalizes legacy 'vellum' alias to 'web'", () => {
-    expect(parseInterfaceId("vellum")).toBe("web");
+  test("normalizes legacy 'max' alias to 'web'", () => {
+    expect(parseInterfaceId("max")).toBe("web");
   });
 
   test("returns null for unknown interface", () => {

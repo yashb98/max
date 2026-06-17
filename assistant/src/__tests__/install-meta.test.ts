@@ -38,7 +38,7 @@ describe("writeInstallMeta", () => {
   test("writes a valid install-meta.json with all required fields", () => {
     const dir = makeTempDir();
     const meta: SkillInstallMeta = {
-      origin: "vellum",
+      origin: "max",
       installedAt: "2025-01-15T10:30:00.000Z",
       version: "1.2.3",
     };
@@ -49,7 +49,7 @@ describe("writeInstallMeta", () => {
     expect(existsSync(filePath)).toBe(true);
 
     const parsed = JSON.parse(readFileSync(filePath, "utf-8"));
-    expect(parsed.origin).toBe("vellum");
+    expect(parsed.origin).toBe("max");
     expect(parsed.installedAt).toBe("2025-01-15T10:30:00.000Z");
     expect(parsed.version).toBe("1.2.3");
   });
@@ -95,7 +95,7 @@ describe("writeInstallMeta", () => {
   test("writes install-meta.json with contentHash", () => {
     const dir = makeTempDir();
     const meta: SkillInstallMeta = {
-      origin: "vellum",
+      origin: "max",
       installedAt: "2025-04-01T00:00:00.000Z",
       contentHash: "v2:abc123def456",
     };
@@ -111,12 +111,12 @@ describe("writeInstallMeta", () => {
   test("overwrites existing install-meta.json", () => {
     const dir = makeTempDir();
     writeInstallMeta(dir, {
-      origin: "vellum",
+      origin: "max",
       installedAt: "2025-01-01T00:00:00.000Z",
       version: "1.0.0",
     });
     writeInstallMeta(dir, {
-      origin: "vellum",
+      origin: "max",
       installedAt: "2025-06-01T00:00:00.000Z",
       version: "2.0.0",
     });
@@ -196,7 +196,7 @@ describe("readInstallMeta", () => {
 
     const result = readInstallMeta(dir);
     expect(result).not.toBeNull();
-    expect(result!.origin).toBe("vellum");
+    expect(result!.origin).toBe("max");
     expect(result!.version).toBe("v1:abc123");
     expect(result!.installedAt).toBe("2025-02-01T08:00:00.000Z");
   });
@@ -226,7 +226,7 @@ describe("readInstallMeta", () => {
       expect(result!.installedBy).toBeUndefined();
     });
 
-    test("infers vellum origin from version.json with version but no origin", () => {
+    test("infers max origin from version.json with version but no origin", () => {
       const dir = makeTempDir();
       writeFileSync(
         join(dir, "version.json"),
@@ -239,7 +239,7 @@ describe("readInstallMeta", () => {
 
       const result = readInstallMeta(dir);
       expect(result).not.toBeNull();
-      expect(result!.origin).toBe("vellum");
+      expect(result!.origin).toBe("max");
       expect(result!.version).toBe("v1:abc123");
       expect(result!.installedAt).toBe("2025-02-01T08:00:00.000Z");
       expect(result!.installedBy).toBeUndefined();
@@ -319,7 +319,7 @@ describe("readInstallMeta", () => {
 
       const result = readInstallMeta(dir);
       expect(result).not.toBeNull();
-      expect(result!.origin).toBe("vellum");
+      expect(result!.origin).toBe("max");
       // Should have a generated installedAt since the file lacked one
       expect(typeof result!.installedAt).toBe("string");
       expect(new Date(result!.installedAt).getTime()).not.toBeNaN();
@@ -417,7 +417,7 @@ describe("computeSkillHash", () => {
     writeFileSync(
       join(dir, "install-meta.json"),
       JSON.stringify({
-        origin: "vellum",
+        origin: "max",
         installedAt: "2025-01-01T00:00:00.000Z",
         contentHash: hashBefore,
       }),
@@ -482,7 +482,7 @@ describe("collectFileContents", () => {
   test("excludes install-meta.json and version.json at root level", () => {
     const dir = makeTempDir();
     writeFileSync(join(dir, "SKILL.md"), "# Skill\n");
-    writeFileSync(join(dir, "install-meta.json"), '{"origin":"vellum"}');
+    writeFileSync(join(dir, "install-meta.json"), '{"origin":"max"}');
     writeFileSync(join(dir, "version.json"), '{"version":"1.0.0"}');
 
     const results = collectFileContents(dir);

@@ -3,7 +3,7 @@
  * {@link VELAY_ALLOWED_PATHS_HEADER} HTTP header. Velay parses the JSON-encoded
  * regex array on the platform side
  * ({@link
- *   https://github.com/vellum-ai/vellum-assistant-platform/blob/main/velay/internal/velay/protocol.go
+ *   https://github.com/max-ai/max-assistant-platform/blob/main/velay/internal/velay/protocol.go
  *   `RegistrationAllowedPathsHeader`})
  * and enforces it for every inbound HTTP and WebSocket proxy request routed
  * to this tunnel.
@@ -41,7 +41,7 @@ export const VELAY_ALLOWED_PATHS: readonly string[] = Object.freeze([
  * path allowlist to Velay. The value is `JSON.stringify(VELAY_ALLOWED_PATHS)`.
  * Mirrors `RegistrationAllowedPathsHeader` on the platform side.
  */
-export const VELAY_ALLOWED_PATHS_HEADER = "X-Vellum-Velay-Allowed-Paths";
+export const VELAY_ALLOWED_PATHS_HEADER = "X-Max-Velay-Allowed-Paths";
 
 /**
  * Encoded header value to attach to the registration WS upgrade. Cached at

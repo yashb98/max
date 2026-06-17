@@ -33,7 +33,7 @@ let mockIpcResult: {
 // ---------------------------------------------------------------------------
 
 mock.module("../platform/client.js", () => ({
-  VellumPlatformClient: {
+  MaxPlatformClient: {
     create: () => mockPlatformClientCreate(),
   },
 }));
@@ -259,7 +259,7 @@ describe("config set - platform connection guard for service mode paths", () => 
     expect(exitCode).toBe(1);
     const parsed = JSON.parse(stdout);
     expect(parsed.ok).toBe(false);
-    expect(parsed.error).toContain("vellum platform connect");
+    expect(parsed.error).toContain("max platform connect");
     // The guard runs *before* the IPC call - no config_set should have been
     // emitted.
     expect(

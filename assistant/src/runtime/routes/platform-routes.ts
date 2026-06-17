@@ -39,11 +39,11 @@ import type { RouteDefinition, RouteHandlerArgs } from "./types.js";
 // ---------------------------------------------------------------------------
 
 const CREDENTIAL_KEYS = {
-  baseUrl: { service: "vellum", field: "platform_base_url" },
-  apiKey: { service: "vellum", field: "assistant_api_key" },
-  assistantId: { service: "vellum", field: "platform_assistant_id" },
-  organizationId: { service: "vellum", field: "platform_organization_id" },
-  userId: { service: "vellum", field: "platform_user_id" },
+  baseUrl: { service: "max", field: "platform_base_url" },
+  apiKey: { service: "max", field: "assistant_api_key" },
+  assistantId: { service: "max", field: "platform_assistant_id" },
+  organizationId: { service: "max", field: "platform_organization_id" },
+  userId: { service: "max", field: "platform_user_id" },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ async function handlePlatformStatus(
         CREDENTIAL_KEYS.userId.field,
       ),
     ),
-    getSecureKeyAsync(credentialKey("vellum", "webhook_secret")),
+    getSecureKeyAsync(credentialKey("max", "webhook_secret")),
   ]);
 
   const organizationId = orgIdRaw?.trim() ?? "";
@@ -239,7 +239,7 @@ async function handleCallbackRoutesList(
 
   if (!context.platformBaseUrl || !context.authHeader) {
     throw new UnprocessableEntityError(
-      "Platform credentials not available — run 'assistant platform connect' or set VELLUM_PLATFORM_URL",
+      "Platform credentials not available — run 'assistant platform connect' or set MAX_PLATFORM_URL",
     );
   }
 
@@ -297,7 +297,7 @@ export const ROUTES: RouteDefinition[] = [
     operationId: "platform_connect",
     endpoint: "platform/connect",
     method: "POST",
-    summary: "Connect to the Vellum Platform",
+    summary: "Connect to the Max Platform",
     description:
       "Checks existing credentials and emits the show_platform_login signal for connected clients to show a login UI.",
     tags: ["platform"],
@@ -307,7 +307,7 @@ export const ROUTES: RouteDefinition[] = [
     operationId: "platform_disconnect",
     endpoint: "platform/disconnect",
     method: "POST",
-    summary: "Disconnect from the Vellum Platform",
+    summary: "Disconnect from the Max Platform",
     description:
       "Deletes stored platform credentials and emits platform_disconnected signal to connected clients.",
     tags: ["platform"],

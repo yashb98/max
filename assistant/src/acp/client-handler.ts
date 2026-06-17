@@ -1,9 +1,9 @@
 /**
- * ACP client handler — bridges ACP agent events to Vellum's SSE message protocol.
+ * ACP client handler — bridges ACP agent events to Max's SSE message protocol.
  *
  * Implements the ACP SDK's Client interface, forwarding session updates,
  * permission requests, file operations, and terminal management to
- * connected Vellum clients.
+ * connected Max clients.
  */
 
 import { type ChildProcess, spawn } from "node:child_process";
@@ -45,10 +45,10 @@ interface TerminalState {
 }
 
 /**
- * Vellum's ACP Client handler. Receives events from an ACP agent and
- * forwards them as ServerMessage objects to connected Vellum clients.
+ * Max's ACP Client handler. Receives events from an ACP agent and
+ * forwards them as ServerMessage objects to connected Max clients.
  */
-export class VellumAcpClientHandler implements Client {
+export class MaxAcpClientHandler implements Client {
   private terminals = new Map<string, TerminalState>();
   private accumulatedText = "";
   /** Tracks pending ACP permission requestIds for cleanup on session close. */
@@ -61,7 +61,7 @@ export class VellumAcpClientHandler implements Client {
 
   constructor(
     private readonly acpSessionId: string,
-    private readonly sendToVellum: (msg: ServerMessage) => void,
+    private readonly sendToMax: (msg: ServerMessage) => void,
     private readonly parentConversationId: string,
   ) {}
 
@@ -76,7 +76,7 @@ export class VellumAcpClientHandler implements Client {
       case "agent_message_chunk": {
         const text = extractText(update.content);
         this.accumulatedText += text;
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "agent_message_chunk",
@@ -87,7 +87,7 @@ export class VellumAcpClientHandler implements Client {
 
       case "agent_thought_chunk": {
         const text = extractText(update.content);
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "agent_thought_chunk",
@@ -98,7 +98,7 @@ export class VellumAcpClientHandler implements Client {
 
       case "user_message_chunk": {
         const text = extractText(update.content);
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "user_message_chunk",
@@ -108,7 +108,7 @@ export class VellumAcpClientHandler implements Client {
       }
 
       case "tool_call": {
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "tool_call",
@@ -121,7 +121,7 @@ export class VellumAcpClientHandler implements Client {
       }
 
       case "tool_call_update": {
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "tool_call_update",
@@ -133,7 +133,7 @@ export class VellumAcpClientHandler implements Client {
       }
 
       case "plan": {
-        this.sendToVellum({
+        this.sendToMax({
           type: "acp_session_update",
           acpSessionId: this.acpSessionId,
           updateType: "plan",
@@ -145,7 +145,7 @@ export class VellumAcpClientHandler implements Client {
       default: {
         // Other update types (available_commands_update, current_mode_update,
         // config_option_update, session_info_update, usage_update) are not
-        // forwarded to Vellum.
+        // forwarded to Max.
         log.debug(
           {
             acpSessionId: this.acpSessionId,

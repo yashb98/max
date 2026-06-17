@@ -83,7 +83,7 @@ public struct MessageClient: MessageClientProtocol {
     ) -> [String: Any] {
         var body: [String: Any] = [
             "conversationKey": conversationKey,
-            "sourceChannel": "vellum",
+            "sourceChannel": "max",
             "interface": Self.interfaceValue
         ]
         if let content, !content.isEmpty {

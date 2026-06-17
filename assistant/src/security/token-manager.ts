@@ -8,7 +8,7 @@
  *
  * Token expiry checking, circuit breaker, refresh deduplication, and
  * credential error classification are delegated to the shared
- * `@vellumai/credential-storage` package.
+ * `@maxai/credential-storage` package.
  */
 
 import {
@@ -19,7 +19,7 @@ import {
   RefreshCircuitBreaker,
   RefreshDeduplicator,
   type SecureKeyBackend,
-} from "@vellumai/credential-storage";
+} from "@maxai/credential-storage";
 
 import { getConnectionAccessTokenResult } from "../oauth/credential-token-resolver.js";
 import {
@@ -45,7 +45,7 @@ function recoveryHint(service: string): string {
 }
 
 // ── Shared circuit breaker & deduplication instances ──────────────────
-// Backed by the portable primitives from @vellumai/credential-storage.
+// Backed by the portable primitives from @maxai/credential-storage.
 
 const circuitBreaker = new RefreshCircuitBreaker();
 const refreshDeduplicator = new RefreshDeduplicator();
@@ -74,7 +74,7 @@ export class TokenExpiredError extends Error {
 
 // ── Secure-key backend adapter ────────────────────────────────────────
 // Wraps the assistant's secure-key functions into the SecureKeyBackend
-// interface expected by @vellumai/credential-storage helpers.
+// interface expected by @maxai/credential-storage helpers.
 
 const secureKeyBackend: SecureKeyBackend = {
   get: (key: string) => getSecureKeyAsync(key),

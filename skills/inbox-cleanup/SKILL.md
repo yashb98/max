@@ -1,10 +1,10 @@
 ---
 name: inbox-cleanup
 description: Run a high-recall, multi-pass email inbox cleanup. Pattern-based subject queries catch 25x more archivable email than sender scans alone. Includes urgency triage, classification signals, and post-cleanup filter setup.
-compatibility: "Designed for Vellum personal assistants"
+compatibility: "Designed for Max personal assistants"
 metadata:
   emoji: "📭"
-  vellum:
+  max:
     display-name: "Inbox Cleanup"
     activation-hints:
       - "When the user asks to clean up, organize, or triage their email inbox"

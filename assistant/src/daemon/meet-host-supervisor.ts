@@ -537,8 +537,8 @@ export class MeetHostSupervisor {
         stdio: ["ignore", "pipe", "pipe"],
         env: {
           ...process.env,
-          VELLUM_SKILL_IPC_SOCKET: this.skillSocketPath,
-          VELLUM_SKILL_ID: "meet-join",
+          MAX_SKILL_IPC_SOCKET: this.skillSocketPath,
+          MAX_SKILL_ID: "meet-join",
         },
       },
     );

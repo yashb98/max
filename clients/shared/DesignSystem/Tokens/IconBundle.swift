@@ -7,10 +7,10 @@ extension Bundle {
     /// to the `.app` root. macOS codesigning requires resources inside `Contents/Resources/`,
     /// so SPM's accessor fails in `.app` bundles. This helper checks `resourceURL` first
     /// (correct for .app), then falls back to `bundleURL` (correct for `swift run`).
-    public static let vellumShared: Bundle = {
+    public static let maxShared: Bundle = {
         let bundleNames = [
-            "vellum-assistant_VellumAssistantShared",
-            "VellumAssistantShared_VellumAssistantShared",
+            "max-assistant_MaxAssistantShared",
+            "MaxAssistantShared_MaxAssistantShared",
         ]
 
         for bundleName in bundleNames {

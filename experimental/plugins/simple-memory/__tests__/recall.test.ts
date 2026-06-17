@@ -6,7 +6,7 @@
  * runtime. The assistant's `bun test` discovers this file via the
  * widened glob in `assistant/scripts/test.sh`.
  *
- * `@vellumai/plugin-api` is type-only here (and inside the plugin's
+ * `@maxai/plugin-api` is type-only here (and inside the plugin's
  * source), so runtime resolution is never attempted under bun test.
  */
 

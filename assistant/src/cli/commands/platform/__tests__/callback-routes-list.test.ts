@@ -80,7 +80,7 @@ describe("assistant platform callback-routes list", () => {
         type: "email",
         callback_path: "019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/email",
         callback_url:
-          "https://dev-platform.vellum.ai/v1/gateway/callbacks/019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/email/",
+          "https://dev-platform.max.ai/v1/gateway/callbacks/019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/email/",
       },
       {
         id: "route-2",
@@ -89,7 +89,7 @@ describe("assistant platform callback-routes list", () => {
         callback_path:
           "019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/telegram",
         callback_url:
-          "https://dev-platform.vellum.ai/v1/gateway/callbacks/019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/telegram/",
+          "https://dev-platform.max.ai/v1/gateway/callbacks/019d6d4f-6dbd-779f-91d3-cb273b9429a5/webhooks/telegram/",
       },
     ];
     mockResponse = { ok: true, result: { routes } };
@@ -147,7 +147,7 @@ describe("assistant platform callback-routes list", () => {
       ok: true,
       result: {
         callbackUrl:
-          "https://dev-platform.vellum.ai/v1/gateway/callbacks/asst/webhooks/telegram/",
+          "https://dev-platform.max.ai/v1/gateway/callbacks/asst/webhooks/telegram/",
         callbackPath: "webhooks/telegram",
         type: "telegram",
       },
