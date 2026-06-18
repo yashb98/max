@@ -86,6 +86,24 @@ function renameStoredChannel(raw: Database, from: string, to: string): void {
       )
       .run(`"${from}"`, `"${to}"`, `%"${from}"%`);
   }
+
+  // notification_decisions.selected_channels stores a JSON ARRAY of channel ids
+  // (e.g. ["telegram","max"]), so the desktop id appears as a quoted token inside
+  // the blob rather than as the whole cell value — the scalar-column scan above
+  // never matches it. Rewrite the quoted token in place, mirroring the
+  // messages.metadata handling. (Audit-only history: live routing uses the
+  // freshly-computed decision, so this keeps historical rows consistent rather
+  // than fixing a routing break.)
+  if (
+    tables.includes("notification_decisions") &&
+    tableColumns(raw, "notification_decisions").includes("selected_channels")
+  ) {
+    raw
+      .query(
+        `UPDATE notification_decisions SET selected_channels = REPLACE(selected_channels, ?, ?) WHERE selected_channels LIKE ?`,
+      )
+      .run(`"${from}"`, `"${to}"`, `%"${from}"%`);
+  }
 }
 
 /**

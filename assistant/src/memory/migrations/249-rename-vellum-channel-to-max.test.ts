@@ -53,6 +53,13 @@ function bootstrapTables(raw: Database): void {
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL
     );
+
+    -- selected_channels stores a JSON ARRAY of channel ids, so the desktop id
+    -- appears as a quoted token inside the blob rather than the whole cell value.
+    CREATE TABLE notification_decisions (
+      id TEXT PRIMARY KEY,
+      selected_channels TEXT NOT NULL DEFAULT '[]'
+    );
   `);
 
   raw.exec(/*sql*/ `
@@ -66,6 +73,10 @@ function bootstrapTables(raw: Database): void {
       ('m1', 'vellum', '{"userMessageChannel":"vellum","note":"keep"}'),
       ('m2', 'telegram', '{"userMessageChannel":"telegram"}');
     INSERT INTO contact_channels (id, type) VALUES ('cc1', 'vellum');
+    INSERT INTO notification_decisions (id, selected_channels) VALUES
+      ('n1', '["vellum"]'),
+      ('n2', '["telegram","vellum"]'),
+      ('n3', '["telegram"]');
   `);
 }
 
@@ -93,6 +104,30 @@ describe("249 rename vellum channel to max", () => {
       .get() as { user_message_channel: string; metadata: string };
     expect(msg.user_message_channel).toBe("max");
     expect(msg.metadata).toBe('{"userMessageChannel":"max","note":"keep"}');
+  });
+
+  test("rewrites the vellum token inside the selected_channels JSON array", () => {
+    const db = createTestDb();
+    const raw = getSqliteFrom(db);
+    bootstrapTables(raw);
+
+    migrateRenameVellumChannelToMax(db);
+
+    const only = raw
+      .query(`SELECT selected_channels FROM notification_decisions WHERE id = 'n1'`)
+      .get() as { selected_channels: string };
+    expect(only.selected_channels).toBe('["max"]');
+
+    const mixed = raw
+      .query(`SELECT selected_channels FROM notification_decisions WHERE id = 'n2'`)
+      .get() as { selected_channels: string };
+    expect(mixed.selected_channels).toBe('["telegram","max"]');
+
+    // No desktop channel present → array must be left exactly as-is.
+    const none = raw
+      .query(`SELECT selected_channels FROM notification_decisions WHERE id = 'n3'`)
+      .get() as { selected_channels: string };
+    expect(none.selected_channels).toBe('["telegram"]');
   });
 
   test("leaves non-vellum channel values and non-channel columns untouched", () => {
