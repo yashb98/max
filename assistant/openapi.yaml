@@ -8687,7 +8687,10 @@ paths:
                           type: string
                           enum:
                             - anthropic
+                            - claude-subscription
                             - openai
+                            - kimi
+                            - kimi-agent
                             - gemini
                             - ollama
                             - fireworks
@@ -8766,6 +8769,14 @@ paths:
                           maximum: 9007199254740991
                         isManaged:
                           type: boolean
+                        reachable:
+                          anyOf:
+                            - type: boolean
+                            - type: "null"
+                        lastSeenAt:
+                          anyOf:
+                            - type: string
+                            - type: "null"
                       required:
                         - name
                         - provider
@@ -8775,6 +8786,8 @@ paths:
                         - createdAt
                         - updatedAt
                         - isManaged
+                        - reachable
+                        - lastSeenAt
                       additionalProperties: false
                 required:
                   - connections
@@ -8785,7 +8798,9 @@ paths:
           required: false
           schema:
             type: string
-          description: "Filter by provider. One of: anthropic, openai, gemini, ollama, fireworks, openrouter"
+          description:
+            "Filter by provider. One of: anthropic, claude-subscription, openai, kimi, kimi-agent, gemini, ollama,
+            fireworks, openrouter"
     post:
       operationId: inference_providerconnections_post
       summary: Create a provider connection
@@ -8807,7 +8822,10 @@ paths:
                     type: string
                     enum:
                       - anthropic
+                      - claude-subscription
                       - openai
+                      - kimi
+                      - kimi-agent
                       - gemini
                       - ollama
                       - fireworks
@@ -8886,6 +8904,14 @@ paths:
                     maximum: 9007199254740991
                   isManaged:
                     type: boolean
+                  reachable:
+                    anyOf:
+                      - type: boolean
+                      - type: "null"
+                  lastSeenAt:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                 required:
                   - name
                   - provider
@@ -8895,6 +8921,8 @@ paths:
                   - createdAt
                   - updatedAt
                   - isManaged
+                  - reachable
+                  - lastSeenAt
                 additionalProperties: false
         "400":
           description: Invalid provider or auth schema
@@ -8914,7 +8942,10 @@ paths:
                   type: string
                   enum:
                     - anthropic
+                    - claude-subscription
                     - openai
+                    - kimi
+                    - kimi-agent
                     - gemini
                     - ollama
                     - fireworks
@@ -9043,7 +9074,10 @@ paths:
                     type: string
                     enum:
                       - anthropic
+                      - claude-subscription
                       - openai
+                      - kimi
+                      - kimi-agent
                       - gemini
                       - ollama
                       - fireworks
@@ -9122,6 +9156,14 @@ paths:
                     maximum: 9007199254740991
                   isManaged:
                     type: boolean
+                  reachable:
+                    anyOf:
+                      - type: boolean
+                      - type: "null"
+                  lastSeenAt:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                 required:
                   - name
                   - provider
@@ -9131,6 +9173,8 @@ paths:
                   - createdAt
                   - updatedAt
                   - isManaged
+                  - reachable
+                  - lastSeenAt
                 additionalProperties: false
         "404":
           description: Connection not found
@@ -9164,7 +9208,10 @@ paths:
                     type: string
                     enum:
                       - anthropic
+                      - claude-subscription
                       - openai
+                      - kimi
+                      - kimi-agent
                       - gemini
                       - ollama
                       - fireworks
@@ -9243,6 +9290,14 @@ paths:
                     maximum: 9007199254740991
                   isManaged:
                     type: boolean
+                  reachable:
+                    anyOf:
+                      - type: boolean
+                      - type: "null"
+                  lastSeenAt:
+                    anyOf:
+                      - type: string
+                      - type: "null"
                 required:
                   - name
                   - provider
@@ -9252,6 +9307,8 @@ paths:
                   - createdAt
                   - updatedAt
                   - isManaged
+                  - reachable
+                  - lastSeenAt
                 additionalProperties: false
         "400":
           description: Invalid auth schema, or attempt to change auth on a managed connection
@@ -11781,6 +11838,116 @@ paths:
           required: true
           schema:
             type: string
+  /v1/provider-availability:
+    get:
+      operationId: provideravailability_get
+      summary: Per-provider availability for setup-hint UX
+      description:
+        Returns a map keyed by provider id. Each value is { available, reason? } where reason narrows the cause
+        when unavailable (missing-cli, not-logged-in, not-enabled, no-api-key).
+      tags:
+        - providers
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                propertyNames:
+                  type: string
+                additionalProperties:
+                  type: object
+                  properties:
+                    available:
+                      type: boolean
+                    reason:
+                      type: string
+                      enum:
+                        - missing-cli
+                        - not-logged-in
+                        - not-enabled
+                        - no-api-key
+                  required:
+                    - available
+                  additionalProperties: false
+      parameters:
+        - name: fresh
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Set to 'true' to invalidate the daemon's availability cache before evaluation.
+  /v1/provider-availability/{id}:
+    get:
+      operationId: provideravailability_by_id_get
+      summary: Single-provider availability lookup
+      tags:
+        - providers
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  reason:
+                    type: string
+                    enum:
+                      - missing-cli
+                      - not-logged-in
+                      - not-enabled
+                      - no-api-key
+                required:
+                  - available
+                additionalProperties: false
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fresh
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Set to 'true' to invalidate the daemon's availability cache before evaluation.
+  /v1/provider-login:
+    post:
+      operationId: providerlogin_post
+      summary: Drive an agentic provider's OAuth login and capture the credential
+      description:
+        Starts the provider's login flow (kimi-agent via the SDK, claude-subscription via the CLI). The OAuth URL
+        is opened in the host browser. Returns { success, reason?, error? }.
+      tags:
+        - providers
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  reason:
+                    type: string
+                    enum:
+                      - unsupported-provider
+                      - cli-error
+                      - cancelled
+                      - no-token-captured
+                      - subscription-required
+                  error:
+                    type: string
+                required:
+                  - success
+                additionalProperties: false
   /v1/ps:
     get:
       operationId: ps_get
@@ -13903,9 +14070,7 @@ paths:
                   description: Replace an existing install. Defaults to true for back-compat with the legacy in-process API.
                   type: boolean
                 catalogOnly:
-                  description:
-                    When true, restrict to bundled and Max catalog skills only — do not fall through to community
-                    registries.
+                  description: When true, restrict to bundled and Max catalog skills only — do not fall through to community registries.
                   type: boolean
               required:
                 - slug
