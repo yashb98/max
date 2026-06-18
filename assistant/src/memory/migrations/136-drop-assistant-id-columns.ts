@@ -71,6 +71,11 @@ export function migrateDropAssistantIdColumns(database: DrizzleDb): void {
   withCrashRecovery(database, "migration_drop_assistant_id_columns_v1", () => {
     const raw = getSqliteFrom(database);
 
+    const tableExists = (name: string): boolean =>
+      raw
+        .query(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?`)
+        .get(name) != null;
+
     // The 16 tables that carry assistant_id.
     const tables = [
       "contacts",
@@ -300,15 +305,25 @@ export function migrateDropAssistantIdColumns(database: DrizzleDb): void {
       /*sql*/ `CREATE INDEX IF NOT EXISTS idx_conv_attn_state_last_seen ON conversation_assistant_attention_state(last_seen_assistant_message_at)`,
     );
 
-    // actor_token_records
-    raw.exec(
-      /*sql*/ `CREATE UNIQUE INDEX IF NOT EXISTS idx_actor_tokens_active_device ON actor_token_records(guardian_principal_id, hashed_device_id) WHERE status = 'active'`,
-    );
+    // actor_token_records / actor_refresh_token_records
+    // These tables are created by migrations 038/039, which are not wired into
+    // db-init — so on a fresh install they never exist when this migration runs.
+    // Unlike the column-drop loop above (guarded per-table), these index
+    // recreations were unconditional and threw "no such table", marking the
+    // whole migration failed AFTER its real work had already completed. Guard
+    // them so the recreation is skipped when the table is absent; when the table
+    // does exist (older installs that ran 038/039) the index is recreated as before.
+    if (tableExists("actor_token_records")) {
+      raw.exec(
+        /*sql*/ `CREATE UNIQUE INDEX IF NOT EXISTS idx_actor_tokens_active_device ON actor_token_records(guardian_principal_id, hashed_device_id) WHERE status = 'active'`,
+      );
+    }
 
-    // actor_refresh_token_records
-    raw.exec(
-      /*sql*/ `CREATE UNIQUE INDEX IF NOT EXISTS idx_refresh_tokens_active_device ON actor_refresh_token_records(guardian_principal_id, hashed_device_id) WHERE status = 'active'`,
-    );
+    if (tableExists("actor_refresh_token_records")) {
+      raw.exec(
+        /*sql*/ `CREATE UNIQUE INDEX IF NOT EXISTS idx_refresh_tokens_active_device ON actor_refresh_token_records(guardian_principal_id, hashed_device_id) WHERE status = 'active'`,
+      );
+    }
 
     log.info("Completed dropping assistant_id columns from all tables");
   });
